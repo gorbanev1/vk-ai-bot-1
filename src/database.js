@@ -17,6 +17,7 @@ const database = new DatabaseSync(
 database.exec(`
     PRAGMA journal_mode = WAL;
     PRAGMA synchronous = NORMAL;
+    PRAGMA foreign_keys = ON;
 
     CREATE TABLE IF NOT EXISTS messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,7 +47,7 @@ database.exec(`
     );
 
     CREATE INDEX IF NOT EXISTS dossier_facts_lookup_idx
-    ON dossier_facts (peer_id, user_id, rating DESC);
+    ON dossier_facts (peer_id, user_id, rating DESC, updated_at DESC);
 
     CREATE TABLE IF NOT EXISTS dossier_daily_runs (
         peer_id INTEGER NOT NULL,
@@ -55,6 +56,26 @@ database.exec(`
         processed_at INTEGER NOT NULL,
         PRIMARY KEY (peer_id, user_id, source_day)
     );
+
+    CREATE TABLE IF NOT EXISTS participant_styles (
+        peer_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        profile_text TEXT NOT NULL DEFAULT '',
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (peer_id, user_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS interaction_memory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        peer_id INTEGER NOT NULL,
+        user_id INTEGER NOT NULL,
+        role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+        text TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS interaction_memory_lookup_idx
+    ON interaction_memory (peer_id, user_id, created_at DESC, id DESC);
 `);
 
 const insertMessageStatement = database.prepare(`
@@ -116,6 +137,21 @@ const messagesSinceStatement = database.prepare(`
     WHERE peer_id = ?
       AND created_at >= ?
     ORDER BY created_at ASC, id ASC
+    LIMIT ?
+`);
+
+const recentParticipantMessagesStatement = database.prepare(`
+    SELECT
+        peer_id,
+        sender_id,
+        conversation_message_id,
+        text,
+        created_at
+    FROM messages
+    WHERE peer_id = ?
+      AND sender_id = ?
+      AND text <> ''
+    ORDER BY created_at DESC, id DESC
     LIMIT ?
 `);
 
@@ -193,6 +229,63 @@ const markDailyRunStatement = database.prepare(`
     ) VALUES (?, ?, ?, ?)
 `);
 
+const participantStyleStatement = database.prepare(`
+    SELECT
+        profile_text,
+        updated_at
+    FROM participant_styles
+    WHERE peer_id = ?
+      AND user_id = ?
+`);
+
+const upsertParticipantStyleStatement = database.prepare(`
+    INSERT INTO participant_styles (
+        peer_id,
+        user_id,
+        profile_text,
+        updated_at
+    ) VALUES (?, ?, ?, ?)
+    ON CONFLICT (peer_id, user_id) DO UPDATE SET
+        profile_text = excluded.profile_text,
+        updated_at = excluded.updated_at
+`);
+
+const insertInteractionStatement = database.prepare(`
+    INSERT INTO interaction_memory (
+        peer_id,
+        user_id,
+        role,
+        text,
+        created_at
+    ) VALUES (?, ?, ?, ?, ?)
+`);
+
+const recentInteractionsStatement = database.prepare(`
+    SELECT
+        role,
+        text,
+        created_at
+    FROM interaction_memory
+    WHERE peer_id = ?
+      AND user_id = ?
+    ORDER BY created_at DESC, id DESC
+    LIMIT ?
+`);
+
+const trimInteractionsStatement = database.prepare(`
+    DELETE FROM interaction_memory
+    WHERE peer_id = ?
+      AND user_id = ?
+      AND id NOT IN (
+          SELECT id
+          FROM interaction_memory
+          WHERE peer_id = ?
+            AND user_id = ?
+          ORDER BY created_at DESC, id DESC
+          LIMIT ?
+      )
+`);
+
 function mapMessage(row) {
     return {
         peerId: Number(row.peer_id),
@@ -219,10 +312,15 @@ export function saveIncomingMessage({
     text,
     createdAt = Math.floor(Date.now() / 1000),
 }) {
+    const safeConversationMessageId =
+        Number.isSafeInteger(Number(conversationMessageId))
+            ? Number(conversationMessageId)
+            : Number(createdAt) * 100000 + Math.floor(Math.random() * 100000);
+
     insertMessageStatement.run(
         Number(peerId),
         Number(senderId),
-        Number(conversationMessageId),
+        safeConversationMessageId,
         String(text ?? ''),
         Number(createdAt),
     );
@@ -266,6 +364,17 @@ export function getMessagesSince(peerId, sinceTimestamp, limit) {
             Number(limit),
         )
         .map(mapMessage);
+}
+
+export function getRecentParticipantMessages(peerId, userId, limit = 12) {
+    return recentParticipantMessagesStatement
+        .all(
+            Number(peerId),
+            Number(userId),
+            Number(limit),
+        )
+        .map(mapMessage)
+        .reverse();
 }
 
 export function getParticipantPairsBetween(startTimestamp, endTimestamp) {
@@ -383,4 +492,79 @@ export function markDossierDailyRun(peerId, userId, sourceDay) {
         String(sourceDay),
         Math.floor(Date.now() / 1000),
     );
+}
+
+export function getParticipantStyle(peerId, userId) {
+    const row = participantStyleStatement.get(
+        Number(peerId),
+        Number(userId),
+    );
+
+    return row
+        ? {
+            profileText: String(row.profile_text ?? ''),
+            updatedAt: Number(row.updated_at),
+        }
+        : {
+            profileText: '',
+            updatedAt: 0,
+        };
+}
+
+export function setParticipantStyle(peerId, userId, profileText) {
+    upsertParticipantStyleStatement.run(
+        Number(peerId),
+        Number(userId),
+        String(profileText ?? '').trim(),
+        Math.floor(Date.now() / 1000),
+    );
+}
+
+export function saveInteraction({
+    peerId,
+    userId,
+    role,
+    text,
+    createdAt = Math.floor(Date.now() / 1000),
+}) {
+    if (!['user', 'assistant'].includes(role)) {
+        throw new TypeError(`Неизвестная роль памяти: ${role}`);
+    }
+
+    const cleanText = String(text ?? '').trim();
+
+    if (!cleanText) {
+        return;
+    }
+
+    insertInteractionStatement.run(
+        Number(peerId),
+        Number(userId),
+        role,
+        cleanText,
+        Number(createdAt),
+    );
+
+    trimInteractionsStatement.run(
+        Number(peerId),
+        Number(userId),
+        Number(peerId),
+        Number(userId),
+        200,
+    );
+}
+
+export function getRecentInteractions(peerId, userId, limit = 16) {
+    return recentInteractionsStatement
+        .all(
+            Number(peerId),
+            Number(userId),
+            Number(limit),
+        )
+        .map((row) => ({
+            role: String(row.role),
+            text: String(row.text ?? ''),
+            createdAt: Number(row.created_at),
+        }))
+        .reverse();
 }
