@@ -1,0 +1,6 @@
+@"
+node_modules/
+.env
+data/
+*.log
+"@ | Set-Content .gitignore.idea/

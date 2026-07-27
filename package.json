@@ -1,0 +1,19 @@
+{
+  "name": "vk-ai-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.17.1",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "gigachat": "^0.0.20",
+    "vk-io": "^4.10.1"
+  }
+}
