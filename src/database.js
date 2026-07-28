@@ -76,6 +76,26 @@ database.exec(`
 
     CREATE INDEX IF NOT EXISTS interaction_memory_lookup_idx
     ON interaction_memory (peer_id, user_id, created_at DESC, id DESC);
+
+    CREATE TABLE IF NOT EXISTS user_rate_limits (
+        user_id INTEGER PRIMARY KEY,
+        window_started_at INTEGER NOT NULL,
+        request_count INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS gpt_daily_rate_limits (
+        user_id INTEGER PRIMARY KEY,
+        day_key TEXT NOT NULL,
+        request_count INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS gpt_model_daily_rate_limits (
+        user_id INTEGER NOT NULL,
+        bucket TEXT NOT NULL,
+        day_key TEXT NOT NULL,
+        request_count INTEGER NOT NULL,
+        PRIMARY KEY (user_id, bucket)
+    );
 `);
 
 const insertMessageStatement = database.prepare(`
@@ -284,6 +304,108 @@ const trimInteractionsStatement = database.prepare(`
           ORDER BY created_at DESC, id DESC
           LIMIT ?
       )
+`);
+
+const userRateLimitStatement = database.prepare(`
+    SELECT
+        window_started_at,
+        request_count
+    FROM user_rate_limits
+    WHERE user_id = ?
+`);
+
+const upsertUserRateLimitStatement = database.prepare(`
+    INSERT INTO user_rate_limits (
+        user_id,
+        window_started_at,
+        request_count
+    ) VALUES (?, ?, ?)
+    ON CONFLICT (user_id) DO UPDATE SET
+        window_started_at = excluded.window_started_at,
+        request_count = excluded.request_count
+`);
+
+const refundUserRateLimitStatement = database.prepare(`
+    UPDATE user_rate_limits
+    SET request_count = CASE
+        WHEN request_count > 0 THEN request_count - 1
+        ELSE 0
+    END
+    WHERE user_id = ?
+      AND window_started_at = ?
+`);
+
+const gptDailyRateLimitStatement = database.prepare(`
+    SELECT
+        day_key,
+        request_count
+    FROM gpt_daily_rate_limits
+    WHERE user_id = ?
+`);
+
+const upsertGptDailyRateLimitStatement = database.prepare(`
+    INSERT INTO gpt_daily_rate_limits (
+        user_id,
+        day_key,
+        request_count
+    ) VALUES (?, ?, ?)
+    ON CONFLICT (user_id) DO UPDATE SET
+        day_key = excluded.day_key,
+        request_count = excluded.request_count
+`);
+
+const refundGptDailyRateLimitStatement = database.prepare(`
+    UPDATE gpt_daily_rate_limits
+    SET request_count = CASE
+        WHEN request_count > 0 THEN request_count - 1
+        ELSE 0
+    END
+    WHERE user_id = ?
+      AND day_key = ?
+`);
+
+const gptModelDailyRateLimitStatement = database.prepare(`
+    SELECT
+        day_key,
+        request_count
+    FROM gpt_model_daily_rate_limits
+    WHERE user_id = ?
+      AND bucket = ?
+`);
+
+const upsertGptModelDailyRateLimitStatement = database.prepare(`
+    INSERT INTO gpt_model_daily_rate_limits (
+        user_id,
+        bucket,
+        day_key,
+        request_count
+    ) VALUES (?, ?, ?, ?)
+    ON CONFLICT (user_id, bucket) DO UPDATE SET
+        day_key = excluded.day_key,
+        request_count = excluded.request_count
+`);
+
+const refundGptModelDailyRateLimitStatement = database.prepare(`
+    UPDATE gpt_model_daily_rate_limits
+    SET request_count = CASE
+        WHEN request_count > 0 THEN request_count - 1
+        ELSE 0
+    END
+    WHERE user_id = ?
+      AND bucket = ?
+      AND day_key = ?
+`);
+
+const clearUserRateLimitsStatement = database.prepare(`
+    DELETE FROM user_rate_limits
+`);
+
+const clearGptDailyRateLimitsStatement = database.prepare(`
+    DELETE FROM gpt_daily_rate_limits
+`);
+
+const clearGptModelDailyRateLimitsStatement = database.prepare(`
+    DELETE FROM gpt_model_daily_rate_limits
 `);
 
 function mapMessage(row) {
@@ -567,4 +689,383 @@ export function getRecentInteractions(peerId, userId, limit = 16) {
             createdAt: Number(row.created_at),
         }))
         .reverse();
+}
+
+export function consumeUserRateLimit({
+    userId,
+    limit = 10,
+    windowSeconds = 3600,
+    now = Math.floor(Date.now() / 1000),
+}) {
+    const safeUserId = Number(userId);
+    const safeLimit = Number(limit);
+    const safeWindowSeconds = Number(windowSeconds);
+    const safeNow = Number(now);
+
+    if (!Number.isSafeInteger(safeUserId) || safeUserId <= 0) {
+        throw new TypeError('userId должен быть положительным целым числом');
+    }
+
+    if (!Number.isSafeInteger(safeLimit) || safeLimit <= 0) {
+        throw new TypeError('limit должен быть положительным целым числом');
+    }
+
+    if (
+        !Number.isSafeInteger(safeWindowSeconds) ||
+        safeWindowSeconds <= 0
+    ) {
+        throw new TypeError(
+            'windowSeconds должен быть положительным целым числом',
+        );
+    }
+
+    if (!Number.isSafeInteger(safeNow) || safeNow <= 0) {
+        throw new TypeError('now должен быть положительным Unix-временем');
+    }
+
+    database.exec('BEGIN IMMEDIATE');
+
+    try {
+        const row = userRateLimitStatement.get(safeUserId);
+
+        let windowStartedAt = row
+            ? Number(row.window_started_at)
+            : safeNow;
+
+        let requestCount = row
+            ? Number(row.request_count)
+            : 0;
+
+        if (
+            !row ||
+            safeNow >= windowStartedAt + safeWindowSeconds
+        ) {
+            windowStartedAt = safeNow;
+            requestCount = 0;
+        }
+
+        const resetAt = windowStartedAt + safeWindowSeconds;
+
+        if (requestCount >= safeLimit) {
+            database.exec('COMMIT');
+
+            return {
+                allowed: false,
+                limit: safeLimit,
+                used: requestCount,
+                remaining: 0,
+                windowStartedAt,
+                resetAt,
+            };
+        }
+
+        requestCount += 1;
+
+        upsertUserRateLimitStatement.run(
+            safeUserId,
+            windowStartedAt,
+            requestCount,
+        );
+
+        database.exec('COMMIT');
+
+        return {
+            allowed: true,
+            limit: safeLimit,
+            used: requestCount,
+            remaining: Math.max(0, safeLimit - requestCount),
+            windowStartedAt,
+            resetAt,
+        };
+    } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+    }
+}
+
+
+
+export function refundUserRateLimit({
+    userId,
+    windowStartedAt,
+}) {
+    const safeUserId = Number(userId);
+    const safeWindowStartedAt = Number(windowStartedAt);
+
+    if (!Number.isSafeInteger(safeUserId) || safeUserId <= 0) {
+        throw new TypeError('userId должен быть положительным целым числом');
+    }
+
+    if (
+        !Number.isSafeInteger(safeWindowStartedAt) ||
+        safeWindowStartedAt <= 0
+    ) {
+        throw new TypeError(
+            'windowStartedAt должен быть положительным Unix-временем',
+        );
+    }
+
+    database.exec('BEGIN IMMEDIATE');
+
+    try {
+        const result = refundUserRateLimitStatement.run(
+            safeUserId,
+            safeWindowStartedAt,
+        );
+
+        database.exec('COMMIT');
+
+        return Number(result.changes ?? 0) > 0;
+    } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+    }
+}
+
+export function consumeGptDailyRateLimit({
+    userId,
+    dayKey,
+    limit = 5,
+    resetAt,
+}) {
+    const safeUserId = Number(userId);
+    const safeDayKey = String(dayKey ?? '').trim();
+    const safeLimit = Number(limit);
+    const safeResetAt = Number(resetAt);
+
+    if (!Number.isSafeInteger(safeUserId) || safeUserId <= 0) {
+        throw new TypeError('userId должен быть положительным целым числом');
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/u.test(safeDayKey)) {
+        throw new TypeError('dayKey должен иметь формат YYYY-MM-DD');
+    }
+
+    if (!Number.isSafeInteger(safeLimit) || safeLimit <= 0) {
+        throw new TypeError('limit должен быть положительным целым числом');
+    }
+
+    if (!Number.isSafeInteger(safeResetAt) || safeResetAt <= 0) {
+        throw new TypeError('resetAt должен быть положительным Unix-временем');
+    }
+
+    database.exec('BEGIN IMMEDIATE');
+
+    try {
+        const row = gptDailyRateLimitStatement.get(safeUserId);
+        let requestCount = row && String(row.day_key) === safeDayKey
+            ? Number(row.request_count)
+            : 0;
+
+        if (requestCount >= safeLimit) {
+            database.exec('COMMIT');
+
+            return {
+                allowed: false,
+                limit: safeLimit,
+                used: requestCount,
+                remaining: 0,
+                dayKey: safeDayKey,
+                resetAt: safeResetAt,
+            };
+        }
+
+        requestCount += 1;
+
+        upsertGptDailyRateLimitStatement.run(
+            safeUserId,
+            safeDayKey,
+            requestCount,
+        );
+
+        database.exec('COMMIT');
+
+        return {
+            allowed: true,
+            limit: safeLimit,
+            used: requestCount,
+            remaining: Math.max(0, safeLimit - requestCount),
+            dayKey: safeDayKey,
+            resetAt: safeResetAt,
+        };
+    } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+    }
+}
+
+export function refundGptDailyRateLimit({ userId, dayKey }) {
+    const safeUserId = Number(userId);
+    const safeDayKey = String(dayKey ?? '').trim();
+
+    if (!Number.isSafeInteger(safeUserId) || safeUserId <= 0) {
+        throw new TypeError('userId должен быть положительным целым числом');
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/u.test(safeDayKey)) {
+        throw new TypeError('dayKey должен иметь формат YYYY-MM-DD');
+    }
+
+    database.exec('BEGIN IMMEDIATE');
+
+    try {
+        const result = refundGptDailyRateLimitStatement.run(
+            safeUserId,
+            safeDayKey,
+        );
+
+        database.exec('COMMIT');
+        return Number(result.changes ?? 0) > 0;
+    } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+    }
+}
+
+export function consumeGptModelDailyRateLimit({
+    userId,
+    bucket,
+    dayKey,
+    limit,
+    resetAt,
+}) {
+    const safeUserId = Number(userId);
+    const safeBucket = String(bucket ?? '').trim().toLowerCase();
+    const safeDayKey = String(dayKey ?? '').trim();
+    const safeLimit = Number(limit);
+    const safeResetAt = Number(resetAt);
+
+    if (!Number.isSafeInteger(safeUserId) || safeUserId <= 0) {
+        throw new TypeError('userId должен быть положительным целым числом');
+    }
+
+    if (!/^[a-z0-9_-]{1,32}$/u.test(safeBucket)) {
+        throw new TypeError('bucket содержит недопустимые символы');
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/u.test(safeDayKey)) {
+        throw new TypeError('dayKey должен иметь формат YYYY-MM-DD');
+    }
+
+    if (!Number.isSafeInteger(safeLimit) || safeLimit <= 0) {
+        throw new TypeError('limit должен быть положительным целым числом');
+    }
+
+    if (!Number.isSafeInteger(safeResetAt) || safeResetAt <= 0) {
+        throw new TypeError('resetAt должен быть положительным Unix-временем');
+    }
+
+    database.exec('BEGIN IMMEDIATE');
+
+    try {
+        const row = gptModelDailyRateLimitStatement.get(
+            safeUserId,
+            safeBucket,
+        );
+        let requestCount = row && String(row.day_key) === safeDayKey
+            ? Number(row.request_count)
+            : 0;
+
+        if (requestCount >= safeLimit) {
+            database.exec('COMMIT');
+
+            return {
+                allowed: false,
+                limit: safeLimit,
+                used: requestCount,
+                remaining: 0,
+                bucket: safeBucket,
+                dayKey: safeDayKey,
+                resetAt: safeResetAt,
+            };
+        }
+
+        requestCount += 1;
+
+        upsertGptModelDailyRateLimitStatement.run(
+            safeUserId,
+            safeBucket,
+            safeDayKey,
+            requestCount,
+        );
+
+        database.exec('COMMIT');
+
+        return {
+            allowed: true,
+            limit: safeLimit,
+            used: requestCount,
+            remaining: Math.max(0, safeLimit - requestCount),
+            bucket: safeBucket,
+            dayKey: safeDayKey,
+            resetAt: safeResetAt,
+        };
+    } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+    }
+}
+
+export function refundGptModelDailyRateLimit({
+    userId,
+    bucket,
+    dayKey,
+}) {
+    const safeUserId = Number(userId);
+    const safeBucket = String(bucket ?? '').trim().toLowerCase();
+    const safeDayKey = String(dayKey ?? '').trim();
+
+    if (!Number.isSafeInteger(safeUserId) || safeUserId <= 0) {
+        throw new TypeError('userId должен быть положительным целым числом');
+    }
+
+    if (!/^[a-z0-9_-]{1,32}$/u.test(safeBucket)) {
+        throw new TypeError('bucket содержит недопустимые символы');
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/u.test(safeDayKey)) {
+        throw new TypeError('dayKey должен иметь формат YYYY-MM-DD');
+    }
+
+    database.exec('BEGIN IMMEDIATE');
+
+    try {
+        const result = refundGptModelDailyRateLimitStatement.run(
+            safeUserId,
+            safeBucket,
+            safeDayKey,
+        );
+
+        database.exec('COMMIT');
+        return Number(result.changes ?? 0) > 0;
+    } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+    }
+}
+
+export function resetAllRateLimits() {
+    database.exec('BEGIN IMMEDIATE');
+
+    try {
+        const hourlyResult = clearUserRateLimitsStatement.run();
+        const legacyGptResult = clearGptDailyRateLimitsStatement.run();
+        const modelGptResult = clearGptModelDailyRateLimitsStatement.run();
+
+        database.exec('COMMIT');
+
+        const hourly = Number(hourlyResult.changes ?? 0);
+        const gptLegacy = Number(legacyGptResult.changes ?? 0);
+        const gptModels = Number(modelGptResult.changes ?? 0);
+
+        return {
+            hourly,
+            gptLegacy,
+            gptModels,
+            total: hourly + gptLegacy + gptModels,
+        };
+    } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+    }
 }
