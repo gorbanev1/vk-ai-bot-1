@@ -1,6 +1,10 @@
-@"
 node_modules/
 .env
 data/
+backup/
 *.log
-"@ | Set-Content .gitignore.idea/
+*.zip
+.idea/
+data/scraper-browser-profile/
+data/scraper-captcha/
+data/scraper-debug/

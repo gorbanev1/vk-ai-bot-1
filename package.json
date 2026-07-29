@@ -3,11 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "VK chat bot powered by GigaChat",
+  "description": "VK chat bot powered by GPT with optional explicit GigaChat routing",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "node --watch src/index.js"
+    "dev": "node --watch src/index.js",
+    "test:stream": "node tests/openAIStream.test.mjs",
+    "test:routing": "node tests/gptModeRouting.test.mjs",
+    "test:image-stream": "node tests/openAIImageStream.test.mjs",
+    "test:scraper-routing": "node tests/scraperCommandRouting.test.mjs",
+    "test:response-length": "node tests/responseLengthRouting.test.mjs",
+    "test": "npm run test:stream && npm run test:routing && npm run test:astrology-routing && npm run test:natal-routing && npm run test:chat-context && npm run test:image-stream && npm run test:scraper-routing && npm run test:response-length && npm run test:event-source && npm run test:event-dedupe && npm run test:event-metadata && npm run test:memory && npm run test:telegram && npm run test:unknown-terms && npm run test:communication-style && npm run test:communication-style-db",
+    "test:chat-context": "node tests/chatContextRouting.test.mjs",
+    "test:event-source": "node tests/vkChatEventSource.test.mjs",
+    "test:event-dedupe": "node tests/eventDeduplication.test.mjs",
+    "test:event-metadata": "node tests/eventMetadata.test.mjs",
+    "test:memory": "node tests/memoryRouting.test.mjs",
+    "test:telegram": "node tests/telegramBot.test.mjs",
+    "test:unknown-terms": "node tests/unknownTermRouting.test.mjs",
+    "test:astrology-routing": "node tests/astrologyRouting.test.mjs",
+    "test:natal-routing": "node tests/natalRouting.test.mjs",
+    "test:communication-style": "node tests/communicationStyleRouting.test.mjs",
+    "test:communication-style-db": "node tests/communicationStyleDatabase.test.mjs"
   },
   "engines": {
     "node": ">=24"
@@ -16,6 +33,8 @@
   "dependencies": {
     "dotenv": "^17.4.2",
     "gigachat": "^0.0.20",
-    "vk-io": "^4.10.1"
+    "sweph": "2.10.3-7",
+    "vk-io": "^4.10.1",
+    "playwright": "latest"
   }
 }
