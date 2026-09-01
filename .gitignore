@@ -8,3 +8,9 @@ backup/
 data/scraper-browser-profile/
 data/scraper-captcha/
 data/scraper-debug/
+AI_FULL_AUDIT_RESULTS/
+GRAPHICS_MATRIX_RESULTS/
+AI_KEYS_LIVE_CHECK_REPORT.txt
+AI_KEYS_LIVE_CHECK_REPORT.json
+
+.env.before-ai-key-cleanup-*.bak
