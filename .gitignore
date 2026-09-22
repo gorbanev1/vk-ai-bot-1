@@ -6,3 +6,9 @@
 data/
 AI_FULL_AUDIT_RESULTS.old*/
 _data_recovery_conflicts/
+.idea/
+node_modules/
+backup/
+_packed_cleanup/
+AI_FULL_AUDIT_RESULTS/
+AI_KEYS_LIVE_CHECK_REPORT.*
