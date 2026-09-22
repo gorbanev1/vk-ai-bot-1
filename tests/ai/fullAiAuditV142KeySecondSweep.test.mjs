@@ -42,7 +42,7 @@ function sseResponse(text = 'GIGORAVE_AUDIT_OK') {
 test('V142 does a complete second key sweep across all models and recovers a key before cleanup', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'gigorave-v142-key-sweep-'));
     const env = {
-        OPENAI_API_KEY_1: 'TEST_OPENAI_KEY_REDACTED',
+        OPENAI_API_KEY_1: 'TEST_OPENAI_V142_VALID_BUT_FLAKY',
         AI_AUDIT_TARGETED_RETRY_MAX_MODELS: '0',
         AI_AUDIT_MODEL_CONCURRENCY: '2',
         AI_AUDIT_PER_KEY_MODEL_CONCURRENCY: '1',
@@ -132,7 +132,7 @@ test('V142 does a complete second key sweep across all models and recovers a key
 test('V142 marks a key dead-confirmed only after the full second model sweep still has zero working modes', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'gigorave-v142-key-dead-'));
     const env = {
-        OPENAI_API_KEY_1: 'TEST_OPENAI_KEY_REDACTED',
+        OPENAI_API_KEY_1: 'TEST_OPENAI_V142_QUOTA_DEAD',
         AI_AUDIT_TARGETED_RETRY_MAX_MODELS: '0',
     };
     const keyAuditRunner = async () => ({

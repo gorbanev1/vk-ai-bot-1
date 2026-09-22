@@ -47,7 +47,7 @@ mkdirSync(staleRoot, { recursive: true });
 writeFileSync(join(staleRoot, 'STALE_V118.txt'), 'must disappear', 'utf8');
 
 const env = {
-    OPENAI_API_KEY: 'TEST_OPENAI_KEY_REDACTED',
+    OPENAI_API_KEY: 'TEST_OPENAI_V119_KEY_1234567890',
     OPENAI_API_BASE_URL: 'https://audit.invalid/v1',
 };
 const models = ['model-both', 'model-stream-only', 'model-nonstream-only', 'model-dead'];

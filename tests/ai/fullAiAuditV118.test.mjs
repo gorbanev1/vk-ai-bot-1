@@ -13,9 +13,9 @@ assert.equal(parseProviderCommand('проверить все модели').acti
 
 const root = mkdtempSync(join(tmpdir(), 'gigorave-v118-full-audit-'));
 const env = {
-    OPENAI_API_KEY: 'sk-test-key-1234567890',
+    OPENAI_API_KEY: 'TEST_OPENAI_KEY_1234567890',
     OPENAI_API_BASE_URL: 'https://example.invalid/v1',
-    OPENAI_COMPAT_API_KEY: 'TEST_OPENAI_KEY_REDACTED',
+    OPENAI_COMPAT_API_KEY: 'TEST_ROUTER_KEY_1234567890',
     OPENAI_COMPAT_BASE_URL: 'https://router.invalid/v1',
     GPT_MODEL_PRO3: 'gpt-5.6-sol',
 };
