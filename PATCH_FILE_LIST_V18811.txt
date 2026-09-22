@@ -1,9 +1,0 @@
-src/features/events/vkStructuredEventEvidence.js
-src/features/events/publicPostLocalParser.js
-src/infrastructure/browser/browserGrabber.js
-src/app/botApplication.js
-tests/events/eventProposalVkRawBootstrapV18811.test.mjs
-package.json
-PATCH_NOTES_V18811.txt
-INSTALL_V18811.txt
-DEVELOPER_HANDOFF.md

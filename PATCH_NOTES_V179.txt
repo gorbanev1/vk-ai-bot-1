@@ -1,7 +1,0 @@
-Gigorave V179 — linked predecessor-chat recovery guard
-
-- Keeps the completed V177 archive state for the active chat instead of forcing another full 30k-style pass.
-- A linked predecessor chat starts from its locally known minimum CMID rather than from CMID 1.
-- If a linked/deleted chat returns five consecutive empty CMID batches inside a locally known populated range, the API scan stops instead of wasting requests across hundreds of thousands of IDs.
-- Such a source is marked unavailableViaApi and local SQLite backups remain the source of truth for whatever survived locally.
-- Membership/service reports explicitly disclose degraded predecessor-chat coverage instead of claiming indexing is still running forever.

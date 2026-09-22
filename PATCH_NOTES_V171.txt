@@ -1,6 +1,0 @@
-Gigorave V171 — VK community history access parameters
-
-- Added explicit community group_id when history methods are called through a group access token.
-- Kept the active bot database in place; this release changed recovery code only.
-- Added handling for dead/removed VK chats so unrelated auto-summary failures do not invalidate the main history-recovery path.
-- This release established that messages.getHistory can still be denied for the chat even when Long Poll access works, leading to the later CMID fallback work.

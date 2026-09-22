@@ -1,8 +1,0 @@
-V110 install over V109
-
-1. Stop the bot.
-2. Overlay the patch files over V109.
-3. Keep your existing .env and data/bot.sqlite.
-4. Make sure assets/peresozdanie-donation-qr.png exists after overlay.
-5. Start the bot.
-6. Check `версия`: events-v110-peresozdanie-qr-second-message.

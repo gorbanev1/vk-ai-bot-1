@@ -1,9 +1,0 @@
-V110 — QR second message
-
-- QR from assets/peresozdanie-donation-qr.png is never embedded into event/broadcast text.
-- Full `корды` response: text first, QR second.
-- `пересоздание спасибо`: text first, QR second.
-- `разослать всем пересоздание` / `пересоздание отправить`: each recipient gets text first and QR as a separate second delivery.
-- `QR-код убрать` disables the QR only for the currently prepared post-event broadcast.
-- `QR-код вернуть` restores it for the current draft.
-- Feedback template shortened per owner request.

@@ -1,8 +1,0 @@
-V181 full sources
-
-1. Stop the bot.
-2. Unpack the archive into the project root with file replacement.
-3. Keep the existing data/ directory and data/bot.sqlite.
-4. Run pnpm dev (or npm start).
-
-No manual database migration is required. V181 only changes source behavior/documentation; existing VK name cache, message archive and membership events remain in the current bot.sqlite.

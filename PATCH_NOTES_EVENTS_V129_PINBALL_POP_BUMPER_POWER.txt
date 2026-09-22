@@ -1,5 +1,0 @@
-V129 PINBALL POP BUMPER POWER
-
-V128 pop bumpers were too weak because their collision response relied mostly on restitution plus a modest 480–520 impulse. V129 models them as active solenoid kicks: each bumper applies a 1040–1140 normal impulse and enforces a minimum outward normal speed of 1225–1325 after contact. This preserves incoming tangential motion while making every valid pop contact decisive.
-
-Feedback was strengthened in parallel: 28-particle burst at power 680, 8px camera shake, longer flash, heavier synthetic strike and medium haptic feedback.

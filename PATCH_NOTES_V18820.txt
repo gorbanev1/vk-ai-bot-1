@@ -1,8 +1,0 @@
-V188.20
-- VK wall text and photo attachments recurse through copy_history up to 4 repost levels.
-- Each photo attachment contributes only its largest/original VK image; multiple posters are parsed independently.
-- Any real poster triggers final multimodal extraction; AI output is authoritative and deterministic parsing only fills blank fields.
-- Event-parser AI retries each candidate twice and escalates default -> gpt54 -> gpt55 -> pro -> pro2 -> pro3 without persistent health/quarantine poisoning the next source.
-- Bulk source reparse no longer skips multi-event URLs and maps parsed cards back to stored rows.
-- Weekend range is Friday through Sunday.
-- Event dedupe adds transliterated identity matching and canonical source-path evidence (PEREGRUZ == ПЕРЕГРУЗ).

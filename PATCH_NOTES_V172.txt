@@ -1,7 +1,0 @@
-Gigorave V172 — non-blocking recovery, progress and timeouts
-
-- VK history recovery runs in the background instead of blocking normal bot startup.
-- Added per-request timeout protection so one stalled VK API call cannot freeze startup indefinitely.
-- Added page-level progress logging and retry visibility.
-- Live Long Poll processing continues while recovery is running.
-- Database contents are not replaced by this source patch.

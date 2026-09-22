@@ -1,8 +1,0 @@
-V158
-- manual parser: all browser windows closed => stop; no recovery/reopen; preserve already saved data
-- durable auto-summary custom schedule + all-chat owner status + remote VK/TG target link
-- Telegram image edit button + document section Word/PDF/PPTX + semantic document routing
-- Telegram long tasks do not block polling/menu
-- Back/Home navigation in submenus
-- public posts: multi-event prompt, up to 12 images, per-image vision markers and event poster mapping
-- V157 VK conversation 2000000022 priority behavior preserved

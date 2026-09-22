@@ -1,5 +1,0 @@
-V177 full sources
-
-Stop the bot, unpack this archive into the project root with file replacement, keep your existing data/ directory and bot.sqlite, then run pnpm dev (or npm start).
-
-V177 creates/migrates vk_message_archive automatically inside the existing SQLite database. No manual SQL migration is required.

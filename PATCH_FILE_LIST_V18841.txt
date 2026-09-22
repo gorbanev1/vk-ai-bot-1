@@ -1,8 +1,0 @@
-package.json
-src/app/botApplication.js
-src/features/ai/summaryModelRouting.js
-tests/ai/summaryModelRoutingV18841.test.mjs
-tests/scrapers/vkThreePassDomParserV18832.test.mjs
-PATCH_NOTES_V18841.txt
-INSTALL_V18841.txt
-PATCH_FILE_LIST_V18841.txt

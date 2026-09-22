@@ -1,9 +1,0 @@
-V188.32 changed/added files
-
-package.json
-src/app/botApplication.js
-src/platforms/vk/vkChatEventScraper.js
-tests/scrapers/vkThreePassDomParserV18832.test.mjs
-PATCH_NOTES_V18832.txt
-INSTALL_V18832.txt
-PATCH_FILE_LIST_V18832.txt

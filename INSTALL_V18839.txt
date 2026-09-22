@@ -1,7 +1,0 @@
-Gigorave V188.39
-
-Full package: replace the project files with the clean archive while preserving your local .env and data directory.
-Patch package: copy the patch files over V188.38.
-Then restart the bot.
-
-Quick regression: npm run test:v18839

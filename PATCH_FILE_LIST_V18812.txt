@@ -1,7 +1,0 @@
-src/app/botApplication.js
-package.json
-tests/events/eventProposalModerationFastPathV18812.test.mjs
-PATCH_NOTES_V18812.txt
-INSTALL_V18812.txt
-PATCH_FILE_LIST_V18812.txt
-DEVELOPER_HANDOFF.md

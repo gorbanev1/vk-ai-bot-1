@@ -1,9 +1,0 @@
-V161 verification in build environment
-
-- node --check modified runtime files: OK
-- scripts/check-syntax.mjs: OK (290 files)
-- scripts/check-imports.mjs: OK (290 files)
-- focused auto-summary + V158 compatibility tests: 19 passed, 0 failed
-- Node in build environment: v22.16.0
-
-The complete dependency-backed suite was not rerun in this sandbox because project node_modules are not bundled and network package installation is unavailable. The project itself targets Node 24+.

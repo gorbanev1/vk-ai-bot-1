@@ -1,9 +1,0 @@
-V116 PATCH INSTALL (from V115)
-
-1. Stop the bot.
-2. Unpack the V116 patch into the project root with overwrite enabled.
-3. Do NOT delete data/bot.sqlite.
-4. Run: pnpm dev
-5. On first startup the missing feedback_received_at column is added automatically if needed.
-
-No manual SQL migration is required.
