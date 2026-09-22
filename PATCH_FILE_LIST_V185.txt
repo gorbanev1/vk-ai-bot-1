@@ -1,0 +1,20 @@
+Gigorave V185 patch file list
+
+- INSTALL_V185.txt
+- PATCH_INSTALL_V185.txt
+- PATCH_NOTES_V185.txt
+- PROJECT_MANIFEST.json
+- RELEASE_NOTES_INDEX_V166_V185.txt
+- V185_INPUT_DB_AUDIT.txt
+- package.json
+- src/app/botApplication.js
+- src/features/events/eventIngestAudit.js
+- src/features/events/eventValidation.js
+- src/infrastructure/database/index.js
+- src/platforms/telegram/telegramHtmlScraper.js
+- src/platforms/vk/vkChatEventScraper.js
+- src/platforms/vk/vkPublicScraper.js
+- tests/events/eventIngestAuditV185.test.mjs
+- tests/events/eventPublishedDateRecoveryV185.test.mjs
+- PATCH_FILE_LIST_V185.txt
+- V185_PATCH_SHA256SUMS.txt

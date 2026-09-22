@@ -1,0 +1,14 @@
+DEVELOPER_HANDOFF.md
+INSTALL_V18837.txt
+PATCH_FILE_LIST_V18837.txt
+PATCH_NOTES_V18837.txt
+README.md
+package.json
+src/app/botApplication.js
+src/features/scrapers/scraperCommandRouting.js
+src/infrastructure/browser/browserGrabber.js
+tests/events/compactPartyActuallyBriefV18837.test.mjs
+tests/events/eventSourceCompletenessV18821.test.mjs
+tests/events/singleLinkReparseV18837.test.mjs
+tests/scrapers/scraperCommandRouting.test.mjs
+tests/scrapers/vkThreePassDomParserV18832.test.mjs

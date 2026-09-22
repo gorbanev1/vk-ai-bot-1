@@ -1,0 +1,13 @@
+V84
+- Owner-only command: "Гигорейв графика тест все ключи <prompt>".
+- Перед тестом повторно импортирует parsed_secrets.txt в runtime.
+- Live audit определяет рабочие ключи.
+- Для каждого рабочего ключа строится список image/generation models.
+- NVIDIA: весь V84 hosted generation catalog.
+- OpenAI/OpenAI-compatible: image models из /models, вызов /images/generations.
+- Gemini: image/generation models из models.list, вызов generateContent с responseModalities IMAGE.
+- Hugging Face: warm text-to-image catalog, затем последовательный inference каждым model id.
+- Anthropic/Groq без обнаруженных image-generation моделей не добавляются в матрицу.
+- Строго последовательное выполнение: один запрос завершился -> записан на диск -> отправлен пользователю -> следующий.
+- results.jsonl дописывается после КАЖДОЙ попытки. Успешная картинка сохраняется на диск ПЕРЕД upload/send.
+- Ошибка отправки сообщения не останавливает matrix-test и не удаляет сохранённый результат.

@@ -1,0 +1,7 @@
+Gigorave V175 — forced full CMID backfill
+
+- Introduced a new recovery-state key so stale completion markers from earlier experiments cannot incorrectly downgrade the first real CMID pass to incremental mode.
+- First V175 run scans the active chat from CMID 1 through the current known ceiling in batches.
+- Subsequent successful runs return to incremental recovery with overlap.
+- The working community-token getByConversationMessageId path is used after getHistory access denial.
+- Progress logs expose requested, received and incoming counts so the recovered history volume can be verified from runtime logs.

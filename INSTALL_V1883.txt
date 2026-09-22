@@ -1,0 +1,29 @@
+Gigorave V188.3 installation
+
+PATCH (recommended if you already run V188.2)
+1. Stop pnpm dev / the bot process.
+2. Back up the project directory.
+3. Extract Gigorave_V1883_patch.zip into the project root with replacement.
+4. DO NOT delete or overwrite .env or data/.
+5. Run: pnpm dev
+6. Confirm startup contains:
+   [BOT BUILD] events-v1883-ai-failover-grok-style-examples
+   [BOT PATCH] events-v1883-ai-failover-grok-style-examples
+
+GROK / xAI (optional)
+Add to .env:
+XAI_API_KEY=xai-your-key
+AI_PROVIDER_ORDER=compat,xai
+XAI_MODEL_DEFAULT=grok-4.6
+XAI_VISION_MODEL=grok-4.6
+XAI_IMAGE_MODEL=grok-imagine-image-2.0
+
+Use AI_PROVIDER_ORDER=xai,compat if Grok should be tried before the current compatible router.
+For more keys add XAI_API_KEY_1, XAI_API_KEY_2, etc.
+
+FAILOVER DEFAULTS
+- 3 technical failures on one key => next key.
+- All temporarily unavailable => keep cycling (AI_FAILOVER_MAX_ROUNDS=0).
+- Bad request/configuration/policy errors are not infinite-retried.
+
+No database migration command is required. The style-example table is created automatically in the durable personalization state database.

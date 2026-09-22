@@ -1,0 +1,14 @@
+package.json
+src/app/botApplication.js
+src/features/events/sourceContentHash.js
+src/infrastructure/database/personalizationStateStore.js
+src/platforms/telegram/telegramHtmlScraper.js
+src/platforms/vk/vkPublicScraper.js
+tests/events/sourceContentHashV187.test.mjs
+tests/infrastructure/personalizationStateStoreV187.test.mjs
+tests/personality/personalizationPolicyV187.test.mjs
+tests/security/dossierAccess.test.mjs
+tests/v148Features.test.mjs
+PATCH_NOTES_V187.txt
+INSTALL_V187.txt
+PATCH_INSTALL_V187.txt

@@ -1,0 +1,25 @@
+Gigorave V188.16
+Build: events-v18816-venue-labels-quiet-active-ack
+Version: 0.188.16
+
+Fixes based on parser traces from 2026-09-08/09:
+
+1) Venue inference
+- Explicit lines `Место:`, `Где:`, `Локация:`, `Площадка:` and `Адрес:` are parsed deterministically.
+- City-only placeholders (e.g. `Место: Воронеж`) are ignored as actual venues.
+- `Котельная` is added to the known Voronezh venue catalog and recognized in inflected forms.
+- This allows a structured VK event record with venue=Воронеж to be corrected from announcement text like `Место: Котельная` even when AI is unavailable.
+
+2) Active communication command output
+- `активное общение <N>` no longer dumps SQLite counters/timestamps/model/error diagnostics into the chat.
+- Enable acknowledgement: `✅ Активное общение включено. Интервал: N сообщений.`
+- Disable acknowledgement: `✅ Активное общение отключено.`
+- Full diagnostics remain available only via explicit `статус активного общения` and server logs.
+
+3) Parser diagnostics
+- Poster-vision parsing writes per-batch metadata to parser JSONL.
+- Poster-vision failures now get an explicit `.error` trace stage with partial facts and the actual error.
+- If all AI credentials are already quarantined, failover preserves the previous technical reason instead of replacing it with the generic `Все AI provider/key завершились с ошибкой`.
+- No API secrets are included in the new failover diagnostic error.
+
+No SQLite migration is required.

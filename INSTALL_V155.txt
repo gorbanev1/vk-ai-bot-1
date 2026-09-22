@@ -1,0 +1,16 @@
+GIGORAVE V155 — INSTALL
+
+1. Остановить текущий V154.
+2. Для первого перехода рекомендуется наложить patch V154 -> V155 ПОВЕРХ текущей установки: так существующая запись авторезюме из data/bot.sqlite автоматически мигрирует.
+3. Запустить V155 на Node >=24.
+4. В логе должна появиться строка `[AUTO SUMMARY DURABLE STATE] ... enabled=N`.
+5. Проверить в нужной беседе: `авторезюме статус`.
+
+После первого запуска V155 состояние авторезюме хранится вне папки релиза:
+- Windows: `%LOCALAPPDATA%\Gigorave\state\auto-summary.sqlite`;
+- Linux: `$XDG_STATE_HOME/gigorave/auto-summary.sqlite` или `~/.local/state/gigorave/auto-summary.sqlite`.
+
+При необходимости путь можно зафиксировать явно:
+`GIGORAVE_STATE_DIR=D:\GigoraveState`
+
+В дальнейшем перезапись/распаковка файлов бота не сбрасывает enabled/mode/next_run и историю уже отправленных слотов.

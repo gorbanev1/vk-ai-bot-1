@@ -1,0 +1,23 @@
+Gigorave V188.9 — direct VK wall owner event first-pass fix
+
+Version: 0.188.9
+
+Что исправлено:
+- Для прямой ссылки вида https://vk.ru/wall-<group>_<post> после wall.getById бот теперь СРАЗУ запрашивает groups.getById владельца стены.
+- В первую очередь ищутся структурные поля события VK: start_date / finish_date и event-shaped metadata.
+- start_date переводится детерминированно в Europe/Moscow и добавляется в evidence ДО текста поста и ДО AI.
+- Для примера group 239795426, start_date=1789833600 результат: 2026-09-19 19:00.
+- Если structured owner evidence отсутствует, но дата есть прямо в wall-посте — браузер не открывается.
+- Если ни structured owner fields, ни детерминированная дата wall-поста не найдены — включается обычный полный разбор страницы.
+- Полный browser fallback конечный: вкладка закрывается в finally; закрытие браузера больше не является сигналом остановки парсинга.
+- Exact wall API evidence объединяется с browser evidence, поэтому фото/текст прямого поста не теряются.
+
+Причина предыдущей ошибки:
+V188.8 действительно умел читать start_date из apiPrefetchCache, но для прямой wall-ссылки parseEventProposalSubmission после успешного wall.getById вообще НЕ открывал browser path. Поэтому groups.getById/start_date со страницы события до пайплайна не доходили, а бот оставлял дату пустой.
+
+Проверки:
+- syntax/import/named-import checks
+- V188.6/V188.7/V188.8 event regression tests
+- V140 source/proposal refresh tests
+- V130 proposal/parser tests
+- V188.9 direct wall owner structured-first regression tests

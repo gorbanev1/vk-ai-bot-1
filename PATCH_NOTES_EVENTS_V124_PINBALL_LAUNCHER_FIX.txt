@@ -1,0 +1,8 @@
+V124 — Telegram Pinball launcher/physics hotfix
+
+- Fixes a V123 geometry bug where the mirrored right outlane wall crossed x=750..830 and physically blocked every launched ball around y≈1330.
+- Moves that guide fully into the main playfield so the shooter lane remains open.
+- Guarantees minimum plunger velocity sufficient to clear the lane; charge now tunes trajectory/power rather than basic playability.
+- Adds deterministic top-lane exit feed into the playfield.
+- `window.blur` only releases held controls; actual pause occurs on document hidden or Telegram Mini App deactivation.
+- Adds read-only `window.__gigoravePinballDebug.snapshot()` for browser smoke tests.

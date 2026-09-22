@@ -1,0 +1,29 @@
+V148 FAST DEDUPE / REQUEST STATS / DOSSIER
+
+1) Почему V147 «тусы дубли проверить» мог идти очень долго
+- Команда использовала deep pipeline: GPT-нормализацию карточек, эвристический dedupe, GPT arbitration для серой зоны, AI consolidation и финальные verification passes.
+- Кроме API latency/timeout, candidate builder для событий без даты имел unknown × all вложенный цикл. На грязной базе это могло разрастаться до O(N²).
+
+2) V148 быстрый dedupe
+- Default «тусы дубли проверить» полностью локальный, без GPT.
+- Unknown-date кандидаты строятся через inverted posting index по полезным title/venue/participant/source keys, без полного перебора базы.
+- В SQLite maintenance_state сохраняются status/stage/progress/result/time.
+- «тусы дубли статус» показывает состояние.
+- После рестарта прежний running становится interrupted.
+- «тусы дубли применить» пишет registry сразу; verified snapshot rebuild запускается background.
+
+3) Обращения к боту
+- Новая bot_request_events хранит platform/endpoint, technical peer/user ids, direct/group flag, request key и timestamp. Текст сообщений не хранится.
+- Direct: VK primary, VK event, Telegram. Group activity также считается отдельно справочно.
+- Owner ranges: сегодня, вчера, неделя, N дней, за прошлые N дней.
+- Автоматические cumulative reports в 18:00 и 21:00 Europe/Moscow.
+- Delivery slots сохраняются в maintenance_state, replay/restart не дублирует одно и то же сообщение.
+
+4) Telegram label
+- «Продвинутые модели» → «Продвинутые текстовые модели GPT».
+
+5) Досье
+- Raw fact dump заменён на двухступенчатую схему: evidence extraction + final behavioral dossier synthesis.
+- Final prompt использует все накопленные evidence rows, сохранённый style profile только как вспомогательный контекст и репрезентативную выборку до 360 собственных сообщений.
+- Обязательные разделы: ДОСЬЕ; Краткая ориентировка; Установленные факты; Поведенческий портрет; Коммуникация и конфликт; Интересы / навыки / привычки; Социальная роль и отношения; Риск / решения / обязательства; Противоречия и динамика; Прогноз типичного поведения; Надёжность выводов.
+- Требуется отделять факты от гипотез и отмечать уверенность. Запрещены медицинские/психиатрические диагнозы, чувствительные характеристики и бездоказательные криминальные выводы.

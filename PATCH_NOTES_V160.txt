@@ -1,0 +1,21 @@
+Gigorave V160 — SQLite corruption startup recovery
+
+Problem fixed:
+- `database disk image is malformed` in data/bot.sqlite no longer bricks the bot at import time.
+
+Startup policy:
+1. Run SQLite PRAGMA quick_check before src/index.js.
+2. If only WAL/SHM is damaged, quarantine the DB family and retry the healthy main DB without sidecars.
+3. If the main DB is damaged too, preserve the original family under data/corruption-backups/<timestamp>/.
+4. Restore the latest rotating healthy startup backup when available.
+5. Otherwise salvage readable schema/tables/rows table-by-table into a clean DB.
+6. If salvage is impossible, start from a fresh operational DB instead of crashing.
+7. Healthy startup snapshots are kept under data/healthy-backups/ (up to 5, throttled to one per 6 hours).
+
+The durable auto-summary DB introduced in V155 is outside release-local data/bot.sqlite and is not modified by this recovery.
+
+Manual diagnostic command:
+  pnpm db:doctor
+
+Normal start remains:
+  pnpm dev

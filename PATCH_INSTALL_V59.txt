@@ -1,0 +1,11 @@
+V59 — RUNTIME IMPORT + OPTIONAL TELEGRAM ISOLATION
+
+Обновление с V58:
+1. Остановить бот.
+2. Сохранить .env и папку data.
+3. Распаковать patch-архив V59 поверх каталога проекта с заменой файлов.
+4. Выполнить pnpm install --frozen-lockfile.
+5. Выполнить pnpm verify.
+6. Запустить pnpm dev или штатный start-скрипт.
+
+Новых npm-зависимостей, переменных .env и миграций SQLite нет.

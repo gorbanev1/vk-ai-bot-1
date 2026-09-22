@@ -1,0 +1,23 @@
+V73 — NVIDIA Image 504 Fallback and Time Budget
+
+Исправленная регрессия
+- V72 считал timeout повторяемой ошибкой, но не считал HTTP 504 повторяемой ошибкой.
+- Поэтому после пяти минут ожидания FLUX.1 Schnell лог писал FALLBACK, но цикл фактически завершался и следующая модель не запускалась.
+
+Что изменено
+- HTTP 504 и прочие 5xx теперь считаются временной/endpoint-specific ошибкой в режиме auto.
+- После неуспешной модели явно логируется FAILED, затем NEXT с названием следующей модели.
+- Таймаут разделён на два уровня:
+  - NVIDIA_IMAGE_ATTEMPT_TIMEOUT_MS — максимум на одну модель, по умолчанию 120000 мс;
+  - NVIDIA_IMAGE_TOTAL_TIMEOUT_MS — общий бюджет команды, по умолчанию 600000 мс.
+- Старый NVIDIA_IMAGE_TIMEOUT_MS сохранён как совместимый псевдоним общего бюджета команды.
+- Добавлен регрессионный тест: первая модель отвечает HTTP 504, вторая возвращает изображение.
+
+Ожидаемый лог
+[NVIDIA IMAGE PROGRESS] START model=black-forest-labs/flux.1-schnell ...
+[NVIDIA IMAGE PROGRESS] FAILED model=black-forest-labs/flux.1-schnell status=504 ...
+[NVIDIA IMAGE PROGRESS] NEXT from=black-forest-labs/flux.1-schnell to=black-forest-labs/flux.2-klein-4b ...
+[NVIDIA IMAGE PROGRESS] START model=black-forest-labs/flux.2-klein-4b ...
+
+Важно
+HEARTBEAT показывает, что локальный fetch ещё ждёт ответ. Это не SSE-прогресс генерации NVIDIA: hosted Visual endpoint возвращает итоговый HTTP-ответ целиком.

@@ -1,0 +1,9 @@
+INSTALL_V137.txt
+PATCH_NOTES_EVENTS_V137_ROAST_ALIASES_FAST_TARGETS.txt
+PATCH_FILE_LIST_V137.txt
+package.json
+PROJECT_MANIFEST.json
+src/app/botApplication.js
+src/features/personality/roastCommandRouting.js
+src/platforms/telegram/telegramBot.js
+tests/personality/roastAliasesV137.test.mjs

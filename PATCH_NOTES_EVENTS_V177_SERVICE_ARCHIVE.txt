@@ -1,0 +1,11 @@
+Gigorave V177 — lossless VK message/service archive
+
+1. Every VK object returned by Long Poll or CMID history recovery is stored in SQLite table vk_message_archive.
+   This includes incoming messages, outgoing messages, empty-text service messages and arbitrary VK action types.
+2. The archive stores action_type, full action_json and raw_message_json. It is keyed by physical source_peer_id + conversation_message_id and exposed through canonical peer_id after chat-history rebinding.
+3. Live VK payloads are additionally journaled to data/vk-message-archive-journal.jsonl before SQLite so a DB failure cannot silently lose a service event.
+4. V177 performs its own full CMID archive pass with a new maintenance marker. It does not trust the V175 normal-history completion marker.
+5. Membership events (left/kicked/joined) are derived from the same raw archive pass and remain in chat_membership_events for fast commands.
+6. Command: «Гигорейв список кто вышел» — unique leavers with self-left/kicked counts.
+7. Command: «Гигорейв отчёт служебных» / «Гигорейв служебные сообщения» — counts by every action.type plus a chronological list of every stored service event.
+8. Existing semantic messages table remains focused on incoming participant history so GPT context is not polluted by bot outbox/system rows; vk_message_archive is the lossless raw archive.

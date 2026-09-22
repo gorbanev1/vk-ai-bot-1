@@ -1,0 +1,25 @@
+GIGORAVE V153 VERIFICATION
+
+Build: events-v153-browser-close-finishes-parser
+Package: 0.153.0
+
+Environment used for this verification:
+- Node v22.16.0 (available audit environment)
+- npm 10.9.2
+- Production package declares Node >=24
+
+Checks completed:
+- npm run check:syntax: OK (277 files)
+- npm run check:imports: OK (277 files)
+- npm run check:docs: OK (16 documentation files)
+- npm test: OK (145 test files, 0 failed)
+
+Targeted V153 regressions:
+- manual browser close is a graceful parser finish
+- target-closed does not trigger retry/recovery reopen
+- Telegram preserves rolling HTML snapshots during manual scroll
+- persistent Chromium startup blank tab is reused and orphan blank context closes
+- parser commands run detached/background so Telegram bot remains responsive
+- manual post/image processing disables browser fallback after owner close
+
+Note: final production/runtime smoke test with real VK/Telegram pages should be run on the target Node >=24 host because this build environment exposes Node 22.

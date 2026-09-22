@@ -1,0 +1,11 @@
+Gigorave V188.55 — чистая граница логов
+
+Главное изменение этой версии: на первом старте удаляются старые уже обработанные диагностические логи, чтобы новые ошибки media/parser/model ladder фиксировались в чистом наборе файлов.
+
+Удаление строго ограничено allowlist диагностических каталогов. История сообщений и все SQLite/backup/journal/state данные не затрагиваются.
+
+Версия также включает:
+- V188.53: исправление `vision-default`, recursive media context, finite vision ladder;
+- V188.54: parser AI timeout 75s, bounded retry pool, cheap-first active communication ladder.
+
+После первого старта V188.55 повторите проблемную картинку. Если ошибка останется, forensic media-каталог и operations log будут относиться только к новому коду.

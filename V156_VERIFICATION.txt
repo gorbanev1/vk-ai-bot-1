@@ -1,0 +1,3921 @@
+
+> vk-ai-bot@0.156.0 verify
+> npm run check:syntax && npm run check:imports && npm run check:docs && npm test
+
+
+> vk-ai-bot@0.156.0 check:syntax
+> node scripts/check-syntax.mjs
+
+Syntax check: OK (281 files)
+
+> vk-ai-bot@0.156.0 check:imports
+> node scripts/check-imports.mjs
+
+Import check: OK (281 files)
+
+> vk-ai-bot@0.156.0 check:docs
+> node scripts/check-doc-links.mjs
+
+Documentation link check: OK (16 files)
+
+> vk-ai-bot@0.156.0 test
+> node scripts/run-all-tests.mjs
+
+[ALL TESTS] files=148 mode=sequential
+
+[ALL TESTS 1/148] tests/ai/allProviderVisualMatrixAudit.test.mjs
+TAP version 13
+# allProviderVisualMatrixAudit.test.mjs OK
+# Subtest: /mnt/data/v156_work/tests/ai/allProviderVisualMatrixAudit.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/allProviderVisualMatrixAudit.test.mjs
+  ---
+  duration_ms: 36.737893
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43.511335
+
+[ALL TESTS 2/148] tests/ai/allProviderVisualMatrixPersistence.test.mjs
+TAP version 13
+# Subtest: matrix audit creates durable generation and delivery journals even with zero keys
+ok 1 - matrix audit creates durable generation and delivery journals even with zero keys
+  ---
+  duration_ms: 7.994006
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 61.371778
+
+[ALL TESTS 3/148] tests/ai/autoSummaryDurableStateV155.test.mjs
+TAP version 13
+# (node:50109) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: V155 auto-summary state lives outside release directory and survives release replacement
+ok 1 - V155 auto-summary state lives outside release directory and survives release replacement
+  ---
+  duration_ms: 4.356882
+  type: 'test'
+  ...
+# Subtest: V155 migrates legacy auto-summary state once and stale legacy rows cannot overwrite newer durable state
+ok 2 - V155 migrates legacy auto-summary state once and stale legacy rows cannot overwrite newer durable state
+  ---
+  duration_ms: 1.412374
+  type: 'test'
+  ...
+# Subtest: V155 default persistent directory is user-level and configurable
+ok 3 - V155 default persistent directory is user-level and configurable
+  ---
+  duration_ms: 0.285471
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 58.421537
+
+[ALL TESTS 4/148] tests/ai/autoSummaryLengthV141.test.mjs
+TAP version 13
+# Subtest: V141 autoresume target is phone-readable rather than a transcript wall
+ok 1 - V141 autoresume target is phone-readable rather than a transcript wall
+  ---
+  duration_ms: 0.59533
+  type: 'test'
+  ...
+# Subtest: V141 hard cap trims at a complete sentence when possible
+ok 2 - V141 hard cap trims at a complete sentence when possible
+  ---
+  duration_ms: 0.407225
+  type: 'test'
+  ...
+# Subtest: V141 finalizer prompt explicitly requires 1600-2400 chars and 5-7 paragraphs
+ok 3 - V141 finalizer prompt explicitly requires 1600-2400 chars and 5-7 paragraphs
+  ---
+  duration_ms: 3.810626
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.1116
+
+[ALL TESTS 5/148] tests/ai/autoSummaryRoutingV138.test.mjs
+TAP version 13
+# Subtest: авторезюме commands are deterministic local commands
+ok 1 - авторезюме commands are deterministic local commands
+  ---
+  duration_ms: 2.398664
+  type: 'test'
+  ...
+# Subtest: plain авторезюме enabled at noon waits until 13:00 and never summarizes immediately
+ok 2 - plain авторезюме enabled at noon waits until 13:00 and never summarizes immediately
+  ---
+  duration_ms: 16.508236
+  type: 'test'
+  ...
+# Subtest: full and evening schedules advance to the next requested slot
+ok 3 - full and evening schedules advance to the next requested slot
+  ---
+  duration_ms: 5.028296
+  type: 'test'
+  ...
+# Subtest: day-only mode runs at next midnight and summarizes the completed calendar day
+ok 4 - day-only mode runs at next midnight and summarizes the completed calendar day
+  ---
+  duration_ms: 1.940291
+  type: 'test'
+  ...
+# Subtest: 18:00 summary is cumulative from local midnight
+ok 5 - 18:00 summary is cumulative from local midnight
+  ---
+  duration_ms: 0.510501
+  type: 'test'
+  ...
+# Subtest: runtime intercepts autoresume before generic GPT and has a scheduler
+ok 6 - runtime intercepts autoresume before generic GPT and has a scheduler
+  ---
+  duration_ms: 4.006132
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 86.385196
+
+[ALL TESTS 6/148] tests/ai/autoSummaryV143SourceTruth.test.mjs
+TAP version 13
+# Subtest: V143 does not consider 18:00 due at 15:24 Moscow
+ok 1 - V143 does not consider 18:00 due at 15:24 Moscow
+  ---
+  duration_ms: 18.95085
+  type: 'test'
+  ...
+# Subtest: V143 skips stale catch-up slots but allows a small scheduler delay
+ok 2 - V143 skips stale catch-up slots but allows a small scheduler delay
+  ---
+  duration_ms: 0.267484
+  type: 'test'
+  ...
+# Subtest: V143 VK auto-summary uses VK source history and source message timestamps
+ok 3 - V143 VK auto-summary uses VK source history and source message timestamps
+  ---
+  duration_ms: 3.98843
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 78.075978
+
+[ALL TESTS 7/148] tests/ai/chatContextRouting.test.mjs
+TAP version 13
+# chatContextRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/chatContextRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/chatContextRouting.test.mjs
+  ---
+  duration_ms: 62.965994
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70.488167
+
+[ALL TESTS 8/148] tests/ai/envKeyCleanupV123.test.mjs
+TAP version 13
+# Subtest: V123 removes only definitively invalid foreign keys from .env
+ok 1 - V123 removes only definitively invalid foreign keys from .env
+  ---
+  duration_ms: 14.288663
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 65.365892
+
+[ALL TESTS 9/148] tests/ai/envKeyCleanupV142ConfirmedDead.test.mjs
+TAP version 13
+# Subtest: V142 cleanup removes confirmed zero-working keys but preserves uncertain/network and protected keys
+ok 1 - V142 cleanup removes confirmed zero-working keys but preserves uncertain/network and protected keys
+  ---
+  duration_ms: 8.675966
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.332082
+
+[ALL TESTS 10/148] tests/ai/externalProviderRouting.test.mjs
+TAP version 13
+# Subtest: routes Gemini/Claude/Groq/HF namespaces before ordinary GPT
+ok 1 - routes Gemini/Claude/Groq/HF namespaces before ordinary GPT
+  ---
+  duration_ms: 2.459969
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54.372672
+
+[ALL TESTS 11/148] tests/ai/fullAiAuditV118.test.mjs
+TAP version 13
+# full AI audit V118 tests: ok
+# Subtest: /mnt/data/v156_work/tests/ai/fullAiAuditV118.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/fullAiAuditV118.test.mjs
+  ---
+  duration_ms: 126.491695
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 133.845372
+
+[ALL TESTS 12/148] tests/ai/fullAiAuditV119Transport.test.mjs
+TAP version 13
+# full AI audit V119 transport matrix tests: ok
+# Subtest: /mnt/data/v156_work/tests/ai/fullAiAuditV119Transport.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/fullAiAuditV119Transport.test.mjs
+  ---
+  duration_ms: 62.309612
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70.849953
+
+[ALL TESTS 13/148] tests/ai/fullAiAuditV120Concurrency.test.mjs
+TAP version 13
+# full AI audit V120 concurrency tests: ok (maxActive=6)
+# Subtest: /mnt/data/v156_work/tests/ai/fullAiAuditV120Concurrency.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/fullAiAuditV120Concurrency.test.mjs
+  ---
+  duration_ms: 80.844744
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 88.008284
+
+[ALL TESTS 14/148] tests/ai/fullAiAuditV121SecondRound.test.mjs
+TAP version 13
+# full AI audit V121 two-pass tests: ok
+# Subtest: /mnt/data/v156_work/tests/ai/fullAiAuditV121SecondRound.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/fullAiAuditV121SecondRound.test.mjs
+  ---
+  duration_ms: 59.951521
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 67.165228
+
+[ALL TESTS 15/148] tests/ai/fullAiAuditV122Targeted.test.mjs
+TAP version 13
+# Subtest: V122/V123 transport success does not require exact audit marker
+ok 1 - V122/V123 transport success does not require exact audit marker
+  ---
+  duration_ms: 0.648551
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.524716
+
+[ALL TESTS 16/148] tests/ai/fullAiAuditV142KeySecondSweep.test.mjs
+TAP version 13
+# Subtest: V142 does a complete second key sweep across all models and recovers a key before cleanup
+ok 1 - V142 does a complete second key sweep across all models and recovers a key before cleanup
+  ---
+  duration_ms: 24.267087
+  type: 'test'
+  ...
+# Subtest: V142 marks a key dead-confirmed only after the full second model sweep still has zero working modes
+ok 2 - V142 marks a key dead-confirmed only after the full second model sweep still has zero working modes
+  ---
+  duration_ms: 12.967765
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 103.180572
+
+[ALL TESTS 17/148] tests/ai/gptModeRouting.test.mjs
+TAP version 13
+# gptModeRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/gptModeRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/gptModeRouting.test.mjs
+  ---
+  duration_ms: 38.044547
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.734193
+
+[ALL TESTS 18/148] tests/ai/gptReasoningScopeV85.test.mjs
+TAP version 13
+# Subtest: V85 answerGptQuestion does not reference handleGptCommand local parsed variable
+ok 1 - V85 answerGptQuestion does not reference handleGptCommand local parsed variable
+  ---
+  duration_ms: 4.863192
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 77.883827
+
+[ALL TESTS 19/148] tests/ai/imageEditRouting.test.mjs
+TAP version 13
+# Subtest: parseImageEditRequest matches "возьми за основу и дорисуй"
+ok 1 - parseImageEditRequest matches "возьми за основу и дорисуй"
+  ---
+  duration_ms: 1.067804
+  type: 'test'
+  ...
+# Subtest: parseImageEditRequest matches short "дорисуй" form
+ok 2 - parseImageEditRequest matches short "дорисуй" form
+  ---
+  duration_ms: 0.91959
+  type: 'test'
+  ...
+# Subtest: parseImageEditRequest ignores ordinary vision request
+ok 3 - parseImageEditRequest ignores ordinary vision request
+  ---
+  duration_ms: 1.62078
+  type: 'test'
+  ...
+# Subtest: orchestrator imports image edit parser before using it
+ok 4 - orchestrator imports image edit parser before using it
+  ---
+  duration_ms: 5.904727
+  type: 'test'
+  ...
+# Subtest: optional Telegram startup failure does not abort VK startup
+ok 5 - optional Telegram startup failure does not abort VK startup
+  ---
+  duration_ms: 6.580984
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 73.215174
+
+[ALL TESTS 20/148] tests/ai/imageQuotaPolicy.test.mjs
+TAP version 13
+# image quota policy tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/imageQuotaPolicy.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/imageQuotaPolicy.test.mjs
+  ---
+  duration_ms: 34.126734
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.765273
+
+[ALL TESTS 21/148] tests/ai/incomingImageTargets.test.mjs
+TAP version 13
+# incomingImageTargets tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/incomingImageTargets.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/incomingImageTargets.test.mjs
+  ---
+  duration_ms: 46.545524
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.315048
+
+[ALL TESTS 22/148] tests/ai/incomingImageTargetsRepostV96.test.mjs
+TAP version 13
+# incomingImageTargetsRepostV96.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/ai/incomingImageTargetsRepostV96.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/incomingImageTargetsRepostV96.test.mjs
+  ---
+  duration_ms: 48.373738
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55.099587
+
+[ALL TESTS 23/148] tests/ai/incomingMessagePrompt.test.mjs
+TAP version 13
+# incomingMessagePrompt tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/incomingMessagePrompt.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/incomingMessagePrompt.test.mjs
+  ---
+  duration_ms: 47.532071
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55.471194
+
+[ALL TESTS 24/148] tests/ai/legacySecretCleanupV118.test.mjs
+TAP version 13
+# legacy secret cleanup V118 tests: ok
+# Subtest: /mnt/data/v156_work/tests/ai/legacySecretCleanupV118.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/legacySecretCleanupV118.test.mjs
+  ---
+  duration_ms: 57.286998
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 64.726907
+
+[ALL TESTS 25/148] tests/ai/nvidiaVisualAudit.test.mjs
+TAP version 13
+# Subtest: visual matrix starts with FLUX.2 Klein and includes all hosted generators from production list
+ok 1 - visual matrix starts with FLUX.2 Klein and includes all hosted generators from production list
+  ---
+  duration_ms: 0.663473
+  type: 'test'
+  ...
+# Subtest: editing matrix declares Flux2 Klein and Flux Kontext
+ok 2 - editing matrix declares Flux2 Klein and Flux Kontext
+  ---
+  duration_ms: 0.573276
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.015491
+
+[ALL TESTS 26/148] tests/ai/nvidiaVisualGeneration.test.mjs
+TAP version 13
+# Subtest: visual config uses the NVIDIA hosted visual base URL
+ok 1 - visual config uses the NVIDIA hosted visual base URL
+  ---
+  duration_ms: 1.548861
+  type: 'test'
+  ...
+# Subtest: visual model guide includes ready-to-copy commands
+ok 2 - visual model guide includes ready-to-copy commands
+  ---
+  duration_ms: 0.291611
+  type: 'test'
+  ...
+# Subtest: automatic image generation skips unavailable endpoint and returns the next image
+ok 3 - automatic image generation skips unavailable endpoint and returns the next image
+  ---
+  duration_ms: 18.045912
+  type: 'test'
+  ...
+# Subtest: automatic image generation treats HTTP 504 as retryable and continues with the next model
+ok 4 - automatic image generation treats HTTP 504 as retryable and continues with the next model
+  ---
+  duration_ms: 1.015585
+  type: 'test'
+  ...
+# Subtest: legacy NVIDIA_IMAGE_TIMEOUT_MS remains an alias for the total command budget
+ok 5 - legacy NVIDIA_IMAGE_TIMEOUT_MS remains an alias for the total command budget
+  ---
+  duration_ms: 0.154143
+  type: 'test'
+  ...
+# Subtest: explicit image model selector does not silently switch models
+ok 6 - explicit image model selector does not silently switch models
+  ---
+  duration_ms: 1.123128
+  type: 'test'
+  ...
+# Subtest: missing NVIDIA key fails before the network request
+ok 7 - missing NVIDIA key fails before the network request
+  ---
+  duration_ms: 0.267375
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 76.577989
+
+[ALL TESTS 27/148] tests/ai/openAIImageStream.test.mjs
+TAP version 13
+# openAIImageStream tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/openAIImageStream.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/openAIImageStream.test.mjs
+  ---
+  duration_ms: 55.412425
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 63.32063
+
+[ALL TESTS 28/148] tests/ai/openAIRetryRouting.test.mjs
+TAP version 13
+# openAIRetryRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/openAIRetryRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/openAIRetryRouting.test.mjs
+  ---
+  duration_ms: 36.004222
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42.626314
+
+[ALL TESTS 29/148] tests/ai/openAIStream.test.mjs
+TAP version 13
+# openAIStream tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/openAIStream.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/openAIStream.test.mjs
+  ---
+  duration_ms: 52.941289
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.036004
+
+[ALL TESTS 30/148] tests/ai/participantQuestionRouting.test.mjs
+TAP version 13
+# Subtest: recognizes a question about a participant
+ok 1 - recognizes a question about a participant
+  ---
+  duration_ms: 1.790326
+  type: 'test'
+  ...
+# Subtest: does not route a question about the bot itself to a chat participant
+ok 2 - does not route a question about the bot itself to a chat participant
+  ---
+  duration_ms: 0.336509
+  type: 'test'
+  ...
+# Subtest: normalizes stop words before fuzzy comparison
+ok 3 - normalizes stop words before fuzzy comparison
+  ---
+  duration_ms: 0.179491
+  type: 'test'
+  ...
+# Subtest: maps Тимосин to Тимофей by maximum fuzzy similarity
+ok 4 - maps Тимосин to Тимофей by maximum fuzzy similarity
+  ---
+  duration_ms: 9.462967
+  type: 'test'
+  ...
+# Subtest: resolves a plain dossier nickname without requiring a question sentence
+ok 5 - resolves a plain dossier nickname without requiring a question sentence
+  ---
+  duration_ms: 0.6548
+  type: 'test'
+  ...
+# Subtest: supports VK direct mentions
+ok 6 - supports VK direct mentions
+  ---
+  duration_ms: 0.598485
+  type: 'test'
+  ...
+# Subtest: does not route an unrelated factual question
+ok 7 - does not route an unrelated factual question
+  ---
+  duration_ms: 1.71956
+  type: 'test'
+  ...
+# Subtest: finds messages by fuzzy form, real name and VK mention while excluding target author
+ok 8 - finds messages by fuzzy form, real name and VK mention while excluding target author
+  ---
+  duration_ms: 11.37692
+  type: 'test'
+  ...
+# Subtest: finds an inflected first name by fuzzy similarity
+ok 9 - finds an inflected first name by fuzzy similarity
+  ---
+  duration_ms: 3.198526
+  type: 'test'
+  ...
+# Subtest: orchestrator keeps own messages and third-party mentions in separate evidence blocks
+ok 10 - orchestrator keeps own messages and third-party mentions in separate evidence blocks
+  ---
+  duration_ms: 5.604453
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 91.869701
+
+[ALL TESTS 31/148] tests/ai/proInferencePolicy.test.mjs
+TAP version 13
+# proInferencePolicy tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/proInferencePolicy.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/proInferencePolicy.test.mjs
+  ---
+  duration_ms: 38.824576
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.616895
+
+[ALL TESTS 32/148] tests/ai/providerDiagnostics.test.mjs
+TAP version 13
+# Subtest: provider commands identify OpenAI and NVIDIA separately
+ok 1 - provider commands identify OpenAI and NVIDIA separately
+  ---
+  duration_ms: 5.54359
+  type: 'test'
+  ...
+# Subtest: short NVIDIA aliases open help directly without the GPT router
+ok 2 - short NVIDIA aliases open help directly without the GPT router
+  ---
+  duration_ms: 0.680819
+  type: 'test'
+  ...
+# Subtest: direct NVIDIA graphics are routed to real Visual generation
+ok 3 - direct NVIDIA graphics are routed to real Visual generation
+  ---
+  duration_ms: 3.503878
+  type: 'test'
+  ...
+# Subtest: application performs NVIDIA Visual generation and keeps unknown fallback short
+ok 4 - application performs NVIDIA Visual generation and keeps unknown fallback short
+  ---
+  duration_ms: 3.699302
+  type: 'test'
+  ...
+# Subtest: natural NVIDIA catalog request asks for descriptions of every visible model
+ok 5 - natural NVIDIA catalog request asks for descriptions of every visible model
+  ---
+  duration_ms: 0.312503
+  type: 'test'
+  ...
+# Subtest: model capability descriptions distinguish chat, code, vision, embeddings and safety
+ok 6 - model capability descriptions distinguish chat, code, vision, embeddings and safety
+  ---
+  duration_ms: 1.277291
+  type: 'test'
+  ...
+# Subtest: described catalog keeps global model numbers and explains endpoint limits
+ok 7 - described catalog keeps global model numbers and explains endpoint limits
+  ---
+  duration_ms: 6.736705
+  type: 'test'
+  ...
+# Subtest: provider model and prompt commands preserve explicit model selector
+ok 8 - provider model and prompt commands preserve explicit model selector
+  ---
+  duration_ms: 0.189997
+  type: 'test'
+  ...
+# Subtest: provider configs are isolated and use official default endpoints
+ok 9 - provider configs are isolated and use official default endpoints
+  ---
+  duration_ms: 0.316659
+  type: 'test'
+  ...
+# Subtest: placeholder model names are rejected before an API request
+ok 10 - placeholder model names are rejected before an API request
+  ---
+  duration_ms: 0.934693
+  type: 'test'
+  ...
+# Subtest: model selector supports exact ids, global \#N numbers and unique filters
+ok 11 - model selector supports exact ids, global \#N numbers and unique filters
+  ---
+  duration_ms: 0.29795
+  type: 'test'
+  ...
+# Subtest: auto selection prefers a likely chat model over embeddings
+ok 12 - auto selection prefers a likely chat model over embeddings
+  ---
+  duration_ms: 0.997879
+  type: 'test'
+  ...
+# Subtest: ambiguous filters explain how to select a concrete model
+ok 13 - ambiguous filters explain how to select a concrete model
+  ---
+  duration_ms: 0.306413
+  type: 'test'
+  ...
+# Subtest: NVIDIA examples contain a real catalog id and no placeholder model
+ok 14 - NVIDIA examples contain a real catalog id and no placeholder model
+  ---
+  duration_ms: 0.19842
+  type: 'test'
+  ...
+# Subtest: application distinguishes a working catalog key from chat endpoint 404
+ok 15 - application distinguishes a working catalog key from chat endpoint 404
+  ---
+  duration_ms: 4.040859
+  type: 'test'
+  ...
+# Subtest: full NVIDIA autotest commands need no model substitution
+ok 16 - full NVIDIA autotest commands need no model substitution
+  ---
+  duration_ms: 0.204128
+  type: 'test'
+  ...
+# Subtest: automatic model probing skips account-specific 404 and returns the next working model
+ok 17 - automatic model probing skips account-specific 404 and returns the next working model
+  ---
+  duration_ms: 18.095587
+  type: 'test'
+  ...
+# Subtest: full provider test runs a fixed suite without user-supplied prompts
+ok 18 - full provider test runs a fixed suite without user-supplied prompts
+  ---
+  duration_ms: 1.371133
+  type: 'test'
+  ...
+# Subtest: application fulltest reports the working model and skipped 404 models
+ok 19 - application fulltest reports the working model and skipped 404 models
+  ---
+  duration_ms: 4.467374
+  type: 'test'
+  ...
+# Subtest: V85 direct all-provider graphics matrix command never falls through to GPT
+ok 20 - V85 direct all-provider graphics matrix command never falls through to GPT
+  ---
+  duration_ms: 0.159611
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 119.398445
+
+[ALL TESTS 33/148] tests/ai/providerKeyAudit.test.mjs
+TAP version 13
+# Subtest: collects only supported AI env slots and deduplicates identical provider secrets
+ok 1 - collects only supported AI env slots and deduplicates identical provider secrets
+  ---
+  duration_ms: 8.553131
+  type: 'test'
+  ...
+# Subtest: classifies image/code/embedding models without executing them
+ok 2 - classifies image/code/embedding models without executing them
+  ---
+  duration_ms: 0.5553
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 59.345681
+
+[ALL TESTS 34/148] tests/ai/quotaKeyLifecycleV144.test.mjs
+TAP version 13
+# Subtest: V144 no-credit keys are quarantined in a commented .env block and excluded from destructive cleanup
+ok 1 - V144 no-credit keys are quarantined in a commented .env block and excluded from destructive cleanup
+  ---
+  duration_ms: 10.670853
+  type: 'test'
+  ...
+# Subtest: V144 can recover previously deleted no-credit keys from the V142 cleanup backup
+ok 2 - V144 can recover previously deleted no-credit keys from the V142 cleanup backup
+  ---
+  duration_ms: 20.979368
+  type: 'test'
+  ...
+# Subtest: V144 quota pass counter is calendar-slot based, survives restart and deletes only on the fifth confirmed quota pass
+ok 3 - V144 quota pass counter is calendar-slot based, survives restart and deletes only on the fifth confirmed quota pass
+  ---
+  duration_ms: 14.784662
+  type: 'test'
+  ...
+# Subtest: V144 uncertain transport failures consume the calendar slot but do not increase the quota pass counter
+ok 4 - V144 uncertain transport failures consume the calendar slot but do not increase the quota pass counter
+  ---
+  duration_ms: 0.629432
+  type: 'test'
+  ...
+# Subtest: V144 quota retest recognizes a revived key with a lightweight non-stream text probe
+ok 5 - V144 quota retest recognizes a revived key with a lightweight non-stream text probe
+  ---
+  duration_ms: 3.007887
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 112.470196
+
+[ALL TESTS 35/148] tests/ai/reasoningEffortRouting.test.mjs
+TAP version 13
+# Subtest: defaults use medium for cheap models and high for GPT-5.6 family
+ok 1 - defaults use medium for cheap models and high for GPT-5.6 family
+  ---
+  duration_ms: 0.752668
+  type: 'test'
+  ...
+# Subtest: parses xhigh/max at prefix or suffix and labelled form
+ok 2 - parses xhigh/max at prefix or suffix and labelled form
+  ---
+  duration_ms: 2.261819
+  type: 'test'
+  ...
+# Subtest: does not consume a bare high from the middle of normal prompt
+ok 3 - does not consume a bare high from the middle of normal prompt
+  ---
+  duration_ms: 0.356379
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.80464
+
+[ALL TESTS 36/148] tests/ai/replyTargetRouting.test.mjs
+TAP version 13
+# replyTargetRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/replyTargetRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/replyTargetRouting.test.mjs
+  ---
+  duration_ms: 33.28379
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40.502183
+
+[ALL TESTS 37/148] tests/ai/responseLengthRouting.test.mjs
+TAP version 13
+# responseLengthRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/responseLengthRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/responseLengthRouting.test.mjs
+  ---
+  duration_ms: 40.281479
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 47.535415
+
+[ALL TESTS 38/148] tests/ai/runtimeSecretAutoImport.test.mjs
+TAP version 13
+# Subtest: parses supported AI secrets and ignores non-AI detectors
+ok 1 - parses supported AI secrets and ignores non-AI detectors
+  ---
+  duration_ms: 0.916615
+  type: 'test'
+  ...
+# Subtest: bot-native import writes numbered slots and injects them into current process.env
+ok 2 - bot-native import writes numbered slots and injects them into current process.env
+  ---
+  duration_ms: 11.48298
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 71.983381
+
+[ALL TESTS 39/148] tests/ai/thirdRecoverySweepV145.test.mjs
+TAP version 13
+# Subtest: V145 third sweep only samples the strongest candidates for an uncertain key
+ok 1 - V145 third sweep only samples the strongest candidates for an uncertain key
+  ---
+  duration_ms: 7.988357
+  type: 'test'
+  ...
+# Subtest: V145 identifies modes that only recovered on late retry rounds
+ok 2 - V145 identifies modes that only recovered on late retry rounds
+  ---
+  duration_ms: 0.32419
+  type: 'test'
+  ...
+# Subtest: V145 third sweep recovers an uncertain key without repeating the whole catalog and is restart-idempotent after DONE
+ok 3 - V145 third sweep recovers an uncertain key without repeating the whole catalog and is restart-idempotent after DONE
+  ---
+  duration_ms: 13.535414
+  type: 'test'
+  ...
+# Subtest: V145 treats no-credit 429 as quota quarantine, not as an invalid key
+ok 4 - V145 treats no-credit 429 as quota quarantine, not as an invalid key
+  ---
+  duration_ms: 5.345351
+  type: 'test'
+  ...
+# Subtest: V145 owner command routes the third/final recovery sweep before generic GPT
+ok 5 - V145 owner command routes the third/final recovery sweep before generic GPT
+  ---
+  duration_ms: 1.324001
+  type: 'test'
+  ...
+# Subtest: V145 stops hammering an exact key after rate-limit 429 and keeps it for later
+ok 6 - V145 stops hammering an exact key after rate-limit 429 and keeps it for later
+  ---
+  duration_ms: 5.5692
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.309565
+
+[ALL TESTS 40/148] tests/ai/trufflehogSecretImport.test.mjs
+TAP version 13
+# Subtest: auto-import discovers parsed_secrets.txt next to src and is idempotent
+ok 1 - auto-import discovers parsed_secrets.txt next to src and is idempotent
+  ---
+  duration_ms: 82.927094
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 136.175261
+
+[ALL TESTS 41/148] tests/ai/unknownTermRouting.test.mjs
+TAP version 13
+# unknownTermRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/unknownTermRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/unknownTermRouting.test.mjs
+  ---
+  duration_ms: 32.969028
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40.061333
+
+[ALL TESTS 42/148] tests/ai/visionRouting.test.mjs
+TAP version 13
+# visionRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/ai/visionRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/ai/visionRouting.test.mjs
+  ---
+  duration_ms: 39.680678
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 47.786838
+
+[ALL TESTS 43/148] tests/architecture/architecture.test.mjs
+TAP version 13
+# architecture tests: OK
+# Subtest: /mnt/data/v156_work/tests/architecture/architecture.test.mjs
+ok 1 - /mnt/data/v156_work/tests/architecture/architecture.test.mjs
+  ---
+  duration_ms: 35.474419
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42.211969
+
+[ALL TESTS 44/148] tests/astrology/astrologyOutputPolicy.test.mjs
+TAP version 13
+# astrologyOutputPolicy tests: OK
+# Subtest: /mnt/data/v156_work/tests/astrology/astrologyOutputPolicy.test.mjs
+ok 1 - /mnt/data/v156_work/tests/astrology/astrologyOutputPolicy.test.mjs
+  ---
+  duration_ms: 37.142076
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43.828599
+
+[ALL TESTS 45/148] tests/astrology/astrologyRouting.test.mjs
+TAP version 13
+# astrologyRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/astrology/astrologyRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/astrology/astrologyRouting.test.mjs
+  ---
+  duration_ms: 38.00257
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.307105
+
+[ALL TESTS 46/148] tests/astrology/ephemerisMaximum.test.mjs
+TAP version 13
+# ephemerisMaximum tests: OK
+# Subtest: /mnt/data/v156_work/tests/astrology/ephemerisMaximum.test.mjs
+ok 1 - /mnt/data/v156_work/tests/astrology/ephemerisMaximum.test.mjs
+  ---
+  duration_ms: 43.591977
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 50.607215
+
+[ALL TESTS 47/148] tests/astrology/natalRouting.test.mjs
+TAP version 13
+# natalRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/astrology/natalRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/astrology/natalRouting.test.mjs
+  ---
+  duration_ms: 49.745544
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 57.29529
+
+[ALL TESTS 48/148] tests/events/compactPartySummary.test.mjs
+TAP version 13
+# compactPartySummary tests: OK
+# Subtest: /mnt/data/v156_work/tests/events/compactPartySummary.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/compactPartySummary.test.mjs
+  ---
+  duration_ms: 37.211852
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44.952194
+
+[ALL TESTS 49/148] tests/events/dmPartyRouting.test.mjs
+TAP version 13
+# Subtest: explicit next-party date question is routed to party_date
+ok 1 - explicit next-party date question is routed to party_date
+  ---
+  duration_ms: 4.105978
+  type: 'test'
+  ...
+# Subtest: explicit party format and details question returns only supported intents
+ok 2 - explicit party format and details question returns only supported intents
+  ---
+  duration_ms: 0.478142
+  type: 'test'
+  ...
+# Subtest: ordinary DM does not get redirected to owner party FAQ
+ok 3 - ordinary DM does not get redirected to owner party FAQ
+  ---
+  duration_ms: 0.21191
+  type: 'test'
+  ...
+# Subtest: public event query is not treated as private organizer party
+ok 4 - public event query is not treated as private organizer party
+  ---
+  duration_ms: 0.110507
+  type: 'test'
+  ...
+# Subtest: nearest-party shorthand routes to the fixed organizer announcement
+ok 5 - nearest-party shorthand routes to the fixed organizer announcement
+  ---
+  duration_ms: 0.256858
+  type: 'test'
+  ...
+# Subtest: plural nearest parties stay on the public-events route
+ok 6 - plural nearest parties stay on the public-events route
+  ---
+  duration_ms: 0.121503
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.205785
+
+[ALL TESTS 50/148] tests/events/eventAnnouncementNormalization.test.mjs
+TAP version 13
+# event announcement normalization tests: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventAnnouncementNormalization.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventAnnouncementNormalization.test.mjs
+  ---
+  duration_ms: 36.854467
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43.48853
+
+[ALL TESTS 51/148] tests/events/eventAugustSnapshotV95.test.mjs
+TAP version 13
+# eventAugustSnapshotV95.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventAugustSnapshotV95.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventAugustSnapshotV95.test.mjs
+  ---
+  duration_ms: 68.428403
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 75.498926
+
+[ALL TESTS 52/148] tests/events/eventDedupeAliasesV154.test.mjs
+TAP version 13
+# eventDedupeAliasesV154.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventDedupeAliasesV154.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventDedupeAliasesV154.test.mjs
+  ---
+  duration_ms: 58.860202
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 66.599053
+
+[ALL TESTS 53/148] tests/events/eventDedupeIndustrialV107.test.mjs
+TAP version 13
+# eventDedupeIndustrialV107.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventDedupeIndustrialV107.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventDedupeIndustrialV107.test.mjs
+  ---
+  duration_ms: 171.253024
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 178.091155
+
+[ALL TESTS 54/148] tests/events/eventDedupeIntegrationV94.test.mjs
+TAP version 13
+# eventDedupeIntegrationV94.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventDedupeIntegrationV94.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventDedupeIntegrationV94.test.mjs
+  ---
+  duration_ms: 36.320711
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43.295028
+
+[ALL TESTS 55/148] tests/events/eventDedupeIntegrationV95.test.mjs
+TAP version 13
+# eventDedupeIntegrationV95.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventDedupeIntegrationV95.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventDedupeIntegrationV95.test.mjs
+  ---
+  duration_ms: 39.241811
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.660258
+
+[ALL TESTS 56/148] tests/events/eventDedupeRegistryV103.test.mjs
+TAP version 13
+# (node:51032) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# eventDedupeRegistryV103.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventDedupeRegistryV103.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventDedupeRegistryV103.test.mjs
+  ---
+  duration_ms: 48.01028
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54.763974
+
+[ALL TESTS 57/148] tests/events/eventDedupeRegressionV95.test.mjs
+TAP version 13
+# eventDedupeRegressionV95.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventDedupeRegressionV95.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventDedupeRegressionV95.test.mjs
+  ---
+  duration_ms: 67.139659
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 73.907844
+
+[ALL TESTS 58/148] tests/events/eventDeduplication.test.mjs
+TAP version 13
+# eventDeduplication tests: OK
+# eventDeduplication cross-source tests: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventDeduplication.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventDeduplication.test.mjs
+  ---
+  duration_ms: 66.621075
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 73.871409
+
+[ALL TESTS 59/148] tests/events/eventDuplicateResolution.test.mjs
+TAP version 13
+# eventDuplicateResolution.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventDuplicateResolution.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventDuplicateResolution.test.mjs
+  ---
+  duration_ms: 68.69423
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 75.83972
+
+[ALL TESTS 60/148] tests/events/eventMetadata.test.mjs
+TAP version 13
+# eventMetadata tests: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventMetadata.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventMetadata.test.mjs
+  ---
+  duration_ms: 37.4526
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44.122237
+
+[ALL TESTS 61/148] tests/events/eventModeration.test.mjs
+TAP version 13
+# event moderation tests: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventModeration.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventModeration.test.mjs
+  ---
+  duration_ms: 43.776284
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.70571
+
+[ALL TESTS 62/148] tests/events/eventPageCandidateSelectionV130.test.mjs
+TAP version 13
+# Subtest: V130 automatic page candidate selection is hard capped at 20 posts
+ok 1 - V130 automatic page candidate selection is hard capped at 20 posts
+  ---
+  duration_ms: 4.027129
+  type: 'test'
+  ...
+# Subtest: V130 hint boosts the most similar event post
+ok 2 - V130 hint boosts the most similar event post
+  ---
+  duration_ms: 0.615119
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 65.249355
+
+[ALL TESTS 63/148] tests/events/eventParsingRepairV147.test.mjs
+TAP version 13
+# Subtest: V147 merges cosmetic duplicate party cards even when participant spellings differ
+ok 1 - V147 merges cosmetic duplicate party cards even when participant spellings differ
+  ---
+  duration_ms: 14.141975
+  type: 'test'
+  ...
+# Subtest: V147 one fresh child from a digest cannot overwrite unrelated stored children
+ok 2 - V147 one fresh child from a digest cannot overwrite unrelated stored children
+  ---
+  duration_ms: 1.446823
+  type: 'test'
+  ...
+# Subtest: V147 verified event poster replaces stale inherited parent poster
+ok 3 - V147 verified event poster replaces stale inherited parent poster
+  ---
+  duration_ms: 1.756291
+  type: 'test'
+  ...
+# Subtest: V147 parser no longer assigns one post image to every child event
+ok 4 - V147 parser no longer assigns one post image to every child event
+  ---
+  duration_ms: 0.884525
+  type: 'test'
+  ...
+# Subtest: V147 specific VK poster recovery excludes parent digest/original posts
+ok 5 - V147 specific VK poster recovery excludes parent digest/original posts
+  ---
+  duration_ms: 0.492654
+  type: 'test'
+  ...
+# Subtest: V147 SQLite migration clears inherited shared media and normal reads honor dedupe registry
+ok 6 - V147 SQLite migration clears inherited shared media and normal reads honor dedupe registry
+  ---
+  duration_ms: 1.025298
+  type: 'test'
+  ...
+# Subtest: V147 display rejects an existing JPEG when it belongs to a digest parent
+ok 7 - V147 display rejects an existing JPEG when it belongs to a digest parent
+  ---
+  duration_ms: 3.857292
+  type: 'test'
+  ...
+# Subtest: V147 verified snapshot rebuild reads raw SQLite rows and cannot erase its own dedupe registry
+ok 8 - V147 verified snapshot rebuild reads raw SQLite rows and cannot erase its own dedupe registry
+  ---
+  duration_ms: 3.919736
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 90.732724
+
+[ALL TESTS 64/148] tests/events/eventPosterRepostRecoveryV146.test.mjs
+TAP version 13
+# Subtest: V151 never sends a generated event card and never repairs posters from a user-facing event command
+ok 1 - V151 never sends a generated event card and never repairs posters from a user-facing event command
+  ---
+  duration_ms: 0.851215
+  type: 'test'
+  ...
+# Subtest: V146 exact VK hydration exposes repost chain and distinguishes real wall photos from previews
+ok 2 - V146 exact VK hydration exposes repost chain and distinguishes real wall photos from previews
+  ---
+  duration_ms: 0.826668
+  type: 'test'
+  ...
+# Subtest: V146 browser poster recovery follows source -> repost original -> original community and scrolls for announcement
+ok 3 - V146 browser poster recovery follows source -> repost original -> original community and scrolls for announcement
+  ---
+  duration_ms: 0.256528
+  type: 'test'
+  ...
+# Subtest: V151 browser poster recovery exists only in explicit maintenance/reparse flow and is persisted there
+ok 4 - V151 browser poster recovery exists only in explicit maintenance/reparse flow and is persisted there
+  ---
+  duration_ms: 0.592915
+  type: 'test'
+  ...
+# Subtest: V146 Telegram public scraper scrolls history upward, not downward
+ok 5 - V146 Telegram public scraper scrolls history upward, not downward
+  ---
+  duration_ms: 0.156807
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 59.560514
+
+[ALL TESTS 65/148] tests/events/eventPosterSelectionV139.test.mjs
+TAP version 13
+# Subtest: V139 prefers a real large event photo over UI/icon candidates
+ok 1 - V139 prefers a real large event photo over UI/icon candidates
+  ---
+  duration_ms: 0.868771
+  type: 'test'
+  ...
+# Subtest: V139 can inspect PNG dimensions before choosing a local poster
+ok 2 - V139 can inspect PNG dimensions before choosing a local poster
+  ---
+  duration_ms: 0.660688
+  type: 'test'
+  ...
+# Subtest: V151 VK media pipeline uses API media as authority while user event delivery is strictly local-only
+ok 3 - V151 VK media pipeline uses API media as authority while user event delivery is strictly local-only
+  ---
+  duration_ms: 5.019817
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.995227
+
+[ALL TESTS 66/148] tests/events/eventProposalSourceRefreshV140.test.mjs
+TAP version 13
+# Subtest: V140 owner proposal refreshes an already stored source before normal proposal flow
+ok 1 - V140 owner proposal refreshes an already stored source before normal proposal flow
+  ---
+  duration_ms: 1.444931
+  type: 'test'
+  ...
+# Subtest: V140 exact VK wall proposals use API hydration without opening Chromium after success
+ok 2 - V140 exact VK wall proposals use API hydration without opening Chromium after success
+  ---
+  duration_ms: 0.687288
+  type: 'test'
+  ...
+# Subtest: V140 manual event browser access is bounded instead of waiting 15 minutes
+ok 3 - V140 manual event browser access is bounded instead of waiting 15 minutes
+  ---
+  duration_ms: 0.177548
+  type: 'test'
+  ...
+# Subtest: V140 proposal AI calls have a dedicated bounded timeout
+ok 4 - V140 proposal AI calls have a dedicated bounded timeout
+  ---
+  duration_ms: 0.231599
+  type: 'test'
+  ...
+# Subtest: V140 existing-source refresh does not wait for a full AI snapshot rebuild
+ok 5 - V140 existing-source refresh does not wait for a full AI snapshot rebuild
+  ---
+  duration_ms: 0.199811
+  type: 'test'
+  ...
+# Subtest: V140 exact source repair saves only the best real poster with a bounded download
+ok 6 - V140 exact source repair saves only the best real poster with a bounded download
+  ---
+  duration_ms: 0.201264
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.043598
+
+[ALL TESTS 67/148] tests/events/eventProposalV104.test.mjs
+TAP version 13
+# (node:51219) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# eventProposalV104.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventProposalV104.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventProposalV104.test.mjs
+  ---
+  duration_ms: 43.718618
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 50.47882
+
+[ALL TESTS 68/148] tests/events/eventProposalWorkflowV130.test.mjs
+TAP version 13
+# Subtest: V130 proposal hard requirements: date and venue are mandatory, time is optional
+ok 1 - V130 proposal hard requirements: date and venue are mandatory, time is optional
+  ---
+  duration_ms: 3.051165
+  type: 'test'
+  ...
+# Subtest: V130 explicitly deferred venue is valid and still allows missing time
+ok 2 - V130 explicitly deferred venue is valid and still allows missing time
+  ---
+  duration_ms: 0.248044
+  type: 'test'
+  ...
+# Subtest: V130 past dates never submit
+ok 3 - V130 past dates never submit
+  ---
+  duration_ms: 0.265191
+  type: 'test'
+  ...
+# Subtest: V130 corrections can fill required and optional fields
+ok 4 - V130 corrections can fill required and optional fields
+  ---
+  duration_ms: 2.56353
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.268642
+
+[ALL TESTS 69/148] tests/events/eventSnapshotInvalidationV154.test.mjs
+TAP version 13
+# Subtest: V154 owner-added event invalidates stale verified snapshot before next party query
+ok 1 - V154 owner-added event invalidates stale verified snapshot before next party query
+  ---
+  duration_ms: 0.759897
+  type: 'test'
+  ...
+# Subtest: V154 source refresh uses the same central snapshot invalidation helper
+ok 2 - V154 source refresh uses the same central snapshot invalidation helper
+  ---
+  duration_ms: 0.215445
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.016117
+
+[ALL TESTS 70/148] tests/events/eventSourceRefreshV140.test.mjs
+TAP version 13
+# Subtest: V140 source refresh repairs a missing poster without losing stored fields
+ok 1 - V140 source refresh repairs a missing poster without losing stored fields
+  ---
+  duration_ms: 1.28489
+  type: 'test'
+  ...
+# Subtest: V140 source refresh prefers the same-date event inside a multi-event source
+ok 2 - V140 source refresh prefers the same-date event inside a multi-event source
+  ---
+  duration_ms: 1.965407
+  type: 'test'
+  ...
+# Subtest: V140 source refresh does not guess between unrelated digest entries
+ok 3 - V140 source refresh does not guess between unrelated digest entries
+  ---
+  duration_ms: 0.279883
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55.493991
+
+[ALL TESTS 71/148] tests/events/eventValidation.test.mjs
+TAP version 13
+# eventValidation tests: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventValidation.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventValidation.test.mjs
+  ---
+  duration_ms: 37.224115
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.925689
+
+[ALL TESTS 72/148] tests/events/eventVerifiedSnapshotV96.test.mjs
+TAP version 13
+# eventVerifiedSnapshotV96.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/events/eventVerifiedSnapshotV96.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/eventVerifiedSnapshotV96.test.mjs
+  ---
+  duration_ms: 35.201262
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42.151212
+
+[ALL TESTS 73/148] tests/events/liverpoolPublisherDedupeV131.test.mjs
+TAP version 13
+# Subtest: V131 merges weak schedule stub with rich event from another post by the same publisher
+ok 1 - V131 merges weak schedule stub with rich event from another post by the same publisher
+  ---
+  duration_ms: 28.39614
+  type: 'test'
+  ...
+# Subtest: V131 does not merge two strongly identified events merely because publisher/date/time/venue match
+ok 2 - V131 does not merge two strongly identified events merely because publisher/date/time/venue match
+  ---
+  duration_ms: 4.288672
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 91.025476
+
+[ALL TESTS 74/148] tests/events/publicEventRange.test.mjs
+TAP version 13
+# publicEventRange tests: OK
+# Subtest: /mnt/data/v156_work/tests/events/publicEventRange.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/publicEventRange.test.mjs
+  ---
+  duration_ms: 49.458813
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.07579
+
+[ALL TESTS 75/148] tests/events/publicPostParserV130.test.mjs
+TAP version 13
+# Subtest: V130 keeps explicit historical year instead of promoting stale Overlock post to 2026
+ok 1 - V130 keeps explicit historical year instead of promoting stale Overlock post to 2026
+  ---
+  duration_ms: 22.892784
+  type: 'test'
+  ...
+# Subtest: V130 infers yearless dates only from reliable publication date
+ok 2 - V130 infers yearless dates only from reliable publication date
+  ---
+  duration_ms: 3.305609
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 83.468515
+
+[ALL TESTS 76/148] tests/events/publicPostParserV131.test.mjs
+TAP version 13
+# Subtest: V131 splits a pinned Liverpool schedule into distinct dated events
+ok 1 - V131 splits a pinned Liverpool schedule into distinct dated events
+  ---
+  duration_ms: 26.371657
+  type: 'test'
+  ...
+# Subtest: V131 never uses a textual date/time line as the event title and still extracts dotted time
+ok 2 - V131 never uses a textual date/time line as the event title and still extracts dotted time
+  ---
+  duration_ms: 2.547741
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 86.919898
+
+[ALL TESTS 77/148] tests/events/publicSourcePreAiFingerprintV151.test.mjs
+TAP version 13
+# Subtest: V151 text fingerprints normalize case/ё and >=90% near-duplicate gate is deterministic
+ok 1 - V151 text fingerprints normalize case/ё and >=90% near-duplicate gate is deterministic
+  ---
+  duration_ms: 1.665127
+  type: 'test'
+  ...
+# Subtest: V151 image fingerprint ignores PNG metadata while exact SHA still detects byte changes
+ok 2 - V151 image fingerprint ignores PNG metadata while exact SHA still detects byte changes
+  ---
+  duration_ms: 1.034043
+  type: 'test'
+  ...
+# Subtest: V154 exact content title+date wins before time but respects explicit venue identity conflict
+ok 3 - V154 exact content title+date wins before time but respects explicit venue identity conflict
+  ---
+  duration_ms: 6.342828
+  type: 'test'
+  ...
+# Subtest: V151 public source runtime wires AI/vision only behind local fingerprint gates
+ok 4 - V151 public source runtime wires AI/vision only behind local fingerprint gates
+  ---
+  duration_ms: 5.61591
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 72.216652
+
+[ALL TESTS 78/148] tests/events/sourceScheduleDedupeV114.test.mjs
+TAP version 13
+# Subtest: V114 identifies the reported Русское лето duplicate deterministically
+ok 1 - V114 identifies the reported Русское лето duplicate deterministically
+  ---
+  duration_ms: 18.320626
+  type: 'test'
+  ...
+# Subtest: V114 does not merge unrelated events merely because source/date/time/venue match
+ok 2 - V114 does not merge unrelated events merely because source/date/time/venue match
+  ---
+  duration_ms: 2.575794
+  type: 'test'
+  ...
+# Subtest: V114 invalidates pre-V114 verified snapshots through algorithm version
+ok 3 - V114 invalidates pre-V114 verified snapshots through algorithm version
+  ---
+  duration_ms: 0.190157
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 73.400151
+
+[ALL TESTS 79/148] tests/events/vkChatEventSource.test.mjs
+TAP version 13
+# vkChatEventSource tests: OK
+# Subtest: /mnt/data/v156_work/tests/events/vkChatEventSource.test.mjs
+ok 1 - /mnt/data/v156_work/tests/events/vkChatEventSource.test.mjs
+  ---
+  duration_ms: 31.301029
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 38.14125
+
+[ALL TESTS 80/148] tests/infrastructure/aiRuntimeModesV118.test.mjs
+TAP version 13
+# (node:51440) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# [SCRAPER V130 DATE CLEANUP] telegramRemoved=0 vkRemoved=0
+# [SCRAPER V147 DB REPAIR] vkSharedMediaCleared=0 telegramSharedMediaCleared=0 generatedCleared=0
+# AI runtime modes V118 tests: ok
+# Subtest: /mnt/data/v156_work/tests/infrastructure/aiRuntimeModesV118.test.mjs
+ok 1 - /mnt/data/v156_work/tests/infrastructure/aiRuntimeModesV118.test.mjs
+  ---
+  duration_ms: 55.627363
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62.946378
+
+[ALL TESTS 81/148] tests/infrastructure/aiRuntimeModesV119.test.mjs
+TAP version 13
+# (node:51457) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# [SCRAPER V130 DATE CLEANUP] telegramRemoved=0 vkRemoved=0
+# [SCRAPER V147 DB REPAIR] vkSharedMediaCleared=0 telegramSharedMediaCleared=0 generatedCleared=0
+# AI runtime policy V119 tests: ok
+# Subtest: /mnt/data/v156_work/tests/infrastructure/aiRuntimeModesV119.test.mjs
+ok 1 - /mnt/data/v156_work/tests/infrastructure/aiRuntimeModesV119.test.mjs
+  ---
+  duration_ms: 58.312373
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 65.736717
+
+[ALL TESTS 82/148] tests/infrastructure/browserTabReuseV131.test.mjs
+TAP version 13
+# Subtest: V131 reuses owner-visible scraper tabs instead of opening the same page repeatedly
+ok 1 - V131 reuses owner-visible scraper tabs instead of opening the same page repeatedly
+  ---
+  duration_ms: 2.186986
+  type: 'test'
+  ...
+# Subtest: manual source tabs stay single-instance and keep parsing newly loaded posts during manual scroll
+ok 2 - manual source tabs stay single-instance and keep parsing newly loaded posts during manual scroll
+  ---
+  duration_ms: 0.842714
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 58.031788
+
+[ALL TESTS 83/148] tests/infrastructure/chatHistoryMigrationV132.test.mjs
+TAP version 13
+# (node:51491) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# chat history migration V132: OK
+# Subtest: /mnt/data/v156_work/tests/infrastructure/chatHistoryMigrationV132.test.mjs
+ok 1 - /mnt/data/v156_work/tests/infrastructure/chatHistoryMigrationV132.test.mjs
+  ---
+  duration_ms: 51.276897
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 58.821762
+
+[ALL TESTS 84/148] tests/infrastructure/chatHistorySelectionV133.test.mjs
+TAP version 13
+# (node:51508) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# chat history continuity selection V133: OK
+# Subtest: /mnt/data/v156_work/tests/infrastructure/chatHistorySelectionV133.test.mjs
+ok 1 - /mnt/data/v156_work/tests/infrastructure/chatHistorySelectionV133.test.mjs
+  ---
+  duration_ms: 49.857221
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.940929
+
+[ALL TESTS 85/148] tests/infrastructure/manualEventBrowserLimitV130.test.mjs
+TAP version 13
+# Subtest: V130 manual event link scanner auto-parses at most 20 posts and leaves tab open
+ok 1 - V130 manual event link scanner auto-parses at most 20 posts and leaves tab open
+  ---
+  duration_ms: 0.756654
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 49.984729
+
+[ALL TESTS 86/148] tests/infrastructure/postEventFeedbackMigrationV116.test.mjs
+TAP version 13
+# (node:51542) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# [SCRAPER V130 DATE CLEANUP] telegramRemoved=0 vkRemoved=0
+# [SCRAPER V147 DB REPAIR] vkSharedMediaCleared=0 telegramSharedMediaCleared=0 generatedCleared=0
+# Subtest: V116 upgrades legacy post_event_feedback_requests before preparing statements
+ok 1 - V116 upgrades legacy post_event_feedback_requests before preparing statements
+  ---
+  duration_ms: 26.505399
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 76.094034
+
+[ALL TESTS 87/148] tests/infrastructure/postEventFeedbackMigrationV117.test.mjs
+TAP version 13
+# (node:51559) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# [SCRAPER V130 DATE CLEANUP] telegramRemoved=0 vkRemoved=0
+# [SCRAPER V147 DB REPAIR] vkSharedMediaCleared=0 telegramSharedMediaCleared=0 generatedCleared=0
+# Subtest: V117 rebuilds legacy feedback request table without id and preserves pending rows
+ok 1 - V117 rebuilds legacy feedback request table without id and preserves pending rows
+  ---
+  duration_ms: 28.321845
+  type: 'test'
+  ...
+# [SCRAPER V130 DATE CLEANUP] telegramRemoved=0 vkRemoved=0
+# [SCRAPER V147 DB REPAIR] vkSharedMediaCleared=0 telegramSharedMediaCleared=0 generatedCleared=0
+# Subtest: V117 repairs no-id/no-feedback/no-unique legacy table and deduplicates recipients
+ok 2 - V117 repairs no-id/no-feedback/no-unique legacy table and deduplicates recipients
+  ---
+  duration_ms: 25.341751
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 103.872327
+
+[ALL TESTS 88/148] tests/infrastructure/v39Database.test.mjs
+TAP version 13
+# (node:51576) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# v39 database tests: OK
+# Subtest: /mnt/data/v156_work/tests/infrastructure/v39Database.test.mjs
+ok 1 - /mnt/data/v156_work/tests/infrastructure/v39Database.test.mjs
+  ---
+  duration_ms: 44.776796
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 51.502773
+
+[ALL TESTS 89/148] tests/memory/memoryRouting.test.mjs
+TAP version 13
+# memoryRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/memory/memoryRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/memory/memoryRouting.test.mjs
+  ---
+  duration_ms: 44.992307
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 51.933931
+
+[ALL TESTS 90/148] tests/personality/activeCommunicationRouting.test.mjs
+TAP version 13
+# active communication routing tests passed
+# Subtest: /mnt/data/v156_work/tests/personality/activeCommunicationRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/personality/activeCommunicationRouting.test.mjs
+  ---
+  duration_ms: 34.878126
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.701791
+
+[ALL TESTS 91/148] tests/personality/banterRouting.test.mjs
+TAP version 13
+# banterRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/personality/banterRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/personality/banterRouting.test.mjs
+  ---
+  duration_ms: 33.230004
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40.517451
+
+[ALL TESTS 92/148] tests/personality/botIdentityProvocationRouting.test.mjs
+TAP version 13
+# botIdentityProvocationRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/personality/botIdentityProvocationRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/personality/botIdentityProvocationRouting.test.mjs
+  ---
+  duration_ms: 33.586323
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.231361
+
+[ALL TESTS 93/148] tests/personality/communicationStyleDatabase.test.mjs
+TAP version 13
+# (node:51661) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# communicationStyle database tests: OK
+# Subtest: /mnt/data/v156_work/tests/personality/communicationStyleDatabase.test.mjs
+ok 1 - /mnt/data/v156_work/tests/personality/communicationStyleDatabase.test.mjs
+  ---
+  duration_ms: 46.875493
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.712368
+
+[ALL TESTS 94/148] tests/personality/communicationStyleRouting.test.mjs
+TAP version 13
+# communicationStyleRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/personality/communicationStyleRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/personality/communicationStyleRouting.test.mjs
+  ---
+  duration_ms: 42.365806
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48.985854
+
+[ALL TESTS 95/148] tests/personality/flatterCommandRouting.test.mjs
+TAP version 13
+# flatterCommandRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/personality/flatterCommandRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/personality/flatterCommandRouting.test.mjs
+  ---
+  duration_ms: 37.576055
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44.196925
+
+[ALL TESTS 96/148] tests/personality/roastAliasesV137.test.mjs
+TAP version 13
+# Subtest: both screenshot command forms are accepted exactly
+ok 1 - both screenshot command forms are accepted exactly
+  ---
+  duration_ms: 1.756185
+  type: 'test'
+  ...
+# Subtest: common imperative aliases are accepted too
+ok 2 - common imperative aliases are accepted too
+  ---
+  duration_ms: 0.239552
+  type: 'test'
+  ...
+# Subtest: named roast path does not wait for full VK conversation roster
+ok 3 - named roast path does not wait for full VK conversation roster
+  ---
+  duration_ms: 0.327675
+  type: 'test'
+  ...
+# Subtest: Telegram local command detector knows all roast aliases
+ok 4 - Telegram local command detector knows all roast aliases
+  ---
+  duration_ms: 0.106911
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 59.22643
+
+[ALL TESTS 97/148] tests/personality/roastCommandRouting.test.mjs
+TAP version 13
+# roastCommandRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/personality/roastCommandRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/personality/roastCommandRouting.test.mjs
+  ---
+  duration_ms: 56.162072
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 63.558634
+
+[ALL TESTS 98/148] tests/personality/roastContextWindowV136.test.mjs
+TAP version 13
+# Subtest: roast context uses at least 20 messages when history has them
+ok 1 - roast context uses at least 20 messages when history has them
+  ---
+  duration_ms: 2.394259
+  type: 'test'
+  ...
+# Subtest: roast context never exceeds 60 messages
+ok 2 - roast context never exceeds 60 messages
+  ---
+  duration_ms: 0.497372
+  type: 'test'
+  ...
+# Subtest: quiet 24h window backfills older history to reach 20 messages
+ok 3 - quiet 24h window backfills older history to reach 20 messages
+  ---
+  duration_ms: 0.239522
+  type: 'test'
+  ...
+# Subtest: token budget is adaptive after minimum 20 messages
+ok 4 - token budget is adaptive after minimum 20 messages
+  ---
+  duration_ms: 0.425013
+  type: 'test'
+  ...
+# Subtest: roast commands themselves are not fed back into roast context
+ok 5 - roast commands themselves are not fed back into roast context
+  ---
+  duration_ms: 0.353364
+  type: 'test'
+  ...
+# Subtest: roast prompt is compact and explicitly grounded in target messages
+ok 6 - roast prompt is compact and explicitly grounded in target messages
+  ---
+  duration_ms: 0.293985
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 59.915896
+
+[ALL TESTS 99/148] tests/personality/roastFastPathV135.test.mjs
+TAP version 13
+# Subtest: доебись works as standalone and with Gigorave prefix
+ok 1 - доебись works as standalone and with Gigorave prefix
+  ---
+  duration_ms: 1.610154
+  type: 'test'
+  ...
+# Subtest: VK and Telegram group handlers have absolute roast command fast-paths
+ok 2 - VK and Telegram group handlers have absolute roast command fast-paths
+  ---
+  duration_ms: 0.824997
+  type: 'test'
+  ...
+# Subtest: explicit VK target is resolved before loading the whole conversation roster
+ok 3 - explicit VK target is resolved before loading the whole conversation roster
+  ---
+  duration_ms: 0.207985
+  type: 'test'
+  ...
+# Subtest: Telegram non-image command detector recognizes all roast aliases
+ok 4 - Telegram non-image command detector recognizes all roast aliases
+  ---
+  duration_ms: 0.176727
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62.950365
+
+[ALL TESTS 100/148] tests/personality/roastParticipantRoster.test.mjs
+TAP version 13
+# Subtest: extracts VK mention, screen name and profile link
+ok 1 - extracts VK mention, screen name and profile link
+  ---
+  duration_ms: 1.826201
+  type: 'test'
+  ...
+# Subtest: normalizes conversation members with names and screen-name aliases
+ok 2 - normalizes conversation members with names and screen-name aliases
+  ---
+  duration_ms: 1.007964
+  type: 'test'
+  ...
+# Subtest: merges message history and full roster without losing recent timestamp
+ok 3 - merges message history and full roster without losing recent timestamp
+  ---
+  duration_ms: 0.280353
+  type: 'test'
+  ...
+# Subtest: builds a roast participant from users.get profile
+ok 4 - builds a roast participant from users.get profile
+  ---
+  duration_ms: 0.173863
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.710591
+
+[ALL TESTS 101/148] tests/personality/roastRuntimeIntegration.test.mjs
+TAP version 13
+# Subtest: roast runtime loads the full VK conversation roster
+ok 1 - roast runtime loads the full VK conversation roster
+  ---
+  duration_ms: 0.76016
+  type: 'test'
+  ...
+# Subtest: named roast resolves explicit VK references before AI ranking
+ok 2 - named roast resolves explicit VK references before AI ranking
+  ---
+  duration_ms: 0.33096
+  type: 'test'
+  ...
+# Subtest: roast does not refuse when a named target lacks recent messages
+ok 3 - roast does not refuse when a named target lacks recent messages
+  ---
+  duration_ms: 0.395068
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 56.953378
+
+[ALL TESTS 102/148] tests/platforms/dualVkCommunities.test.mjs
+TAP version 13
+# dual VK communities tests: OK
+# Subtest: /mnt/data/v156_work/tests/platforms/dualVkCommunities.test.mjs
+ok 1 - /mnt/data/v156_work/tests/platforms/dualVkCommunities.test.mjs
+  ---
+  duration_ms: 38.501624
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 45.136814
+
+[ALL TESTS 103/148] tests/platforms/messageReplyTransport.test.mjs
+TAP version 13
+# message reply transport tests: OK
+# Subtest: /mnt/data/v156_work/tests/platforms/messageReplyTransport.test.mjs
+ok 1 - /mnt/data/v156_work/tests/platforms/messageReplyTransport.test.mjs
+  ---
+  duration_ms: 77.724198
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 85.732424
+
+[ALL TESTS 104/148] tests/platforms/pinballBumpersV129.test.mjs
+TAP version 13
+# Subtest: V129 pop bumpers use strong active-solenoid impulse values
+ok 1 - V129 pop bumpers use strong active-solenoid impulse values
+  ---
+  duration_ms: 0.836124
+  type: 'test'
+  ...
+# Subtest: V129 guarantees minimum outward speed after a pop hit
+ok 2 - V129 guarantees minimum outward speed after a pop hit
+  ---
+  duration_ms: 0.127903
+  type: 'test'
+  ...
+# Subtest: V129 makes bumper feedback visibly and audibly punchier
+ok 3 - V129 makes bumper feedback visibly and audibly punchier
+  ---
+  duration_ms: 0.108765
+  type: 'test'
+  ...
+# Subtest: V129 cache-busts pinball assets
+ok 4 - V129 cache-busts pinball assets
+  ---
+  duration_ms: 0.139151
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 54.739281
+
+[ALL TESTS 105/148] tests/platforms/pinballLauncherV124.test.mjs
+TAP version 13
+# Subtest: V124 regression: shooter lane is not blocked by the old crossing wall
+ok 1 - V124 regression: shooter lane is not blocked by the old crossing wall
+  ---
+  duration_ms: 0.962886
+  type: 'test'
+  ...
+# Subtest: V124 regression: a served ball has a deterministic way to enter the playfield
+ok 2 - V124 regression: a served ball has a deterministic way to enter the playfield
+  ---
+  duration_ms: 0.282708
+  type: 'test'
+  ...
+# Subtest: V124 regression: ordinary blur does not force the game into pause
+ok 3 - V124 regression: ordinary blur does not force the game into pause
+  ---
+  duration_ms: 0.474627
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 65.605157
+
+[ALL TESTS 106/148] tests/platforms/pinballLauncherV125.test.mjs
+TAP version 13
+# Subtest: V125+ keeps launch on a guided shooter rail instead of collision-dependent free flight
+ok 1 - V125+ keeps launch on a guided shooter rail instead of collision-dependent free flight
+  ---
+  duration_ms: 0.796334
+  type: 'test'
+  ...
+# Subtest: V125+ shooter rail ends inside the live playfield
+ok 2 - V125+ shooter rail ends inside the live playfield
+  ---
+  duration_ms: 0.164769
+  type: 'test'
+  ...
+# Subtest: V125+ does not create automatic pause screens on focus/visibility/Telegram deactivation
+ok 3 - V125+ does not create automatic pause screens on focus/visibility/Telegram deactivation
+  ---
+  duration_ms: 0.408577
+  type: 'test'
+  ...
+# Subtest: V125+ has keyboard, pointer and click launch fallbacks
+ok 4 - V125+ has keyboard, pointer and click launch fallbacks
+  ---
+  duration_ms: 0.212601
+  type: 'test'
+  ...
+# Subtest: V125+ disables browser cache for Mini App assets
+ok 5 - V125+ disables browser cache for Mini App assets
+  ---
+  duration_ms: 0.218711
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.913094
+
+[ALL TESTS 107/148] tests/platforms/pinballLauncherV126.test.mjs
+TAP version 13
+# Subtest: V126 models a real-style right shooter lane with rollback/re-plunge
+ok 1 - V126 models a real-style right shooter lane with rollback/re-plunge
+  ---
+  duration_ms: 0.722843
+  type: 'test'
+  ...
+# Subtest: V126 soft plunge returns, normal plunge clears the crest
+ok 2 - V126 soft plunge returns, normal plunge clears the crest
+  ---
+  duration_ms: 7.614321
+  type: 'test'
+  ...
+# Subtest: V126 release point is in open playfield, away from the old corner trap
+ok 3 - V126 release point is in open playfield, away from the old corner trap
+  ---
+  duration_ms: 0.274655
+  type: 'test'
+  ...
+# Subtest: V126 replaces sharp launcher/cabinet joints with curved Bezier rails
+ok 4 - V126 replaces sharp launcher/cabinet joints with curved Bezier rails
+  ---
+  duration_ms: 0.212522
+  type: 'test'
+  ...
+# Subtest: V126 cache busts changed Mini App assets
+ok 5 - V126 cache busts changed Mini App assets
+  ---
+  duration_ms: 0.159822
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 71.386667
+
+[ALL TESTS 108/148] tests/platforms/pinballLayoutV128.test.mjs
+TAP version 13
+# Subtest: V128 leaves a broad central travel corridor instead of a bumper cluster
+ok 1 - V128 leaves a broad central travel corridor instead of a bumper cluster
+  ---
+  duration_ms: 0.759759
+  type: 'test'
+  ...
+# Subtest: V128 splits RAVE targets into left and right banks
+ok 2 - V128 splits RAVE targets into left and right banks
+  ---
+  duration_ms: 0.202126
+  type: 'test'
+  ...
+# Subtest: V128 dashed ramps stay on their own sides and do not cross the center
+ok 3 - V128 dashed ramps stay on their own sides and do not cross the center
+  ---
+  duration_ms: 0.461328
+  type: 'test'
+  ...
+# Subtest: V128 removes the extra upper flipper and decorative center rails
+ok 4 - V128 removes the extra upper flipper and decorative center rails
+  ---
+  duration_ms: 0.159441
+  type: 'test'
+  ...
+# Subtest: V128 moves the scoop below the open mid-field and cache-busts assets
+ok 5 - V128 moves the scoop below the open mid-field and cache-busts assets
+  ---
+  duration_ms: 0.268426
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 58.094202
+
+[ALL TESTS 109/148] tests/platforms/pinballRampV127.test.mjs
+TAP version 13
+# Subtest: V127 ramp exits preserve the physical curve tangent instead of reversing sideways
+ok 1 - V127 ramp exits preserve the physical curve tangent instead of reversing sideways
+  ---
+  duration_ms: 0.995255
+  type: 'test'
+  ...
+# Subtest: V127 ramp mouths are one-way shots and reject descending recapture loops
+ok 2 - V127 ramp mouths are one-way shots and reject descending recapture loops
+  ---
+  duration_ms: 0.189637
+  type: 'test'
+  ...
+# Subtest: V127 ramp release is nudged clear of the dashed endpoint before normal collisions resume
+ok 3 - V127 ramp release is nudged clear of the dashed endpoint before normal collisions resume
+  ---
+  duration_ms: 0.152922
+  type: 'test'
+  ...
+# Subtest: V127 cache-busts the repaired pinball client
+ok 4 - V127 cache-busts the repaired pinball client
+  ---
+  duration_ms: 0.128254
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55.005133
+
+[ALL TESTS 110/148] tests/platforms/telegramBot.test.mjs
+TAP version 13
+# (node:51950) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# telegram bot tests: OK
+# Subtest: /mnt/data/v156_work/tests/platforms/telegramBot.test.mjs
+ok 1 - /mnt/data/v156_work/tests/platforms/telegramBot.test.mjs
+  ---
+  duration_ms: 70.629914
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 78.47281
+
+[ALL TESTS 111/148] tests/platforms/telegramConnectivity.test.mjs
+TAP version 13
+# Subtest: classifies nested ECONNRESET as retryable TLS reset
+ok 1 - classifies nested ECONNRESET as retryable TLS reset
+  ---
+  duration_ms: 1.943939
+  type: 'test'
+  ...
+# Subtest: classifies Telegram HTTP 401 as non-retryable invalid token
+ok 2 - classifies Telegram HTTP 401 as non-retryable invalid token
+  ---
+  duration_ms: 0.196547
+  type: 'test'
+  ...
+# Subtest: probes Bot API and t.me independently
+ok 3 - probes Bot API and t.me independently
+  ---
+  duration_ms: 18.06557
+  type: 'test'
+  ...
+# Subtest: formats endpoint failure without object stringification
+ok 4 - formats endpoint failure without object stringification
+  ---
+  duration_ms: 0.795352
+  type: 'test'
+  ...
+# Subtest: application wires startup retries, diagnostics command and reconnect timer
+ok 5 - application wires startup retries, diagnostics command and reconnect timer
+  ---
+  duration_ms: 4.960269
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 78.838748
+
+[ALL TESTS 112/148] tests/platforms/telegramCoordsV111.test.mjs
+TAP version 13
+# telegram V111 coords tests: OK
+# Subtest: /mnt/data/v156_work/tests/platforms/telegramCoordsV111.test.mjs
+ok 1 - /mnt/data/v156_work/tests/platforms/telegramCoordsV111.test.mjs
+  ---
+  duration_ms: 52.35394
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 59.98788
+
+[ALL TESTS 113/148] tests/platforms/telegramEventDeletionMenuV115.test.mjs
+TAP version 13
+# telegram event deletion menu V115 tests: ok
+# Subtest: /mnt/data/v156_work/tests/platforms/telegramEventDeletionMenuV115.test.mjs
+ok 1 - /mnt/data/v156_work/tests/platforms/telegramEventDeletionMenuV115.test.mjs
+  ---
+  duration_ms: 52.159501
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 59.77926
+
+[ALL TESTS 114/148] tests/platforms/telegramHomeFastPathV118.test.mjs
+TAP version 13
+# telegram home fast-path V118 tests: ok
+# Subtest: /mnt/data/v156_work/tests/platforms/telegramHomeFastPathV118.test.mjs
+ok 1 - /mnt/data/v156_work/tests/platforms/telegramHomeFastPathV118.test.mjs
+  ---
+  duration_ms: 53.14493
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 61.826495
+
+[ALL TESTS 115/148] tests/platforms/telegramPinballV123.test.mjs
+TAP version 13
+# (node:52035) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: V139 removes Pinball from the Telegram menu and command routing
+ok 1 - V139 removes Pinball from the Telegram menu and command routing
+  ---
+  duration_ms: 1.544485
+  type: 'test'
+  ...
+# Subtest: V123 validates Telegram Mini App initData and serves game/leaderboard API
+ok 2 - V123 validates Telegram Mini App initData and serves game/leaderboard API
+  ---
+  duration_ms: 38.024112
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 174.351673
+
+[ALL TESTS 116/148] tests/platforms/telegramProposalRoutingV130.test.mjs
+TAP version 13
+# Subtest: V130 explicit parser command escapes pending proposal menu state
+ok 1 - V130 explicit parser command escapes pending proposal menu state
+  ---
+  duration_ms: 4.026307
+  type: 'test'
+  ...
+# Subtest: V130 image-only message in proposal mode becomes proposal command and keeps media path open
+ok 2 - V130 image-only message in proposal mode becomes proposal command and keeps media path open
+  ---
+  duration_ms: 0.297249
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 83.108458
+
+[ALL TESTS 117/148] tests/platforms/vkEventPhotoDeliveryV134.test.mjs
+TAP version 13
+# Subtest: V134 keeps Telegram local-file event photos and sends VK posters through the hardened uploader
+ok 1 - V134 keeps Telegram local-file event photos and sends VK posters through the hardened uploader
+  ---
+  duration_ms: 1.027533
+  type: 'test'
+  ...
+# Subtest: V134 event attachment cache is separated by VK community
+ok 2 - V134 event attachment cache is separated by VK community
+  ---
+  duration_ms: 0.229787
+  type: 'test'
+  ...
+# Subtest: V134 hardened VK photo uploader still has attachment validation and direct multipart fallback
+ok 3 - V134 hardened VK photo uploader still has attachment validation and direct multipart fallback
+  ---
+  duration_ms: 1.981686
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 65.087624
+
+[ALL TESTS 118/148] tests/platforms/vkMessageContent.test.mjs
+TAP version 13
+# vkMessageContent tests: OK
+# Subtest: /mnt/data/v156_work/tests/platforms/vkMessageContent.test.mjs
+ok 1 - /mnt/data/v156_work/tests/platforms/vkMessageContent.test.mjs
+  ---
+  duration_ms: 40.25881
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48.142659
+
+[ALL TESTS 119/148] tests/routing/chatHistoryLinkV132.test.mjs
+TAP version 13
+# chat history link routing V132: OK
+# Subtest: /mnt/data/v156_work/tests/routing/chatHistoryLinkV132.test.mjs
+ok 1 - /mnt/data/v156_work/tests/routing/chatHistoryLinkV132.test.mjs
+  ---
+  duration_ms: 59.028245
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 65.794012
+
+[ALL TESTS 120/148] tests/routing/commandPriorityRouting.test.mjs
+TAP version 13
+# Subtest: complete built-in routing audit passes
+ok 1 - complete built-in routing audit passes
+  ---
+  duration_ms: 90.316274
+  type: 'test'
+  ...
+# Subtest: priority table contains each route once and ends in default
+ok 2 - priority table contains each route once and ends in default
+  ---
+  duration_ms: 0.174194
+  type: 'test'
+  ...
+# Subtest: model keys before or after every command family never destroy routing
+ok 3 - model keys before or after every command family never destroy routing
+  ---
+  duration_ms: 6.389669
+  type: 'test'
+  ...
+# Subtest: provider IDs containing pro remain intact while an external selector is stripped
+ok 4 - provider IDs containing pro remain intact while an external selector is stripped
+  ---
+  duration_ms: 0.402399
+  type: 'test'
+  ...
+# Subtest: provider namespace beats generic GPT model and image commands
+ok 5 - provider namespace beats generic GPT model and image commands
+  ---
+  duration_ms: 0.831827
+  type: 'test'
+  ...
+# Subtest: memory commands beat vision, image generation and model selectors
+ok 6 - memory commands beat vision, image generation and model selectors
+  ---
+  duration_ms: 0.584994
+  type: 'test'
+  ...
+# Subtest: explicit AI actions beat semantic event routing
+ok 7 - explicit AI actions beat semantic event routing
+  ---
+  duration_ms: 1.035766
+  type: 'test'
+  ...
+# Subtest: deterministic event command wins over a bare model alias but records suppression
+ok 8 - deterministic event command wins over a bare model alias but records suppression
+  ---
+  duration_ms: 0.766899
+  type: 'test'
+  ...
+# Subtest: semantic event classifier never beats explicit model selector
+ok 9 - semantic event classifier never beats explicit model selector
+  ---
+  duration_ms: 0.565645
+  type: 'test'
+  ...
+# Subtest: all local commands are routed before default GPT
+ok 10 - all local commands are routed before default GPT
+  ---
+  duration_ms: 1.371384
+  type: 'test'
+  ...
+# Subtest: every declared route has an explicit orchestrator handler
+ok 11 - every declared route has an explicit orchestrator handler
+  ---
+  duration_ms: 11.936214
+  type: 'test'
+  ...
+# Subtest: orchestrator uses centralized routing before semantic and default handlers
+ok 12 - orchestrator uses centralized routing before semantic and default handlers
+  ---
+  duration_ms: 4.419842
+  type: 'test'
+  ...
+# Subtest: direct bot interactions bypass autonomous banter on both platforms
+ok 13 - direct bot interactions bypass autonomous banter on both platforms
+  ---
+  duration_ms: 4.49166
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 203.268607
+
+[ALL TESTS 121/148] tests/routing/coordsBroadcastV106.test.mjs
+TAP version 13
+# (node:52137) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: V106 records coords requesters with platform endpoint identity and de-duplicates repeated requests
+ok 1 - V106 records coords requesters with platform endpoint identity and de-duplicates repeated requests
+  ---
+  duration_ms: 0.986141
+  type: 'test'
+  ...
+# Subtest: V106 broadcast keeps three delivery endpoints separate and excludes group chats from registry
+ok 2 - V106 broadcast keeps three delivery endpoints separate and excludes group chats from registry
+  ---
+  duration_ms: 0.286774
+  type: 'test'
+  ...
+# Subtest: V106 owner broadcast uses draft then explicit send command
+ok 3 - V106 owner broadcast uses draft then explicit send command
+  ---
+  duration_ms: 0.318201
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70.902506
+
+[ALL TESTS 122/148] tests/routing/coordsOverrideRouting.test.mjs
+TAP version 13
+# Subtest: owner control commands are parsed separately from public response commands
+ok 1 - owner control commands are parsed separately from public response commands
+  ---
+  duration_ms: 1.312744
+  type: 'test'
+  ...
+# Subtest: Moscow window is exactly 22 Aug 2026 from 11:00 until 24:00
+ok 2 - Moscow window is exactly 22 Aug 2026 from 11:00 until 24:00
+  ---
+  duration_ms: 15.22068
+  type: 'test'
+  ...
+# Subtest: public response requires active window while owner can test saved response at any time
+ok 3 - public response requires active window while owner can test saved response at any time
+  ---
+  duration_ms: 0.60809
+  type: 'test'
+  ...
+# Subtest: incoming fast-path is placed before DM notice and GPT request routing
+ok 4 - incoming fast-path is placed before DM notice and GPT request routing
+  ---
+  duration_ms: 4.668718
+  type: 'test'
+  ...
+# Subtest: V99 source seeds the requested coordinates once without hard-resetting them on every restart
+ok 5 - V99 source seeds the requested coordinates once without hard-resetting them on every restart
+  ---
+  duration_ms: 2.536855
+  type: 'test'
+  ...
+# Subtest: Telegram explicit non-image routing recognizes V99 coords and nearest-party commands
+ok 6 - Telegram explicit non-image routing recognizes V99 coords and nearest-party commands
+  ---
+  duration_ms: 0.299303
+  type: 'test'
+  ...
+# Subtest: public coords requests have deterministic before/active/after window states
+ok 7 - public coords requests have deterministic before/active/after window states
+  ---
+  duration_ms: 0.134513
+  type: 'test'
+  ...
+# Subtest: V100 organizer party fast-path is before VK DM notice and sends one canonical answer
+ok 8 - V100 organizer party fast-path is before VK DM notice and sends one canonical answer
+  ---
+  duration_ms: 4.021579
+  type: 'test'
+  ...
+# Subtest: V102 seeds one complete coords event message with Sber donation details, rules and start time
+ok 9 - V102 seeds one complete coords event message with Sber donation details, rules and start time
+  ---
+  duration_ms: 1.113113
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 92.84801
+
+[ALL TESTS 123/148] tests/routing/coordsUniqueRequestersV112.test.mjs
+TAP version 13
+# coords V112 unique requester tests: OK
+# Subtest: /mnt/data/v156_work/tests/routing/coordsUniqueRequestersV112.test.mjs
+ok 1 - /mnt/data/v156_work/tests/routing/coordsUniqueRequestersV112.test.mjs
+  ---
+  duration_ms: 45.686596
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 52.717445
+
+[ALL TESTS 124/148] tests/routing/graphicsMatrixCommandRoutingV85.test.mjs
+TAP version 13
+# Subtest: V85 graphics matrix top-level command routes to provider before GPT
+ok 1 - V85 graphics matrix top-level command routes to provider before GPT
+  ---
+  duration_ms: 38.137827
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 108.407076
+
+[ALL TESTS 125/148] tests/routing/helpContextProfile.test.mjs
+TAP version 13
+# help context profile tests: OK
+# Subtest: /mnt/data/v156_work/tests/routing/helpContextProfile.test.mjs
+ok 1 - /mnt/data/v156_work/tests/routing/helpContextProfile.test.mjs
+  ---
+  duration_ms: 31.935992
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 38.783954
+
+[ALL TESTS 126/148] tests/routing/peresozdanieFeedbackV109.test.mjs
+TAP version 13
+# (node:52222) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: V109 exposes owner post-event broadcast and review commands
+ok 1 - V109 exposes owner post-event broadcast and review commands
+  ---
+  duration_ms: 0.876264
+  type: 'test'
+  ...
+# Subtest: V109 feedback state arms delivered endpoint and consumes exactly one review
+ok 2 - V109 feedback state arms delivered endpoint and consumes exactly one review
+  ---
+  duration_ms: 1.12453
+  type: 'test'
+  ...
+# Subtest: V109 application sends template through coords recipient endpoints and forwards feedback to owner
+ok 3 - V109 application sends template through coords recipient endpoints and forwards feedback to owner
+  ---
+  duration_ms: 0.205591
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 68.700784
+
+[ALL TESTS 127/148] tests/routing/peresozdanieFeedbackV110.test.mjs
+TAP version 13
+# (node:52239) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: V110 exposes owner post-event broadcast and review commands
+ok 1 - V110 exposes owner post-event broadcast and review commands
+  ---
+  duration_ms: 0.995525
+  type: 'test'
+  ...
+# Subtest: V110 feedback state arms delivered endpoint and consumes exactly one review
+ok 2 - V110 feedback state arms delivered endpoint and consumes exactly one review
+  ---
+  duration_ms: 1.093813
+  type: 'test'
+  ...
+# Subtest: V110 application sends template through coords recipient endpoints and forwards feedback to owner
+ok 3 - V110 application sends template through coords recipient endpoints and forwards feedback to owner
+  ---
+  duration_ms: 0.206883
+  type: 'test'
+  ...
+# Subtest: V110 sends donation QR strictly as a separate second message for coords, thanks and broadcast
+ok 4 - V110 sends donation QR strictly as a separate second message for coords, thanks and broadcast
+  ---
+  duration_ms: 0.545624
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 69.205106
+
+[ALL TESTS 128/148] tests/routing/qrCodeV108.test.mjs
+TAP version 13
+# (node:52256) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: V108 QR public and owner commands are deterministic
+ok 1 - V108 QR public and owner commands are deterministic
+  ---
+  duration_ms: 0.896835
+  type: 'test'
+  ...
+# Subtest: V108 QR settings preserve image when only text changes and preserve text when only image changes
+ok 2 - V108 QR settings preserve image when only text changes and preserve text when only image changes
+  ---
+  duration_ms: 0.281505
+  type: 'test'
+  ...
+# Subtest: V108 seeds requested Sber caption and stores QR path separately
+ok 3 - V108 seeds requested Sber caption and stores QR path separately
+  ---
+  duration_ms: 0.227564
+  type: 'test'
+  ...
+# Subtest: V108 sends QR image and text in one platform-native message and supports image-only Telegram update
+ok 4 - V108 sends QR image and text in one platform-native message and supports image-only Telegram update
+  ---
+  duration_ms: 0.261285
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 78.013226
+
+[ALL TESTS 129/148] tests/scrapers/browserRecoveryPolicy.test.mjs
+TAP version 13
+# browserRecoveryPolicy.test.mjs OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/browserRecoveryPolicy.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/browserRecoveryPolicy.test.mjs
+  ---
+  duration_ms: 31.992388
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 38.710051
+
+[ALL TESTS 130/148] tests/scrapers/manualBrowserCloseFinishV153.test.mjs
+TAP version 13
+# manualBrowserCloseFinishV153 tests: OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/manualBrowserCloseFinishV153.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/manualBrowserCloseFinishV153.test.mjs
+  ---
+  duration_ms: 39.19154
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.238631
+
+[ALL TESTS 131/148] tests/scrapers/manualSourceRegistryV152.test.mjs
+TAP version 13
+# manualSourceRegistryV152 tests: OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/manualSourceRegistryV152.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/manualSourceRegistryV152.test.mjs
+  ---
+  duration_ms: 31.57758
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 38.159339
+
+[ALL TESTS 132/148] tests/scrapers/ownerAddSourceIntegrationV152.test.mjs
+TAP version 13
+# ownerAddSourceIntegrationV152 tests: OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/ownerAddSourceIntegrationV152.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/ownerAddSourceIntegrationV152.test.mjs
+  ---
+  duration_ms: 35.502347
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42.450951
+
+[ALL TESTS 133/148] tests/scrapers/parallelManualAllV113.test.mjs
+TAP version 13
+# V113 parallel manual scraper launch + slow scrolling tests: OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/parallelManualAllV113.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/parallelManualAllV113.test.mjs
+  ---
+  duration_ms: 35.457545
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.186041
+
+[ALL TESTS 134/148] tests/scrapers/publicScraperLimitV130.test.mjs
+TAP version 13
+# publicScraperLimitV130.test.mjs OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/publicScraperLimitV130.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/publicScraperLimitV130.test.mjs
+  ---
+  duration_ms: 34.572879
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.375491
+
+[ALL TESTS 135/148] tests/scrapers/publicSourcePolicy.test.mjs
+TAP version 13
+# publicSourcePolicy.test.mjs OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/publicSourcePolicy.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/publicSourcePolicy.test.mjs
+  ---
+  duration_ms: 31.985518
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 38.56398
+
+[ALL TESTS 136/148] tests/scrapers/scraperCommandRouting.test.mjs
+TAP version 13
+# scraperCommandRouting tests: OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/scraperCommandRouting.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/scraperCommandRouting.test.mjs
+  ---
+  duration_ms: 40.735788
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 47.5245
+
+[ALL TESTS 137/148] tests/scrapers/singlePassTabPersistence.test.mjs
+TAP version 13
+# singlePassTabPersistence.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/singlePassTabPersistence.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/singlePassTabPersistence.test.mjs
+  ---
+  duration_ms: 41.340678
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48.433759
+
+[ALL TESTS 138/148] tests/scrapers/sourceConfiguration.test.mjs
+TAP version 13
+# sourceConfiguration tests: OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/sourceConfiguration.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/sourceConfiguration.test.mjs
+  ---
+  duration_ms: 35.125829
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43.835784
+
+[ALL TESTS 139/148] tests/scrapers/vkChatRichLivePolicyV96.test.mjs
+TAP version 13
+# vkChatRichLivePolicyV96.test.mjs: OK
+# Subtest: /mnt/data/v156_work/tests/scrapers/vkChatRichLivePolicyV96.test.mjs
+ok 1 - /mnt/data/v156_work/tests/scrapers/vkChatRichLivePolicyV96.test.mjs
+  ---
+  duration_ms: 39.929174
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.742914
+
+[ALL TESTS 140/148] tests/scrapers/vkMediaRecoveryV131.test.mjs
+TAP version 13
+# Subtest: V131 hydrates VK posters from rendered DOM and VK API without exceeding 20 posts
+ok 1 - V131 hydrates VK posters from rendered DOM and VK API without exceeding 20 posts
+  ---
+  duration_ms: 5.624983
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53.837397
+
+[ALL TESTS 141/148] tests/security/dossierAccess.test.mjs
+TAP version 13
+# Subtest: dossier command is public in group chats and does not require owner access
+ok 1 - dossier command is public in group chats and does not require owner access
+  ---
+  duration_ms: 1.997709
+  type: 'test'
+  ...
+# Subtest: dossier has no password authorization state
+ok 2 - dossier has no password authorization state
+  ---
+  duration_ms: 1.391313
+  type: 'test'
+  ...
+# Subtest: dossier output is hard-capped to one compact message
+ok 3 - dossier output is hard-capped to one compact message
+  ---
+  duration_ms: 1.861444
+  type: 'test'
+  ...
+# Subtest: dossier stays group-only because private chats do not retain chat history
+ok 4 - dossier stays group-only because private chats do not retain chat history
+  ---
+  duration_ms: 1.196388
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62.682697
+
+[ALL TESTS 142/148] tests/shared/botAddressing.test.mjs
+TAP version 13
+# botAddressing tests: OK
+# Subtest: /mnt/data/v156_work/tests/shared/botAddressing.test.mjs
+ok 1 - /mnt/data/v156_work/tests/shared/botAddressing.test.mjs
+  ---
+  duration_ms: 34.513498
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.226044
+
+[ALL TESTS 143/148] tests/shared/privateErrorRedaction.test.mjs
+TAP version 13
+# Private error redaction tests passed.
+# Subtest: /mnt/data/v156_work/tests/shared/privateErrorRedaction.test.mjs
+ok 1 - /mnt/data/v156_work/tests/shared/privateErrorRedaction.test.mjs
+  ---
+  duration_ms: 34.868024
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42.563006
+
+[ALL TESTS 144/148] tests/shared/sharedCommands.test.mjs
+TAP version 13
+# sharedCommands tests: OK
+# Subtest: /mnt/data/v156_work/tests/shared/sharedCommands.test.mjs
+ok 1 - /mnt/data/v156_work/tests/shared/sharedCommands.test.mjs
+  ---
+  duration_ms: 40.271382
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 48.726422
+
+[ALL TESTS 145/148] tests/shared/sharedDate.test.mjs
+TAP version 13
+# sharedDate tests: OK
+# Subtest: /mnt/data/v156_work/tests/shared/sharedDate.test.mjs
+ok 1 - /mnt/data/v156_work/tests/shared/sharedDate.test.mjs
+  ---
+  duration_ms: 43.794707
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 50.515005
+
+[ALL TESTS 146/148] tests/v148Features.test.mjs
+TAP version 13
+# V148 feature regression checks: OK
+# Subtest: /mnt/data/v156_work/tests/v148Features.test.mjs
+ok 1 - /mnt/data/v156_work/tests/v148Features.test.mjs
+  ---
+  duration_ms: 38.66278
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 46.226293
+
+[ALL TESTS 147/148] tests/v149Features.test.mjs
+TAP version 13
+# Subtest: AI duplicate gate skips exact title+date and reviews only partial/similar same-date names
+ok 1 - AI duplicate gate skips exact title+date and reviews only partial/similar same-date names
+  ---
+  duration_ms: 1.840342
+  type: 'test'
+  ...
+# Subtest: active communication interval command accepts persistent windows
+ok 2 - active communication interval command accepts persistent windows
+  ---
+  duration_ms: 0.900621
+  type: 'test'
+  ...
+# Subtest: runtime V149 wires smart AI dedupe and restart-safe active chat state
+ok 3 - runtime V149 wires smart AI dedupe and restart-safe active chat state
+  ---
+  duration_ms: 5.598632
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 62.850901
+
+[ALL TESTS 148/148] tests/v150ImageSummaryPrompt.test.mjs
+TAP version 13
+# Subtest: V150 image summary uses dedicated full-coverage visual digest
+ok 1 - V150 image summary uses dedicated full-coverage visual digest
+  ---
+  duration_ms: 1.20376
+  type: 'test'
+  ...
+# Subtest: V150 does not erase sensitive themes from semantic coverage
+ok 2 - V150 does not erase sensitive themes from semantic coverage
+  ---
+  duration_ms: 0.472234
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55.119996
+
+[ALL TESTS SUMMARY] files=148 failed=0 duration=14.1s

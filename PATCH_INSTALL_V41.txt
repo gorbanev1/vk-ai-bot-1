@@ -1,0 +1,25 @@
+УСТАНОВКА PATCH V41 ПОВЕРХ V40
+==============================
+
+1. Полностью остановите Node.js-процесс бота.
+2. Сделайте копию data/bot.sqlite.
+3. Распакуйте patch в корень проекта с заменой файлов.
+4. Не заменяйте .env и папку data.
+5. Выполните один раз:
+
+   pnpm migrate:v41-layout
+
+   Команда удалит только старые плоские tests/*.test.mjs. Zip сам удалять
+   старые файлы не умеет.
+
+6. Выполните:
+
+   pnpm install --frozen-lockfile
+   pnpm verify
+   pnpm dev
+
+7. Проверьте строку:
+
+   [BOT PATCH] events-v41-modular-architecture-developer-docs
+
+Полный source archive V41 уже имеет чистую структуру и не требует шага 5.

@@ -1,0 +1,16 @@
+Gigorave Bot V139 install/update
+
+1. Stop the existing bot process.
+2. Back up your local .env and data/bot.sqlite.
+3. Overlay the V139 source files over the existing project. Do NOT replace your local .env or data/ directory with files from a source archive.
+4. Install dependencies as usual (pnpm install / npm install if needed).
+5. Run:
+   npm run check:syntax
+   npm run check:imports
+   npm run test:v139
+6. Start the bot.
+7. In Telegram verify the main menu: “➕ Предложить тусу” is visible and Pinball is absent; open each submenu/action and verify “⬅️ Назад”.
+8. Run the owner’s normal manual VK parser command for the relevant public sources (or “парсер все”, if that is your established workflow). The V139 parser-version hash forces old posts to be re-evaluated with the new poster rules.
+9. Query the affected events (including INDUSTRIAL MADNESS) and verify that one source poster is attached rather than a gallery/icon or a missing image.
+
+V139 keeps the old pinball source/table only as dormant legacy code/data; it no longer exposes the feature or starts its HTTP server.

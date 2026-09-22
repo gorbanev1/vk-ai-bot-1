@@ -1,0 +1,15 @@
+V81 — provider image menus, per-key model catalog, Telegram image-mode persistence, auto-import of AI secrets from file next to src.
+
+1. Останови бота.
+2. Распакуй архив поверх проекта.
+3. Не заменяй .env и data/.
+4. Положи TruffleHog-файл на одном уровне с src, например:
+   C:\Users\Adm\WebstormProjects\vk-ai-bot\parsed_secrets_redacted.txt
+5. При необходимости импортируй ключи автоматически:
+   pnpm run import:ai-secrets -- ".\\parsed_secrets_redacted.txt" --apply
+6. Запусти:
+   pnpm install --frozen-lockfile
+   pnpm run test:provider-diagnostics
+   pnpm dev
+
+Ожидаемая сборка: [BOT BUILD] events-v81-image-provider-menu-key-selector-help-matrix

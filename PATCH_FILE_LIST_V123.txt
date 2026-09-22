@@ -1,0 +1,33 @@
+V123 PATCH FILE LIST (base V121)
+
+Changed: 13
+.gitignore
+DEVELOPER_HANDOFF.md
+PROJECT_MANIFEST.json
+README.md
+docs/BEHAVIOR_AND_COMMANDS.md
+docs/CONFIGURATION.md
+docs/DATABASE.md
+docs/SOURCE_MAP.md
+package.json
+src/app/botApplication.js
+src/features/ai/fullAiAudit.js
+src/infrastructure/database/index.js
+src/platforms/telegram/telegramBot.js
+
+Added: 13
+.env.example
+INSTALL_V123.txt
+PATCH_INSTALL_V123.txt
+PATCH_NOTES_EVENTS_V123_AI_CLEANUP_PINBALL.txt
+miniapps/pinball/index.html
+miniapps/pinball/pinball.css
+miniapps/pinball/pinball.js
+scripts/smoke-pinball.mjs
+src/features/ai/envKeyCleanup.js
+src/features/pinball/pinballServer.js
+tests/ai/envKeyCleanupV123.test.mjs
+tests/ai/fullAiAuditV122Targeted.test.mjs
+tests/platforms/telegramPinballV123.test.mjs
+
+Removed: 0

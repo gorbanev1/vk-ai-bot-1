@@ -1,0 +1,12 @@
+V143 changed files:
+- src/app/botApplication.js
+- src/features/ai/autoSummaryRouting.js
+- tests/ai/autoSummaryV143SourceTruth.test.mjs
+- package.json
+- PROJECT_MANIFEST.json
+- docs/SOURCE_MAP.md
+- README.md
+- DEVELOPER_HANDOFF.md
+- INSTALL_V143.txt
+- PATCH_NOTES_EVENTS_V143_AUTO_SUMMARY_SOURCE_TRUTH.txt
+- PATCH_FILE_LIST_V143.txt

@@ -1,0 +1,22 @@
+V125 — DETERMINISTIC PINBALL REBUILD
+
+Changes from V124:
+- Replaced collision-dependent plunger launch with a deterministic curved shooter rail.
+- Space/ArrowDown, touch/pointer LAUNCH and click fallback all release the same launcher path.
+- If focus is lost while LAUNCH is held, the plunger is released instead of losing keyup and trapping the ball.
+- Browser blur, document visibility changes and Telegram deactivation no longer force a pause overlay. Manual P/Esc pause remains.
+- Pinball static assets are served with Cache-Control: no-store and explicit ?v=125 URLs.
+- Preserved the existing table, flippers, bumpers, ramps, scoop, multiball, scoring, sound and leaderboard API.
+- Added V125 launcher/cache/focus regression tests.
+
+Files changed:
+- miniapps/pinball/pinball.js
+- miniapps/pinball/index.html
+- src/features/pinball/pinballServer.js
+- src/app/botApplication.js
+- tests/platforms/pinballLauncherV124.test.mjs
+- tests/platforms/pinballLauncherV125.test.mjs
+- package.json
+- README.md
+- DEVELOPER_HANDOFF.md
+- PROJECT_MANIFEST.json (regenerated)

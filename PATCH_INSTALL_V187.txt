@@ -1,0 +1,4 @@
+Apply Gigorave_V187_patch.zip on top of V186.
+Stop the bot first. Back up the project and data/. Extract with overwrite into project root.
+Never overwrite your production data/ or SQLite files with files from a source archive.
+After restart verify package version 0.187.0 and BOT BUILD events-v187-batched-personalization-no-repeat.

@@ -1,0 +1,7 @@
+Gigorave V173 — conversation_message_id recovery fallback
+
+- When messages.getHistory returns access denied, recovery falls back to messages.getByConversationMessageId.
+- History is requested in CMID batches and merged into the same local message store.
+- Added additional fallback strategies based on getById(cmids) and execute where supported.
+- A permission failure in one method/client no longer disables live message persistence.
+- The CMID path became the working recovery mechanism for the active VK chat.

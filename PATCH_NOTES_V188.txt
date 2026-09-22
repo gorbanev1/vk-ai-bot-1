@@ -1,0 +1,41 @@
+Gigorave V188 — hierarchical chat memory + weekly/monthly summaries
+Build: events-v188-hierarchical-chat-memory-weekly-monthly
+Version: 0.188.0
+
+Main changes
+============
+1. Durable hierarchical chat-summary memory
+- One-time bootstrap covers linked predecessor chat history plus the current chat.
+- Source messages are grouped by adaptive estimated-token budget, not a fixed 100/500-message truncation.
+- Default conservative context baseline: 128k tokens; 90% working ratio with separate prompt/output reserves.
+- If the provider rejects an oversized context, the leaf is split recursively instead of restarting the entire history.
+- Leaf/message/root state is stored in:
+  %LOCALAPPDATA%\Gigorave\state\hierarchical-summary-v188.sqlite
+- Unchanged historical chunks are not sent to GPT again.
+
+2. Weekly + monthly automatic hierarchy summaries
+- Default enabled with HIERARCHICAL_SUMMARY_AUTO_ENABLED=true (default when unset).
+- Weekly completed period closes Sunday at 21:00 Europe/Moscow.
+- Monthly completed period closes at calendar-month boundary.
+- Period results and delivery markers are durable so an unchanged period is not sent twice.
+
+3. Explicit large summaries
+- Whole-chat hierarchy root is reusable.
+- >=5000-message / whole-history summary remains owner-only.
+- Existing V187.2 content-addressed summary cache remains active.
+
+4. “резюмируй за день” bug fixed
+- Before V188, the phrase without a number was not parsed and silently became “последние 100 сообщений”.
+- V188: “за день” / “сегодня” = all matching messages from 06:00 Europe/Moscow to now.
+- If invoked before 06:00, the operational day begins at 06:00 on the previous calendar date.
+- “за сутки” = rolling 24h.
+- “за неделю” = rolling 7d.
+- Numeric forms such as “за 2 дня” retain rolling-duration semantics.
+
+Preserved fixes
+===============
+- V187.2 large-summary durable cache and linked-history dossier.
+- V187 dossier command-only / style batch after 500 new messages.
+- V187 stable event content hash.
+- V186 remote image fingerprint retry/fallback.
+- V185 event published-date recovery/audit.

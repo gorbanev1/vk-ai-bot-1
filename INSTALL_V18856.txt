@@ -1,0 +1,17 @@
+Gigorave V188.56 — index repair first
+
+Что исправлено:
+- Если PRAGMA quick_check сообщает только ошибки индексов вида
+  "wrong # of entries in index ..." / "row N missing from index ...",
+  preflight больше не заменяет bot.sqlite healthy-backup'ом сразу.
+- Сначала сохраняется полная forensic-копия bot.sqlite + WAL + SHM в
+  data/corruption-backups/<timestamp>/.
+- Затем выполняется REINDEX на активной базе.
+- После REINDEX обязательны quick_check и integrity_check.
+- Только если они не стали OK, запускается прежний WAL/backup/salvage recovery.
+- Lineage guard остаётся активным: REINDEX не позволяет поверх пропавшей истории
+  создать новый healthy-backup.
+
+Важно:
+V188.56 не удаляет сообщения и не очищает пользовательские SQLite state базы.
+Одноразовая очистка старых обработанных логов V188.55 сохраняется без изменений.

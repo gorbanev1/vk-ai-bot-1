@@ -1,0 +1,12 @@
+V112 -> V113
+
+1. Stop the bot.
+2. Back up your current folder and data/bot.sqlite.
+3. Extract Gigorave_V113_patch_from_V112.zip over the existing V112 folder, preserving your existing .env and data/ directory.
+4. Run dependency install if needed (pnpm install / npm install according to your deployment).
+5. Start the bot.
+
+Important:
+- The patch does not contain or replace .env.
+- The patch does not contain or replace data/bot.sqlite.
+- SQLite creates the V109/V110 feedback tables automatically on startup.

@@ -1,0 +1,11 @@
+GIGORAVE V129 — POP BUMPER POWER
+
+Changes from V128:
+- Pop bumpers now behave like active solenoid mechanisms instead of soft passive rubber.
+- Kick impulse increased to 1040–1140.
+- Every pop hit guarantees at least 1225–1325 outward normal speed.
+- Stronger flash, particles, screen shake, sound and medium haptic feedback.
+- Asset version bumped to v=129.
+
+Install over V128, then restart with:
+pnpm dev

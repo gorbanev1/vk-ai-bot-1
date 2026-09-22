@@ -1,0 +1,16 @@
+V121 update
+
+1. Stop the bot.
+2. Back up data/bot.sqlite.
+3. Apply the V120 -> V121 patch with file replacement, or use the full V121 archive.
+4. Do NOT replace your .env or data/bot.sqlite.
+5. Run: pnpm dev
+6. Owner command: Гигорейв тест всех моделей
+
+Important:
+- OPENAI_COMPAT_API_KEY is intentionally excluded from this audit.
+- GigaChat is intentionally excluded from this audit.
+- The old AI_FULL_AUDIT_RESULTS directory is cleared when a new full audit starts.
+- The audit itself now performs its second round automatically before replacing ai_runtime_modes.
+
+See PATCH_NOTES_EVENTS_V121_TWO_PASS_AI_AUDIT.txt.

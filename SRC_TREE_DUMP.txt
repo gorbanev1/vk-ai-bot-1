@@ -1,0 +1,788 @@
+SRC DIRECTORY DUMP
+Generated: 15.09.2026 14:08:04,16
+Target: C:\Users\Adm\WebstormProjects\vk-ai-bot\src
+
+============================================================
+TREE
+============================================================
+Структура папок
+Серийный номер тома: 00000035 EE4B:198A
+C:\USERS\ADM\WEBSTORMPROJECTS\VK-AI-BOT\SRC
+|   activeCommunicationRouting.js
+|   astrologyRouting.js
+|   banterRouting.js
+|   browserGrabber.js
+|   chatContextRouting.js
+|   communicationStyleRouting.js
+|   database.js
+|   DEVELOPER_HANDOFF.md
+|   ephemeris.js
+|   eventAssets.js
+|   eventCandidateRouting.js
+|   eventDeduplication.js
+|   eventMetadata.js
+|   eventText.js
+|   eventValidation.js
+|   gptModeRouting.js
+|   index.js
+|   INSTALL_V129.txt
+|   memoryRouting.js
+|   natalRouting.js
+|   openAIImageStream.js
+|   openAIStream.js
+|   package.json
+|   PATCH_NOTES_EVENTS_V129_PINBALL_POP_BUMPER_POWER.txt
+|   README.md
+|   responseLengthRouting.js
+|   sanitize.js
+|   scraperCommandRouting.js
+|   telegramBot.js
+|   telegramHtmlScraper.js
+|   unknownTermRouting.js
+|   vkChatEventScraper.js
+|   vkChatEventSource.js
+|   vkPublicScraper.js
+|   
++---app
+|       botApplication.js
+|       botApplication.js.bak
+|       
++---features
+|   +---ai
+|   |       allProviderVisualMatrixAudit.js
+|   |       autoSummaryRouting.js
+|   |       calendarSummaryRollup.js
+|   |       calendarSummarySlices.js
+|   |       chatContextRouting.js
+|   |       compactAiHealthAudit.js
+|   |       directConversationContext.js
+|   |       envKeyCleanup.js
+|   |       externalProviderRouting.js
+|   |       fullAiAudit.js
+|   |       gigoraveIdentity.js
+|   |       globalWhoDatabaseRouting.js
+|   |       gptModeRouting.js
+|   |       imageEditRouting.js
+|   |       imageQuotaPolicy.js
+|   |       incomingImageTargets.js
+|   |       incomingMessagePrompt.js
+|   |       legacySecretCleanup.js
+|   |       mediaAudit.js
+|   |       mediaPipeline.js
+|   |       modelDiscoveryScheduler.js
+|   |       modelProviderFailover.js
+|   |       nvidiaVisualAudit.js
+|   |       nvidiaVisualGeneration.js
+|   |       openAIImageStream.js
+|   |       openAIRetryRouting.js
+|   |       openAIStream.js
+|   |       participantQuestionRouting.js
+|   |       proInferencePolicy.js
+|   |       providerDiagnostics.js
+|   |       providerDiagnostics.js.bak
+|   |       providerKeyAudit.js
+|   |       quotaKeyLifecycle.js
+|   |       reasoningEffortRouting.js
+|   |       replyTargetRouting.js
+|   |       responseLengthRouting.js
+|   |       runtimeSecretAutoImport.js
+|   |       summaryModelRouting.js
+|   |       thirdRecoverySweep.js
+|   |       tokenUsageLogger.js
+|   |       unknownTermRouting.js
+|   |       visionRouting.js
+|   |       voiceTranscription.js
+|   |       
+|   +---astrology
+|   |       astrologyRouting.js
+|   |       ephemeris.js
+|   |       natalRouting.js
+|   |       
+|   +---coords
+|   |       coordsOverrideRouting.js
+|   |       
+|   +---documents
+|   |       documentArtifacts.js
+|   |       documentRouting.js
+|   |       
+|   +---donation
+|   |       qrCodeRouting.js
+|   |       
+|   +---events
+|   |       compactPartySummary.js
+|   |       dmPartyRouting.js
+|   |       eventAiAdmission.js
+|   |       eventAnnouncementNormalization.js
+|   |       eventAssets.js
+|   |       eventCandidateRouting.js
+|   |       eventDeduplication.js
+|   |       eventDuplicateAiPolicy.js
+|   |       eventDuplicateResolution.js
+|   |       eventImageSelection.js
+|   |       eventIngestAudit.js
+|   |       eventMetadata.js
+|   |       eventModeration.js
+|   |       eventModerationRouting.js
+|   |       eventPageCandidateSelection.js
+|   |       eventParserTrace.js
+|   |       eventPosterMatching.js
+|   |       eventPosterPolicy.js
+|   |       eventProposalWorkflow.js
+|   |       eventProvenance.js
+|   |       eventRetry.js
+|   |       eventSourceLink.js
+|   |       eventSourceRefresh.js
+|   |       eventText.js
+|   |       eventTextSanitation.js
+|   |       eventValidation.js
+|   |       eventVenueInference.js
+|   |       eventVerifiedSnapshot.js
+|   |       eventVisionPolicy.js
+|   |       publicEventRange.js
+|   |       publicPostDateEvidence.js
+|   |       publicPostLocalParser.js
+|   |       sourceContentHash.js
+|   |       sourceEventPersistence.js
+|   |       sourcePostFingerprint.js
+|   |       trustedOwnerEventEvidence.js
+|   |       vkCapturedMediaMerge.js
+|   |       vkEventLinkEnrichment.js
+|   |       vkStructuredEventEvidence.js
+|   |       
+|   +---history
+|   |       chatHistoryLinkRouting.js
+|   |       localHistoryCheckpoint.js
+|   |       localSqliteHistoryRecovery.js
+|   |       vkBrowserHistoryRecovery.js
+|   |       vkHistoryPullPolicy.js
+|   |       vkHistoryRecoveryVisibility.js
+|   |       
+|   +---membership
+|   |       leaverCommandRouting.js
+|   |       
+|   +---memory
+|   |       memoryRouting.js
+|   |       
+|   +---personality
+|   |       activeCommunicationRouting.js
+|   |       banterRouting.js
+|   |       botIdentityProvocationRouting.js
+|   |       communicationStyleRouting.js
+|   |       flatterCommandRouting.js
+|   |       roastCommandRouting.js
+|   |       roastParticipantRoster.js
+|   |       
+|   +---pinball
+|   |       pinballServer.js
+|   |       
+|   +---routing
+|   |       commandPriorityRouting.js
+|   |       explicitApplicationCommand.js
+|   |       helpContextProfile.js
+|   |       
+|   +---runtime
+|   |       processControlRouting.js
+|   |       
+|   \---scrapers
+|           browserRecoveryPolicy.js
+|           manualParserDiagnostics.js
+|           manualProcessingPool.js
+|           manualSourceRegistry.js
+|           publicSourcePolicy.js
+|           scraperCommandRouting.js
+|           scraperError.js
+|           sourceConfiguration.js
+|           
++---infrastructure
+|   +---browser
+|   |       browserGrabber.js
+|   |       
+|   \---database
+|           autoSummaryStateStore.js
+|           databaseLineageGuard.js
+|           databasePreflight.js
+|           databasePreflightRegister.js
+|           hierarchicalSummaryStateStore.js
+|           historyRecoveryStateStore.js
+|           index.js
+|           personalizationStateStore.js
+|           runtimePaths.js
+|           summaryStateStore.js
+|           
++---miniapps
+|   \---pinball
+|           index.html
+|           pinball.js
+|           
++---platforms
+|   +---telegram
+|   |       telegramBot.js
+|   |       telegramConnectivity.js
+|   |       telegramHtmlScraper.js
+|   |       
+|   \---vk
+|           vkChatEventScraper.js
+|           vkChatEventSource.js
+|           vkMessageContent.js
+|           vkPhotoIdentityMedia.js
+|           vkPublicScraper.js
+|           vkSourcePageHealth.js
+|           vkStagedDomParser.js
+|           
++---runtime
+|       logMaintenanceV18855.js
+|       operationSupervisor.js
+|       singleInstanceLock.js
+|       
++---shared
+|       botAddressing.js
+|       buildVersion.js
+|       commands.js
+|       date.js
+|       errors.js
+|       incomingReplyTransport.js
+|       numbers.js
+|       regex.js
+|       sanitize.js
+|       
++---src
+|   \---app
+|           botApplication.js
+|           
+\---tests
+    \---platforms
+            pinballBumpersV129.test.mjs
+            pinballLayoutV128.test.mjs
+            
+
+============================================================
+FULL RECURSIVE LIST WITH SIZE AND DATE
+============================================================
+ Том в устройстве C не имеет метки.
+ Серийный номер тома: EE4B-198A
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35               277 activeCommunicationRouting.js
+15.09.2026  12:21    <DIR>          app
+13.09.2026  19:35               265 astrologyRouting.js
+13.09.2026  19:35               264 banterRouting.js
+13.09.2026  19:35               267 browserGrabber.js
+13.09.2026  19:35               260 chatContextRouting.js
+13.09.2026  19:35               276 communicationStyleRouting.js
+13.09.2026  19:35               259 database.js
+25.08.2026  17:35             22379 DEVELOPER_HANDOFF.md
+13.09.2026  19:35               258 ephemeris.js
+13.09.2026  19:35               257 eventAssets.js
+13.09.2026  19:35               267 eventCandidateRouting.js
+13.09.2026  19:35               264 eventDeduplication.js
+13.09.2026  19:35               259 eventMetadata.js
+13.09.2026  19:35               255 eventText.js
+13.09.2026  19:35               261 eventValidation.js
+13.09.2026  12:54    <DIR>          features
+13.09.2026  19:35               256 gptModeRouting.js
+14.09.2026  19:17              1896 index.js
+29.07.2026  21:12    <DIR>          infrastructure
+25.08.2026  17:35               413 INSTALL_V129.txt
+13.09.2026  19:35               259 memoryRouting.js
+25.08.2026  17:35    <DIR>          miniapps
+13.09.2026  19:35               261 natalRouting.js
+13.09.2026  19:35               259 openAIImageStream.js
+13.09.2026  19:35               254 openAIStream.js
+25.08.2026  17:35              9030 package.json
+25.08.2026  17:35               569 PATCH_NOTES_EVENTS_V129_PINBALL_POP_BUMPER_POWER.txt
+29.07.2026  21:12    <DIR>          platforms
+25.08.2026  17:35             86818 README.md
+13.09.2026  19:35               263 responseLengthRouting.js
+15.09.2026  12:21    <DIR>          runtime
+13.09.2026  19:35               245 sanitize.js
+13.09.2026  19:35               269 scraperCommandRouting.js
+15.09.2026  12:21    <DIR>          shared
+25.08.2026  17:35    <DIR>          src
+13.09.2026  19:35               260 telegramBot.js
+13.09.2026  19:35               268 telegramHtmlScraper.js
+25.08.2026  17:35    <DIR>          tests
+13.09.2026  19:35               260 unknownTermRouting.js
+13.09.2026  19:35               261 vkChatEventScraper.js
+13.09.2026  19:35               260 vkChatEventSource.js
+13.09.2026  19:35               258 vkPublicScraper.js
+              34 файлов         128427 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\app
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+15.09.2026  12:10           1539604 botApplication.js
+03.08.2026  17:29            491031 botApplication.js.bak
+               2 файлов        2030635 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features
+
+13.09.2026  12:54    <DIR>          .
+13.09.2026  12:54    <DIR>          ..
+15.09.2026  12:21    <DIR>          ai
+15.09.2026  12:21    <DIR>          astrology
+15.09.2026  12:21    <DIR>          coords
+15.09.2026  12:21    <DIR>          documents
+15.09.2026  12:21    <DIR>          donation
+15.09.2026  12:21    <DIR>          events
+15.09.2026  12:21    <DIR>          history
+15.09.2026  12:21    <DIR>          membership
+15.09.2026  12:21    <DIR>          memory
+15.09.2026  12:21    <DIR>          personality
+15.09.2026  12:21    <DIR>          pinball
+15.09.2026  12:21    <DIR>          routing
+15.09.2026  12:21    <DIR>          runtime
+15.09.2026  12:21    <DIR>          scrapers
+               0 файлов              0 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\ai
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35             13169 allProviderVisualMatrixAudit.js
+13.09.2026  19:35             16947 autoSummaryRouting.js
+13.09.2026  19:35              2688 calendarSummaryRollup.js
+13.09.2026  19:35              3451 calendarSummarySlices.js
+13.09.2026  19:35              5077 chatContextRouting.js
+13.09.2026  19:35             18745 compactAiHealthAudit.js
+13.09.2026  19:35              4155 directConversationContext.js
+13.09.2026  19:35             20166 envKeyCleanup.js
+13.09.2026  19:35             26237 externalProviderRouting.js
+13.09.2026  19:35            121612 fullAiAudit.js
+13.09.2026  19:35              1689 gigoraveIdentity.js
+13.09.2026  19:35              9139 globalWhoDatabaseRouting.js
+13.09.2026  19:35              4602 gptModeRouting.js
+13.09.2026  19:35              2634 imageEditRouting.js
+13.09.2026  19:35               786 imageQuotaPolicy.js
+13.09.2026  19:35             31338 incomingImageTargets.js
+13.09.2026  19:35              5536 incomingMessagePrompt.js
+13.09.2026  19:35               999 legacySecretCleanup.js
+13.09.2026  19:35              6583 mediaAudit.js
+13.09.2026  19:35              1216 mediaPipeline.js
+13.09.2026  19:35             21942 modelDiscoveryScheduler.js
+13.09.2026  19:35             12599 modelProviderFailover.js
+13.09.2026  19:35             10041 nvidiaVisualAudit.js
+13.09.2026  19:35             22443 nvidiaVisualGeneration.js
+13.09.2026  19:35              5208 openAIImageStream.js
+13.09.2026  19:35              8720 openAIRetryRouting.js
+13.09.2026  19:35              4629 openAIStream.js
+13.09.2026  19:35             23177 participantQuestionRouting.js
+13.09.2026  19:35               811 proInferencePolicy.js
+13.09.2026  19:35             45080 providerDiagnostics.js
+03.08.2026  17:29             23270 providerDiagnostics.js.bak
+13.09.2026  19:35             15574 providerKeyAudit.js
+13.09.2026  19:35             12426 quotaKeyLifecycle.js
+13.09.2026  19:35              4283 reasoningEffortRouting.js
+13.09.2026  19:35              5812 replyTargetRouting.js
+13.09.2026  19:35              9925 responseLengthRouting.js
+13.09.2026  19:35             10189 runtimeSecretAutoImport.js
+13.09.2026  19:35               973 summaryModelRouting.js
+13.09.2026  19:35             29009 thirdRecoverySweep.js
+13.09.2026  19:35             11001 tokenUsageLogger.js
+13.09.2026  19:35              5869 unknownTermRouting.js
+13.09.2026  19:35              2735 visionRouting.js
+13.09.2026  19:35             16628 voiceTranscription.js
+              43 файлов         599113 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\astrology
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35              5599 astrologyRouting.js
+13.09.2026  19:35            100141 ephemeris.js
+13.09.2026  19:35              6141 natalRouting.js
+               3 файлов         111881 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\coords
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35             10083 coordsOverrideRouting.js
+               1 файлов          10083 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\documents
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35             22230 documentArtifacts.js
+13.09.2026  19:35              2061 documentRouting.js
+               2 файлов          24291 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\donation
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35              1047 qrCodeRouting.js
+               1 файлов           1047 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\events
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35              6947 compactPartySummary.js
+13.09.2026  19:35              3166 dmPartyRouting.js
+14.09.2026  19:18             17557 eventAiAdmission.js
+13.09.2026  19:35             12990 eventAnnouncementNormalization.js
+15.09.2026  12:07             25979 eventAssets.js
+13.09.2026  22:20             10672 eventCandidateRouting.js
+13.09.2026  19:35             30202 eventDeduplication.js
+13.09.2026  19:35              2635 eventDuplicateAiPolicy.js
+15.09.2026  09:51            132662 eventDuplicateResolution.js
+13.09.2026  19:35              6410 eventImageSelection.js
+13.09.2026  19:35              2151 eventIngestAudit.js
+13.09.2026  19:35             12800 eventMetadata.js
+13.09.2026  19:35             13570 eventModeration.js
+14.09.2026  01:10              3454 eventModerationRouting.js
+13.09.2026  19:35              3552 eventPageCandidateSelection.js
+13.09.2026  19:35              5352 eventParserTrace.js
+15.09.2026  12:06             16424 eventPosterMatching.js
+13.09.2026  22:27              3022 eventPosterPolicy.js
+13.09.2026  19:35             11098 eventProposalWorkflow.js
+14.09.2026  23:36              8806 eventProvenance.js
+13.09.2026  19:35              4401 eventRetry.js
+13.09.2026  19:35              2219 eventSourceLink.js
+13.09.2026  19:35              5747 eventSourceRefresh.js
+13.09.2026  19:35              3664 eventText.js
+14.09.2026  19:19              3908 eventTextSanitation.js
+13.09.2026  19:35             12773 eventValidation.js
+13.09.2026  19:35             14475 eventVenueInference.js
+14.09.2026  21:04              3395 eventVerifiedSnapshot.js
+13.09.2026  19:35              2034 eventVisionPolicy.js
+13.09.2026  19:35             15234 publicEventRange.js
+14.09.2026  19:10             12166 publicPostDateEvidence.js
+14.09.2026  19:18             34589 publicPostLocalParser.js
+13.09.2026  19:35              1774 sourceContentHash.js
+13.09.2026  19:35               662 sourceEventPersistence.js
+13.09.2026  19:35             12000 sourcePostFingerprint.js
+13.09.2026  19:35              7050 trustedOwnerEventEvidence.js
+14.09.2026  20:49              1884 vkCapturedMediaMerge.js
+14.09.2026  19:22              7878 vkEventLinkEnrichment.js
+13.09.2026  19:35             22978 vkStructuredEventEvidence.js
+              39 файлов         498280 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\history
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35              1516 chatHistoryLinkRouting.js
+14.09.2026  20:01              3973 localHistoryCheckpoint.js
+14.09.2026  20:00             16095 localSqliteHistoryRecovery.js
+13.09.2026  19:35             16759 vkBrowserHistoryRecovery.js
+13.09.2026  19:35              4432 vkHistoryPullPolicy.js
+13.09.2026  19:35              1450 vkHistoryRecoveryVisibility.js
+               6 файлов          44225 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\membership
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35              5187 leaverCommandRouting.js
+               1 файлов           5187 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\memory
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35             18781 memoryRouting.js
+               1 файлов          18781 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\personality
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35             12533 activeCommunicationRouting.js
+13.09.2026  19:35              8437 banterRouting.js
+13.09.2026  19:35              7257 botIdentityProvocationRouting.js
+13.09.2026  19:35             32540 communicationStyleRouting.js
+13.09.2026  19:35              6527 flatterCommandRouting.js
+13.09.2026  19:35             32494 roastCommandRouting.js
+13.09.2026  19:35              5865 roastParticipantRoster.js
+               7 файлов         105653 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\pinball
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35             14194 pinballServer.js
+               1 файлов          14194 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\routing
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35             28528 commandPriorityRouting.js
+14.09.2026  01:11              4305 explicitApplicationCommand.js
+13.09.2026  19:35              7116 helpContextProfile.js
+               3 файлов          39949 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\runtime
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35              1351 processControlRouting.js
+               1 файлов           1351 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\scrapers
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35               471 browserRecoveryPolicy.js
+15.09.2026  09:39              7967 manualParserDiagnostics.js
+13.09.2026  19:35             10741 manualProcessingPool.js
+13.09.2026  19:35              7656 manualSourceRegistry.js
+13.09.2026  19:35              1188 publicSourcePolicy.js
+14.09.2026  00:19              6078 scraperCommandRouting.js
+13.09.2026  19:35              3486 scraperError.js
+13.09.2026  19:35              3801 sourceConfiguration.js
+               8 файлов          41388 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\infrastructure
+
+29.07.2026  21:12    <DIR>          .
+29.07.2026  21:12    <DIR>          ..
+15.09.2026  12:21    <DIR>          browser
+15.09.2026  12:21    <DIR>          database
+               0 файлов              0 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\infrastructure\browser
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+14.09.2026  16:52             73897 browserGrabber.js
+               1 файлов          73897 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\infrastructure\database
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35             15849 autoSummaryStateStore.js
+13.09.2026  19:35             13349 databaseLineageGuard.js
+14.09.2026  01:11             30425 databasePreflight.js
+13.09.2026  19:35               397 databasePreflightRegister.js
+13.09.2026  19:35             40920 hierarchicalSummaryStateStore.js
+13.09.2026  19:35              3292 historyRecoveryStateStore.js
+15.09.2026  12:07            409852 index.js
+13.09.2026  19:35             17342 personalizationStateStore.js
+14.09.2026  01:17              1981 runtimePaths.js
+13.09.2026  19:35              3793 summaryStateStore.js
+              10 файлов         537200 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\miniapps
+
+25.08.2026  17:35    <DIR>          .
+25.08.2026  17:35    <DIR>          ..
+25.08.2026  17:35    <DIR>          pinball
+               0 файлов              0 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\miniapps\pinball
+
+25.08.2026  17:35    <DIR>          .
+25.08.2026  17:35    <DIR>          ..
+25.08.2026  17:35              4876 index.html
+25.08.2026  17:35             48609 pinball.js
+               2 файлов          53485 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\platforms
+
+29.07.2026  21:12    <DIR>          .
+29.07.2026  21:12    <DIR>          ..
+15.09.2026  12:21    <DIR>          telegram
+15.09.2026  12:21    <DIR>          vk
+               0 файлов              0 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\platforms\telegram
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+14.09.2026  01:16             54462 telegramBot.js
+13.09.2026  19:35              8071 telegramConnectivity.js
+14.09.2026  21:02             78243 telegramHtmlScraper.js
+               3 файлов         140776 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\platforms\vk
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+15.09.2026  09:40            228831 vkChatEventScraper.js
+13.09.2026  19:35              2558 vkChatEventSource.js
+13.09.2026  19:35             29475 vkMessageContent.js
+14.09.2026  21:32              4689 vkPhotoIdentityMedia.js
+15.09.2026  10:48            222612 vkPublicScraper.js
+14.09.2026  21:35              1620 vkSourcePageHealth.js
+09.09.2026  19:43             42635 vkStagedDomParser.js
+               7 файлов         532420 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\runtime
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+14.09.2026  19:28              6135 logMaintenanceV18855.js
+13.09.2026  19:35             23379 operationSupervisor.js
+13.09.2026  19:35              3503 singleInstanceLock.js
+               3 файлов          33017 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\shared
+
+15.09.2026  12:21    <DIR>          .
+15.09.2026  12:21    <DIR>          ..
+13.09.2026  19:35              3100 botAddressing.js
+15.09.2026  12:10               385 buildVersion.js
+13.09.2026  19:35             10332 commands.js
+13.09.2026  19:35              3932 date.js
+13.09.2026  19:35              1741 errors.js
+13.09.2026  19:35              3820 incomingReplyTransport.js
+13.09.2026  19:35               535 numbers.js
+13.09.2026  19:35               224 regex.js
+13.09.2026  19:35              2765 sanitize.js
+               9 файлов          26834 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\src
+
+25.08.2026  17:35    <DIR>          .
+25.08.2026  17:35    <DIR>          ..
+25.08.2026  17:35    <DIR>          app
+               0 файлов              0 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\src\app
+
+25.08.2026  17:35    <DIR>          .
+25.08.2026  17:35    <DIR>          ..
+25.08.2026  17:35            736574 botApplication.js
+               1 файлов         736574 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\tests
+
+25.08.2026  17:35    <DIR>          .
+25.08.2026  17:35    <DIR>          ..
+25.08.2026  17:35    <DIR>          platforms
+               0 файлов              0 байт
+
+ Содержимое папки C:\Users\Adm\WebstormProjects\vk-ai-bot\src\tests\platforms
+
+25.08.2026  17:35    <DIR>          .
+25.08.2026  17:35    <DIR>          ..
+25.08.2026  17:35              1524 pinballBumpersV129.test.mjs
+25.08.2026  17:35              2504 pinballLayoutV128.test.mjs
+               2 файлов           4028 байт
+
+     Всего файлов:
+             191 файлов        5812716 байт
+              92 папок     27884511232 байт свободно
+
+============================================================
+FILE EXTENSION SUMMARY
+============================================================
+   181  .js
+     2  .mjs
+     2  .bak
+     2  .md
+     2  .txt
+     1  .json
+     1  .html
+
+============================================================
+LARGEST 100 FILES
+============================================================
+       1539604 bytes  app\botApplication.js
+        736574 bytes  src\app\botApplication.js
+        491031 bytes  app\botApplication.js.bak
+        409852 bytes  infrastructure\database\index.js
+        228831 bytes  platforms\vk\vkChatEventScraper.js
+        222612 bytes  platforms\vk\vkPublicScraper.js
+        132662 bytes  features\events\eventDuplicateResolution.js
+        121612 bytes  features\ai\fullAiAudit.js
+        100141 bytes  features\astrology\ephemeris.js
+         86818 bytes  README.md
+         78243 bytes  platforms\telegram\telegramHtmlScraper.js
+         73897 bytes  infrastructure\browser\browserGrabber.js
+         54462 bytes  platforms\telegram\telegramBot.js
+         48609 bytes  miniapps\pinball\pinball.js
+         45080 bytes  features\ai\providerDiagnostics.js
+         42635 bytes  platforms\vk\vkStagedDomParser.js
+         40920 bytes  infrastructure\database\hierarchicalSummaryStateStore.js
+         34589 bytes  features\events\publicPostLocalParser.js
+         32540 bytes  features\personality\communicationStyleRouting.js
+         32494 bytes  features\personality\roastCommandRouting.js
+         31338 bytes  features\ai\incomingImageTargets.js
+         30425 bytes  infrastructure\database\databasePreflight.js
+         30202 bytes  features\events\eventDeduplication.js
+         29475 bytes  platforms\vk\vkMessageContent.js
+         29009 bytes  features\ai\thirdRecoverySweep.js
+         28528 bytes  features\routing\commandPriorityRouting.js
+         26237 bytes  features\ai\externalProviderRouting.js
+         25979 bytes  features\events\eventAssets.js
+         23379 bytes  runtime\operationSupervisor.js
+         23270 bytes  features\ai\providerDiagnostics.js.bak
+         23177 bytes  features\ai\participantQuestionRouting.js
+         22978 bytes  features\events\vkStructuredEventEvidence.js
+         22443 bytes  features\ai\nvidiaVisualGeneration.js
+         22379 bytes  DEVELOPER_HANDOFF.md
+         22230 bytes  features\documents\documentArtifacts.js
+         21942 bytes  features\ai\modelDiscoveryScheduler.js
+         20166 bytes  features\ai\envKeyCleanup.js
+         18781 bytes  features\memory\memoryRouting.js
+         18745 bytes  features\ai\compactAiHealthAudit.js
+         17557 bytes  features\events\eventAiAdmission.js
+         17342 bytes  infrastructure\database\personalizationStateStore.js
+         16947 bytes  features\ai\autoSummaryRouting.js
+         16759 bytes  features\history\vkBrowserHistoryRecovery.js
+         16628 bytes  features\ai\voiceTranscription.js
+         16424 bytes  features\events\eventPosterMatching.js
+         16095 bytes  features\history\localSqliteHistoryRecovery.js
+         15849 bytes  infrastructure\database\autoSummaryStateStore.js
+         15574 bytes  features\ai\providerKeyAudit.js
+         15234 bytes  features\events\publicEventRange.js
+         14475 bytes  features\events\eventVenueInference.js
+         14194 bytes  features\pinball\pinballServer.js
+         13570 bytes  features\events\eventModeration.js
+         13349 bytes  infrastructure\database\databaseLineageGuard.js
+         13169 bytes  features\ai\allProviderVisualMatrixAudit.js
+         12990 bytes  features\events\eventAnnouncementNormalization.js
+         12800 bytes  features\events\eventMetadata.js
+         12773 bytes  features\events\eventValidation.js
+         12599 bytes  features\ai\modelProviderFailover.js
+         12533 bytes  features\personality\activeCommunicationRouting.js
+         12426 bytes  features\ai\quotaKeyLifecycle.js
+         12166 bytes  features\events\publicPostDateEvidence.js
+         12000 bytes  features\events\sourcePostFingerprint.js
+         11098 bytes  features\events\eventProposalWorkflow.js
+         11001 bytes  features\ai\tokenUsageLogger.js
+         10741 bytes  features\scrapers\manualProcessingPool.js
+         10672 bytes  features\events\eventCandidateRouting.js
+         10332 bytes  shared\commands.js
+         10189 bytes  features\ai\runtimeSecretAutoImport.js
+         10083 bytes  features\coords\coordsOverrideRouting.js
+         10041 bytes  features\ai\nvidiaVisualAudit.js
+          9925 bytes  features\ai\responseLengthRouting.js
+          9139 bytes  features\ai\globalWhoDatabaseRouting.js
+          9030 bytes  package.json
+          8806 bytes  features\events\eventProvenance.js
+          8720 bytes  features\ai\openAIRetryRouting.js
+          8437 bytes  features\personality\banterRouting.js
+          8071 bytes  platforms\telegram\telegramConnectivity.js
+          7967 bytes  features\scrapers\manualParserDiagnostics.js
+          7878 bytes  features\events\vkEventLinkEnrichment.js
+          7656 bytes  features\scrapers\manualSourceRegistry.js
+          7257 bytes  features\personality\botIdentityProvocationRouting.js
+          7116 bytes  features\routing\helpContextProfile.js
+          7050 bytes  features\events\trustedOwnerEventEvidence.js
+          6947 bytes  features\events\compactPartySummary.js
+          6583 bytes  features\ai\mediaAudit.js
+          6527 bytes  features\personality\flatterCommandRouting.js
+          6410 bytes  features\events\eventImageSelection.js
+          6141 bytes  features\astrology\natalRouting.js
+          6135 bytes  runtime\logMaintenanceV18855.js
+          6078 bytes  features\scrapers\scraperCommandRouting.js
+          5869 bytes  features\ai\unknownTermRouting.js
+          5865 bytes  features\personality\roastParticipantRoster.js
+          5812 bytes  features\ai\replyTargetRouting.js
+          5747 bytes  features\events\eventSourceRefresh.js
+          5599 bytes  features\astrology\astrologyRouting.js
+          5536 bytes  features\ai\incomingMessagePrompt.js
+          5352 bytes  features\events\eventParserTrace.js
+          5208 bytes  features\ai\openAIImageStream.js
+          5187 bytes  features\membership\leaverCommandRouting.js
+          5077 bytes  features\ai\chatContextRouting.js

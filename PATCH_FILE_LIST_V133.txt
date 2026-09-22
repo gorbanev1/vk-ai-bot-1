@@ -1,0 +1,16 @@
+V133 patch from V132
+
+DEVELOPER_HANDOFF.md
+INSTALL_V133.txt
+PATCH_NOTES_EVENTS_V133_CHAT_HISTORY_CONTINUITY.txt
+PATCH_FILE_LIST_V133.txt
+PROJECT_MANIFEST.json
+README.md
+docs/SOURCE_MAP.md
+package.json
+src/app/botApplication.js
+src/features/history/chatHistoryLinkRouting.js
+src/infrastructure/database/index.js
+src/platforms/telegram/telegramBot.js
+tests/infrastructure/chatHistorySelectionV133.test.mjs
+tests/routing/chatHistoryLinkV132.test.mjs

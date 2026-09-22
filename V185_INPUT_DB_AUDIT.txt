@@ -1,0 +1,48 @@
+Gigorave V185 — audit of supplied V184 SQLite input
+
+PRAGMA quick_check: ok
+
+Table counts:
+- vk_source_posts: 40
+- vk_events: 4
+- telegram_source_posts: 2
+- telegram_events: 0
+- vk_chat_source_messages: 84
+- vk_chat_events: 2
+
+VK source status by source:
+- deadway36: not_event = 4
+- idmamaanarchy: event = 3
+- idmamaanarchy: not_event = 2
+- liverpool_pub_vrn: not_event = 4
+- meetbowling.club: not_event = 3
+- overlockbar: not_event = 1
+- rb_diesel: not_event = 11
+- vavilone_rb: event = 1
+- vavilone_rb: not_event = 11
+
+VK not_event with published_at=0: 21
+Of those, rows with numeric date mentions: 6
+
+- idmamaanarchy/879: dates=12.09 | Мама Анархия
+- idmamaanarchy/1164: dates=25.09 | Паб Мама Анархия
+- rb_diesel/13684: dates=03.09 | ЗАВТРА - 03.09 - Septory | Воронеж (Diesel bar)
+- rb_diesel/13688: dates=03.09 | СЕГОДНЯ - 03.09 - Septory | Воронеж (Diesel bar)
+- rb_diesel/13699: dates=18.09, 06.09, 1/3 | SPOOKERS | 18.09 | Воронеж • DIESEL BAR
+- vavilone_rb/3802: dates=1/10 | Рок-бар "The last of Vavilone"
+
+September 2026 event rows already present in supplied DB:
+- vk_events: 2026-09-12 | В честь дня рождения Егора Летова, бессменного лидера Гражданской обороны, приглашаем на новый мощный Винтовкафест. Воронеж. 12.09.2026 | Паб Мама Анархия, Воронеж | https://vk.ru/wall-226190294_1154
+- vk_events: 2026-09-12 | Винтовкафест. Воронеж. 12.09.2026 | Паб Мама Анархия, Воронеж | https://vk.ru/wall675847853_883
+- vk_events: 2026-09-19 | 19.09 | Вадим Курылёв | Воронеж | Паб Мама Анархия, Воронеж | https://vk.ru/wall675847853_866
+- vk_chat_events: 2026-09-13 | Резонанс-кемп: воскресная программа мастер-классов | шатер, Воронеж | https://vk.ru/resonance.code
+
+Specific prior-browser examples searched in current DB:
+- Dark Stage: raw-source matches = 0
+- Фестиваль Ива: raw-source matches = 0
+
+Interpretation:
+- V184 output-cache repair is not sufficient for source rows that never become event rows.
+- The supplied DB directly demonstrates the published_at=0 + yearless-date failure class.
+- V185 fixes the reliable VK date evidence path and records every later reject stage.
+- This report is read-only; the supplied SQLite/WAL/SHM files were not modified.

@@ -1,0 +1,59 @@
+Gigorave V188.47 — nonblocking / interruptible Telegram + VK
+Дата: 2026-09-12
+
+ЦЕЛЬ
+Убрать класс зависаний, при котором один долгий запрос, незавершённое меню или provider-call мешает принимать и запускать следующие команды. Никакой pending/UI mode не должен быть ловушкой без выхода.
+
+ГЛАВНЫЙ КОНТРАКТ
+1. Telegram long polling НЕ ждёт завершения пользовательского AI/парсер/файлового запроса.
+2. VK update handler НЕ возвращает долгий Promise в vk-io pipeline.
+3. Следующий запрос может стартовать, пока предыдущий всё ещё выполняется.
+4. Telegram menu send не блокирует polling: отправка меню detached и имеет сетевой timeout через Telegram API wrapper.
+5. Из любого pending/input mode есть аварийный текстовый выход:
+   отмена / отменить / отмени / cancel / стоп / сброс / сбросить режим / выйти
+6. Новая явная команда имеет приоритет над старым input-mode и сбрасывает stale draft, если команда не относится к этому же режиму.
+7. Persistent pending feedback («Пересоздание») тоже сбрасывается общей отменой в SQLite, а не только RAM-state.
+8. Telegram DM menu state имеет TTL 30 минут, поэтому забытый режим не живёт бесконечно.
+
+ПАРАЛЛЕЛЬНОСТЬ
+- OpenAI/GPT: глобальной Promise-очереди пользовательских запросов нет.
+- GigaChat: удалена глобальная gigaQueue; вызовы стартуют независимо.
+- GigaChat interactive/model calls имеют конечный deadline 90 секунд по умолчанию (env-configurable).
+- GigaChat image generation/download имеет конечный deadline 180 секунд по умолчанию (env-configurable).
+- VK message_new задачи detached от transport pipeline.
+- каждый VK Long Poll запускается независимо; lifetime Promise одного сообщества не блокирует остальные.
+- Telegram startup/retry запускается независимо от VK; недоступный Telegram не задерживает VK startup.
+- optional GigaChat/OpenAI startup diagnostics не являются transport startup barrier.
+
+ЧТО ОСТАЛОСЬ СЕРИАЛИЗОВАННЫМ СПЕЦИАЛЬНО
+Есть только resource-local очереди, где параллельный доступ физически опасен:
+- операции над ОДНОЙ Playwright/VK scraper page;
+- обработка потока ОДНОГО live scraper;
+- атомарная перестройка общего verified-event snapshot.
+Они не являются очередью входящих Telegram/VK сообщений. Пока такой ресурс занят, любые другие сообщения/команды продолжают приниматься и выполняться.
+
+ВАЖНО ПРО «ОТМЕНА»
+«Отмена» гарантированно выходит из UI/pending/dialog state и освобождает пользователя для следующей команды. Уже ушедший в SDK/HTTP provider-call не во всех библиотеках можно физически оборвать на сокете; он может завершиться отдельно. Это НЕ блокирует следующий запрос и НЕ удерживает меню. Для GigaChat сверху стоит конечный deadline.
+
+STARTUP
+До запуска transport остаётся только намеренный DB integrity/preflight (event dedupe repair/audit). Provider diagnostics и подключение одной платформы не блокируют запуск другой.
+
+ПРОВЕРКИ
+- реальный Telegram long-poll regression: первый onMessage возвращает Promise, который никогда не завершается; второй update всё равно принимается и запускается;
+- отдельный regression: отправка Telegram menu response возвращает Promise, который никогда не завершается; следующий update всё равно проходит;
+- аварийные cancel aliases проверены;
+- static wiring проверяет отсутствие gigaQueue, detached VK ingress, независимый Telegram/VK startup, provider deadlines и persistent feedback cancel;
+- npm run test:v18847: 69/69 passed;
+- npm run check:syntax: OK (409 files);
+- npm run check:imports: OK (409 files);
+- npm run check:named-imports: OK (157 files, missing=0).
+
+СОХРАНЕНО ИЗ V188.41–V188.46
+- Sol последний в summary ladder;
+- immutable paid coverage;
+- raw -> batch -> day -> week -> month -> all-time;
+- fixed summary slots 09:00 / 13:00 / 15:00 / 18:00 / 21:00 / 23:59;
+- full raw history не отправляется в LLM;
+- hard raw cap 3000 сообщений на пользовательский AI-request;
+- identity invariant «ты — бот Гигорейв»;
+- command routing: команда и «Гигорейв» могут находиться в любом порядке внутри одного предложения.

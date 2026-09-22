@@ -1,0 +1,30 @@
+Gigorave V164 — voice transcription VK + Telegram
+
+1. Install the V163 -> V164 patch over the current V163 folder, or use the full V164 archive.
+2. Keep your existing data/ directory. The patch does not replace bot.sqlite.
+3. Run pnpm install only if your installation normally requires it; V164 adds no npm dependency.
+4. Start with: pnpm dev
+
+VOICE TRANSCRIPTION
+- Enabled by default: VOICE_TRANSCRIPTION_ENABLED=true
+- VK first uses VK's own audio_message transcript when present.
+- For Telegram and VK fallback STT the bot automatically tries configured speech endpoints/keys.
+
+Optional explicit speech endpoint:
+AUDIO_TRANSCRIPTION_BASE_URL=https://api.openai.com/v1
+AUDIO_TRANSCRIPTION_API_KEY=YOUR_KEY
+AUDIO_TRANSCRIPTION_MODEL=gpt-4o-mini-transcribe
+
+Multiple models can be specified:
+AUDIO_TRANSCRIPTION_MODELS=gpt-4o-mini-transcribe,whisper-1
+
+Also supported automatically when already present:
+OPENAI_API_KEY / OPENAI_API_KEY_N
+GROQ_API_KEY / GROQ_API_KEY_N
+OPENAI_COMPAT_API_KEY + OPENAI_COMPAT_BASE_URL
+
+Optional limits:
+VOICE_TRANSCRIPTION_TIMEOUT_MS=45000
+VOICE_TRANSCRIPTION_ERROR_RETRY_SECONDS=600
+
+The transcript cache is stored in the normal working SQLite database table voice_transcripts.

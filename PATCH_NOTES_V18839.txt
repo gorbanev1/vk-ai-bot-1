@@ -1,0 +1,18 @@
+Gigorave V188.39
+
+Fix: ordinary knowledge prompts no longer hijack the local message-database retrieval route.
+
+DB retrieval triggers:
+- кто ... / кто такой|такая X
+- проанализируй переписку|чат|сообщения ...
+- что писали|говорили|обсуждали про X
+- найди сообщения|переписку|упоминания про X
+
+Ordinary AI route (no SQLite retrieval):
+- расскажи про X
+- что такое X
+- что это за X
+- что известно про X
+- что знаешь про X
+
+Preserves V188.38 deepest VK attachment summary and global/local message retrieval behavior.

@@ -1,0 +1,10 @@
+V127 — PINBALL RAMP ANTI-LOOP
+
+Changes from V126:
+- Fixed the two dashed ramp arcs releasing the ball with the horizontal velocity reversed against the actual curve tangent.
+- Ramp exits now preserve the Bézier end tangent, so motion is continuous through the endpoint.
+- Ramp mouths are one-way: only an up-table shot with enough velocity can enter; descending balls cannot be captured by a ramp sensor.
+- Added per-ball ramp lockout after an exit so the opposite mouth cannot immediately re-capture the same ball.
+- Added a small tangent clearance at ramp exit before free-play collisions resume.
+- Clears stale ramp sensor occupancy when a ramp starts/ends.
+- Asset cache-bust updated to ?v=127.

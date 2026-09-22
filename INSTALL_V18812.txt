@@ -1,0 +1,17 @@
+Gigorave V188.12 installation
+
+1. Stop the bot.
+2. Back up the current project and data/ SQLite files.
+3. Replace the project with the V188.12 full-sources archive, preserving your own
+   runtime .env / data directory as usual.
+4. Install dependencies if needed: pnpm install
+5. Verify: pnpm run test:v18812
+6. Start the bot.
+
+Diagnostic check
+----------------
+Approve a pending proposal with "да <id>" and inspect the console. You should see:
+  [EVENT PROPOSAL MODERATION FASTPATH] ... source=cached-proposal
+  [EVENT PROPOSAL MODERATION DONE] ... elapsedMs=<small value>
+The separate [EVENT PROPOSAL SNAPSHOT BACKGROUND DONE] line may appear much later;
+that is expected and no longer blocks the moderation reply.

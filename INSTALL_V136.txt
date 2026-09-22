@@ -1,0 +1,17 @@
+Gigorave V136
+
+FULL:
+Можно развернуть Gigorave_bot_V136_full.zip как полную сборку и вернуть свой
+.env/data из рабочей установки.
+
+PATCH FROM V135:
+1. Остановить бота.
+2. Распаковать Gigorave_V136_patch_from_V135.zip поверх V135 с заменой файлов.
+3. Запустить: pnpm dev
+
+COMBINED PATCH FROM V134:
+Если V135 ещё не ставилась, использовать Gigorave_V136_patch_from_V134.zip —
+в нём одновременно fast-path V135 и логика V136.
+
+Сборка: events-v136-roast-context-20-60
+Версия package.json: 0.136.0

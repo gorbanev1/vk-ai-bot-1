@@ -1,0 +1,19 @@
+V151 — parser/dedupe/local-output
+=================================
+
+Исправлено по результатам полного аудита V150 и требованиям второго обхода.
+
+- Удалён browser recovery из пользовательской выдачи событий.
+- Telegram before-pagination переведена на одну переиспользуемую вкладку источника.
+- Для Telegram и VK добавлен live parsing открытой вкладки после ручной прокрутки.
+- Exact title + exact date теперь схлопывается локально до venue/time conflict и до AI (кроме generic titles).
+- Partial/fuzzy title на той же дате остаётся AI-arbitration case.
+- Добавлены text fingerprint + >=90% similarity gate до AI.
+- Добавлены exact SHA-256 и metadata-insensitive visual-payload fingerprints изображений до vision.
+- Fingerprints сохраняются в SQLite и используются при последующих проходах.
+- Public Telegram/VK runtime подключён к text AI и vision после локальной фильтрации.
+- Массовый reparse группирует один canonical source URL и не восстанавливает одну и ту же стену отдельно для каждой карточки.
+- npm test теперь охватывает все test files, а не только ручной список scripts.
+- Добавлены V151 regression tests для pre-AI fingerprints, local-only delivery, single-tab/live parsing и абсолютного exact title+date дедупа.
+
+V150 image-summary full coverage сохранён.

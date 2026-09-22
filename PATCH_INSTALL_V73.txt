@@ -1,0 +1,27 @@
+V73 — NVIDIA Image 504 Fallback and Time Budget
+
+1. Остановить бота: Ctrl+C
+2. Скопировать содержимое архива поверх корня проекта:
+   C:\Users\Adm\WebstormProjects\vk-ai-bot
+3. Не заменять и не удалять .env и data\
+4. Выполнить:
+   pnpm install --frozen-lockfile
+   pnpm run test:nvidia-image
+   pnpm run test:provider-diagnostics
+   pnpm dev
+
+Ожидаемая строка:
+[BOT BUILD] events-v73-nvidia-image-504-fallback-budget
+
+Рекомендуемые параметры .env:
+NVIDIA_IMAGE_BASE_URL=https://ai.api.nvidia.com/v1/genai
+NVIDIA_IMAGE_MODEL=auto
+NVIDIA_IMAGE_ATTEMPT_TIMEOUT_MS=120000
+NVIDIA_IMAGE_TOTAL_TIMEOUT_MS=600000
+
+Старый NVIDIA_IMAGE_TIMEOUT_MS продолжает работать как общий бюджет команды.
+
+Проверка:
+Гигорейв nvidia нарисуй ночной Воронеж в стиле киберпанка
+
+После HTTP 504 или таймаута первой модели бот обязан показать в консоли NEXT и запустить следующую модель.

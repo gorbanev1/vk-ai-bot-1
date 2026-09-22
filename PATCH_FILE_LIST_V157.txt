@@ -1,0 +1,21 @@
+V157 changed/new files relative to V156:
+DEVELOPER_HANDOFF.md
+INSTALL_V157.txt
+PATCH_INSTALL_V157.txt
+PATCH_NOTES_EVENTS_V157_VK_CHAT_PRIORITY_REPOST_VISION.txt
+PATCH_FILE_LIST_V157.txt
+PROJECT_MANIFEST.json
+README.md
+V157_VERIFICATION.txt
+docs/BEHAVIOR_AND_COMMANDS.md
+docs/SOURCE_MAP.md
+package.json
+src/app/botApplication.js
+src/features/ai/incomingImageTargets.js
+src/features/events/eventCandidateRouting.js
+src/features/scrapers/sourceConfiguration.js
+src/platforms/vk/vkChatEventScraper.js
+tests/scrapers/sourceConfiguration.test.mjs
+tests/scrapers/vkChatPriorityRepostV157.test.mjs
+tests/scrapers/vkChatRichLivePolicyV96.test.mjs
+SHA256SUMS.txt

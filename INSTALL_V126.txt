@@ -1,0 +1,11 @@
+V126 PATCH INSTALL (from V125)
+1. Stop the bot.
+2. Extract Gigorave_V126_patch_from_V125.zip into the V125 project root and overwrite files.
+3. Start the bot again: pnpm dev (or npm run dev).
+4. Open /pinball/. Assets use ?v=126 and no-store, so no manual cache clearing is required.
+
+Pinball behavior:
+- weak plunge may roll back to the plunger;
+- a returned ball can be plunged again without losing a ball;
+- normal plunge (about 10%+ charge) clears the rounded shooter crest;
+- shooter divider / cabinet / guide corners are curved.

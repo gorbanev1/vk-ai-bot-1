@@ -1,0 +1,17 @@
+V123 — targeted AI cleanup + Telegram Mini App Pinball Psychosis
+
+AI:
+- transport success отделён от exact instruction marker;
+- targeted third-round text retry;
+- расширенный provider-specific response extraction;
+- safe .env cleanup только definitive invalid foreign keys + timestamped backup;
+- owner OPENAI_COMPAT_API_KEY/GigaChat защищены.
+
+Telegram Pinball:
+- web_app button в main menu;
+- встроенный local HTTP server;
+- HMAC validation Telegram initData;
+- SQLite leaderboard;
+- custom Canvas pinball physics, keyboard/touch, audio/effects, multiball/jackpot/ramps/tilt/combos.
+
+Upgrade base: V121 (V122 не выпускался отдельно).

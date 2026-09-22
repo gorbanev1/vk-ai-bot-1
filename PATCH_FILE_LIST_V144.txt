@@ -1,0 +1,17 @@
+V143 -> V144 changed files
+
+src/app/botApplication.js
+src/features/ai/envKeyCleanup.js
+src/features/ai/fullAiAudit.js
+src/features/ai/providerKeyAudit.js
+src/features/ai/quotaKeyLifecycle.js
+src/infrastructure/database/index.js
+tests/ai/quotaKeyLifecycleV144.test.mjs
+package.json
+PROJECT_MANIFEST.json
+README.md
+DEVELOPER_HANDOFF.md
+docs/SOURCE_MAP.md
+INSTALL_V144.txt
+PATCH_NOTES_EVENTS_V144_FINAL_AI_KEY_QUOTA_LIFECYCLE.txt
+PATCH_FILE_LIST_V144.txt

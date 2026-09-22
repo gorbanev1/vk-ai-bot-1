@@ -1,0 +1,29 @@
+Gigorave V188.4
+
+Base: V188.3
+
+PATCH installation:
+1. Stop the bot.
+2. Make a copy of the project folder.
+3. Extract Gigorave_V1884_patch.zip into the project root with overwrite enabled.
+4. Do NOT replace/delete .env, data/, bot.sqlite, bot.sqlite-wal or bot.sqlite-shm.
+5. Run pnpm dev.
+6. Verify startup lines:
+   [BOT BUILD] events-v1884-compact-ai-health-grok-image
+   [BOT PATCH] events-v1884-compact-ai-health-grok-image
+7. As owner run:
+   Гигорейв проверить рабочие модели
+
+The compact check writes the current result to SQLite tables:
+- ai_key_health
+- ai_model_health
+- ai_runtime_modes (working combinations only)
+
+Text/chat models are tested with stream + non-stream concurrently. Definitive invalid keys (401/invalid key) are removed from .env with an automatic backup. Timeout/429/5xx are not destroyed; they are temporarily excluded for AI_HEALTH_UNAVAILABLE_TTL_SECONDS (default 900 seconds).
+
+Explicit Grok image generation:
+  Гигорейв грок нарисуй <описание>
+  Гигорейв xai нарисуй <описание>
+  Гигорейв грок нарисуй через <model> <описание>
+
+For Grok configure XAI_API_KEY (and optionally XAI_API_KEY_1, XAI_API_KEY_2, ...).

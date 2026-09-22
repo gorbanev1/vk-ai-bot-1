@@ -1,0 +1,36 @@
+Gigorave V183 — persistent AI-only autoresume and 06:00 reporting day
+
+AUTOSUMMARY: NO EMERGENCY OUTPUT
+- Removed the local emergency digest completely. The bot can no longer send `Аварийная локальная выжимка`, raw chat excerpts, top-sender counters, or any other non-AI substitute as an autoresume.
+- Removed the Giga/local fallback path from scheduled autoresume delivery. For non-empty history, only a completed normal AI summary is eligible for sending.
+- Finalization failure no longer falls back to the semantic draft. It is treated as a failed AI attempt and the scheduled slot remains pending.
+- Empty-history periods may still send the explicit `no substantive messages` status because there is nothing to summarize.
+
+PERSISTENT RETRY UNTIL SUCCESS
+- A failed autoresume never advances `next_run_at` and never records `finished_at`.
+- Scheduler retries the same due slot every 30 seconds indefinitely; there is no maximum attempt count.
+- `auto_summary_health.consecutive_failures` is durable and drives model rotation across retries and restarts.
+- Retry model order: pro3 -> pro2 -> gpt55 -> gpt54 -> pro -> default -> repeat.
+- New log: `[AUTO SUMMARY AI ATTEMPT] peer=... slot=... attempt=... mode=... model=...`.
+- Successful delivery resets failure count to zero and only then advances the schedule.
+
+ROOT CAUSE FIX FOR LARGE DAYS
+- Removed the V162-era 90-second timeout around the entire multi-stage summary operation. A day with ~1000 messages can require many sequential chunk summaries plus merge/finalization calls, so a 90-second whole-job timeout could fail a healthy AI pipeline.
+- Individual OpenAI-compatible requests remain bounded by the existing 15-minute network request timeout.
+- Per-peer autoresume watchdog is increased to 90 minutes so a legitimate long multi-chunk run is not duplicated by the scheduler.
+
+REPORTING DAY STARTS AT 06:00
+- Cumulative autoresume slots now use 06:00 Europe/Moscow as the start of the reporting day instead of 00:00.
+- 13:00 summary = 06:00 -> 13:00; 18:00 = 06:00 -> 18:00; 21:00 = 06:00 -> 21:00; 23:00 = 06:00 -> 23:00.
+- Custom slots before 06:00 belong to the previous reporting day and cover from the previous 06:00 to that slot.
+- `авторезюме только день` now runs at 06:00 and summarizes the completed 06:00 -> 06:00 period.
+- Persisted day-only schedules created by older releases at 00:00 are automatically repaired to the next 06:00 run on startup.
+- Help/status text is updated to state the 06:00 boundary explicitly.
+
+REGRESSION COVERAGE
+- Added V183 tests for 06:00 windows, day-only 06:00 scheduling, pre-06 custom slots, absence of emergency/local autoresume paths, infinite retry plumbing, and removal of the whole-summary 90-second timeout.
+
+PACKAGE METADATA
+- package.json: 0.183.0
+- Build string: events-v183-autosummary-persistent-ai-0600-day
+- Full-source ZIP excludes operational SQLite/WAL/SHM and live/archive journal files.

@@ -1,0 +1,11 @@
+V81
+
+Что добавлено:
+- В image-режиме Telegram/VK доступны списки моделей и доступных key-slot'ов для выбранного провайдера.
+- В image-режиме выбранные provider/model/key сохраняются до явного выхода из режима или выбора другой модели.
+- Команда "изображение" / "генерируй" / "нарисуй" показывает доступные модели с кратким описанием: generation/editing, примерная оценка качества, скорость, статус доступности.
+- Для NVIDIA production-order сохранён quality-first fallback, а в карточке модели показывается short capability summary.
+- GPT по умолчанию использует только основной OPENAI_API_KEY; импортированные OpenAI ключи работают только через отдельные команды GPT K2 / GPT K3 / key-slot маршрутизацию.
+- Обновлена справка по 6 профилям: Telegram ЛС, Telegram группа, VK ЛС, VK беседа, owner Telegram, owner VK.
+- Импортёр AI-секретов ожидает файл на одном уровне с src и умеет автоматически переписывать найденные AI-ключи в .env.
+- Added owner-only command set for live key audit and visual model catalog.

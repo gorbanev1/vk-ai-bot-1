@@ -1,0 +1,18 @@
+V151 -> V152 changed/new files:
+DEVELOPER_HANDOFF.md
+INSTALL_V152.txt
+PATCH_FILE_LIST_V152.txt
+PATCH_NOTES_EVENTS_V152_OWNER_ADD_SOURCE.txt
+PROJECT_MANIFEST.json
+README.md
+docs/SOURCE_MAP.md
+package.json
+src/app/botApplication.js
+src/features/routing/commandPriorityRouting.js
+src/features/scrapers/manualSourceRegistry.js
+src/features/scrapers/scraperCommandRouting.js
+src/platforms/telegram/telegramBot.js
+tests/platforms/telegramBot.test.mjs
+tests/scrapers/manualSourceRegistryV152.test.mjs
+tests/scrapers/ownerAddSourceIntegrationV152.test.mjs
+tests/scrapers/scraperCommandRouting.test.mjs

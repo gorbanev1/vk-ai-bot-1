@@ -1,0 +1,42 @@
+V82 — V79→V81 REAL CONSOLIDATION
+
+KEY DISCOVERY / LIVE AUDIT
+- Startup logs every supported AI credential loaded into process.env with provider, env name and masked key.
+- New owner command: «ключи статус» — no-network view of loaded env slots.
+- «ключи проверить все» logs DISCOVERED + FOUND + START + OK/FAIL for every credential.
+- Each completion log includes HTTP status, model count, capability counts, latency and short error.
+- TXT report now has separate DISCOVERED ENV SLOTS and LIVE RESULTS sections.
+- Full keys never appear in logs or reports.
+
+TRUFFLEHOG IMPORT
+- File can be placed next to src.
+- With explicit path: pnpm run import:ai-secrets -- ".\\file.txt" --apply
+- Without path, importer searches a small safe set of root filenames / one unambiguous secret/truffle/scan txt/jsonl/log.
+- Only OpenAI/Anthropic/Gemini/Groq/HuggingFace/NVIDIA detectors are imported.
+- Stripe/AWS/GitHub/Cloudflare/SendGrid/JWT and other non-AI detectors are ignored.
+- Backup .env + AI_SECRETS_IMPORT_REPORT.txt.
+
+GPT KEYS / REASONING
+- Main GPT continues to use only OPENAI_COMPAT_API_KEY.
+- Imported OpenAI keys are not silently inserted into main GPT fallback.
+- Owner-only «gpt k2 <prompt>» / «gpt k3 <prompt>» explicitly use OPENAI_API_KEY_2/_3.
+- Cheap GPT models default to medium reasoning; GPT-5.6 family defaults to high; low/medium/high/xhigh/max modifiers remain.
+
+TELEGRAM IMAGE MODE
+- Non-owner: GPT image-2 persistent mode.
+- Owner: image button opens model selector: GPT image-2 + NVIDIA FLUX.2 Klein / FLUX.1 Dev / SD3 Medium / FLUX.1 Schnell / SDXL.
+- NVIDIA selection opens key-slot selector for NVIDIA_API_KEY, NVIDIA_API_KEY_2, ... loaded in process.env.
+- Selected provider/model/key persists until «Назад» or explicit non-image command.
+- Explicit «нарисуй/рисуй/генерируй/изобрази» generates immediately.
+- Ambiguous plain text asks for confirmation «да, нарисуй» instead of silently generating.
+- NVIDIA explicit generated command carries only safe env-slot name, never the secret.
+
+NVIDIA MODEL CATALOG
+- Each production image model now has capabilities and short subjective quality/edit/speed scores in help output.
+- getNvidiaVisualConfig can select explicit numbered NVIDIA_API_KEY_n.
+
+HELP MATRIX
+- Separate IDs/titles for owner-telegram-dm and owner-vk-dm.
+- Separate Telegram/VK group and DM headings/content.
+- Telegram help explicitly states prashna is disabled; VK help keeps prashna.
+- Owner help documents key import/status/live audit, image tests, key slots and GPT k2/k3.

@@ -1,0 +1,27 @@
+Gigorave V188.38 — database-grounded retrieval + deepest VK attachment
+
+1. DB-grounded question routing
+- "кто такой/такая X", short "кто X", "что известно/говорили/писали про X" search stored messages before GPT.
+- Identity/topic lookup is global across stored chats.
+- "проанализируй переписку про X" searches the current stored peer; explicit "по всей базе" expands globally.
+- If a database-classified request has zero matches, it does not fall through to an ungrounded GPT answer.
+- Every retained matching message enters exactly one AI chunk before the final synthesis.
+
+2. Safer lexical retrieval
+- Word-aware Russian matching accepts forms such as ЕВИК/евика/евиком/евику.
+- Substring collisions such as "боевик" and "солевик" are rejected for the term "ЕВИК".
+- Clause-style who questions use content terms/stems instead of treating the entire clause as a person's name.
+
+3. Scoped VK reply/forward summarization
+- Reply/forward summary hydrates the referenced VK message/wall post.
+- Traverses wall/copy_history recursively and selects the deepest substantial semantic content.
+- Surrounding chat history is not summarized unless the user explicitly requests a history range.
+
+4. Preserved behavior
+- V188.37 true compact party lists and single-link event reparse remain intact.
+- V188.36 full DOM/parser diagnostics remain intact.
+
+Verification
+- test:v18838 targeted tests pass.
+- Syntax/import/named-import checks pass.
+- Full suite: 229 files; same 14 pre-existing baseline failures; no new failures.

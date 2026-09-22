@@ -1,0 +1,12 @@
+V188.46 files changed from V188.45:
+
+package.json
+src/app/botApplication.js
+src/features/routing/commandPriorityRouting.js
+src/platforms/telegram/telegramBot.js
+src/shared/commands.js
+tests/ai/autoSummaryRoutingV138.test.mjs
+tests/platforms/telegramPartyMenuV1885.test.mjs
+tests/routing/sameSentenceCommandRoutingV18846.test.mjs
+V18846_RELEASE_NOTES_RU.txt
+PATCH_FILE_LIST_V18846.txt

@@ -1,0 +1,12 @@
+Gigorave V188.33 installation / verification
+
+1. Replace the previous project code with V188.33 while preserving your real .env, data directory and browser profile/session.
+2. Install dependencies using the Node.js version required by package.json.
+3. Run: npm run test:v18833
+4. Start the bot normally.
+5. Run the VK parser flow.
+6. For any chat that must backfill history, set a positive fourth VK_CHAT source field; the parser enforces a minimum of 50 genuinely older messages.
+7. Watch logs for [VK CHAT PARSER PASS] and [VK CHAT HISTORY INITIAL FRONTIER]. Backfill progress must report CMIDs below initialMinCmid.
+8. If current VK DOM matches the supplied snapshot, pass1-exact is expected. Moderate drift should use pass2-adaptive; larger drift should fall to pass3-heuristic.
+
+V188.33 release archives intentionally contain no data/, SQLite/DB, WAL/SHM, JSONL or .env files.

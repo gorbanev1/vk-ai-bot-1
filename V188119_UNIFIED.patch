@@ -1,0 +1,272 @@
+--- a/src/app/botApplication.js
++++ b/src/app/botApplication.js
+@@ -7463,22 +7463,27 @@
+     24,
+     12,
+ );
+-// Archive input mode takes precedence over the legacy multipass toggle.
+-// In text mode an audit must not construct/upload an input_file ZIP.
+-const PROJECT_ARCHIVE_INPUT_MODE = String(process.env.PROJECT_ARCHIVE_INPUT_MODE || 'auto')
+-    .trim().toLowerCase();
+-const PROJECT_ARCHIVE_AUDIT_MULTIPASS_ENABLED = /^(?:1|true|yes|on)$/iu.test(
+-    String(process.env.PROJECT_ARCHIVE_AUDIT_MULTIPASS || '').trim(),
+-);
+-// Text mode defaults to stream even if the transport variable was omitted.
++// For this router, an omitted/auto/invalid input mode MUST use UTF-8 text
++// batches. /files is available only after an explicit operator opt-in to file.
++const PROJECT_ARCHIVE_INPUT_MODE = (() => {
++    const value = String(process.env.PROJECT_ARCHIVE_INPUT_MODE || 'text').trim().toLowerCase();
++    return value === 'file' ? 'file' : 'text';
++})();
++const PROJECT_ARCHIVE_AUDIT_MULTIPASS_ENABLED = PROJECT_ARCHIVE_INPUT_MODE === 'text' ||
++    /^(?:1|true|yes|on)$/iu.test(String(process.env.PROJECT_ARCHIVE_AUDIT_MULTIPASS || '').trim());
++// Even a stale background/auto setting must not override the text transport.
+ const PROJECT_ARCHIVE_MULTIPASS_TRANSPORT = (() => {
+-    const fallback = PROJECT_ARCHIVE_INPUT_MODE === 'text' ? 'stream' : 'auto';
+-    const value = String(process.env.PROJECT_ARCHIVE_MULTIPASS_TRANSPORT || fallback).trim().toLowerCase();
+-    return ['auto', 'background', 'stream'].includes(value) ? value : fallback;
++    const value = String(process.env.PROJECT_ARCHIVE_MULTIPASS_TRANSPORT || 'stream').trim().toLowerCase();
++    if (PROJECT_ARCHIVE_INPUT_MODE === 'text') return 'stream';
++    return value === 'background' ? 'background' : 'stream';
+ })();
++function shouldUseProjectArchiveTextMultipass() {
++    // Explicit file mode takes priority over the legacy MULTIPASS toggle.
++    return PROJECT_ARCHIVE_INPUT_MODE !== 'file' && PROJECT_ARCHIVE_AUDIT_MULTIPASS_ENABLED;
++}
+ // Preflight is visible before the operator sends another large archive.
+ console.log('[PROJECT AUDIT CONFIG]',
+-    `mode=${PROJECT_ARCHIVE_INPUT_MODE === 'text' || PROJECT_ARCHIVE_AUDIT_MULTIPASS_ENABLED ? 'multipass' : 'single-shot'}`,
++    `mode=${shouldUseProjectArchiveTextMultipass() ? 'multipass' : 'single-shot'}`,
+     `inputMode=${PROJECT_ARCHIVE_INPUT_MODE}`,
+     `transport=${PROJECT_ARCHIVE_MULTIPASS_TRANSPORT}`,
+     `concurrency=${PROJECT_ARCHIVE_AUDIT_CONCURRENCY}`,
+@@ -8715,9 +8720,9 @@
+     const descriptor = zipDescriptors[0] || null;
+     if (!descriptor) return false;
+ 
+-    // Explicit text mode wins over PROJECT_ARCHIVE_AUDIT_MULTIPASS=0.
+-    const useTextMultipass = PROJECT_ARCHIVE_INPUT_MODE === 'text' ||
+-        PROJECT_ARCHIVE_AUDIT_MULTIPASS_ENABLED;
++    // Default text MULTIPASS wins over missing/stale settings. Only an explicit
++    // inputMode=file can enter the experimental single-shot /files route.
++    const useTextMultipass = shouldUseProjectArchiveTextMultipass();
+     if (PROJECT_ARCHIVE_ROUTER_PROBE_ENABLED && useTextMultipass) {
+         await safeProjectAuditNotice(context,
+             '⚠️ Для диагностики роутера выключи PROJECT_ARCHIVE_AUDIT_MULTIPASS=0. ' +
+@@ -8860,7 +8865,7 @@
+         });
+ 
+         // The /files single-shot route is unreachable when input mode is text.
+-        // Legacy single-shot remains the default if neither setting opts into multipass.
++        // File single-shot requires explicit PROJECT_ARCHIVE_INPUT_MODE=file.
+         if (!useTextMultipass) {
+             const inputManifest = {
+                 jobId,
+@@ -9145,24 +9150,26 @@
+             return true;
+         }
+ 
++        const chunks = createProjectAuditChunks(selection.files);
++        const batches = createProjectAuditBatches(chunks);
+         projectAuditStage(jobId, 'text-multipass-start', {
+             files: selection.files.length,
+             chars: selection.selectedChars,
++            batches: batches.length,
+             transport: PROJECT_ARCHIVE_MULTIPASS_TRANSPORT,
++            inputMode: PROJECT_ARCHIVE_INPUT_MODE,
+             mode: 'multipass',
+         });
+-        const chunks = createProjectAuditChunks(selection.files);
+-        const batches = createProjectAuditBatches(chunks);
+         await safeProjectAuditNotice(
+             context,
+-            `🔎 ${jobId}: MULTIPASS, ${selection.files.length} файлов, ${batches.length} пакетов. ` +
+-            'Этот режим делает много Astra inference и должен включаться только осознанно.',
+-            { jobId, stage: 'multipass-start' },
++            `🔎 ${jobId}: текстовый MULTIPASS, ${selection.files.length} файлов, ${batches.length} пакетов. ` +
++            'Исходный ZIP не передаётся через /files. Astra получает UTF-8 текст через Responses stream.',
++            { jobId, stage: 'text-multipass-start' },
+         );
+ 
+         let completedBatches = 0;
+         const batchCheckpoint = new Array(batches.length).fill(null);
+-        writeProjectAuditCheckpoint(jobId, {
++        requireProjectAuditCheckpoint(jobId, {
+             status: 'analyzing',
+             sourceFilename: descriptor.filename,
+             selectedFiles: selection.files.length,
+@@ -9187,6 +9194,7 @@
+                     total: batches.length,
+                     chunks: batch.length,
+                     chars: batch.reduce((sum, chunk) => sum + Number(chunk?.chars || String(chunk?.content ?? '').length), 0),
++                    transport: PROJECT_ARCHIVE_MULTIPASS_TRANSPORT,
+                 });
+ 
+                 const result = await auditProjectBatchResilient({
+@@ -9200,12 +9208,15 @@
+                 completedBatches += 1;
+                 batchCheckpoint[batchIndex] = {
+                     batch: batchIndex + 1,
++                    stage: `batch-${batchIndex + 1}`,
++                    status: 'completed',
+                     findings,
+                     batchSummary: String(result?.parsed?.batch_summary || '').slice(0, 12_000),
+                     splitDepth: Number(result?.splitDepth || 0),
++                    completedAt: new Date().toISOString(),
+                 };
+ 
+-                const checkpointPath = writeProjectAuditCheckpoint(jobId, {
++                const checkpointPath = requireProjectAuditCheckpoint(jobId, {
+                     status: 'analyzing',
+                     sourceFilename: descriptor.filename,
+                     selectedFiles: selection.files.length,
+--- a/src/shared/buildVersion.js
++++ b/src/shared/buildVersion.js
+@@ -1 +1 @@
+-export const BOT_PATCH_VERSION = 'V188.117';
++export const BOT_PATCH_VERSION = 'V188.119';
+--- a/tests/ai/v188117TextMultipassStream.test.mjs
++++ b/tests/ai/v188117TextMultipassStream.test.mjs
+@@ -5,8 +5,8 @@
+ const app = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
+ 
+ test('V188.117 text override wins over disabled legacy multipass', () => {
+-    assert.match(app, /const PROJECT_ARCHIVE_INPUT_MODE = String\(process\.env\.PROJECT_ARCHIVE_INPUT_MODE/u);
+-    assert.match(app, /const useTextMultipass = PROJECT_ARCHIVE_INPUT_MODE === 'text' \|\|\s*PROJECT_ARCHIVE_AUDIT_MULTIPASS_ENABLED/u);
++    assert.match(app, /const PROJECT_ARCHIVE_INPUT_MODE = \(\(\) => \{/u);
++    assert.match(app, /const useTextMultipass = shouldUseProjectArchiveTextMultipass\(\)/u);
+     assert.match(app, /if \(!useTextMultipass\) \{\s*const inputManifest/u);
+     assert.doesNotMatch(app, /if \(!PROJECT_ARCHIVE_AUDIT_MULTIPASS_ENABLED\) \{\s*const inputManifest/u);
+ });
+@@ -20,7 +20,7 @@
+ });
+ 
+ test('V188.117 text audit uses SSE even if background is otherwise supported', () => {
+-    assert.match(app, /const fallback = PROJECT_ARCHIVE_INPUT_MODE === 'text' \? 'stream' : 'auto'/u);
++    assert.match(app, /if \(PROJECT_ARCHIVE_INPUT_MODE === 'text'\) return 'stream'/u);
+     assert.match(app, /const multipassStream = stage !== 'single-shot' &&\s*\(textStage \|\| PROJECT_ARCHIVE_MULTIPASS_TRANSPORT === 'stream'\)/u);
+     assert.match(app, /const useBackground = !multipassStream &&\s*\(forceBackground \|\| \(!forceStream && projectArchiveAuditBackgroundMode !== 'unsupported'\)\)/u);
+     assert.match(app, /backgroundResponse: useBackground,[\s\S]*?streamOverride: useBackground \? false : true/u);
+--- /dev/null
++++ b/tests/ai/v188119TextDefaultRouting.test.mjs
+@@ -0,0 +1,77 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { readFileSync } from 'node:fs';
++import vm from 'node:vm';
++
++const source = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
++const configStart = source.indexOf('const PROJECT_ARCHIVE_INPUT_MODE = (() => {');
++const configEnd = source.indexOf('const PROJECT_ARCHIVE_SINGLE_MAX_CHARS =', configStart);
++assert.ok(configStart > 0 && configEnd > configStart, 'archive config block exists');
++const config = source.slice(configStart, configEnd);
++
++function bootConfig(env = {}) {
++    const logs = [];
++    const sandbox = {
++        process: { env },
++        PROJECT_ARCHIVE_AUDIT_CONCURRENCY: 1,
++        console: { log: (...parts) => logs.push(parts.join(' ')) },
++    };
++    const values = vm.runInNewContext(`${config}\n({
++        mode: shouldUseProjectArchiveTextMultipass() ? 'multipass' : 'single-shot',
++        inputMode: PROJECT_ARCHIVE_INPUT_MODE,
++        transport: PROJECT_ARCHIVE_MULTIPASS_TRANSPORT,
++        concurrency: PROJECT_ARCHIVE_AUDIT_CONCURRENCY,
++    })`, sandbox);
++    return { ...values, logs };
++}
++
++test('V188.119: default/auto/invalid input + auto/background transport always route to text stream', () => {
++    for (const mode of [undefined, '', 'auto', 'AUTO', 'not-a-mode', 'text']) {
++        for (const transport of [undefined, '', 'auto', 'background', 'stream', 'unknown']) {
++            const env = {};
++            if (mode !== undefined) env.PROJECT_ARCHIVE_INPUT_MODE = mode;
++            if (transport !== undefined) env.PROJECT_ARCHIVE_MULTIPASS_TRANSPORT = transport;
++            env.PROJECT_ARCHIVE_AUDIT_MULTIPASS = '0';
++            const config = bootConfig(env);
++            assert.equal(config.inputMode, 'text', `input=${mode} transport=${transport}`);
++            assert.equal(config.transport, 'stream', `input=${mode} transport=${transport}`);
++            assert.equal(config.mode, 'multipass');
++            assert.match(config.logs[0], /mode=multipass inputMode=text transport=stream concurrency=1/u);
++        }
++    }
++});
++
++test('V188.119: experimental /files branch requires explicit file mode, even with a stale multipass flag', () => {
++    for (const legacy of ['0', '1']) {
++        const config = bootConfig({
++            PROJECT_ARCHIVE_INPUT_MODE: 'file',
++            PROJECT_ARCHIVE_AUDIT_MULTIPASS: legacy,
++        });
++        assert.equal(config.inputMode, 'file');
++        assert.equal(config.mode, 'single-shot');
++    }
++    const trimmed = bootConfig({ PROJECT_ARCHIVE_INPUT_MODE: ' FILE ' });
++    assert.equal(trimmed.mode, 'single-shot');
++});
++
++test('V188.119: input-file ZIP is constructed solely inside explicit file branch; text branch builds batches', () => {
++    assert.match(source, /const useTextMultipass = shouldUseProjectArchiveTextMultipass\(\);/u);
++    assert.match(source, /if \(!useTextMultipass\) \{\s*const inputManifest/u);
++    const zipBuild = source.indexOf('const sanitizedZip = buildPatchedProjectZip(', source.indexOf('if (!useTextMultipass) {'));
++    const textStart = source.indexOf("projectAuditStage(jobId, 'text-multipass-start'", zipBuild);
++    const branch = source.slice(source.indexOf('if (!useTextMultipass) {'), textStart);
++    assert.ok(zipBuild > 0 && branch.includes('uploadToModel: true'));
++    assert.match(branch, /return true;\s*\}\s*const chunks = createProjectAuditChunks/u);
++    const textCode = source.slice(textStart - 300, source.indexOf('let completedBatches =', textStart));
++    assert.match(textCode, /createProjectAuditChunks\(selection\.files\)/u);
++    assert.match(textCode, /createProjectAuditBatches\(chunks\)/u);
++    assert.doesNotMatch(textCode, /uploadOpenAIInputFile|sanitizedZip|input_file/u);
++});
++
++test('V188.119: model text stages enforce stream without non-stream fallback and durable batch checkpoint', () => {
++    assert.match(source, /const multipassStream = stage !== 'single-shot' &&\s*\(textStage \|\| PROJECT_ARCHIVE_MULTIPASS_TRANSPORT === 'stream'\)/u);
++    assert.match(source, /backgroundResponse: useBackground,\s*streamOverride: useBackground \? false : true,\s*disableTransportFallback: true/u);
++    assert.match(source, /batchCheckpoint\[batchIndex\] = \{\s*batch: batchIndex \+ 1,\s*stage: `batch-\$\{batchIndex \+ 1\}`,\s*status: 'completed'/u);
++    assert.match(source, /const checkpointPath = requireProjectAuditCheckpoint\(jobId, \{/u);
++    assert.match(source, /PROJECT_ARCHIVE_TEXT_MODE_FILE_INPUT_FORBIDDEN/u);
++});
+--- a/package.json
++++ b/package.json
+@@ -198,7 +198,8 @@
+     "test:v188107": "node --test tests/ai/v188107AstraCostSafeTransport.test.mjs",
+     "test:v188108": "node --test tests/ai/v188108AstraOptimalTransport.test.mjs",
+     "test:v188109": "node --test tests/ai/v188109AstraDurableTransport.test.mjs tests/ai/v188108AstraOptimalTransport.test.mjs tests/ai/v188107AstraCostSafeTransport.test.mjs tests/ai/v188106AstraProjectAuditResilience.test.mjs",
+-    "test:v188118": "node --test tests/ai/v188117TextMultipassStream.test.mjs tests/ai/v188118PaidStageJournal.test.mjs tests/ai/v188112AstraStreamRecovery.test.mjs tests/ai/v188116RouterFileProbe.test.mjs"
++    "test:v188118": "node --test tests/ai/v188117TextMultipassStream.test.mjs tests/ai/v188118PaidStageJournal.test.mjs tests/ai/v188112AstraStreamRecovery.test.mjs tests/ai/v188116RouterFileProbe.test.mjs",
++    "test:v188119": "node --test tests/ai/v188119TextDefaultRouting.test.mjs tests/ai/v188117TextMultipassStream.test.mjs tests/ai/v188118PaidStageJournal.test.mjs tests/ai/v188112AstraStreamRecovery.test.mjs tests/ai/v188116RouterFileProbe.test.mjs"
+   },
+   "engines": {
+     "node": ">=24"
+--- /dev/null
++++ b/README_V188119_APPLY_RU.md
+@@ -0,0 +1,18 @@
++# GIGORAVE V188.119 — текстовый Astra-аудит по умолчанию
++
++**Применение:** это PATCH поверх существующей рабочей папки GIGORAVE, а не полный автономный бот. Не удаляйте файлы, которых нет в ZIP, `.env`, SQLite, `data/audit-jobs`, outbox и старые задания. Сначала остановите процесс и сделайте резервную копию рабочей папки. Затем скопируйте содержимое ZIP поверх неё и запустите из обычного окна или WebStorm.
++
++По умолчанию `PROJECT_ARCHIVE_INPUT_MODE=text`, `PROJECT_ARCHIVE_MULTIPASS_TRANSPORT=stream`, `PROJECT_ARCHIVE_AUDIT_CONCURRENCY=1`. Пропущенные, `auto`, пустые и неизвестные значения input mode приводят к текстовому MULTIPASS. Старая переменная `PROJECT_ARCHIVE_AUDIT_MULTIPASS=0` не выключает text mode. В text mode даже старое `PROJECT_ARCHIVE_MULTIPASS_TRANSPORT=background` приводится к stream. Экспериментальный `/files` SINGLE-SHOT доступен **только при явном** `PROJECT_ARCHIVE_INPUT_MODE=file`; его не включайте для текущего роутера.
++
++Для проверки без env ожидается:
++
++```text
++[BOT BUILD] V188.119
++[PROJECT AUDIT CONFIG] mode=multipass inputMode=text transport=stream concurrency=1
++```
++
++После отправки **одного малого тестового ZIP**: `document-received`, `source-persisted`, `archive-validated`, `source-files-filtered`, `text-multipass-start` с числом batches, `ai-batch-start` и `[AI RUNTIME TRANSPORT] preferred=stream`. В text mode не должны появляться `input-bundle-built`, `single-shot-start`, `[ASTRA INPUT FILE UPLOAD]` и `PROJECT_ARCHIVE_FILES_VARIANT_UNCONFIRMED`.
++
++Если по-прежнему видите `[BOT BUILD] V188.117` или `inputMode=auto`, запущен старый процесс/старые исходники или используется другая рабочая папка. Остановите именно тот экземпляр и проверьте, куда указывают конфигурация запуска и `src/shared/buildVersion.js`.
++
++Тесты: `npm run test:v188119`. Node.js 22 использовался для локальных тестов; `package.json` проекта декларирует Node.js >=24, поэтому для живого запуска соблюдайте требование проекта. **Реальные запросы к стороннему роутеру и Telegram в локальных тестах не выполнялись.** Из V188.118 сохраняется ограничение: автоматическое продолжение всего прерванного MULTIPASS-задания после рестарта не гарантировано; отдельные платные стадии не должны переотправляться без безопасного recovery. Не присылайте тот же большой ZIP как новое сообщение, рассчитывая продолжить старый `jobId`.
+--- /dev/null
++++ b/V188119_CHANGES_RU.md
+@@ -0,0 +1,7 @@
++# V188.119 — defaults текстового маршрута
++
++Основа: V188.118 TEXT MULTIPASS DURABLE. Исправлено `inputMode=auto transport=auto` при отсутствии env: теперь text + stream — значения по умолчанию; `auto` и неизвестные значения input также переводятся в text, даже если старый toggle multipass выключен. Для text режима устаревшее background/auto транспорта не влияет на выбор SSE. File SINGLE-SHOT оставлен только при явном `inputMode=file` и не предназначен для текущего роутера.
++
++В лог `text-multipass-start` добавлены `batches`, `inputMode`; в лог каждого batch — `transport`; Telegram-уведомление теперь поясняет, что исходный ZIP не загружается через `/files`. Усилены проверки записи общего checkpoint после начала аудита и после каждого завершённого batch; batch checkpoint дополнен `stage`, `status=completed`, `completedAt`. Существующие per-stage журналы с inputSha256 и responseId сохранены без переписывания.
++
++Добавлен исполняемый тест конфигурации на разных сочетаниях env, обновлён тест V188.117 и добавлена команда `test:v188119`. Новые default и локальный mock НЕ являются доказательством успешной длительной сессии на роутере, полного resume job или Telegram end-to-end.

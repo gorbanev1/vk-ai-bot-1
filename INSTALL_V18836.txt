@@ -1,0 +1,13 @@
+Gigorave V188.36
+
+Full package:
+1. Stop the bot.
+2. Back up your current project and data directory.
+3. Replace application files with the V188.36 clean package.
+4. Keep your own .env and runtime data/database; they are intentionally not included in the release archive.
+5. Install dependencies if needed using the existing lockfile/package manager.
+6. Start the bot and run "парсер все".
+7. For diagnostics, archive the complete data/logs/manual-parser/<run-id>/ directory.
+
+Patch package:
+Copy the patch files over the corresponding paths in an existing V188.35 installation, preserving directories. Restart the bot afterwards.

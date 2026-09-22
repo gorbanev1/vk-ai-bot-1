@@ -1,0 +1,14 @@
+V92
+
+Исправлена команда «Гигорейв резюмируй картинкой N».
+
+Правильный pipeline:
+1. Загружаются N сообщений указанного диапазона беседы.
+2. Текстовая default GPT (gpt-5.4-mini) обрабатывает весь диапазон с chunking.
+3. Текстовая GPT формирует единый безопасный visual prompt.
+4. Только этот final visual prompt отправляется в gpt-image-2.
+5. Пользователю возвращается одна итоговая картинка.
+
+gpt-image-2 больше никогда не выбирается как модель текстового резюме/подготовки промпта.
+
+Также image generation сначала использует /images/generations. Старый /chat/completions оставлен только как compatibility fallback для gateway, где image endpoint отсутствует. Это устраняет ошибку «gpt-image-2 is media-only and cannot be used for text generation» на media-only image routers.

@@ -1,0 +1,24 @@
+V84 — полный lossless matrix-test графических моделей всех рабочих AI-ключей.
+
+1. Остановить бот.
+2. Распаковать V84 поверх проекта, не заменяя .env и data/.
+3. parsed_secrets.txt оставить в корне проекта рядом с src.
+4. pnpm install --frozen-lockfile
+5. pnpm run test:all-graphics-matrix
+6. pnpm dev
+
+Команда владельца:
+Гигорейв графика тест все ключи <одинаковый prompt>
+
+Пример:
+Гигорейв графика тест все ключи cinematic black cat on a rainy neon street, full body, no text
+
+Результаты сохраняются ДО попытки отправки в чат:
+GRAPHICS_MATRIX_RESULTS/<timestamp>/
+  prompt.txt
+  results.jsonl
+  summary.txt
+  0001__provider__keyslot__model.png
+  ...
+
+Поэтому ни одна полученная картинка не теряется при ошибке VK/Telegram upload/send.

@@ -1,0 +1,14 @@
+V188.23 changed files
+
+src/app/botApplication.js
+src/features/history/vkBrowserHistoryRecovery.js
+src/features/history/vkHistoryPullPolicy.js
+tests/infrastructure/vkHistoryPullPolicyV18823.test.mjs
+tests/infrastructure/historyRecoveryCheckpointV1872.test.mjs
+tests/v177/vkServiceArchiveV177.test.mjs
+package.json
+README.md
+DEVELOPER_HANDOFF.md
+PATCH_NOTES_V18823.txt
+INSTALL_V18823.txt
+PATCH_FILE_LIST_V18823.txt

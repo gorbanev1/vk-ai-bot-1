@@ -1,0 +1,30 @@
+Gigorave Events V120 — concurrent full AI audit
+
+Owner command remains:
+  Гигорейв тест всех моделей
+
+Changes:
+- Key/catalog probes run concurrently (default 8).
+- Text models run concurrently (default 6 globally), with a default limit of 1 active model per exact key.
+- For every text model, baseline non-stream and stream requests start simultaneously.
+- Reasoning/intelligence levels are tested in parallel batches (default 2 levels at once); each level sends non-stream + stream simultaneously.
+- Native image generation runs concurrently (default 4 globally, 1 per key).
+- Image stream probes also run concurrently with the same per-key protection.
+- AUDIT_STATUS.json now contains completed/total, concurrency limits and ETA for long stages.
+- Telegram progress messages show completed/total and approximate ETA when available.
+
+Transport selection policy is unchanged from V119:
+- both OK -> prefer non-stream, stream fallback
+- stream only -> prefer stream, one non-stream emergency retry
+- non-stream only -> prefer non-stream
+- neither -> remove key+model capability from runtime SQLite registry
+
+Optional environment tuning:
+  AI_AUDIT_KEY_CONCURRENCY=8
+  AI_AUDIT_MODEL_CONCURRENCY=6
+  AI_AUDIT_PER_KEY_MODEL_CONCURRENCY=1
+  AI_AUDIT_REASONING_CONCURRENCY=2
+  AI_AUDIT_IMAGE_CONCURRENCY=4
+  AI_AUDIT_PER_KEY_IMAGE_CONCURRENCY=1
+
+Do not set all values extremely high: provider rate limits can turn a fast audit into a wall of HTTP 429 errors.

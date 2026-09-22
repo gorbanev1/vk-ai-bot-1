@@ -1,0 +1,43 @@
+Gigorave V188.4 — compact AI health registry + explicit Grok image route
+
+1. Compact owner health check
+Command: «Гигорейв проверить рабочие модели».
+- checks all configured supported AI key slots concurrently;
+- text/chat model probes run stream and non-stream at the same time;
+- short default timeouts: key catalog 8s, model 12s;
+- model jobs default concurrency 24, per-key 6;
+- large provider catalogs are capped to the most relevant/configured models (default 64 text + 8 image per key) so the health pass does not turn into an hours-long full audit.
+
+2. Durable SQLite health state
+New tables:
+- ai_key_health
+- ai_model_health
+Existing ai_runtime_modes is atomically rebuilt from combinations that actually passed live probes.
+No API secret is stored in SQLite: only provider, env slot, masked key, model, transport status, latency and last error.
+
+3. Runtime pruning
+- definitively dead key/model combinations are skipped by the normal model router and explicit external-provider routes;
+- temporary network/429/5xx failures are marked unavailable and skipped for 15 minutes by default, then may recover through the normal 3-failures-per-key failover;
+- definitive invalid key failures are removed from .env with an automatic backup;
+- transient failures are never physically deleted from .env.
+
+4. Explicit Grok/xAI image generation
+Commands:
+- «Гигорейв грок нарисуй <prompt>»
+- «Гигорейв xai нарисуй <prompt>»
+- «Гигорейв грок нарисуй через <model> <prompt>»
+xAI uses /images/generations and supports URL or base64 image responses. Key failover uses the V188.3 rule: three technical failures on one key -> next key.
+
+5. xAI image model discovery
+`grok-imagine-*` is now classified as image capability in the live model catalog.
+
+Environment tuning (optional):
+AI_HEALTH_KEY_TIMEOUT_MS=8000
+AI_HEALTH_MODEL_TIMEOUT_MS=12000
+AI_HEALTH_KEY_CONCURRENCY=16
+AI_HEALTH_MODEL_CONCURRENCY=24
+AI_HEALTH_PER_KEY_CONCURRENCY=6
+AI_HEALTH_MAX_TEXT_MODELS_PER_KEY=64
+AI_HEALTH_MAX_IMAGE_MODELS_PER_KEY=8
+AI_HEALTH_UNAVAILABLE_TTL_SECONDS=900
+XAI_IMAGE_TIMEOUT_MS=120000

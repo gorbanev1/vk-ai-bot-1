@@ -1,0 +1,12 @@
+Gigorave V188.25
+
+1. Stop the bot before replacing code.
+2. Extract over the project code only. This release archive contains NO data/ directory and NO SQLite/runtime journals.
+3. Keep your existing data/ directory and healthy-backups untouched.
+4. Start with: pnpm dev
+
+Fixes:
+- Long owner history pulls send their completion/error as a normal VK chat message instead of reply_to the original command. This avoids VK API error 100 "cannot reply this message" after a long scan.
+- V188.24 leaver routing remains active: "кто вышел вчера", "кто вышел 08.09", "кто вышел за 2 дня".
+- Membership rows can be rebuilt from saved VK service archive before a leaver report.
+- Automatic history remains bounded to 24h / 3500 messages; explicit owner pull can request a deeper period.

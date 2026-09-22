@@ -1,0 +1,12 @@
+V188.45 patch files (relative to project root):
+
+package.json
+V18845_RELEASE_NOTES_RU.txt
+PATCH_FILE_LIST_V18845.txt
+src/app/botApplication.js
+src/features/ai/autoSummaryRouting.js
+src/features/ai/calendarSummarySlices.js
+src/infrastructure/database/hierarchicalSummaryStateStore.js
+src/infrastructure/database/index.js
+tests/ai/autoSummaryRoutingV138.test.mjs
+tests/ai/calendarSummarySlicesV18845.test.mjs

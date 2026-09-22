@@ -1,0 +1,18 @@
+﻿SRC ORGANIZE 2026-09-15T14:09:47.4907262+03:00
+ROOT: C:\Users\Adm\WebstormProjects\vk-ai-bot
+SRC:  C:\Users\Adm\WebstormProjects\vk-ai-bot\src
+
+[MOVE] C:\Users\Adm\WebstormProjects\vk-ai-bot\src\INSTALL_V129.txt -^> C:\Users\Adm\WebstormProjects\vk-ai-bot\docs\archive\src-history\V129\INSTALL_V129.txt
+[MOVE] C:\Users\Adm\WebstormProjects\vk-ai-bot\src\PATCH_NOTES_EVENTS_V129_PINBALL_POP_BUMPER_POWER.txt -^> C:\Users\Adm\WebstormProjects\vk-ai-bot\docs\archive\src-history\V129\PATCH_NOTES_EVENTS_V129_PINBALL_POP_BUMPER_POWER.txt
+[MOVE] C:\Users\Adm\WebstormProjects\vk-ai-bot\src\DEVELOPER_HANDOFF.md -^> C:\Users\Adm\WebstormProjects\vk-ai-bot\docs\src\DEVELOPER_HANDOFF.md
+[MOVE] C:\Users\Adm\WebstormProjects\vk-ai-bot\src\app\botApplication.js.bak -^> C:\Users\Adm\WebstormProjects\vk-ai-bot\backup\src-code-backups\app\botApplication.js.bak
+[MOVE] C:\Users\Adm\WebstormProjects\vk-ai-bot\src\features\ai\providerDiagnostics.js.bak -^> C:\Users\Adm\WebstormProjects\vk-ai-bot\backup\src-code-backups\features\ai\providerDiagnostics.js.bak
+
+[KEEP] src\README.md
+[KEEP] src\package.json
+[KEEP] all .js/.mjs/.html code
+[KEEP FOR SEPARATE AUDIT] src\src\app\botApplication.js
+[KEEP FOR SEPARATE AUDIT] src\tests
+[KEEP FOR SEPARATE AUDIT] src\miniapps
+
+REPORT: C:\Users\Adm\WebstormProjects\vk-ai-bot\SRC_ORGANIZE_REPORT_20260915-140947.txt

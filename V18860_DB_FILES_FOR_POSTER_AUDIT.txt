@@ -1,0 +1,14 @@
+To audit real stored event posters against parser source data, stop the bot completely and archive these files/directories without opening/editing them:
+
+Required:
+- data/bot.sqlite
+- data/bot.sqlite-wal   (if present)
+- data/bot.sqlite-shm   (if present)
+- data/vk_announcements/  (whole directory)
+
+Useful if present / relevant:
+- data/event_announcements/
+
+Do not send .env, API keys, tokens or credential files for this audit.
+
+Why the SQLite family matters: while the bot is running, recent committed pages may still be represented through WAL state. Copying only bot.sqlite can give an incomplete forensic snapshot. Safest procedure: stop Node/bot first, then zip bot.sqlite + any WAL/SHM + vk_announcements together.

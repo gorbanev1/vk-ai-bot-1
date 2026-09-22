@@ -1,0 +1,15 @@
+V142 changed files:
+- src/features/ai/fullAiAudit.js
+- src/features/ai/envKeyCleanup.js
+- src/features/ai/allProviderVisualMatrixAudit.js
+- src/app/botApplication.js
+- tests/ai/fullAiAuditV142KeySecondSweep.test.mjs
+- tests/ai/envKeyCleanupV142ConfirmedDead.test.mjs
+- package.json
+- PROJECT_MANIFEST.json
+- docs/SOURCE_MAP.md
+- README.md
+- DEVELOPER_HANDOFF.md
+- INSTALL_V142.txt
+- PATCH_NOTES_EVENTS_V142_SECOND_API_KEY_SWEEP_CLEANUP.txt
+- PATCH_FILE_LIST_V142.txt

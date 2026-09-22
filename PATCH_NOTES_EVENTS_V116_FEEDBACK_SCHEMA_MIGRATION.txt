@@ -1,0 +1,20 @@
+V116 — legacy feedback schema migration + Telegram deletion menu recovery
+
+Fixes startup crash on databases where post_event_feedback_requests was created by an older V109/V110 build without the feedback_received_at column:
+
+  Error: table post_event_feedback_requests has no column named feedback_received_at
+
+At startup V116 now checks PRAGMA table_info(post_event_feedback_requests) and adds:
+
+  feedback_received_at INTEGER NOT NULL DEFAULT 0
+
+before preparing SQL statements that reference the column. Existing rows are preserved and receive the default 0 value.
+
+V115 Telegram event deletion behavior remains:
+- after deleting an event the temporary reply keyboard has two buttons:
+  1) Вернуть тусу <название>
+  2) 🏠 На главную
+- 🏠 На главную returns to the normal owner main keyboard;
+- restoring an event returns subsequent private bot responses to the normal main keyboard.
+
+This patch does not replace or delete .env or data/bot.sqlite.

@@ -1,0 +1,24 @@
+Gigorave recovery-series release notes index (V166–V185)
+
+Published releases in this sequence:
+- V166  PATCH_NOTES_V166.txt
+- V170  PATCH_NOTES_V170.txt
+- V171  PATCH_NOTES_V171.txt
+- V172  PATCH_NOTES_V172.txt
+- V173  PATCH_NOTES_V173.txt
+- V174  PATCH_NOTES_V174.txt
+- V175  PATCH_NOTES_V175.txt
+- V176  PATCH_NOTES_EVENTS_V176_MEMBERSHIP_HISTORY.txt
+- V177  PATCH_NOTES_EVENTS_V177_SERVICE_ARCHIVE.txt
+- V178  PATCH_NOTES_V178.txt
+- V179  PATCH_NOTES_V179.txt
+- V180  PATCH_NOTES_V180.txt
+- V181  PATCH_NOTES_V181.txt
+- V182  PATCH_NOTES_V182.txt
+
+V167, V168 and V169 were not published as numbered source releases in this recovery sequence, so no fake release notes were created for them.
+
+Rule from V181 onward:
+Every numbered release must include its own PATCH_NOTES_V<version>.txt (or the already established PATCH_NOTES_EVENTS_V<version>_<topic>.txt form) before packaging the full-source ZIP.
+- V184  PATCH_NOTES_V184.txt
+- V185  PATCH_NOTES_V185.txt

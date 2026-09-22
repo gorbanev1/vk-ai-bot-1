@@ -1,0 +1,34 @@
+Gigorave V147 — event-level media + persistent dedupe + DB repair
+=================================================================
+
+Проблема, которую чинит релиз
+-----------------------------
+1. Один pinned/monthly/digest пост мог породить несколько разных событий, после чего его единственная картинка копировалась в image_paths каждого child-event.
+2. При выдаче бот видел существующий JPEG и считал его валидной афишей, хотя это могла быть афиша другого события из общего списка.
+3. Несколько child-event сохраняли один и тот же parent source_url. При позднем source-refresh один единственный найденный event мог быть ошибочно применён ко всем строкам этого parent post.
+4. Дедуп был надёжнее в verified snapshot, чем в обычных SQLite upcoming-запросах; после некоторых rebuild повторы могли проявиться снова.
+
+Что изменено
+------------
+- prepareEventImages(): post-level media больше не наследуется всеми child-event при events.length > 1. Source-post media сохраняется отдельно через _sourceImagePaths.
+- VK poster recovery: режим requireSpecificAnnouncement исключает parent digest/repost из кандидатов и ищет отдельный пост на стене исходного паблика медленным Chromium scroll. Match: дата + title/participants + venue.
+- botApplication: для multi-event/digest существующий JPEG намеренно отвергается как stale parent poster. Если найден отдельный анонс, в БД записываются его poster и точный wall URL. Если не найден — текст без картинки.
+- eventSourceRefresh: даже один fresh event теперь проходит identity scoring; он не может перезаписать другие child rows только потому, что source_url общий. Новая подтверждённая картинка заменяет stale old image, а не дописывается рядом.
+- SQLite migration public-events-v147-event-level-media-persistent-dedupe:
+  * очищает одинаковые non-empty image_paths у 2+ VK child-event одного screen_name/post_id;
+  * делает то же для Telegram channel/message_id;
+  * очищает generated event_message_cards / старые -event- картинки;
+  * сбрасывает configured event_dedupe registry и scraper initial_completed, чтобы источники можно было перепарсить новой версией;
+  * source-post media не удаляется.
+- Persistent dedupe: upcoming SELECT для manual/telegram/vk/vk_chat подавляет rows, записанные как role=duplicate в configured registry.
+- Verified snapshot rebuild читает raw SQLite rows через getAllUpcomingEventRecordsForDedupe и затем фильтрует только configured sources. Это устраняет самостирание registry.
+- EVENT_DEDUPE_ALGORITHM_VERSION поднята до V147; старый verified snapshot автоматически считается устаревшим.
+
+Поведение на примере monthly Liverpool post
+-------------------------------------------
+Если wall-95062430_2705 породил Red Fox Tails, Алексей Вдовин, Игорь Лисов и Алексей Панасовский, V147 не имеет права отправить одну и ту же картинку wall-95062430_2705 четыре раза. Старые copied image_paths очищаются. Для каждого события при необходимости открывается исходная wall-ссылка, затем источник/оригинал, затем паблик; wall scroll ищет отдельный анонс этого конкретного события. Найденный wall/poster сохраняется в child row.
+
+Проверки
+--------
+- V147 regression suite покрывает cosmetic dedupe, digest child identity, replacement stale poster, no post-image fanout, parent exclusion in browser recovery, DB repair, stale-JPEG rejection и raw-registry rebuild.
+- Отдельно прогнана SQLite integration-проверка: 4 child rows одного VK post с одинаковым image_paths_json -> migration очистила 4/4, source-post image_paths сохранились.

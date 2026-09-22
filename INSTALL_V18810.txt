@@ -1,0 +1,12 @@
+Gigorave V188.10 installation
+=============================
+1. Stop the bot.
+2. Replace the project files with this full-source archive.
+3. Keep your existing .env and data/ directory; they are intentionally not included.
+4. Run pnpm install if dependencies are not already installed.
+5. Start normally with pnpm start / npm start.
+
+Parser traces are written automatically to:
+  data/logs/event-parser/
+The latest run is mirrored to:
+  data/logs/event-parser/latest.jsonl

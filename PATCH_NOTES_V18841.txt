@@ -1,0 +1,19 @@
+Gigorave V188.41 — summary Sol-last failover fix
+
+Fixed a high-cost model-routing defect in scheduled/automatic/hierarchical summaries.
+
+Before V188.41, AUTO_SUMMARY_MODEL_RETRY_MODES was reversed:
+  pro3 -> pro2 -> gpt55 -> gpt54 -> pro -> default
+Therefore a healthy summary run started directly on pro3 / gpt-5.6-sol.
+
+V188.41:
+- every new automatic/hierarchical summary cycle starts on default;
+- summary GPT requests use the shared cheapest-to-strongest ladder:
+  default -> gpt54 -> gpt55 -> pro -> pro2 -> pro3;
+- each logical model receives exactly two attempts for technical failures;
+- a summary call uses one finite ladder round; Sol/pro3 is the final fallback;
+- non-technical/content/context errors do not burn through the whole model ladder;
+- previous scheduled-summary failures no longer make the next run start on a stronger model;
+- hierarchical leaf/merge and automatic summary leaf/merge use the same policy.
+
+No runtime data, databases, secrets or token logs are included in the release archives.

@@ -1,0 +1,17 @@
+import { chromium } from 'playwright';
+import { createPinballMiniAppServer } from '../src/features/pinball/pinballServer.js';
+const app = createPinballMiniAppServer({ botToken:'123:TEST', host:'127.0.0.1', port:0, logger:console });
+await app.start();
+const port = app.server.address().port;
+const browser = await chromium.launch({ headless:true });
+const page = await browser.newPage({ viewport:{ width:480, height:900 }, deviceScaleFactor:1 });
+const errors=[]; page.on('console',msg=>{ if(msg.type()==='error') errors.push(msg.text()); }); page.on('pageerror',e=>errors.push(e.message));
+await page.goto(`http://127.0.0.1:${port}/pinball/`, { waitUntil:'networkidle' });
+await page.screenshot({ path:'/mnt/data/v123_pinball_start.png', fullPage:true });
+await page.click('#startButton');
+await page.keyboard.down('Space'); await page.waitForTimeout(500); await page.keyboard.up('Space');
+await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(160); await page.keyboard.up('ArrowLeft');
+await page.waitForTimeout(1200);
+await page.screenshot({ path:'/mnt/data/v123_pinball_play.png', fullPage:true });
+console.log(JSON.stringify({ errors, title:await page.title(), score:await page.textContent('#score'), ribbon:await page.textContent('#statusRibbon') },null,2));
+await browser.close(); await app.stop();

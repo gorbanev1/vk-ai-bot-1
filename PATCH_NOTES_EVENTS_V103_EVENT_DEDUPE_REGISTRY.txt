@@ -1,0 +1,9 @@
+V103 — event dedupe registry / stale snapshot invalidation
+
+1. EVENT_VERIFIED_SNAPSHOT_VERSION повышена с 1 до 2: старый canonical cache с прежними дублями больше не принимается.
+2. Owner «тусы дубли проверить» / «сканировать базу тус на дубли» делает глубокий dry-run по всем будущим approved/pending строкам telegram_events, vk_events, vk_chat_events, manual_events.
+3. Owner «тусы дубли применить» сохраняет canonical/duplicate membership в SQLite registry event_dedupe_groups + event_dedupe_members и пересобирает verified V2 snapshot.
+4. Raw event rows не удаляются и не получают ignored. Это сохраняет разные дни, времена, площадки, описания и источники, которые глубокий merge объединяет в canonical event.
+5. «тусы проверить» и final verification после парсинга автоматически обновляют registry scope=configured и canonical snapshot.
+6. Пока V2 snapshot отсутствует, public fallback использует полный deterministic two-contour + final/paranoid collapse без GPT вместо legacy strict fuzzy pass.
+7. В deep dedupe внутренний _dedupeRefs проходит через все merge contours, чтобы registry точно связывался с физическими SQLite row ids.

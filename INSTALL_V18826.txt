@@ -1,0 +1,13 @@
+Gigorave V188.26
+
+1. Stop the bot before replacing code.
+2. Extract over the project code only. This release archive contains NO data/ directory and NO SQLite/runtime journals.
+3. Keep your existing data/ directory and healthy-backups untouched.
+4. Start with: pnpm dev
+
+Database backup policy:
+- A verified healthy SQLite snapshot is created every 6 hours while the bot is running.
+- Startup still creates a backup when the latest healthy snapshot is already 6+ hours old.
+- The newest 15 healthy databases are retained; older healthy snapshots are deleted only after the new snapshot passes PRAGMA quick_check.
+- Backups live in data/healthy-backups/ and use bot-healthy-*.sqlite. Older bot-startup-*.sqlite files remain recognized for restore/rotation.
+- Snapshot creation uses SQLite VACUUM INTO so the file is transactionally consistent with live WAL data.

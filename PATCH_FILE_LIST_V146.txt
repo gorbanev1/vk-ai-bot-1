@@ -1,0 +1,17 @@
+Gigorave Bot V146 patch from V145
+
+Changed/new files:
+DEVELOPER_HANDOFF.md
+INSTALL_V146.txt
+PATCH_FILE_LIST_V146.txt
+PATCH_NOTES_EVENTS_V146_REAL_POSTER_REPOST_BROWSER_TELEGRAM_SCROLL.txt
+PROJECT_MANIFEST.json
+README.md
+docs/SOURCE_MAP.md
+package.json
+src/app/botApplication.js
+src/features/events/eventAssets.js
+src/infrastructure/browser/browserGrabber.js
+src/platforms/telegram/telegramHtmlScraper.js
+src/platforms/vk/vkPublicScraper.js
+tests/events/eventPosterRepostRecoveryV146.test.mjs

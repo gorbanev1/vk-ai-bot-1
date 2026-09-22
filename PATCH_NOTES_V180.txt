@@ -1,0 +1,12 @@
+Gigorave V180 — leaver names + exact exit timestamps
+
+- `Гигорейв список кто вышел` now prints plain VK profile names instead of `[id|name]` mention links.
+- The report includes every saved exit/kick episode with exact date and time in the configured bot timezone (Europe/Moscow by default), including seconds.
+- Kicked events also show the profile name of the actor who removed the member when VK provides it.
+- VK names are cached durably in `bot.sqlite` (`vk_user_name_cache`) after successful `users.get`, so reports retain names during temporary VK API failures.
+- Added `getChatExitEvents()` so the report is based on the full event timeline instead of only grouped counters.
+- No database file is shipped in the release archive; existing `data/bot.sqlite` remains in place and the new cache table is created automatically.
+
+Verification:
+- import check: OK (298 files)
+- all tests: 158 files, 0 failed

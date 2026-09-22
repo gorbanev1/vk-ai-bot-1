@@ -1,0 +1,15 @@
+V144 — FINAL AI KEY SWEEP / QUOTA QUARANTINE
+
+- Финальный полный обход сохраняет алгоритм V142/V143: transport retry, точечный третий круг и полный повторный sweep всех известных text/image моделей для ключей без рабочих runtime-моделей.
+- Явно invalid/revoked ключи удаляются.
+- Валидные ключи с quota/no credits не удаляются: они переносятся в отдельный закомментированный блок .env между GIGORAVE AI QUOTA QUARANTINE separators.
+- Quota-ключи проверяются 2 раза в месяц: 5-го и 20-го числа (Europe/Moscow).
+- Только подтверждённый quota/no-credits результат увеличивает passCount. Сетевые ошибки, timeout и 5xx не увеличивают passCount.
+- На 5-м подтверждённом quota-проходе ключ удаляется.
+- Если ключ ожил, он возвращается в активный .env и в ai_runtime_modes.
+- Состояние хранится в SQLite maintenance_state: passCount, lastCompletedSlot и история переживают рестарты и обновления. Повторный запуск бота в том же календарном слоте не даёт лишний проход.
+- V144 умеет восстановить quota-ключи, которые V142 мог удалить, из .env.before-ai-key-cleanup-*.bak и перенести их в карантин.
+- Логика V143 авторезюме не изменялась.
+
+Quota schedule: 5 / 20 monthly.
+Quota deletion threshold: 5 confirmed quota passes.

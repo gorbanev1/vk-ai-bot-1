@@ -1,0 +1,34 @@
+V149 — SMART AI DEDUPE + PERSISTENT RANDOM ACTIVE CHAT
+=====================================================
+
+1. Event duplicates
+- Exact normalized title + shared calendar date does not call GPT.
+- AI review is gated to ambiguous pairs with a shared date and partial/similar title.
+- Hard conflicts and different dates never go to the AI duplicate judge.
+- `тусы дубли проверить` remains dry-run; `тусы дубли применить` writes the resulting canonical/duplicate registry.
+- Confirmed groups are not sent to a second AI rewrite in this owner audit: AI is used only as the ambiguous duplicate judge.
+
+2. Active communication frequency
+- `Гигорейв активное общение N`, 1 <= N <= 1000.
+- One random target position is selected for each FIXED window of N eligible messages.
+- Example N=10: exactly one random autonomous reply within each block of ten eligible messages.
+- Example N=100: exactly one random autonomous reply within each block of one hundred.
+- An early reply does not reset the counter: the bot still waits for the end of that N-message block before selecting the next random position.
+
+3. Restart-safe state
+The following active-chat fields are stored in SQLite communication_settings:
+- active_chat_enabled
+- active_chat_message_count
+- active_chat_interval
+- active_chat_target_offset
+- active_chat_last_reply_at
+
+The selected target offset is not regenerated on restart. Chat-history rebind preserves it.
+Existing auto_summary_settings and communication persona/warmth remain SQLite-backed.
+Startup no longer reschedules saved communication outburst timestamps merely because the process restarted.
+
+4. Random autonomous persona
+Every autonomous active-chat reply chooses a fresh persona from:
+loshara, durachila, neutral, intelligent, scientist, ham, bydlo.
+A rude persona is style, not an instruction to attack a neutral message. The prompt explicitly de-escalates neutral/friendly context.
+Legacy rude background outburst timers are not enabled by active communication anymore.

@@ -1,0 +1,14 @@
+V188.39 patch files (apply over V188.38)
+
+DEVELOPER_HANDOFF.md
+INSTALL_V18839.txt
+PATCH_NOTES_V18839.txt
+PATCH_FILE_LIST_V18839.txt
+PROJECT_MANIFEST.json
+README.md
+package.json
+src/app/botApplication.js
+src/features/ai/globalWhoDatabaseRouting.js
+tests/ai/databaseRetrievalIntentV18839.test.mjs
+tests/ai/globalWhoDatabaseRoutingV18838.test.mjs
+tests/scrapers/vkThreePassDomParserV18832.test.mjs

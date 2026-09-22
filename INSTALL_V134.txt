@@ -1,0 +1,12 @@
+Gigorave V134
+
+PATCH:
+1. Остановить бота.
+2. Распаковать Gigorave_V134_patch_from_V133.zip поверх установленной V133 с заменой файлов.
+3. Запустить: pnpm dev
+
+FULL:
+Можно развернуть Gigorave_bot_V134_full.zip как полную сборку и вернуть свой .env/data из рабочей установки.
+
+Сборка: events-v134-vk-event-photo-upload-fallback
+Версия package.json: 0.134.0

@@ -1,0 +1,11 @@
+Gigorave 0.188.27
+Build: events-v18827-stable-scraper-browser-lifecycle
+
+- Source pages stay open through full source processing instead of closing after DOM capture.
+- Public VK/Telegram finite passes wait 30-60 seconds for lazy-loaded content (30s default hold plus media settling).
+- Browser activity leases prevent persistent Chromium from being closed/relaunched while image/AI processing is still using it.
+- Programmatic source-tab close is no longer treated as owner browser stop.
+- Orphan browser idle close delayed to 60 seconds.
+- Startup blank tab reused for finite sources.
+- Existing V18826 6-hour/15-backup policy retained.
+- Clean release must contain no data/, SQLite, WAL/SHM or runtime journals.

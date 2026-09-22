@@ -1,0 +1,30 @@
+Gigorave V188.23
+
+Build: events-v18823-windowed-vk-history-owner-pull-strict-posters
+Package: 0.188.23
+
+VK HISTORY CHANGES
+- Startup/periodic remote history check: last 24 hours OR 3500 messages, whichever comes first.
+- getHistory remains primary.
+- CMID fallback scans newest -> oldest and uses the current peer's remote last_message CMID when available.
+- Browser fallback uses the same cutoff and count limit.
+- Every incoming recovered message is compared with SQLite via INSERT OR IGNORE; logs distinguish new vs existing rows.
+- Automatic deep full-history/archive crawler removed. No hidden deep crawl from startup, timers, "кто вышел" or service reports.
+
+OWNER COMMAND
+- Гигорейв подтяни историю
+- Гигорейв подтяни историю 6 часов
+- Гигорейв подтяни историю 1 день
+- Гигорейв подтяни историю 2 дня
+- Гигорейв подтяни историю 1 неделя
+Bare command defaults to 1 day. Deep pulls run only when explicitly requested by the bot owner in the target VK chat.
+
+IMPORTANT
+Local SQLite backup recovery is unchanged and can restore older local rows after corruption. It does not fetch remote VK history and therefore is not limited by the 24h/3500 network policy.
+
+VERIFICATION
+- Focused history tests: 17/17.
+- Syntax: 377 files OK.
+- Imports: 377 files OK.
+- Named imports: 149 files, missing=0.
+- Full test runner: 215 files, 14 pre-existing legacy event/Telegram-parser failures remain.

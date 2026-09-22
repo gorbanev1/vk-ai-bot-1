@@ -1,0 +1,31 @@
+V89 — SINGLE PASS SCRAPER TAB PERSISTENCE
+
+Причина бага V88
+----------------
+После успешного source.scraper.run() V88 отдельно вызывал openPinnedScraperPage().
+Получалось два открытия каждого публичного источника:
+1) рабочая вкладка парсера — затем закрывалась;
+2) отдельная контрольная вкладка — оставалась открытой.
+
+Исправление V89
+---------------
+- Удалён второй openPinnedScraperPage() после успешного парсинга.
+- source.scraper.run() получил keepPageOpen.
+- VK public scraper не закрывает СВОЮ рабочую страницу после успешного manual run.
+- Telegram HTML scraper не закрывает СВОЮ latest-страницу после успешного manual run.
+- Telegram pagination pages (?before=...) всё ещё закрываются, чтобы не плодить вкладки.
+- Ошибочная попытка не закрепляется как успешная вкладка.
+- Retry выполняется только после исключения.
+- Если retry успешен, отдельная recovery/pinned вкладка больше не создаётся.
+- Только если и retry падает, owner получает отдельную recovery-вкладку для ручной проверки.
+
+Логи
+----
+Успешный VK manual run:
+[VK SCRAPER TAB KEPT OPEN] source=vk.ru/... samePass=true autoClose=false
+
+Успешный Telegram manual run:
+[TG SCRAPER TAB KEPT OPEN] channel=@... before=latest samePass=true autoClose=false
+
+Таким образом в нормальном случае:
+ОДИН ИСТОЧНИК = ОДНО ОТКРЫТИЕ = ОДНА ОСТАВШАЯСЯ ВКЛАДКА.

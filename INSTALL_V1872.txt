@@ -1,0 +1,21 @@
+Gigorave V187.2 install
+
+Recommended upgrade: V187.1 -> V187.2 patch.
+1. Stop pnpm dev.
+2. Extract Gigorave_V1872_patch.zip into the project root, overwriting files.
+3. Do NOT delete or replace data/, .env, bot.sqlite, bot.sqlite-wal or bot.sqlite-shm.
+4. Run: pnpm dev
+5. Expected startup marker:
+   [BOT BUILD] events-v1872-summary-cache-linked-dossier-history
+   [BOT PATCH] events-v1872-summary-cache-linked-dossier-history
+6. On the first V187.2 start the local-history checkpoint may need one final scan; later normal restarts should show:
+   [VK HISTORY LOCAL SQLITE SKIP DURABLE]
+7. Test dossier:
+   Гигорейв досье Дарья Ариран
+   Look for [DOSSIER HISTORY SOURCES] and verify more than the replacement-chat-only source is present when the person existed in the predecessor chat.
+8. Test summary:
+   Гигорейв резюмируй 12000
+   A second identical run should show [SUMMARY CACHE HIT] and dramatically fewer/zero new GPT calls for unchanged stages.
+
+Force local backup rescan only when intentionally needed:
+VK_FORCE_LOCAL_HISTORY_SCAN=1

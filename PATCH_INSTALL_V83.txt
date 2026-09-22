@@ -1,0 +1,29 @@
+V83 — бот сам загружает parsed_secrets.txt, без зависимости от pnpm predev.
+
+1. Останови старый процесс бота.
+2. Распакуй V83 поверх проекта.
+3. НЕ заменяй свой .env и data/.
+4. Положи файл строго в корень проекта, на одном уровне с src и package.json:
+
+   vk-ai-bot\parsed_secrets.txt
+   vk-ai-bot\src\
+   vk-ai-bot\package.json
+   vk-ai-bot\.env
+
+5. Просто запусти как обычно — подойдет и pnpm dev, и npm start, и прямой node src/index.js:
+
+   pnpm dev
+
+6. В старте должен появиться лог:
+   [AI SECRETS BOT AUTOIMPORT] source=...\parsed_secrets.txt
+   [AI SECRETS BOT AUTOIMPORT] parsedRecords=...
+   [AI SECRETS BOT AUTOIMPORT] OPENAI_API_KEY=...
+   [AI SECRETS BOT AUTOIMPORT] GEMINI_API_KEY=...
+   ...
+
+7. Затем в VK/TG владельцем:
+   Гигорейв ключи проверить все
+
+Команда ПОВТОРНО перечитает parsed_secrets.txt и синхронизирует numbered key-slots в текущий process.env. Поэтому если файл заменили после запуска, для этой команды рестарт не требуется.
+
+Полные секреты в сообщениях/логах не печатаются. Stripe/GitHub/AWS/Cloudflare/SendGrid/JWT игнорируются.

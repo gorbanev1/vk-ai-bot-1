@@ -1,0 +1,478 @@
+--- gigorave_original/Gigorave_SCRAPING_AUDIT_MINIMAL/code/src/app/botApplication.js	2026-09-17 13:14:22.429832944 +0000
++++ gigorave_src/Gigorave_SCRAPING_AUDIT_MINIMAL/code/src/app/botApplication.js	2026-09-17 13:11:23.315422366 +0000
+@@ -4815,19 +4815,13 @@
+         };
+     }
+ 
+-    // V188.86 owner invariant: source pages are opened sequentially with a
+-    // fresh random 5–20 second gap between launches. This applies to both
+-    // parser pools; fixed 1.5s staggering caused bursts and unstable VK loads.
+-    // Legacy regression marker only: SCRAPER_ALL_LAUNCH_STAGGER_MS, 60_000, 1_500, launchStaggerMs * index.
+-    const launchMinMs = 5_000;
+-    const launchMaxMs = 20_000;
++    // VK browser pages are capture-serialized: the next VK source is allowed
++    // to open only after the previous VK source finished raw DOM/media capture,
++    // followed by a fresh randomized 10–20 second gap. Telegram/Qtickets keep
++    // their existing scheduling and are not delayed by the VK throttle.
++    const vkLaunchMinMs = 10_000;
++    const vkLaunchMaxMs = 20_000;
+     const launchStaggerMs = 0; // compatibility diagnostic field only
+-    let cumulativeLaunchDelayMs = 0;
+-    const scheduledSourceDelaysMs = sources.map((_, index) => {
+-        if (index === 0) return 0;
+-        cumulativeLaunchDelayMs += randomInt(launchMinMs, launchMaxMs + 1);
+-        return cumulativeLaunchDelayMs;
+-    });
+     const processingConcurrency = clampInteger(
+         process.env.MANUAL_PARSER_PROCESSING_CONCURRENCY,
+         1,
+@@ -5137,8 +5131,13 @@
+         return posterGateResults.get(candidateKey(sourceId, itemId)) || null;
+     }
+ 
++    let previousVkCaptureWaiter = null;
+     const tasks = sources.map(async (source, index) => {
+-        const scheduledDelayMs = scheduledSourceDelaysMs[index] || 0;
++        const isVkBrowserSource = source.kind === 'vk-chat' || source.kind === 'vk-public';
++        const currentCaptureWaiter = captureWaiters[index];
++        const priorVkCaptureWaiter = isVkBrowserSource ? previousVkCaptureWaiter : null;
++        if (isVkBrowserSource) previousVkCaptureWaiter = currentCaptureWaiter;
++        const scheduledDelayMs = 0;
+         diagnostics.log('source.run.scheduled', {
+             sourceId: source.id,
+             kind: source.kind,
+@@ -5147,11 +5146,14 @@
+             scheduledDelayMs,
+             launchStaggerMs,
+             partyPool: normalizedPool,
+-            staggerWindowMs: [launchMinMs, launchMaxMs],
++            staggerWindowMs: isVkBrowserSource ? [vkLaunchMinMs, vkLaunchMaxMs] : [0, 0],
+         });
+-        if (scheduledDelayMs > 0) {
++        if (priorVkCaptureWaiter) {
++            await priorVkCaptureWaiter.promise;
++            const vkGapMs = randomInt(vkLaunchMinMs, vkLaunchMaxMs + 1);
++            diagnostics.log('source.vk.open-gap', { sourceId: source.id, vkGapMs });
+             await new Promise((resolvePromise) => {
+-                const timer = setTimeout(resolvePromise, scheduledDelayMs);
++                const timer = setTimeout(resolvePromise, vkGapMs);
+                 timer.unref?.();
+             });
+         }
+@@ -5163,7 +5165,7 @@
+             scheduledDelayMs,
+             launchStaggerMs,
+             partyPool: normalizedPool,
+-            staggerWindowMs: [launchMinMs, launchMaxMs],
++            staggerWindowMs: isVkBrowserSource ? [vkLaunchMinMs, vkLaunchMaxMs] : [0, 0],
+         });
+ 
+         try {
+@@ -22220,6 +22222,7 @@
+                     ...event,
+                     createdByPlatform: rawContext.platform === 'telegram' ? 'telegram' : 'vk',
+                     createdBy: rawContext.senderId,
++                    ownerManual: true,
+                 });
+                 savedEvents.push({ ...event, id });
+             }
+@@ -22510,6 +22513,7 @@
+                 ? 'telegram'
+                 : 'vk',
+             createdBy: rawContext.senderId,
++            ownerManual: true,
+         });
+         savedEvents.push({ ...event, id });
+     }
+--- gigorave_original/Gigorave_SCRAPING_AUDIT_MINIMAL/code/src/infrastructure/database/index.js	2026-09-16 16:47:58.000000000 +0000
++++ gigorave_src/Gigorave_SCRAPING_AUDIT_MINIMAL/code/src/infrastructure/database/index.js	2026-09-17 13:11:23.304202514 +0000
+@@ -6020,6 +6020,7 @@
+     posterImageIndex = 0,
+     posterVisionFacts = [],
+     venueSource = '',
++    ownerManual = false,
+ }) {
+     const result = insertManualEventStatement.run(
+         String(title ?? '').trim(),
+@@ -6041,6 +6042,9 @@
+     );
+ 
+     const id = Number(result.lastInsertRowid ?? 0);
++    if (id > 0) {
++        database.prepare('UPDATE manual_events SET owner_manual = ? WHERE id = ?').run(ownerManual ? 1 : 0, id);
++    }
+     const resolvedCanonicalPostUrl = String(canonicalPostUrl || '').trim() ||
+         canonicalVkWallUrlForDb(sourceUrl) || canonicalTelegramUrlForDb(sourceUrl);
+     writeEventV18867Metadata('manual_events', id, {
+@@ -6397,7 +6401,7 @@
+     return database.prepare(`
+         SELECT id, title, event_date, event_time, venue, participants, price,
+                description, evidence, source_url, source_text, image_paths_json,
+-               status, created_by_platform, created_by, created_at, updated_at
++               status, created_by_platform, created_by, created_at, updated_at, owner_manual
+         FROM manual_events
+         WHERE source_url = ? AND status IN ('approved', 'pending')
+         ORDER BY id ASC
+@@ -6423,6 +6427,7 @@
+             sourceText: String(row.source_text ?? ''),
+             imagePaths,
+             status: String(row.status ?? ''),
++            ownerManual: Boolean(row.owner_manual),
+             createdByPlatform: String(row.created_by_platform ?? ''),
+             createdBy: Number(row.created_by ?? 0),
+             createdAt: Number(row.created_at ?? 0),
+@@ -6683,7 +6688,7 @@
+ 
+     const manual = database.prepare(`
+         SELECT id, title, event_date, event_time, venue, participants, price,
+-               description, evidence, source_url, image_paths_json, status
++               description, evidence, source_url, image_paths_json, status, owner_manual
+         FROM manual_events
+         WHERE status IN ('approved', 'pending')
+           AND event_date >= ?
+@@ -6705,6 +6710,7 @@
+         sourceUrl: String(row.source_url ?? ''),
+         imagePaths: parseImages(row.image_paths_json),
+         parseMethod: 'manual_owner_strict',
++        ownerManual: Boolean(row.owner_manual),
+         status: String(row.status ?? ''),
+     }));
+ 
+@@ -6929,6 +6935,37 @@
+     return 0;
+ }
+ 
++function resolveSafeReparsePosterPath(table, previous, event) {
++    const requestedIndex = Number(event?.posterImageIndex || 0);
++    if (!Number.isSafeInteger(requestedIndex) || requestedIndex <= 0) return '';
++    const facts = Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : [];
++    if (!storedPosterStatusIsSafe(event?.posterMatchStatus, facts)) return '';
++
++    let paths = [];
++    try {
++        if (table === 'vk_events') {
++            const source = database.prepare(`
++                SELECT image_paths_json FROM vk_source_posts
++                WHERE screen_name = ? AND post_id = ? LIMIT 1
++            `).get(String(previous?.screen_name ?? ''), Number(previous?.post_id ?? 0));
++            paths = parseStoredImagePaths(source?.image_paths_json);
++        } else if (table === 'telegram_events') {
++            const source = database.prepare(`
++                SELECT image_paths_json FROM telegram_source_posts
++                WHERE channel = ? AND message_id = ? LIMIT 1
++            `).get(String(previous?.channel ?? ''), Number(previous?.message_id ?? 0));
++            paths = parseStoredImagePaths(source?.image_paths_json);
++        } else if (table === 'vk_chat_events') {
++            const source = database.prepare(`
++                SELECT image_paths_json FROM vk_chat_source_messages
++                WHERE peer_id = ? AND conversation_message_id = ? LIMIT 1
++            `).get(Number(previous?.peer_id ?? 0), Number(previous?.conversation_message_id ?? 0));
++            paths = parseStoredImagePaths(source?.image_paths_json);
++        }
++    } catch {}
++    return paths.find((path) => legacyCapturedMediaIndex(path) === requestedIndex) || paths[requestedIndex - 1] || '';
++}
++
+ export function updateStoredEventRecordFromReparse({
+     sourceType,
+     id,
+@@ -6950,6 +6987,9 @@
+     if (!table) return 0;
+     const previous = database.prepare(`SELECT * FROM ${table} WHERE id = ? LIMIT 1`).get(eventId);
+     if (!previous) return 0;
++    // Owner-authored cards are immutable for automatic reparse. Dedupe may
++    // still record lineage separately, but content/media/vision stay owner-owned.
++    if (safeType === 'manual' && Number(previous?.owner_manual || 0) === 1) return 0;
+ 
+     const pick = (incoming, stored) => {
+         const next = String(incoming ?? '').trim();
+@@ -6970,7 +7010,14 @@
+     const incomingImagePaths = Array.isArray(event?.imagePaths)
+         ? event.imagePaths.map((value) => String(value ?? '').trim()).filter(Boolean)
+         : [];
+-    const imagePaths = incomingImagePaths.length ? incomingImagePaths : oldImagePaths;
++    let incomingFacts = Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : [];
++    const incomingSafe = storedPosterStatusIsSafe(event?.posterMatchStatus, incomingFacts) && Number(event?.posterImageIndex || 0) > 0;
++    const resolvedPosterPath = incomingSafe ? resolveSafeReparsePosterPath(table, previous, event) : '';
++    // Reparse never drops a durable poster and never lets generated/ambiguous
++    // media replace it. A proven poster index wins over a stale generated path.
++    const imagePaths = incomingSafe
++        ? ([resolvedPosterPath || incomingImagePaths[0]].filter(Boolean).slice(0, 1))
++        : oldImagePaths;
+     const merged = {
+         ...event,
+         title: pick(event?.title, previous?.title),
+@@ -8782,6 +8829,7 @@
+ 
+ 
+ /* V188.67: persistent event provenance and provable poster binding. */
++ensureTableColumn('manual_events', 'owner_manual', 'INTEGER NOT NULL DEFAULT 0');
+ for (const tableName of ['manual_events', 'telegram_events', 'vk_events', 'vk_chat_events']) {
+     ensureTableColumn(tableName, 'canonical_post_url', "TEXT NOT NULL DEFAULT ''");
+     ensureTableColumn(tableName, 'source_type', "TEXT NOT NULL DEFAULT ''");
+--- gigorave_original/Gigorave_SCRAPING_AUDIT_MINIMAL/code/src/features/events/eventPosterMatching.js	2026-09-16 10:59:46.000000000 +0000
++++ gigorave_src/Gigorave_SCRAPING_AUDIT_MINIMAL/code/src/features/events/eventPosterMatching.js	2026-09-17 13:11:23.299040177 +0000
+@@ -46,7 +46,7 @@
+     const escaped = names.map((name) => String(name).replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')).join('|');
+     // Horizontal whitespace only. `\s*` after an empty field used to cross the
+     // newline and capture the next label, e.g. `Место:` -> `Участники: ...`.
+-    const match = String(text ?? '').match(new RegExp(`(?:^|\\n)[ \t]*(?:${escaped})[ \t]*:[ \t]*([^\\r\\n]*)`, 'iu'));
++    const match = String(text ?? '').match(new RegExp(`(?:^|[\\n;])[ \t]*(?:${escaped})[ \t]*:[ \t]*([^;\\r\\n]*)`, 'iu'));
+     return String(match?.[1] ?? '').trim();
+ }
+ 
+--- gigorave_original/Gigorave_SCRAPING_AUDIT_MINIMAL/code/src/features/events/eventDuplicateResolution.js	2026-09-16 13:00:08.000000000 +0000
++++ gigorave_src/Gigorave_SCRAPING_AUDIT_MINIMAL/code/src/features/events/eventDuplicateResolution.js	2026-09-17 13:13:57.759288363 +0000
+@@ -1253,6 +1253,11 @@
+         String(left?.eventDate ?? '').trim() &&
+         String(left?.eventDate ?? '').trim() === String(right?.eventDate ?? '').trim(),
+     );
++    const leftPrimaryIso = parseIsoDate(left?.eventDate)?.iso || '';
++    const rightPrimaryIso = parseIsoDate(right?.eventDate)?.iso || '';
++    const primaryDayMonthMismatch = Boolean(
++        leftPrimaryIso && rightPrimaryIso && leftPrimaryIso.slice(5) !== rightPrimaryIso.slice(5)
++    );
+     const venueConflict = venuesClearlyDifferent(left?.venue, right?.venue);
+     const venueAmbiguous = false; // V188.71: generic venue-type words are ignored entirely.
+     const exactTitleDateRule = exactPrimaryDateMatch && distinctiveTitle && (sameNormalizedTitle || sameTranslitTitle);
+@@ -1324,8 +1329,8 @@
+     // never blocks it. Existing precision guards remain intact: two explicit,
+     // clearly different physical venues (including conflicting street numbers)
+     // are still a hard negative and must not be collapsed by a broader title rule.
+-    if (date.hardConflict) hardConflicts.push('different-date');
+-    if (venueConflict) hardConflicts.push('different-venue');
++    if (primaryDayMonthMismatch || date.hardConflict || date.relation === 'adjacent-possible-multiday') hardConflicts.push('different-date');
++    if (venueConflict && protectedVenueSpaceConflict(left?.venue, right?.venue)) hardConflicts.push('different-venue');
+ 
+     // Industrial precision-first: hard-negative нельзя переопределить GPT.
+     if (hardConflicts.length) {
+@@ -1360,6 +1365,23 @@
+     ].filter(Boolean).length;
+ 
+     const sameDay = date.relation === 'overlap';
++    // Ordinary venue disagreement is an AI/context signal, not a hard veto and
++    // not permission for deterministic auto-merge. The protected Diesel
++    // Bar/Hall split was already rejected above.
++    if (sameDay && venueConflict && (sameNormalizedTitle || sameTranslitTitle || sharedWholeTitleWord || title >= 0.65)) {
++        return {
++            verdict: 'ambiguous',
++            score: Math.max(0.72, title),
++            reasons: [...reasons, 'same-day-title-venue-conflict-ai'],
++            hardConflicts,
++            factors: {
++                date: date.similarity, time: time.similarity, venue, title, participants, description, price,
++                venueConflict: 1, venueAmbiguous: 0, multiDayEvidence: multiDayEvidence ? 1 : 0,
++                lineupCountRatio: participantDetails.countRatio, lineupMatchedCount: participantDetails.matchedCount,
++            },
++            dateEvidence: date,
++        };
++    }
+     const leftPublisher = publisherIdentity(left);
+     const rightPublisher = publisherIdentity(right);
+     const samePublisher = Boolean(leftPublisher && rightPublisher && leftPublisher === rightPublisher);
+@@ -2014,6 +2036,29 @@
+ 
+ export function mergeDuplicateEvents(left, right, resolution = {}) {
+     const mergedSources = mergeUniqueSources(left, right);
++    const owner = left?.ownerManual ? left : right?.ownerManual ? right : null;
++    const other = owner === left ? right : left;
++    if (owner) {
++        return {
++            ...owner,
++            ownerManual: true,
++            // Asymmetric owner merge: preserve every content/media field from
++            // the new manual card; import only source/lineage references.
++            mergedSources,
++            _dedupeRefs: mergeInternalDedupeRefs(left, right),
++            _dedupeLineage: mergeDedupeLineage(left, right),
++            alternativeTitles: Array.isArray(owner?.alternativeTitles) ? owner.alternativeTitles : [],
++            sourceUrl: String(owner?.sourceUrl || other?.sourceUrl || ''),
++            _duplicateResolution: {
++                contour: resolution?.contour || 'deterministic',
++                score: Number(resolution?.score || 0),
++                reasons: Array.isArray(resolution?.reasons) ? resolution.reasons : [],
++                aiConfidence: Number(resolution?.aiConfidence || 0),
++                aiReason: String(resolution?.aiReason || ''),
++                ownerManualPriority: true,
++            },
++        };
++    }
+     const rawTitle = chooseCanonicalTitle(left?.title, right?.title);
+     const title = stripKnownVenueNamesFromEventTitle(rawTitle) || rawTitle;
+     const eventDays = mergeScheduleDays(left, right);
+@@ -2098,7 +2143,7 @@
+         'Разные названия допустимы: один источник может использовать официальное имя, другой — описательное.',
+         'Слова формата события (гиг/gig, пати/party, концерт/concert, live/лайв, show/шоу, festival/фест и т.п.) имеют минимальный вес. Если после их удаления содержательное имя совпадает, это сильный признак одной тусы.',
+         'Транслит площадок считай алиасом: Дизель/Diesel/Dizel и русское/латинское написание одного названия — одна площадка.',
+-        'Многодневное событие может иметь разные времена и даже разные площадки по дням; это не делает его разными событиями, если название/состав/описание подтверждают единую программу.',
++        'Для дедупликации конкретные разные календарные дни — разные события. Не объединяй карточки между разными днями даже если это одна серия или многодневная программа.',
+         'Особенно сильные признаки одного события: одна календарная дата плюс совпадение полного названия или хотя бы одного целого содержательного слова; площадка/алиас и состав усиливают вывод. Разное время не ослабляет identity.',
+         'Не объединяй просто похожие по жанру события. Непересекающиеся даты — different, кроме явно подтверждённых частей одного многодневного мероприятия.',
+         'Повторяющаяся серия с одинаковым названием на разных датах (open mic, квиз, концертная серия и т.п.) — это разные события, пока источники явно не говорят, что это дни одного многодневника.',
+@@ -2331,6 +2376,7 @@
+ }
+ 
+ function applyAiConfirmedMerge(fallback, aiValue, members) {
++    if (fallback?.ownerManual) return fallback;
+     if (!aiValue || typeof aiValue !== 'object') return fallback;
+     const cleanField = (key, limit) => String(aiValue?.[key] ?? '').replace(/\s+/gu, ' ').trim().slice(0, limit);
+     const aiDays = sanitizeAiScheduleDays(aiValue?.eventDays, members);
+--- gigorave_original/Gigorave_SCRAPING_AUDIT_MINIMAL/code/src/features/events/eventSourceRefresh.js	2026-09-15 17:28:52.000000000 +0000
++++ gigorave_src/Gigorave_SCRAPING_AUDIT_MINIMAL/code/src/features/events/eventSourceRefresh.js	2026-09-17 13:13:06.711626847 +0000
+@@ -96,16 +96,22 @@
+     return best.event;
+ }
+ 
++function isGeneratedFallbackPath(value) {
++    const path = clean(value, 2000).replace(/\\+/gu, '/').toLowerCase();
++    return /(?:^|\/)event_message_cards\//u.test(path) || /-event-\d+\.(?:png|jpe?g|webp)$/u.test(path);
++}
++
+ function mergePaths(fresh, existing) {
+     const freshPaths = [...new Set(
+         (Array.isArray(fresh) ? fresh : [])
+             .map((value) => clean(value, 2000))
+             .filter(Boolean),
+     )];
+-    if (freshPaths.length) {
+-        // V147: a newly verified event-level poster replaces inherited/stale
+-        // parent-post media instead of being appended beside it.
+-        return freshPaths.slice(0, 10);
++    const verifiedFreshPaths = freshPaths.filter((path) => !isGeneratedFallbackPath(path));
++    if (verifiedFreshPaths.length) {
++        // A fresh source poster may replace stale media, but generated/fallback
++        // cards never evict an already durable source poster.
++        return verifiedFreshPaths.slice(0, 10);
+     }
+     return [...new Set(
+         (Array.isArray(existing) ? existing : [])
+--- /dev/null	2026-09-17 13:08:20.436664542 +0000
++++ gigorave_src/Gigorave_SCRAPING_AUDIT_MINIMAL/code/tests/events/refactoringTaskRegressionV18889.test.mjs	2026-09-17 13:13:57.759466576 +0000
+@@ -0,0 +1,127 @@
++import assert from 'node:assert/strict';
++import { mkdtempSync, readFileSync } from 'node:fs';
++import { tmpdir } from 'node:os';
++import { join } from 'node:path';
++import { DatabaseSync } from 'node:sqlite';
++import test from 'node:test';
++
++import { parseIndexedImageFacts } from '../../src/features/events/eventPosterMatching.js';
++import { compareEventsDeterministic, mergeDuplicateEvents } from '../../src/features/events/eventDuplicateResolution.js';
++
++const app = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
++
++test('task: semicolon Vision facts keep poster/title/date/venue fields', () => {
++    const [fact] = parseIndexedImageFacts('[IMAGE 9] Это афиша события: да; Название: CWT; Дата: 18 сентября; Время: 19:00; Место: Diesel Hall; Участники: CWT');
++    assert.equal(fact.index, 9);
++    assert.equal(fact.poster, true);
++    assert.equal(fact.title, 'CWT');
++    assert.equal(fact.dates, '18 сентября');
++    assert.equal(fact.venue, 'Diesel Hall');
++    assert.equal(fact.participants, 'CWT');
++});
++
++test('task: dedupe uses exact calendar day, venue is auxiliary, Diesel Bar/Hall stay distinct', () => {
++    const base = { title: 'PEREGRUZ techno party', eventDate: '2026-09-20', eventTime: '18:00', venue: 'Клуб X', participants: 'PEREGRUZ' };
++    const nextDay = { ...base, eventDate: '2026-09-21' };
++    assert.equal(compareEventsDeterministic(base, nextDay).verdict, 'different');
++
++    const venueVariant = { ...base, venue: 'Другая площадка', eventTime: '23:00' };
++    const venueVariantResult = compareEventsDeterministic(base, venueVariant);
++    assert.equal(venueVariantResult.verdict, 'ambiguous');
++    assert.notEqual(venueVariantResult.hardConflicts?.includes('different-venue'), true);
++
++    const dieselBar = { ...base, venue: 'Diesel Bar' };
++    const dieselHall = { ...base, venue: 'Diesel Hall' };
++    const diesel = compareEventsDeterministic(dieselBar, dieselHall);
++    assert.equal(diesel.verdict, 'different');
++    assert.ok(diesel.hardConflicts.includes('different-venue'));
++});
++
++test('task: owner-manual merge is asymmetric and keeps owner content/media', () => {
++    const old = {
++        title: 'Старое название', eventDate: '2026-09-20', eventTime: '17:00', venue: 'Старое место',
++        participants: 'old', description: 'old', imagePaths: ['old.jpg'], sourceUrl: 'https://vk.ru/wall-1_1',
++        sourceType: 'vk', sourceName: 'old',
++    };
++    const owner = {
++        ownerManual: true,
++        title: 'Ручное название', eventDate: '2026-09-20', eventTime: '20:00', venue: 'Ручное место',
++        participants: 'owner', description: 'owner', imagePaths: ['owner.jpg'], posterVisionFacts: [{ index: 1, poster: true }],
++        sourceUrl: 'manual://owner', sourceType: 'manual', sourceName: 'добавлено владельцем',
++    };
++    const merged = mergeDuplicateEvents(old, owner, { contour: 'test' });
++    assert.equal(merged.ownerManual, true);
++    assert.equal(merged.title, owner.title);
++    assert.equal(merged.eventTime, owner.eventTime);
++    assert.equal(merged.venue, owner.venue);
++    assert.equal(merged.description, owner.description);
++    assert.deepEqual(merged.imagePaths, ['owner.jpg']);
++    assert.ok(merged.mergedSources.length >= 1);
++});
++
++test('task: VK opens are capture-serialized with 10-20s gaps; Telegram/Qtickets are not throttled', () => {
++    assert.match(app, /const vkLaunchMinMs = 10_000;/u);
++    assert.match(app, /const vkLaunchMaxMs = 20_000;/u);
++    assert.match(app, /priorVkCaptureWaiter\.promise/u);
++    assert.match(app, /randomInt\(vkLaunchMinMs, vkLaunchMaxMs \+ 1\)/u);
++    assert.match(app, /source\.kind === 'vk-chat' \|\| source\.kind === 'vk-public'/u);
++    assert.match(app, /staggerWindowMs: isVkBrowserSource \? \[vkLaunchMinMs, vkLaunchMaxMs\] : \[0, 0\]/u);
++});
++
++test('task: DB reparse resolves confirmed CWT poster #9, preserves posters on unsafe reparse, and locks owner-manual rows', async () => {
++    const dataDirectory = mkdtempSync(join(tmpdir(), 'gigorave-refactor-task-'));
++    process.env.NODE_ENV = 'test';
++    process.env.GIGORAVE_DATA_DIR = dataDirectory;
++    process.env.GIGORAVE_DB_PATH = join(dataDirectory, 'bot.sqlite');
++    const dbApi = await import(`../../src/infrastructure/database/index.js?task=${Date.now()}`);
++    const now = Math.floor(Date.now() / 1000);
++
++    const sourcePaths = Array.from({ length: 10 }, (_, i) => `vk_announcements/rb_diesel/13738-${i + 1}.jpg`);
++    dbApi.upsertVkSourcePost({
++        screenName: 'rb_diesel', ownerId: -1, postId: 13738, sourceUrl: 'https://vk.ru/wall-1_13738', publishedAt: now,
++        rawText: 'CWT', imageUrls: sourcePaths.map((_, i) => `https://img/${i + 1}.jpg`), imagePaths: sourcePaths,
++        contentHash: 'cwt', parseStatus: 'event', fetchedAt: now,
++    });
++    dbApi.replaceVkEventsForPost({
++        screenName: 'rb_diesel', postId: 13738, sourceUrl: 'https://vk.ru/wall-1_13738', imagePaths: sourcePaths, updatedAt: now,
++        mergeStoredEvents: false,
++        events: [{
++            title: 'CWT', eventDate: '2026-09-20', venue: 'Diesel Hall', imagePaths: ['event_message_cards/old-generated.png'],
++            posterMatchStatus: 'no_safe_poster', posterImageIndex: 0, parseMethod: 'fixture', status: 'approved',
++        }],
++    });
++    const sqlite = new DatabaseSync(join(dataDirectory, 'bot.sqlite'));
++    const cwtId = Number(sqlite.prepare("SELECT id FROM vk_events WHERE screen_name='rb_diesel' AND post_id=13738 LIMIT 1").get().id);
++    const facts = [{ index: 9, poster: true, posterConfidence: 99, title: 'CWT', dates: '20 сентября', venue: 'Diesel Hall', text: 'Это афиша события: да; Название: CWT' }];
++    assert.equal(dbApi.updateStoredEventRecordFromReparse({ sourceType: 'vk', id: cwtId, event: {
++        title: 'CWT', eventDate: '2026-09-20', venue: 'Diesel Hall', imagePaths: ['event_message_cards/stale-generated.png'],
++        posterMatchStatus: 'exact_poster_match', posterMatchReason: 'date+distinctive-identity', posterImageIndex: 9, posterVisionFacts: facts,
++    }}), 1);
++    let cwt = sqlite.prepare('SELECT image_paths_json, poster_image_index FROM vk_events WHERE id = ?').get(cwtId);
++    assert.deepEqual(JSON.parse(cwt.image_paths_json), ['vk_announcements/rb_diesel/13738-9.jpg']);
++    assert.equal(Number(cwt.poster_image_index), 9);
++
++    // Unsafe/empty reparse must not delete Vdovin/intermediate-style existing posters.
++    assert.equal(dbApi.updateStoredEventRecordFromReparse({ sourceType: 'vk', id: cwtId, event: {
++        title: 'CWT', eventDate: '2026-09-20', venue: 'Diesel Hall', imagePaths: [], posterMatchStatus: 'no_safe_poster', posterImageIndex: 0,
++    }}), 1);
++    cwt = sqlite.prepare('SELECT image_paths_json FROM vk_events WHERE id = ?').get(cwtId);
++    assert.deepEqual(JSON.parse(cwt.image_paths_json), ['vk_announcements/rb_diesel/13738-9.jpg']);
++
++    const manualId = dbApi.saveManualEvent({
++        title: 'Owner Truth', eventDate: '2026-09-22', eventTime: '20:00', venue: 'Owner Venue', description: 'owner body',
++        imagePaths: ['manual_event_announcements/owner.jpg'], posterMatchStatus: 'legacy_manual_poster', posterImageIndex: 1,
++        createdByPlatform: 'vk', createdBy: 1, ownerManual: true,
++    });
++    assert.equal(dbApi.updateStoredEventRecordFromReparse({ sourceType: 'manual', id: manualId, event: {
++        title: 'AUTO OVERWRITE', eventDate: '2026-09-23', venue: 'AUTO', description: 'auto', imagePaths: [],
++    }}), 0);
++    const manual = sqlite.prepare('SELECT title, event_date, venue, description, image_paths_json, owner_manual FROM manual_events WHERE id = ?').get(manualId);
++    assert.equal(manual.title, 'Owner Truth');
++    assert.equal(manual.event_date, '2026-09-22');
++    assert.equal(manual.venue, 'Owner Venue');
++    assert.equal(manual.description, 'owner body');
++    assert.deepEqual(JSON.parse(manual.image_paths_json), ['manual_event_announcements/owner.jpg']);
++    assert.equal(Number(manual.owner_manual), 1);
++    sqlite.close();
++});

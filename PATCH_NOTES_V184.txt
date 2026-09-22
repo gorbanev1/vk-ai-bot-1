@@ -1,0 +1,26 @@
+Gigorave V184 — fresh event DB beats stale verified snapshot
+
+Problem
+- Commands such as «Гигорейв тусы сентябрь» could answer that there were no events even while SQLite already contained upcoming event rows.
+- A previously generated data/event-verified-snapshot.json was treated as authoritative whenever the file existed. If scrapers changed SQLite without a completed snapshot rebuild, an empty/stale snapshot hid fresh events.
+
+Fix
+- Verified event snapshot format bumped to V5.
+- Every snapshot now stores sourceRevision: SHA-256 fingerprint of the currently configured upcoming SQLite event rows.
+- Every party query compares the snapshot revision against fresh SQLite.
+- On mismatch the current request immediately ignores the snapshot and serves deterministic events from SQLite.
+- One background verified-snapshot rebuild is queued automatically for the new revision.
+- A stale snapshot can no longer produce a false «мероприятий нет» response.
+- Empty-result wording no longer blames manual scraper mode; it states that the fresh local DB was checked.
+
+Observed case
+- Source material on 2026-09-07 contained future September events including Dark Stage fest on 11.09.2026 and Фестиваль Ива on 26.09.2026.
+- Startup logs already reported upcoming raw/canonical event rows, proving the data layer and display cache had diverged.
+
+Compatibility
+- Existing bot.sqlite is not replaced or migrated.
+- Old snapshot V4 is invalidated automatically and rebuilt as V5.
+
+Verification
+- Added tests/events/eventSnapshotFreshnessV184.test.mjs.
+- Updated snapshot serialization test for sourceRevision.

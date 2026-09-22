@@ -1,0 +1,30 @@
+V139 patch files
+
+DEVELOPER_HANDOFF.md
+INSTALL_V139.txt
+PATCH_FILE_LIST_V139.txt
+PATCH_NOTES_EVENTS_V139_EVENT_POSTERS_TELEGRAM_NAV.txt
+PROJECT_MANIFEST.json
+README.md
+docs/00_START_HERE.md
+docs/BEHAVIOR_AND_COMMANDS.md
+docs/CONFIGURATION.md
+docs/DATABASE.md
+docs/SOURCE_MAP.md
+docs/TEST_MATRIX.md
+package.json
+src/app/botApplication.js
+src/features/events/eventImageSelection.js
+src/platforms/telegram/telegramBot.js
+src/platforms/vk/vkPublicScraper.js
+tests/events/eventPosterSelectionV139.test.mjs
+tests/platforms/telegramBot.test.mjs
+tests/platforms/telegramEventDeletionMenuV115.test.mjs
+tests/platforms/telegramPinballV123.test.mjs
+
+Never patch/replace:
+.env
+data/bot.sqlite
+data/* user files
+browser profiles
+node_modules

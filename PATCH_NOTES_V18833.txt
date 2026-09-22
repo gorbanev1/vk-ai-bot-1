@@ -1,0 +1,60 @@
+Gigorave V188.33 — human-content VK parser
+
+PURPOSE
+This release stops treating current VK CSS classes as the parser contract. The fast path still uses the supplied real VK DOM, but the recovery path is based on repeated content structure and event evidence.
+
+MESSENGER
+- Stage 1 exact: current ConvoHistory / VirtualScrollItem[data-itemkey] layout from the supplied saved VK Messenger DOM.
+- Stage 2 adaptive: stable data/role/testid attributes plus bounded React metadata when wrappers/classes drift.
+- Stage 3 semantic: discovers repeated sibling blocks in the central/history region, scores them by text, stable id, author/profile, time/date, wall links and media. Human-readable class words such as message/post are only a weak bonus.
+- Real data-itemkey CMID remains the preferred message id. Synthetic ids are explicitly marked unstable and are never used to prove history direction.
+- UI media markers (avatar/profile/emoji/reaction/sticker/icon/badge/logo/favicon/smile) are rejected. Generic images need at least 300x300; explicit VK photo/media attachments may be rendered smaller and use a guarded looser threshold.
+- Forward/repost text is ranked by nesting depth; the deepest meaningful embedded VK post is preferred as event evidence.
+
+GENERIC HISTORY BACKFILL
+- The parser no longer contains a peer-specific branch for 2000000022.
+- Any chat configured with positive autoScrollMessages/history-backfill gets at least 50 genuinely older messages.
+- The first stable DOM capture establishes initialMinCmid.
+- Backfill progress increments only for stable CMIDs < initialMinCmid. New incoming messages and virtual-scroll redraws cannot count as old history.
+- Scroll step remains roughly 10 messages, delay is >=1800 ms, up to 20 no-progress lazy-load cycles are tolerated, and top-of-history needs repeated confirmation plus capture grace.
+- Finite VK chat tabs remain alive for at least 60 seconds.
+- Legacy config compatibility still gives chat 22 a default |50 when an old source entry omits the fourth field; this is configuration migration only, not parser logic.
+
+VK PUBLIC
+- Stage 1 exact: [data-testid="post"], data-post-id, current post-content and primary-attachment structures from the supplied saved public DOM.
+- Stage 2 adaptive: tolerant post/article/data-post containers and canonical wall permalinks.
+- Stage 3 heuristic: repeated-sibling structure, central geometry, text/media/wall-link evidence; class names are only a bonus.
+- Deepest data-post-nesting-lvl text is retained as nested repost evidence.
+- Media ownership is explicit. outer-primary / outer-photo / outer-media beat nested repost media. If suitable owned media exists, nested repost images are removed from the competing image set entirely.
+- profile/avatar/logo/emoji/UI images are rejected; generic images below 300x300 do not qualify as poster-like media.
+
+EVENT CANDIDATE POLICY
+- Any explicit calendar date is enough to enter AI review, even when the text has no word such as "concert" or "party".
+- A yearless date such as "14 сентября" remains a candidate even when published_at is unavailable and local code cannot yet infer the year.
+- Visual/repost evidence can also trigger AI review when the date is only on the poster/repost.
+- Existing strict validation still rejects material that is not a real event.
+
+AI CONTRACT
+- AI output remains: title, date, time, venue, participants, price, announcement.
+- participants is explicitly defined as performers/artists/DJs/bands/hosts, including wording such as "DJs", "для вас играют", "line-up", "выступают"; venue/organizers/guests must not be substituted.
+- price is extracted only when explicitly supported.
+- announcement must be a short publication-ready summary without inventing facts.
+
+AI DEDUPE
+- "90% similar" is not a permanent AI skip anymore.
+- Only exact source text that already produced a stored announcement suppresses repeated text AI.
+- Text that was previously checked but produced no announcement is allowed through again on a later pass.
+- VK chat metadata now exposes stored raw_text so this exact-text rule actually works.
+- Public media recovery may still run independently when a stored event needs image recovery.
+
+VENUES
+- Added Liverpool as one canonical venue: Liverpool Pub.
+- Recognizes Liverpool, Liverpool Bar/Pub, Ливерпуль, Ливерпуль бар/паб and "бар/паб Ливерпуль" variants.
+
+VERIFICATION
+- npm run test:v18833: 25/25 targeted tests pass.
+- Syntax: 387/387.
+- Imports: 387/387.
+- Named imports: 150/150.
+- Full suite: 223 test files, 14 failures — exactly the V188.32 baseline failure set; no new failing test files.
+- Authenticated live VK cannot be exercised in this build environment; DOM behavior is grounded in the supplied saved Messenger/Public pages plus project tests.

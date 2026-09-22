@@ -1,0 +1,27 @@
+V188.33 changed/added files
+
+package.json
+src/app/botApplication.js
+src/features/events/eventCandidateRouting.js
+src/features/events/eventValidation.js
+src/features/events/eventVenueInference.js
+src/features/events/publicPostLocalParser.js
+src/features/scrapers/sourceConfiguration.js
+src/infrastructure/database/index.js
+src/platforms/vk/vkChatEventScraper.js
+src/platforms/vk/vkPublicScraper.js
+tests/events/eventPublishedDateRecoveryV185.test.mjs
+tests/events/eventValidation.test.mjs
+tests/events/eventVenueInferenceV18813.test.mjs
+tests/scrapers/sourceConfiguration.test.mjs
+tests/scrapers/vkChatPriorityRepostV157.test.mjs
+tests/scrapers/vkChatRichLivePolicyV96.test.mjs
+tests/scrapers/vkPriorityChatBackfillV18831.test.mjs
+tests/scrapers/vkThreePassDomParserV18832.test.mjs
+PATCH_NOTES_V18833.txt
+INSTALL_V18833.txt
+PATCH_FILE_LIST_V18833.txt
+README.md
+DEVELOPER_HANDOFF.md
+PROJECT_MANIFEST.json
+V18833_VERIFICATION.txt

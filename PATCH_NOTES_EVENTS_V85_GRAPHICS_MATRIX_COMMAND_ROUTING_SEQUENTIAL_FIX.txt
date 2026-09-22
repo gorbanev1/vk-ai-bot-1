@@ -1,0 +1,18 @@
+V85 — graphics matrix command routing + sequential delivery fix
+
+Исправлено по реальному логу V84:
+1. Команда «графика тест все ключи <prompt>» раньше не распознавалась как provider command без префикса api/ключи и падала в default GPT route.
+2. answerGptQuestion ссылался на локальную переменную parsed из handleGptCommand, которой в его scope нет -> ReferenceError: parsed is not defined.
+3. callback отправки matrix-result не awaited, поэтому следующий model call мог стартовать до завершения отправки предыдущего результата.
+
+V85:
+- прямой top-level alias «графика тест все ключи <prompt>» распознаётся parseProviderCommand;
+- central commandPriorityRouting получает route=provider;
+- reasoningEffort передаётся в answerGptQuestion явно шестым аргументом;
+- allProviderVisualMatrixAudit await-ит start/complete callbacks;
+- результат генерации по-прежнему сначала сохраняется на диск;
+- добавлен delivery.jsonl: по каждой попытке записывается статус доставки в чат;
+- ошибка отправки не останавливает матрицу, локальный imagePath остаётся в results.jsonl/summary.txt;
+- следующий model request не стартует, пока delivery attempt предыдущего не завершён.
+
+Никакие реальные API-запросы к пользовательским ключам при сборке патча не выполнялись.

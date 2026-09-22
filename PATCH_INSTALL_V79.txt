@@ -1,0 +1,20 @@
+V79 — Telegram prashna policy lock
+
+1. Останови бота.
+2. Распакуй архив поверх проекта.
+3. Не заменяй .env и data/.
+4. Запусти:
+   pnpm install --frozen-lockfile
+   node tests/routing/helpContextProfile.test.mjs
+   node tests/platforms/telegramBot.test.mjs
+   pnpm dev
+
+Ожидаемая сборка:
+[BOT BUILD] events-v79-telegram-prashna-policy-lock
+
+Политика:
+- Telegram ЛС: прашна отключена.
+- Telegram группы: прашна отключена.
+- Telegram владелец: прашна отключена.
+- Натал в Telegram остаётся.
+- VK прашна остаётся без изменений.

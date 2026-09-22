@@ -1,0 +1,10 @@
+V128 — PINBALL SPACIOUS SIDE LAYOUT
+
+Changes from V127:
+- Removed the dense four-bumper center cluster; V128 uses three smaller pop bumpers distributed on alternating sides.
+- Split RAVE targets into independent left and right banks, leaving the middle of the table unobstructed.
+- Re-shaped both dashed ramp paths so each stays on its own side and never crosses the central shot corridor.
+- Removed the extra upper flipper and the decorative center/upper guide rails that acted as collision choke points.
+- Moved the scoop lower, below the main mid-field travel corridor.
+- Preserved V126 shooter-lane rollback/re-plunge and V127 one-way ramp capture/tangent exits.
+- Asset cache-bust updated to ?v=128.

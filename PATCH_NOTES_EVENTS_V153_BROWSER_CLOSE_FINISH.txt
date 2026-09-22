@@ -1,0 +1,17 @@
+V153 — BROWSER CLOSE FINISH / PARTIAL SAVE / RESPONSIVE BOT
+
+Исправлена проблема из ручного прохода публичного VK/Telegram:
+`page.waitForTimeout: Target page, context or browser has been closed`.
+
+Теперь:
+1. Закрытие владельцем вкладки/окна = штатный конец manual parsing.
+2. TargetClosed в manual mode не запускает второй проход и recovery-вкладку.
+3. Уже собранные записи обрабатываются и сохраняются в SQLite после закрытия.
+4. Telegram обновляет резервный HTML snapshot на каждом scroll-step.
+5. Manual image/fingerprint finalization не имеет browser fallback, поэтому закрытый Chrome не переоткрывается из-за картинок.
+6. Startup about:blank persistent Chromium используется как рабочая вкладка; orphan blank context автоматически закрывается.
+7. `Гигорейв парсер <source>`, `парсер все` и первый проход после `Добавить источник` запускаются в фоне и не удерживают message-handler.
+8. Пока вкладка открыта, live parser ручной прокрутки продолжает работать. Закрытие завершает live session.
+9. Реальные ошибки, не связанные с ручным закрытием, по-прежнему могут использовать штатный retry/recovery.
+
+Registry V152 сохраняется совместимым: manual-scraper-source-registry-v152.

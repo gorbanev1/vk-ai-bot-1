@@ -1,0 +1,55 @@
+Gigorave V185 — reliable VK publication date + end-to-end event ingest audit
+
+Problem
+- V184 fixed stale verified-snapshot output, but some events never reached SQLite at all.
+- The VK public browser DOM can return publishedAt=0. V184 already hydrated the same wall post through VK API wall.getById, but only merged API image URLs and ignored wall.date.
+- For announcements such as “18.09” or “25.09” without an explicit year, publicPostDateEvidence intentionally refuses to invent a year when published_at is unknown. As a result candidate=false, local parsing returns no event, AI is not called, and the source remains not_event.
+- When parsed/AI events later failed strict validation, public VK, Telegram and VK-chat paths could delete source evidence, making the loss impossible to audit.
+
+Root cause verified against the supplied SQLite
+- bot.sqlite PRAGMA quick_check: ok.
+- vk_source_posts: 40 rows (4 event / 36 not_event in the supplied snapshot).
+- 21 VK not_event rows have published_at=0.
+- 6 of those rows contain numeric date mentions.
+- Concrete examples in the supplied DB:
+  - rb_diesel / post 13699: “SPOOKERS | 18.09 | Воронеж • DIESEL BAR” — published_at=0, not_event.
+  - idmamaanarchy / post 1164: “25.09 Октоберфест ...” — published_at=0, not_event.
+- Reproduction test: both examples produce [] with publishedAt=0; with reliable publication date 2026-09-07 they resolve to 2026-09-18 and 2026-09-25 respectively.
+
+Fix
+1. VK API publication-date repair
+- hydrateVkPublicPostsWithApiMedia now merges wall.date into post.publishedAt and records publishedAtSource=vk-api-wall-date-v185.
+- Existing stored published_at can be reused as a safe fallback.
+- The process clock is NEVER substituted as publication-date evidence; if neither API/DOM/stored evidence exists, publishedAt stays 0. This preserves the anti-stale invariant in publicPostDateEvidence.
+- VK_PARSER_VERSION is bumped, so previously hashed V184 source posts are reprocessed on the next scraper pass.
+
+2. Loss audit
+- New data/event-ingest-audit.jsonl.
+- VK public and Telegram public log: candidate decision, local count, AI eligibility/raw/validated counts, final accepted count, publishedAt evidence, image/near-duplicate facts, and a reason for every strict/date rejection.
+- VK chat logs skipped candidates, AI raw count, accepted count and strict/date rejection reasons.
+- The public “тусы” route logs selected range, snapshot mode and final event count, so the audit chain reaches the user-visible result.
+
+3. Preserve evidence
+- Rejected public VK/Telegram source rows are no longer deleted.
+- Rejected VK-chat source messages are no longer deleted.
+- parse_status remains event/not_event and event child rows are replaced transactionally as before.
+
+4. Validation explainability
+- eventValidation now exposes explainStrictEventRecord() with stable reject codes while isStrictEventRecord() keeps its previous boolean API.
+
+Compatibility
+- Existing bot.sqlite is NOT replaced and no schema migration is required.
+- V184 verified-snapshot freshness repair remains intact.
+- No unsafe “current year” inference was added.
+
+Verification
+- Added tests/events/eventPublishedDateRecoveryV185.test.mjs.
+- Added tests/events/eventIngestAuditV185.test.mjs.
+- V185 + relevant event/scraper regression set: 18/18 passed.
+- Syntax checked for every changed/new JavaScript module.
+- Relative import check: OK (307 JS/MJS/CJS files).
+- The repository-wide check:syntax script exceeded the execution window in this environment, so release verification is reported from the targeted checks above rather than pretending the full repository check completed.
+
+Current supplied DB note
+- It already contains September events on 12.09, 13.09 and 19.09, but SPOOKERS 18.09 and Oktoberfest 25.09 are still source rows marked not_event because the database is an input snapshot from V184. V185 does not mutate the user's uploaded DB during packaging; the next VK scraper pass reparses affected posts with the new parser version and reliable wall.date.
+- “Dark Stage” and “Фестиваль Ива” do not occur in any raw source row of the currently uploaded SQLite, so those two specific browser-export examples cannot be re-verified from this DB alone. The V185 fix addresses the demonstrated generic published_at=0/yearless-date failure that is present in this DB.

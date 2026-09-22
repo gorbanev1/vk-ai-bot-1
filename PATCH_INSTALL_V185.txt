@@ -1,0 +1,13 @@
+Gigorave V185 patch over V184
+
+1. Stop the bot.
+2. Back up .env and data/.
+3. Extract Gigorave_V185_patch.zip into the V184 project root, allowing replacement of existing files.
+4. Do NOT replace your existing data/bot.sqlite, WAL/SHM, event images, or environment files. This patch does not contain an operational database.
+5. Start with the same Node/package-manager setup (package.json still declares Node >=24).
+6. Run the VK public parser for the required sources. The VK parser version changed in V185, so prior V184 content hashes are re-evaluated.
+7. Run “Гигорейв тусы сентябрь”.
+8. Inspect data/event-ingest-audit.jsonl if a source event is absent.
+
+Rollback
+- Restore the backed-up V184 source tree. No V185 database schema migration needs to be rolled back.

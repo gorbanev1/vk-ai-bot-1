@@ -1,0 +1,18 @@
+Gigorave V181 — clickable VK profile names in exit reports + release-note discipline
+
+LEAVER REPORT
+- `Гигорейв список кто вышел` now renders a VK-native clickable profile name using `[id<user_id>|Имя Фамилия]`.
+- The actor who removed somebody is rendered the same way when known.
+- No raw profile URL is printed and no conversation URL is generated.
+- Exact date/time and every stored exit/kick episode from V180 are preserved.
+- Names are still resolved through the durable VK user-name cache and users.get fallback.
+
+RELEASE DOCUMENTATION
+- Added missing retrospective release notes for V166 and V170–V175 plus V179.
+- Existing V176/V177/V178/V180 notes remain authoritative and are indexed together with the new files.
+- Added RELEASE_NOTES_INDEX_V166_V181.txt.
+- Project policy: every numbered release from V181 onward must ship a dedicated PATCH_NOTES file before the full-source ZIP is produced.
+
+PACKAGE METADATA
+- package.json version is now 0.181.0.
+- Build string: events-v181-clickable-leaver-profiles-release-notes.

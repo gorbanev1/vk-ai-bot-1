@@ -1,0 +1,68 @@
+V96 — VK-беседы: repost/image vision + live parsing до закрытия + verified event cache
+
+Установка поверх V95
+
+1. Останови бота.
+2. Распакуй содержимое V96 поверх текущего проекта.
+3. ОБЯЗАТЕЛЬНО сохрани без замены:
+   .env
+   data/
+   SQLite БД
+   browser profile
+   parsed_secrets.txt
+4. Запусти:
+   pnpm dev
+
+Ожидаемая сборка:
+[BOT BUILD] events-v96-chat-repost-vision-live-verified-events-cache
+
+ВАЖНО: V96 НЕ запускает полную проверку/дедупликацию тус при старте бота.
+Первый раз после обновления вручную выполни:
+
+Гигорейв тусы проверить
+
+Команда делает тяжёлый проход один раз:
+raw events -> GPT normalization -> deterministic/two-contour dedupe -> GPT только для спорных пар/слияния -> compact summaries -> data/event-verified-snapshot.json
+
+После этого обычные запросы работают из готового snapshot без AI-проверки на каждый запрос:
+
+Гигорейв тусы август кратко
+Гигорейв тусы сентябрь кратко
+
+Парсеры:
+
+Гигорейв парсер все
+Гигорейв парсер chat:2000000022
+
+Для VK-беседы:
+- вкладка открывается один раз;
+- автоматический backfill идёт небольшими порциями примерно по 10 сообщений;
+- после каждого движения ждётся lazy-media;
+- текст репоста, вложенные wall/copy_history и изображения дополнительно гидратируются через VK API;
+- image-only сообщение тоже проверяется vision-моделью;
+- live monitor работает всё время, пока вкладка открыта;
+- если прокрутить чат вручную через час или через день, новые увиденные сообщения будут поставлены в очередь разбора;
+- парсинг беседы считается завершённым ТОЛЬКО после закрытия вкладки (или явной команды остановки);
+- после закрытия вкладки бот дожидается очереди сообщений; если это последняя активная VK-беседа, автоматически запускается полный verification/update snapshot; если другие беседы ещё открыты, проверка откладывается до последней.
+
+Для публичного VK/Telegram:
+- после завершения ручного прохода автоматически обновляется verified snapshot.
+
+Проверка reply/repost vision:
+1. В VK-беседе ответь на сообщение, внутри которого репост VK-поста с афишей.
+2. Напиши: Гигорейв что на изображении
+3. Бот должен гидратировать reply, затем nested wall/copy_history и передать найденные картинки vision-модели.
+
+Тесты V96:
+node tests/events/eventVerifiedSnapshotV96.test.mjs
+node tests/ai/incomingImageTargetsRepostV96.test.mjs
+node tests/scrapers/vkChatRichLivePolicyV96.test.mjs
+
+Также полезно:
+node tests/events/eventDuplicateResolution.test.mjs
+node tests/events/eventDedupeRegressionV95.test.mjs
+node tests/events/eventAugustSnapshotV95.test.mjs
+node tests/events/eventDedupeIntegrationV94.test.mjs
+node tests/events/eventDedupeIntegrationV95.test.mjs
+
+V96 не содержит .env, data/, SQLite БД, browser profile или реальные ключи.

@@ -1,0 +1,12 @@
+INSTALL V104
+
+1. Stop the bot.
+2. Back up data/bot.sqlite and .env.
+3. Overlay this patch onto the existing project (V102+).
+4. Do NOT replace your production .env or data/bot.sqlite.
+5. Install dependencies if needed: pnpm install --frozen-lockfile
+6. Run: pnpm verify
+7. Start the bot.
+8. First inspect: тусы дубли проверить
+9. Then canonicalize registry if report is correct: тусы дубли применить
+10. Reparse stored source links on a backed-up production DB: тусы перепарсить ссылки

@@ -1,0 +1,35 @@
+EVENTS V10 — КРАТКИЙ СПИСОК ИЗМЕНЕНИЙ
+
+1. Источники и первые проходы
+   - rb_diesel: 20 постов
+   - overlockbar: 20 постов
+   - kurazhcity: 35 постов
+
+2. VK-беседы
+   - peer 2000000022
+   - peer 2000000003
+   - peer 2000000014
+   Кандидаты анализируются GigaChat-2-Lite. Ответ ограничен 240 токенами и
+   возвращает только компактный JSON. Анонс события — 2–3 предложения.
+
+3. Прошедшие события
+   - не записываются при новом парсинге;
+   - удаляются из SQLite еженедельно вместе с осиротевшими исходными записями.
+
+4. Анонсы и изображения
+   - description сохраняется для всех новых событий;
+   - используется исходная картинка;
+   - при отсутствии картинки создаётся PNG-карточка события.
+
+5. Новые файлы
+   - src/vkChatEventScraper.js
+   - src/eventAssets.js
+
+6. Новые переменные .env
+   - GIGACHAT_EVENT_MODEL
+   - VK_PUBLIC_SOURCES
+   - TELEGRAM_HTML_SOURCES
+   - VK_CHAT_EVENT_SCRAPER_ENABLED
+   - VK_CHAT_EVENT_CONVERSATIONS
+   - VK_CHAT_EVENT_INTERVAL_HOURS
+   - SCRAPER_BROWSER_EXECUTABLE_PATH

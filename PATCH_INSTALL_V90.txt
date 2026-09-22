@@ -1,0 +1,22 @@
+V90 INSTALL
+
+1. Stop the bot.
+2. Extract VK_AI_BOT_V90_CUMULATIVE_PATCH.zip over the project root.
+3. Preserve the existing .env, data/, SQLite database, parsed_secrets.txt and browser profile.
+4. Run:
+   pnpm install --frozen-lockfile
+   node tests/events/eventModeration.test.mjs
+   node tests/events/compactPartySummary.test.mjs
+   node tests/events/eventAnnouncementNormalization.test.mjs
+   pnpm dev
+
+Expected build:
+[BOT BUILD] events-v90-event-moderation-dedupe-compact-cleanup
+
+Owner event moderation examples:
+Гигорейв удалить тусу STONEHAND
+Гигорейв удалить тусу Ghost Gig
+Гигорейв чёрный список тус
+Гигорейв вернуть тусу STONEHAND
+
+Deletion is persistent logical deletion from all bot event output. The blacklist is stored in data/event-blacklist.json, so reparsing cannot make a matching event visible again.

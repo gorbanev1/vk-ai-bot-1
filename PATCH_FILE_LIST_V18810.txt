@@ -1,0 +1,10 @@
+Gigorave V188.10 changed files
+==============================
+- package.json
+- DEVELOPER_HANDOFF.md
+- PATCH_NOTES_V18810.txt
+- PATCH_FILE_LIST_V18810.txt
+- src/app/botApplication.js
+- src/infrastructure/browser/browserGrabber.js
+- src/features/events/eventParserTrace.js
+- tests/events/eventParserFullTraceV18810.test.mjs

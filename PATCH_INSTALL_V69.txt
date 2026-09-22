@@ -1,0 +1,21 @@
+Установка накопительного патча V69
+
+1. Остановите бота: Ctrl+C.
+2. Сделайте резервную копию проекта.
+3. Распакуйте содержимое VK_AI_BOT_V69_CUMULATIVE_PATCH в корень:
+   C:\Users\Adm\WebstormProjects\vk-ai-bot
+4. Согласитесь на замену файлов.
+5. Не удаляйте и не заменяйте .env и data\.
+6. Выполните:
+   pnpm install --frozen-lockfile
+   pnpm run test:provider-diagnostics
+   pnpm dev
+7. В логе ожидается:
+   [BOT BUILD] events-v69-nvidia-short-commands-model-capabilities
+
+Проверка после установки
+Гигорейв nvidia
+Гигорейв nvidia проверить
+Гигорейв nvidia рабочая модель
+Гигорейв nvidia доступные по этому апи ключу модели с описанием возможностей каждой
+Гигорейв nvidia запрос авто Ответь ровно одним словом: работает

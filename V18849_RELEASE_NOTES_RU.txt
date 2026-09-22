@@ -1,0 +1,99 @@
+Gigorave V188.49 — model discovery/qualification + mandatory Swiss Ephemeris
+==========================================================================
+
+1. Автоматическое обнаружение AI-моделей
+----------------------------------------
+• Бот обходит ВСЕ настроенные AI API-ключи и их каталоги моделей.
+• Первые 14 суток после первого запуска V188.49 — один обход в сутки после 03:00 Europe/Moscow.
+• Затем — полный обход раз в неделю, в понедельник после 03:00 Europe/Moscow.
+• Scheduler durable: состояние слота хранится в maintenance_state, поэтому перезапуск бота не требует повторной команды и не сбрасывает расписание.
+• Startup tick умеет догнать пропущенный слот после запуска, если локальное время уже после 03:00.
+
+2. Новая модель никогда не попадает в production только по факту появления
+-------------------------------------------------------------------------
+Pipeline:
+  discovered -> registry/pending -> full live qualification -> qualified -> promoted
+
+Каждая новая модель записывается в SQLite ai_model_discovery с first_seen/last_seen,
+capabilities, qualification status/details и promotion state.
+
+Для каждой новой модели выполняется полный совместимый live-test matrix:
+• базовый text generation;
+• stream и non-stream transport;
+• reasoning/intelligence effort: none, minimal, low, medium, high, xhigh, max;
+• JSON response mode;
+• tools/function calling;
+• vision, если catalog заявляет vision;
+• image generation, если catalog заявляет image;
+• provider/key/model transport health из полного AI audit.
+
+Режим, который provider/model объективно не поддерживает, фиксируется как unsupported,
+а не маскируется как успешный.
+
+Временные network/timeout/429/5xx ошибки не превращают модель навсегда в failed:
+она остаётся pending и будет перепроверена следующим ежедневным циклом.
+
+3. Интеграция в model ladder
+----------------------------
+• Квалифицированная новая text/vision модель может участвовать только после полного live audit.
+• Она добавляется ПОСЛЕ статической лестницы
+  default -> gpt54 -> gpt55 -> pro/Luna -> pro2/Terra -> pro3/Sol.
+• Новая модель не может молча заменить дешёвую/стабильную ступень.
+• Динамические ступени получают собственные ladderStep/ladderTotal; escalation/retry logs показывают,
+  на какую фактическую ступень пришлось подняться.
+• Автоподключение в общий runtime failover разрешено только для provider adapters,
+  уже безопасно поддерживаемых этой лестницей (OPENAI_COMPAT/xAI). Остальные provider-модели
+  всё равно обнаруживаются, полностью тестируются и сохраняются, но не смешиваются в чужой runtime adapter.
+
+4. Отчёт владельцу и полные логи
+--------------------------------
+• При обнаружении новой модели владелец получает Telegram DM с результатами её qualification.
+• Еженедельный полный цикл всегда отправляет владельцу статистику.
+• Ошибка catalog/key также вызывает уведомление.
+• В отчёте: provider, env/key slot, model, qualification status, promotion,
+  поддержанные/проваленные intelligence levels, vision/json/tools, количество моделей/ключей,
+  путь до подробного лога и полного audit.
+
+Основной discovery JSONL:
+  data/logs/model-discovery/YYYY-MM-DD.jsonl
+
+Полный AI audit:
+  AI_FULL_AUDIT_RESULTS/<timestamp>/
+
+Общий runtime/timeout/retry audit из V188.48:
+  data/logs/operations/YYYY-MM-DD.jsonl
+
+В JSONL записываются catalog progress, новые модели, special-mode probes, каждый qualification verdict,
+ошибки/HTTP status/timeout, full-audit progress и итог цикла. Секретные API keys в отчёты не пишутся.
+
+5. Натал/прашна: Swiss Ephemeris теперь hard invariant
+------------------------------------------------------
+• Любая команда/запрос «натал» или «прашна» всегда сначала рассчитывается локально ботом.
+• pro/pro2/pro3 и любые старшие модели только ИНТЕРПРЕТИРУЮТ уже рассчитанный пакет.
+• Формулировка пользователя «не локал» больше не может отключить локальный расчёт.
+• Модельный самостоятельный расчёт эфемерид удалён из reachable path и из prompt'ов.
+• System prompt дополнительно запрещает модели пересчитывать/исправлять положения «по памяти».
+• Для расчёта обязательно подтверждённое использование Swiss Ephemeris (*.se1). Moshier fallback
+  для натала/прашны запрещён.
+• Если Swiss files недоступны, расчёт останавливается ДО LLM-интерпретации.
+
+ВАЖНО ДЛЯ DEPLOY:
+  EPHEMERIS_PATH должен указывать на каталог с файлами Swiss Ephemeris *.se1.
+  В clean/patch сами эфемеридные файлы намеренно не упаковываются.
+
+6. Двухчасовой watchdog сохранён
+--------------------------------
+Scheduled model-discovery/full audit запускается через operation supervisor V188.48.
+Жёсткий общий потолок операции остаётся 2 часа. Таймаут, checkpoint, незавершённая фаза,
+ошибки моделей/ключей и причина остановки попадают в общий operations audit.
+
+Проверки релиза
+---------------
+• npm run test:v18849: 14/14
+• npm run test:v18848: legacy V188.47 69/69 + V188.48 13/13
+• npm run test:astrology-maximum: OK
+• npm run test:astrology-routing: OK
+• fullAiAuditV121SecondRound: 1/1
+• check:syntax: 417 files OK
+• check:imports: 417 files OK
+• check:named-imports: 160 files, missing=0

@@ -1,0 +1,9 @@
+V117 PATCH INSTALL (from V116)
+
+1. Stop the bot.
+2. Back up data/bot.sqlite (recommended for every database migration).
+3. Extract the V117 patch into the project root with file replacement enabled.
+4. Do NOT delete data/bot.sqlite and do NOT replace .env.
+5. Run: pnpm dev
+
+On first start V117 automatically upgrades legacy post_event_feedback_requests schemas before preparing SQL statements.

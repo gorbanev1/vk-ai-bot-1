@@ -1,0 +1,18 @@
+V153 PATCH FILE LIST — V152 -> V153
+
+DEVELOPER_HANDOFF.md
+INSTALL_V153.txt
+PATCH_FILE_LIST_V153.txt
+PATCH_NOTES_EVENTS_V153_BROWSER_CLOSE_FINISH.txt
+PROJECT_MANIFEST.json
+README.md
+V153_VERIFICATION.txt
+docs/SOURCE_MAP.md
+package.json
+src/app/botApplication.js
+src/infrastructure/browser/browserGrabber.js
+src/platforms/telegram/telegramHtmlScraper.js
+src/platforms/vk/vkPublicScraper.js
+tests/events/eventPosterSelectionV139.test.mjs
+tests/scrapers/manualBrowserCloseFinishV153.test.mjs
+tests/scrapers/ownerAddSourceIntegrationV152.test.mjs

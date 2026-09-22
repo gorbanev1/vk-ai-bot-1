@@ -1,0 +1,25 @@
+V90 — event moderation, strict duplicate suppression, compact-list cleanup
+
+1. Permanent event blacklist for owner commands:
+   - удалить тусу <название или часть>
+   - вернуть тусу <название>
+   - чёрный список тус
+   Matching is smart: exact, substring, or fuzzy title similarity >= 90%.
+   Rules persist in data/event-blacklist.json and are applied after every future parser run.
+
+2. Duplicate suppression hardened:
+   - second strict dedupe pass by normalized title + same date + compatible time;
+   - another dedupe pass after GPT display normalization;
+   - case/punctuation variants such as GHOST GIG / Ghost Gig collapse;
+   - missing metadata is merged into the retained event.
+
+3. Compact party descriptions hardened:
+   - giveaway/contest/repost text is removed before GPT-mini summarization and again from returned summaries;
+   - service phrases such as "Полный текст сообщения" are removed;
+   - GPT prompt explicitly forbids contest/raffle conditions as event descriptions.
+
+4. False event times hardened:
+   - simple HH:MM is displayed in compact mode only when the original announcement contains explicit time evidence;
+   - date fragments such as 26.09 must not turn into 09:26; 14.09 must not turn into 14:09.
+
+5. Compact mode keeps the requested full range up to 500 events instead of silently capping at 100/200 internally.

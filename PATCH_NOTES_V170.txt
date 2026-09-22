@@ -1,0 +1,7 @@
+Gigorave V170 — automatic VK history backfill
+
+- Added startup history recovery for the recreated VK chat.
+- Long Poll remains responsible for live messages; startup recovery fills messages that existed before the bot was online or were missed while it was offline.
+- First successful recovery is a full pass; later runs are incremental with overlap.
+- Recovered incoming messages are inserted into the same canonical peer history without overwriting the already linked predecessor-chat history.
+- Recovery state is durable so restarts do not blindly repeat completed work.

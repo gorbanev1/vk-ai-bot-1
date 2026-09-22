@@ -1,0 +1,25 @@
+V140 patch files (apply over V139)
+
+DEVELOPER_HANDOFF.md
+INSTALL_V140.txt
+PATCH_FILE_LIST_V140.txt
+PATCH_NOTES_EVENTS_V140_EXISTING_SOURCE_REFRESH_NO_HANG.txt
+PROJECT_MANIFEST.json
+README.md
+docs/00_START_HERE.md
+docs/CONFIGURATION.md
+docs/TEST_MATRIX.md
+package.json
+src/app/botApplication.js
+src/features/events/eventAssets.js
+src/features/events/eventSourceRefresh.js
+src/infrastructure/browser/browserGrabber.js
+tests/events/eventProposalSourceRefreshV140.test.mjs
+tests/events/eventSourceRefreshV140.test.mjs
+
+Never patch/replace:
+.env
+data/bot.sqlite
+data/* user files
+scraper browser profiles
+node_modules

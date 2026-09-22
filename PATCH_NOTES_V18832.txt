@@ -1,0 +1,67 @@
+Gigorave V188.32 — resilient three-pass VK Messenger parser
+
+WHY THIS PATCH EXISTS
+- The supplied saved VK Messenger page for peer 2000000022 uses the current virtualized message DOM.
+- The real conversation_message_id (CMID) is stored on .VirtualScrollItem[data-itemkey].
+- V188.31 did not read data-itemkey, so it often generated synthetic ids. That made deduplication and the "50 older messages" progress counter unreliable.
+- V188.31 could also treat one temporary scrollTop=0 as the real top of history while VK was still lazy-loading older messages.
+
+THREE-PASS MESSAGE EXTRACTION
+1. pass1-exact
+   - Fast path for the supplied current VK DOM.
+   - Requires .ConvoHistory, .ConvoHistory__scrollbar[data-scrollbar="scrollable"], .ConvoHistory__flow[role="list"].
+   - Reads messages from .VirtualScrollItem[data-itemkey] > .ConvoHistory__messageBlock.
+   - Uses data-itemkey as the stable CMID and only accepts the exact pass when stable ids are present for >=85% of useful messages.
+
+2. pass2-adaptive
+   - Used when the exact DOM changed moderately.
+   - Ranks likely history regions instead of searching the entire page blindly.
+   - Uses stable/semantic attributes such as data-itemkey, aria-labelledby, data-testid, role and scrollable regions together with tolerant class fragments.
+   - Can inspect bounded React metadata for conversation_message_id/cmid, peer_id, sender/from id, timestamp and text.
+   - If React exposes peer_id, a message from another conversation is rejected.
+
+3. pass3-heuristic
+   - Last-resort structural parser without depending on one VK message class.
+   - Finds/ranks list-like regions by repeated list items, profile links, wall-post links, date/time-like text and media.
+   - Infers the smallest plausible message root around sender/profile anchors.
+   - Falls back to repeated role=listitem/article/data-itemkey containers if author classes disappear too.
+
+THREE-PASS SCROLL CONTAINER DISCOVERY
+1. Exact: .ConvoHistory__scrollbar[data-scrollbar="scrollable"].
+2. Adaptive: walk upward from a real message/virtual item to a true vertically scrollable ancestor.
+3. Heuristic: rank scrollable regions by message evidence to avoid scrolling the sidebar.
+
+PRIORITY CHAT 2000000022
+- Still has a hard minimum backfill target of 50 older messages even if an old env value says 25.
+- The 50 are counted beyond the first stable DOM snapshot using real data-itemkey CMIDs.
+- The priority finite pass stops on that explicit older-message target instead of silently inheriting the generic 300-message initial target.
+- Slow upward scrolling remains at 1800 ms minimum between steps.
+- One temporary scrollTop=0 no longer ends history collection.
+- For the priority chat, top-of-history needs 4 consecutive empty top stalls and at least a 15-second capture grace.
+- Any newly discovered messages reset the top-stall counter.
+- Synthetic upward WheelEvent nudges are also dispatched when already at scrollTop=0, giving VK lazy-load listeners a chance to request older history.
+- The finite chat page still stays open for at least 60 seconds after readiness.
+
+OTHER MESSAGE EVIDENCE
+- Sender id is read from explicit data fields first.
+- Numeric /id123 profile links are supported without misreading digits inside screen names.
+- Current VK avatar mask ids (PeerFrame...Mask<senderId>) are used when the visible profile URL is a screen name.
+- Embedded wall/repost text, public wall links and content images are retained.
+- Synthetic message ids, when unavoidable, now include a DOM identity hint to reduce collisions.
+- Parser diagnostics log the active extraction pass and reason when the pass changes.
+
+VALIDATION AGAINST THE SUPPLIED SAVED VK MESSENGER PAGE
+- exact message roots found: 24/24 rendered message blocks
+- unique data-itemkey CMIDs: 24/24 (sample range in the snapshot: 4889 ... 5076)
+- exact scroll containers: 1
+- exact message role-list flows: 1
+- sender ids recovered from avatar masks: 23 rendered messages
+- wall links found in conversation history: 10
+- embedded AttachWall messages found: 11
+
+TESTING
+- npm run test:v18832: all targeted parser/regression tests pass.
+- The full project suite reports 14 failing test files, the same failure count as the V188.31 baseline (14); no additional failure count was introduced by this patch.
+
+IMPORTANT RUNTIME NOTE
+- The live authenticated VK account itself cannot be exercised from this build environment. DOM behavior was validated against the supplied saved Messenger/Public snapshots and the project test suite. The first real authenticated run should be checked for the new log line: [VK CHAT PARSER PASS].

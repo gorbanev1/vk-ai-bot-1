@@ -1,0 +1,8 @@
+V176: распаковать полный архив в корень проекта с заменой исходников. Папку data/bot.sqlite не заменять. Затем pnpm dev.
+
+После запуска дождаться:
+[VK MEMBERSHIP RECOVERY START]
+[VK MEMBERSHIP RECOVERY PROGRESS]
+[VK MEMBERSHIP RECOVERY DONE]
+
+Команда: «Гигорейв список кто вышел».

@@ -1,0 +1,8 @@
+V163 -> V164 patch
+
+Copy the contents of this archive over the V163 project directory, preserving subdirectories and replacing existing files when asked.
+Do NOT delete or replace your existing data/ directory.
+V164 adds no npm dependency.
+Then run: pnpm dev
+
+Voice transcription is enabled by default. If your existing OPENAI_COMPAT endpoint does not expose /audio/transcriptions, configure AUDIO_TRANSCRIPTION_BASE_URL/API_KEY/MODEL or provide OPENAI_API_KEY/GROQ_API_KEY.

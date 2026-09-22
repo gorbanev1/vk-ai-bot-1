@@ -1,0 +1,20 @@
+Gigorave V185 installation
+
+FULL package
+1. Stop the bot.
+2. Back up your existing data/ directory and .env.
+3. Replace application source files with Gigorave_V185_full_sources.
+4. Keep your existing bot.sqlite / bot.sqlite-wal / bot.sqlite-shm and operational data.
+5. Install dependencies using the same package-manager workflow as the previous release. Node >=24 remains the declared runtime.
+6. Start the bot.
+7. Run the VK public scraper manually for the required sources (or the existing all-sources manual command). V185 changes VK_PARSER_VERSION, so V184 hashes are not treated as already parsed.
+8. Request “Гигорейв тусы сентябрь”.
+9. If an expected event is absent, inspect data/event-ingest-audit.jsonl; the row now shows whether it was not a candidate, produced no parsed events, failed date consistency, failed strict validation, was stored, or disappeared only at the public route.
+
+PATCH package
+- Apply the files in Gigorave_V185_patch.zip over V184, preserving relative paths.
+- Do not delete or replace your existing data directory.
+
+Important
+- V185 never uses the current process time to invent a publication date for an old VK post. The preferred evidence is VK API wall.date; stored published_at is only a fallback.
+- No database schema migration is required.

@@ -1,0 +1,11 @@
+Gigorave V188.16
+
+1. Stop the bot.
+2. Back up your current project and data/*.sqlite / .env.
+3. Replace source files with the V188.16 archive contents, or apply Gigorave_V18816_from_V18815.patch from the project root.
+4. Run: npm install
+5. Run: npm run test:v18816
+6. Recommended regression checks: npm run test:v18814 && npm run test:v18815
+7. Start: npm start
+
+No database migration is required. Existing SQLite communication settings, startup catch-up state and AI token ledgers are preserved.

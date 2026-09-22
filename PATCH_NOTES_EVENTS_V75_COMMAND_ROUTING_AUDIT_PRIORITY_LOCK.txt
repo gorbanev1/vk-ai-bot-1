@@ -1,0 +1,48 @@
+V75 — COMMAND ROUTING AUDIT & PRIORITY LOCK
+
+Сборка:
+  events-v75-command-routing-audit-priority-lock
+
+Что исправлено
+1. Все верхнеуровневые текстовые команды сведены в одну чистую таблицу
+   приоритетов: src/features/routing/commandPriorityRouting.js.
+2. Административные и локальные команды выполняются до GPT, vision,
+   семантической афиши и FAQ.
+3. Явные AI-действия (прашна/натал, GPT, резюме, генерация и анализ
+   изображений) выполняются до семантических классификаторов.
+4. Прямое обращение к боту, reply/цитата и Telegram slash-команда обходят
+   автономную перепалку и активное общение.
+5. Ключи mini/gpt54/gpt55/pro/pro2/pro3 распознаются перед командой и
+   после команды. Они больше не ломают команды «nvidia проверить»,
+   «парсер», «помощь», «версия», «запомни», «досье» и остальные.
+6. Для AI-команды ключ применяется. Для локальной/служебной команды ключ
+   помечается в логе как not-applicable; команда всё равно выполняется.
+7. Model ID провайдера, содержащий слово pro, не повреждается при разборе.
+8. Команды владельца:
+   - маршрутизация проверить
+   - маршрут <текст>
+9. В консоли для каждого запроса:
+   [COMMAND ROUTE] selected=... reason=... candidates=...
+       explicitMode=... modelKeyPolicy=... suppressed=... context=...
+10. Добавлена регрессионная матрица из 107 сценариев плюс проверка, что
+    каждому объявленному маршруту соответствует обработчик оркестратора.
+
+Приоритеты
+routing audit/explain → provider → Telegram diagnostic → scraper/status/stop
+→ GigaChat → active communication/personality → manual event → memory
+→ help/version/ping/id/stats/dossier/limits → summary → vision → explicit GPT
+→ deterministic events → explicit model selector → semantic events → default GPT.
+
+Данные и конфигурация
+- Новых зависимостей нет.
+- Миграций SQLite нет.
+- Новых обязательных переменных .env нет.
+- .env, data/, SQLite и браузерный профиль патч не заменяет.
+
+Проверка
+  pnpm run test:command-routing
+  pnpm verify
+
+Живые запросы к VK, Telegram, OpenAI, GigaChat и NVIDIA тестами не
+выполняются. Проверяются чистая маршрутизация, синтаксис, импорты и весь
+существующий локальный набор тестов.

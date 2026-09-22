@@ -1,0 +1,13 @@
+Gigorave V164 verification
+
+Build: events-v164-voice-transcription-vk-telegram
+Package: 0.164.0
+
+Checks performed in audit container (Node v22.16.0; project declares Node >=24):
+- Syntax: 294/294 JS/MJS/CJS files passed node --check (parallel equivalent of check:syntax).
+- Relative imports: 294/294 files, 0 missing imports.
+- Documentation link check: OK (16 tracked docs).
+- Test suite file set: 155 test files, 352 tests, 352 passed, 0 failed.
+- Target V164 regression: VK native audio_message transcript; VK nested doc.preview.audio_msg; Telegram direct/reply voice; OpenAI-compatible multipart transcription; durable SQLite voice transcript cache.
+
+No npm dependency added.

@@ -1,0 +1,18 @@
+V66 устанавливается поверх V65.
+
+1. Остановите бота.
+2. Распакуйте patch-архив в корень проекта с заменой файлов.
+3. Не заменяйте .env и папку data.
+4. При необходимости добавьте в .env новые отдельные диагностические ключи:
+   OPENAI_DIRECT_API_KEY=
+   OPENAI_DIRECT_BASE_URL=https://api.openai.com/v1
+   OPENAI_DIRECT_MODEL=
+   NVIDIA_API_KEY=
+   NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+   NVIDIA_MODEL_DEFAULT=
+5. Выполните:
+   pnpm install --frozen-lockfile
+   pnpm verify
+   pnpm dev
+
+Опубликованные ранее ключи следует отозвать и выпустить заново. Никогда не отправляйте новые ключи в чат.

@@ -1,0 +1,11 @@
+Gigorave V188.20
+
+Patch archive: extract into the root of V188.19 and replace files.
+No dependency reinstall is required.
+Restart the Node.js bot after replacement.
+
+Quick verification:
+  npm run check:syntax
+  npm run check:imports
+  npm run check:named-imports
+  npm run test:v18820

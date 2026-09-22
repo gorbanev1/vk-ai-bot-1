@@ -1,0 +1,34 @@
+V80
+
+1. AI credentials
+- Добавлен safe importer TruffleHog -> .env с dry-run/--apply и backup.
+- Поддерживаются только AI detectors: OpenAI, Anthropic, GoogleGeminiAPIKey, Groq, HuggingFace, NVIDIA.
+- Stripe/AWS/GitHub/Cloudflare/SendGrid/JWT намеренно игнорируются.
+- Номерные slots поддерживаются автоматически: GEMINI_API_KEY_1, GEMINI_API_KEY_2 ... и т.п.
+
+2. Live audit
+- Owner command: «Гигорейв ключи проверить все».
+- Проверка идёт последовательно.
+- Полные secrets никогда не печатаются; только masked prefix/suffix и env slot.
+- Для каждого рабочего ключа сохраняется live model catalog и capabilities.
+- TXT + JSON отчёты пишутся в корень проекта рядом с src.
+
+3. External provider routing
+- Owner namespaces: gemini, claude/anthropic, groq, hf/huggingface.
+- Для Gemini/Claude/Groq поддержаны list models + chat.
+- Пул ключей автоматически переключает slot при ошибках.
+- Hugging Face пока валидируется через whoami; универсального arbitrary-model chat endpoint не предполагается.
+
+4. GPT reasoning
+- gpt-5.4-mini/gpt-5.4/gpt-5.5 default=medium.
+- gpt-5.6-luna/terra/sol default=high.
+- Explicit modifiers: low, medium, high, xhigh/x-high, max.
+- Модификатор попадает в reasoning_effort; compatibility fallback сохраняется.
+
+5. NVIDIA Visual
+- Production auto order начинается с FLUX.2 Klein 4B, затем FLUX.1 Dev, SD3 Medium, FLUX.1 Schnell, SDXL.
+- Owner generation matrix: один prompt -> все hosted image-generation endpoints последовательно.
+- Owner edit matrix: одна исходная картинка + одна инструкция -> все модели; неподдерживающие editing помечаются SKIP.
+- Editing probes: FLUX.2 Klein 4B и FLUX.1 Kontext Dev.
+- Каждый успешный image result отправляется пользователю с точным model id.
+- HTTP/status/elapsed/error пишутся в лог и NVIDIA_VISUAL_LIVE_TEST_REPORT.txt/json.

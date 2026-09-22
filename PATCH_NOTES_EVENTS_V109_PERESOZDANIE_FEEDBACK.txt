@@ -1,0 +1,8 @@
+V109 adds a safe post-event broadcast/review workflow on top of V108.
+
+- Built-in Peresozdanie feedback/donation template.
+- Owner preview/confirm/edit/cancel commands.
+- Delivery reuses the three V106 coords requester endpoints.
+- Only successfully delivered recipients are armed for one feedback reply.
+- Feedback is persisted in SQLite and forwarded to owner VK + Telegram.
+- Telegram thank button now also enables one feedback reply.

@@ -1,0 +1,78 @@
+Gigorave V188.11 — VK exact-wall recovery + bounded event proposal parser
+=======================================================================
+
+Что показал V188.10 trace
+------------------------
+На проблемной ссылке https://vk.ru/wall-239795426_2 прямой wall.getById падал с
+VK code 27 (group authorization). При этом исходный HTML страницы уже содержал
+точный wall.getById в window.cur.apiPrefetchCache: текст анонса, реальный wall
+`date` и фотографию постера. V188.10 извлекал bootstrap только для structured
+start_date, а точную wall-запись после SPA не сохранял в итоговый posts.
+
+Из-за этого DOM-кандидат получал publishedAt=0. Дата «19 сентября» без года по
+правилам evidence parser не могла получить 2026 год, localEvents оставался
+пустым, затем запуск уходил в vision/AI.
+
+Вторая причина «часами идёт» — runtime AI failover по умолчанию допускает
+неограниченное число rounds (maxRounds=0). Для event proposal это могло
+бесконечно крутить временно недоступные ключи/модели после local parser.
+
+Исправлено
+----------
+1. RAW VK bootstrap exact wall recovery
+   - до скролла сохраняется точный wall.getById из raw HTML;
+   - берутся owner_id/id, wall.date, исходный text и только photo attachments;
+   - для exact wall URL отбрасываются шумовые DOM-дубликаты с avatar/emoji;
+   - восстановленный wall post получает publishedAtSource
+     `vk-raw-html-prefetch-wall-date-v18811`.
+
+2. VK event owner hydration через браузерную сессию
+   - если wall bootstrap сообщает, что owner — event community, а start_date в
+     текущем wall HTML отсутствует, один раз загружается /event... через
+     authenticated Playwright request context;
+   - structured start_date/finish_date снова остаются первым приоритетом;
+   - при неудаче обычный page parser остаётся fallback.
+
+3. Exact link selection без GPT
+   - если страница породила несколько DOM-контейнеров с matchesSourceUrl,
+     выбирается deterministic ranked exact candidate;
+   - raw-bootstrap exact wall имеет самый высокий приоритет;
+   - GPT больше не тратит ~10–15 секунд только на выбор между дублями одного
+     и того же VK поста.
+
+4. Локальный parser
+   - yearless «19 сентября» использует реальный wall.date и даёт 2026-09-19;
+   - поддержан line-up из bullet lines (`- артист`);
+   - eventTitle из VK event owner используется как нормальное название;
+   - строка `КОТЕЛЬНАЯ, 19 сентября в 19:00` остаётся обычным generic evidence,
+     а не жёстко зашитым шаблоном именно этой страницы.
+
+5. AI больше не может зависнуть на event proposal
+   - vision/text event extraction: максимум 1 failover round;
+   - максимум 2 provider candidates;
+   - 1 техническая ошибка -> rotate;
+   - один provider request capped до 20 секунд;
+   - если local parser уже получил обязательные поля + time/title/participants,
+     AI полностью пропускается; отсутствие одной цены не запускает vision.
+
+Новые trace stages
+------------------
+- browser.vk_exact_bootstrap.posts
+- browser.vk_exact_bootstrap.merged
+- browser.vk_related_event.begin/result/error
+- proposal.primary_post.ai_plan
+- proposal.primary_post.image_facts.begin
+
+Регрессия из приложенного trace
+-------------------------------
+Для эквивалентного exact VK wall fixture локально получается:
+- date: 2026-09-19
+- time: 19:00
+- venue: КОТЕЛЬНАЯ
+- title: Соня / Марина, я умираю / 19.09 / Воронеж
+- participants: bullet lineup
+- poster: только photo attachment поста
+
+Это не привязка к конкретному ID/тексту: helper рекурсивно ищет wall.getById в
+captured bootstrap и target-matches owner/post из URL. Если structured/raw VK
+данных нет, по-прежнему работает стандартный finite page parser.

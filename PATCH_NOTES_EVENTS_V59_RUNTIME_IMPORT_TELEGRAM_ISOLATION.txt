@@ -1,0 +1,15 @@
+V59 — runtime import and Telegram isolation
+
+Исправления:
+- восстановлен обязательный import parseImageEditRequest из imageEditRouting.js;
+- обычные GPT-команды больше не падают с ReferenceError после подготовки unknown-term контекста;
+- добавлен интеграционный тест, проверяющий, что функция импортирована до использования;
+- ошибка TLS/ECONNRESET при необязательном запуске Telegram больше не останавливает VK-бота;
+- при недоступном Telegram выводится TELEGRAM STARTUP DEGRADED, после чего запускается VK Long Poll;
+- версия: 0.59.0, build: events-v59-runtime-import-telegram-isolation.
+
+Совместимость:
+- новых зависимостей нет;
+- .env не меняется;
+- схема SQLite не меняется;
+- данные и браузерные профили сохраняются.

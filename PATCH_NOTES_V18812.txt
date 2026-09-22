@@ -1,0 +1,32 @@
+Gigorave V188.12 — instant proposal moderation
+
+Problem fixed
+-------------
+Owner approval like "да 5" could appear to hang for minutes even though the event
+proposal had already been parsed. The approval path saved the event and then awaited
+rebuildVerifiedPartySnapshotQueued(). That verified snapshot may run AI normalization
+and summaries for the whole event database, so the Telegram/VK moderation response was
+blocked until the expensive cache rebuild finished.
+
+What changed
+------------
+1. Proposal approval uses the already stored event_proposals.parsedEvents draft only.
+   No VK parser, Playwright page, URL re-open, poster recovery, or proposal AI pass is
+   started by "да N" / "нет N".
+2. After a new approved event is committed to SQLite, the old verified snapshot is
+   invalidated immediately and the rebuild is queued in the background with `void`.
+   Public event requests already have deterministic SQLite fallback while the snapshot
+   is being rebuilt.
+3. Owner response is therefore no longer coupled to the potentially multi-minute
+   verified snapshot pipeline.
+4. Added timing logs:
+   - [EVENT PROPOSAL MODERATION FASTPATH]
+   - [EVENT PROPOSAL MODERATION DONE] ... elapsedMs=...
+   - [EVENT PROPOSAL SNAPSHOT BACKGROUND DONE] ... elapsedMs=...
+   - [EVENT PROPOSAL SNAPSHOT BACKGROUND ERROR]
+
+Expected behavior
+-----------------
+- User submits VK event -> parsing happens once and proposal is stored.
+- Owner sends "да 5" -> cached proposal is committed and response is sent immediately.
+- Snapshot regeneration continues in background and cannot delay moderation reply.

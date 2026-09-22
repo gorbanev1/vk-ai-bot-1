@@ -1,0 +1,9 @@
+V111 install over current bot
+
+1. Stop the bot.
+2. Overlay the files from this patch, preserving your existing `.env` and `data/bot.sqlite`.
+3. Make sure `assets/peresozdanie-donation-qr.png` exists after overlay.
+4. Start the bot.
+5. Check `версия`: events-v111-telegram-peresozdanie-coords-qr-second-message.
+6. Before 11:00 MSK on 22.08, press «📍 Корды Пересоздание»: only the availability notice should arrive.
+7. At/after 11:00 MSK, press it again: SQLite coords text first, Sber QR + number second.

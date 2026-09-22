@@ -1,0 +1,19 @@
+V164 VOICE TRANSCRIPTION
+
+VK
+- Supports audio_message, legacy voice-like payloads and doc.preview.audio_msg.
+- Uses VK native transcript first.
+- Falls back to link_mp3/link_ogg speech-to-text.
+- Recurses through replies, forwarded messages, wall posts and copy_history.
+- Adds voice transcript to ordinary message context, auto-summary history and VK chat event parsing.
+
+TELEGRAM
+- Voice-only updates no longer get filtered out by polling.
+- Downloads voice via Bot API getFile/file URL.
+- Transcribes before ordinary group/DM routing.
+- Saves spoken text into the same message history used by auto-summary, active communication, dossier and normal AI context.
+- Reply voice is added to reply context.
+
+PERSISTENCE
+- New voice_transcripts SQLite cache avoids repeated paid transcription.
+- Failed STT is retry-throttled and never blocks/crashes normal bot logic.

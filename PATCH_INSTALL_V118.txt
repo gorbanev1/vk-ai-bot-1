@@ -1,0 +1,14 @@
+V118 INSTALL / UPDATE
+
+PATCH V117 -> V118:
+1. Stop the bot.
+2. Make a backup copy of data/bot.sqlite.
+3. Extract the V118 patch over the project with file replacement.
+4. Do NOT delete .env or data/bot.sqlite.
+5. Start: pnpm dev
+6. Expected runtime build line: events-v118-full-ai-audit-telegram-home-fastpath
+7. Test command (owner DM): Гигорейв тест всех моделей
+8. Full audit logs: AI_FULL_AUDIT_RESULTS/<timestamp>/report.txt
+9. Send report.txt + retry_candidates.json to the next diagnostic chat for round-two analysis.
+
+Important: parsed_secrets.txt is obsolete. V118 removes it at startup and never imports from it.

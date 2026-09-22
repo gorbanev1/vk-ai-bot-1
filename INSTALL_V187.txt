@@ -1,0 +1,17 @@
+Gigorave V187 installation
+
+PATCH over V186 (recommended)
+1. Stop the bot.
+2. Make a backup of your current project and data/ directory.
+3. Extract Gigorave_V187_patch.zip into the V186 project root, preserving paths and overwriting source files.
+4. DO NOT replace/delete your production data/ directory, bot.sqlite, bot.sqlite-wal or bot.sqlite-shm.
+5. Run your normal dependency install only if needed (package dependencies were not intentionally changed by this hotfix).
+6. Start the bot.
+7. Confirm startup shows version 0.187.0 and build:
+   events-v187-batched-personalization-no-repeat
+
+Expected V187 behavior
+- No daily/startup dossier GPT backfill.
+- Dossier GPT runs only on explicit dossier command and only for new, uncheckpointed messages.
+- Style GPT waits for 500 new user messages.
+- Unchanged Telegram/VK posts are not reparsed just because the bot version changed.

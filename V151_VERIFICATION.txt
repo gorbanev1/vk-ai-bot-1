@@ -1,0 +1,24 @@
+Gigorave V151 verification
+===========================
+
+Command: npm run verify
+Result: PASS
+
+check:syntax  : OK (273 files)
+check:imports : OK (273 files)
+check:docs    : OK (16 files)
+npm test      : 142 test files, 322 tests, 0 failures
+
+Additional V151 regression coverage:
+- exact normalized title + exact date merges locally before venue/time conflicts and without AI;
+- generic titles remain protected from absolute merge;
+- >=90% near-duplicate text pre-AI gate;
+- exact + metadata-insensitive image fingerprints before vision;
+- Telegram one-tab pagination and manual-scroll live parser;
+- VK manual-scroll live parser;
+- user-facing event delivery contains no browser/AI/database-repair recovery path;
+- explicit maintenance poster recovery remains available and grouped by canonical source URL;
+- public Telegram/VK runtime has text AI + vision wired after local gates.
+
+Verification environment available during build: Node.js 22.16.0.
+Project engine requirement remains Node.js >=24; production should use the declared version.

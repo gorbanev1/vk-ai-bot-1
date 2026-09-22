@@ -1,0 +1,15 @@
+V188.41 FULL:
+1. Stop the bot.
+2. Back up your current project and runtime data.
+3. Extract Gigorave_V18841_clean.zip as the new project version.
+4. Keep/restore your existing .env and data directory.
+5. npm install if dependencies are not already installed.
+6. npm start.
+
+V188.41 PATCH over V188.40:
+1. Stop the bot.
+2. Extract Gigorave_V18841_summary_model_ladder_patch.zip DIRECTLY into the project root.
+3. Confirm replacement of existing files.
+4. npm start.
+
+The patch ZIP is flat relative to the project root: package.json/src/tests are at ZIP root; there is no extra wrapper directory.

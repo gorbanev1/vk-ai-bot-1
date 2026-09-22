@@ -1,0 +1,12 @@
+V124 INSTALL / UPDATE
+
+From V123:
+1. Stop the bot.
+2. Back up data/bot.sqlite and .env.
+3. Extract Gigorave_V124_patch_from_V123.zip into the project root with file replacement.
+4. Do NOT delete data/bot.sqlite or .env.
+5. Start: pnpm dev
+6. Local pinball check: http://127.0.0.1:8787/pinball/
+7. Press START, then tap/release SPACE (or LAUNCH). The ball must leave the right shooter lane and enter the playfield.
+
+The patch does not contain .env or data/bot.sqlite.
