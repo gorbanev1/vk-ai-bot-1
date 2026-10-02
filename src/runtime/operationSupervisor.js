@@ -1,6 +1,8 @@
 import {
     appendFileSync,
     mkdirSync,
+    readdirSync,
+    readFileSync,
     renameSync,
     writeFileSync,
 } from 'node:fs';
@@ -345,6 +347,66 @@ export function getOperation(operationId) {
     return record ? operationSnapshot(record) : null;
 }
 
+export function reconcileInterruptedOperationCheckpoints({
+    directory = OPERATION_CHECKPOINT_DIRECTORY,
+    now = new Date(),
+    writeAudit = true,
+    maxFiles = Number(process.env.OPERATION_RECONCILE_MAX_FILES) || 5000,
+} = {}) {
+    const finishedAt = now instanceof Date ? now.toISOString() : new Date(now).toISOString();
+    const recovered = [];
+    let files = [];
+    try {
+        files = readdirSync(directory).filter((name) => name.endsWith('.json'));
+    } catch {
+        return recovered;
+    }
+
+    // Checkpoint files are append-only operation snapshots. Older releases
+    // left tens of thousands of settled files in this directory; parsing all
+    // of them synchronously made startup appear frozen before Telegram/VK were
+    // connected. Operation ids begin with a monotonic base36 timestamp, so the
+    // newest names are the only useful candidates after a process restart.
+    const safeMaxFiles = Math.max(100, Math.min(50_000, Number(maxFiles) || 5000));
+    const candidates = files.length > safeMaxFiles
+        ? files.sort((left, right) => right.localeCompare(left)).slice(0, safeMaxFiles)
+        : files;
+    if (files.length > candidates.length) {
+        console.warn(
+            '[OPERATION CHECKPOINT RECONCILE BOUNDED]',
+            `files=${files.length}`,
+            `scanned=${candidates.length}`,
+            `skipped=${files.length - candidates.length}`,
+        );
+    }
+
+    for (const name of candidates) {
+        const path = join(directory, name);
+        try {
+            const payload = JSON.parse(readFileSync(path, 'utf8'));
+            const operation = payload?.operation;
+            if (!operation || !['running', 'stopping', 'timed-out-stopping'].includes(String(operation.status || ''))) continue;
+            operation.status = 'interrupted';
+            operation.stopReason = operation.stopReason || 'process-restarted-before-operation-settled';
+            operation.finishedAt = finishedAt;
+            operation.updatedAt = finishedAt;
+            operation.underlyingSettled = false;
+            payload.reason = 'process-restarted';
+            payload.savedAt = finishedAt;
+            const temporary = `${path}.tmp-${process.pid}-${Date.now()}`;
+            writeFileSync(temporary, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+            renameSync(temporary, path);
+            recovered.push({ id: String(operation.id || name.replace(/\.json$/u, '')), name: String(operation.name || ''), checkpoint: operation.checkpoint || {}, progress: operation.progress || {} });
+            if (writeAudit) {
+                appendAuditRow({ ts: finishedAt, level: 'error', type: 'operation.interrupted-after-restart', operationId: operation.id || '', operationName: operation.name || '', operationCategory: operation.category || '', data: { stopReason: operation.stopReason, checkpoint: operation.checkpoint || {}, progress: operation.progress || {} } });
+            }
+        } catch {
+            // One damaged checkpoint must not block bot startup or other recoveries.
+        }
+    }
+    return recovered;
+}
+
 export async function requestOperationStop(operationId, { reason = 'owner-command' } = {}) {
     const id = String(operationId || '').trim();
     const record = activeOperations.get(id);
@@ -588,6 +650,15 @@ export function installGlobalRuntimeAuditHandlers() {
         auditRuntimeEvent('process.warning', {
             warning: normalizeError(warning),
         }, { level: 'warn' });
+    });
+    process.on('exit', (code) => {
+        auditRuntimeEvent('process.exit', {
+            code: Number(code || 0),
+            activeOperations: listActiveOperations().map((operation) => ({
+                id: operation.id, name: operation.name, status: operation.status,
+                phase: operation.progress?.phase || operation.checkpoint?.phase || '',
+            })),
+        }, { level: Number(code || 0) === 0 ? 'info' : 'error' });
     });
     return true;
 }
