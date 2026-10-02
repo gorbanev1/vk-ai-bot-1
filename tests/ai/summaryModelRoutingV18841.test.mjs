@@ -8,23 +8,20 @@ import {
     resolveSummaryStartMode,
 } from '../../src/features/ai/summaryModelRouting.js';
 
-test('V188.41 summaries use default -> gpt54 -> gpt55 -> pro -> pro2 -> pro3 with Sol last', () => {
+test('summaries use the canonical GPT-6 ladder', () => {
     assert.deepEqual(SUMMARY_MODEL_MODE_ORDER, [
         'default',
-        'gpt54',
-        'gpt55',
-        'pro',
-        'pro2',
         'pro3',
+        'astra',
     ]);
     assert.equal(resolveSummaryStartMode(), 'default');
 });
 
-test('V188.41 each summary request gets two technical attempts per model and one finite ladder', () => {
+test('summary requests use the shared finite retry policy', () => {
     assert.deepEqual(getSummaryModelFailoverOptions(), {
         escalateToAdvanced: true,
         failoverMaxRounds: 1,
-        failuresBeforeQuarantine: 2,
+        failuresBeforeQuarantine: 4,
         useCredentialHealth: false,
         oneCandidatePerMode: true,
     });

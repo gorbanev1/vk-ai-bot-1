@@ -187,6 +187,15 @@ export function isTechnicalModelFailure(error) {
     // Never turn an ambiguous/started paid inference into another model POST.
     // A known responseId must be resumed/polled by the caller instead.
     if (
+        error?.code === 'OPERATION_TIMEOUT' ||
+        error?.code === 'OPERATION_CANCELLED' ||
+        error?.code === 'OPERATION_ABORTED' ||
+        error?.name === 'OperationTimeoutError' ||
+        error?.name === 'OperationCancelledError'
+    ) {
+        return false;
+    }
+    if (
         error?.inferenceMayHaveStarted ||
         error?.streamOutputStarted ||
         error?.responseId ||
@@ -194,9 +203,17 @@ export function isTechnicalModelFailure(error) {
     ) {
         return false;
     }
-    if (error?.name === 'AbortError' || error?.code === 'OPERATION_ABORTED') {
-        return false;
-    }
+    // A request-local timeout (including AbortSignal.timeout and the streaming
+    // idle watchdog) is a failed model attempt, not cancellation of the whole
+    // supervised operation. Some fetch implementations wrap it as AbortError.
+    const timeoutMessage = clean(error?.message || error);
+    const timeoutCode = clean(error?.code).toUpperCase();
+    const timeoutName = clean(error?.name).toLowerCase();
+    const requestTimedOut = timeoutName === 'timeouterror'
+        || /timeout|timed out|produced no bytes|idle for|no chunks/iu.test(timeoutMessage)
+        || /(?:^|_)(?:ETIMEDOUT|ESOCKETTIMEDOUT|UND_ERR_HEADERS_TIMEOUT|UND_ERR_BODY_TIMEOUT)(?:$|_)/u.test(timeoutCode);
+    if (timeoutName === 'aborterror' && !requestTimedOut) return false;
+    if (requestTimedOut) return true;
     if (error?.code === 'EMPTY_MODEL_TEXT' || error?.retryable === true) {
         return true;
     }
@@ -268,6 +285,9 @@ export async function executeRuntimeModelFailover({
     failuresBeforeQuarantine = positiveInteger(process.env.AI_KEY_FAILURES_BEFORE_ROTATE, 3),
     quarantineMs = positiveInteger(process.env.AI_KEY_QUARANTINE_SECONDS, 300) * 1000,
     maxRounds = nonNegativeInteger(process.env.AI_FAILOVER_MAX_ROUNDS, 0),
+    roundRetryDelayMs = null,
+    attemptsForCandidate = null,
+    shouldAdvanceCandidate = null,
     useCredentialHealth = true,
     env = process.env,
     onEvent = null,
@@ -306,37 +326,57 @@ export async function executeRuntimeModelFailover({
                 continue;
             }
 
-            for (let attempt = 1; attempt <= failuresBeforeQuarantine; attempt += 1) {
+            const configuredAttempts = typeof attemptsForCandidate === 'function'
+                ? Number(attemptsForCandidate(credential))
+                : failuresBeforeQuarantine;
+            const candidateAttemptLimit = Number.isSafeInteger(configuredAttempts) && configuredAttempts > 0
+                ? configuredAttempts
+                : failuresBeforeQuarantine;
+            for (let attempt = 1; attempt <= candidateAttemptLimit; attempt += 1) {
                 throwIfAborted(signal);
                 attemptedThisRound += 1;
                 const attemptStartedAt = Date.now();
                 try {
-                    emitFailoverEvent(onEvent, { type: 'attempt-start', credential, attempt, round });
+                    emitFailoverEvent(onEvent, { type: 'attempt-start', credential, attempt, attemptLimit: candidateAttemptLimit, round });
                     const value = await request(credential, { attempt, round });
                     if (useCredentialHealth) markSuccess(credential);
-                    emitFailoverEvent(onEvent, { type: 'success', credential, attempt, round, durationMs: Math.max(0, Date.now() - attemptStartedAt) });
+                    emitFailoverEvent(onEvent, { type: 'success', credential, attempt, attemptLimit: candidateAttemptLimit, round, durationMs: Math.max(0, Date.now() - attemptStartedAt) });
                     return { value, credential, attempt, round };
                 } catch (error) {
                     lastError = error;
                     const retryable = Boolean(shouldRetry(error));
-                    emitFailoverEvent(onEvent, { type: 'failure', credential, attempt, round, retryable, error, durationMs: Math.max(0, Date.now() - attemptStartedAt) });
-                    if (!retryable) throw error;
+                    let advanceCandidate = false;
+                    try {
+                        advanceCandidate = Boolean(shouldAdvanceCandidate?.(error, { credential, attempt, round }));
+                    } catch {
+                        advanceCandidate = false;
+                    }
+                    emitFailoverEvent(onEvent, { type: 'failure', credential, attempt, attemptLimit: candidateAttemptLimit, round, retryable, error, durationMs: Math.max(0, Date.now() - attemptStartedAt) });
+                    if (!retryable && !advanceCandidate) throw error;
+                    if (advanceCandidate) {
+                        emitFailoverEvent(onEvent, { type: 'model-unavailable', credential, attempt, attemptLimit: candidateAttemptLimit, round, error });
+                        break;
+                    }
 
                     if (!useCredentialHealth) {
-                        if (attempt >= failuresBeforeQuarantine) {
-                            emitFailoverEvent(onEvent, { type: 'rotate', credential, attempt, round, error });
+                        if (attempt >= candidateAttemptLimit) {
+                            emitFailoverEvent(onEvent, { type: 'rotate', credential, attempt, attemptLimit: candidateAttemptLimit, round, error });
                             break;
                         }
                         await sleepWithSignal(retryDelayMs(attempt, env), sleep, signal);
                         continue;
                     }
 
-                    const quarantined = markFailure(credential, error, {
-                        failuresBeforeQuarantine,
-                        quarantineMs,
-                    });
-                    if (quarantined) {
-                        emitFailoverEvent(onEvent, { type: 'rotate', credential, attempt, round, error });
+                    // The model-specific attempt budget is authoritative. A
+                    // global quarantine threshold must not cut Luna off at
+                    // attempt 3 when its configured budget is 4, nor give
+                    // Astra more than its configured 2 attempts.
+                    if (attempt >= candidateAttemptLimit) {
+                        markFailure(credential, error, {
+                            failuresBeforeQuarantine: 1,
+                            quarantineMs,
+                        });
+                        emitFailoverEvent(onEvent, { type: 'rotate', credential, attempt, attemptLimit: candidateAttemptLimit, round, error });
                         break;
                     }
                     await sleepWithSignal(retryDelayMs(attempt, env), sleep, signal);
@@ -347,7 +387,7 @@ export async function executeRuntimeModelFailover({
         if (maxRounds > 0 && round >= maxRounds) break;
 
         const now = Date.now();
-        const waitMs = Number.isFinite(nearestQuarantine)
+        const waitMs = Number.isFinite(roundRetryDelayMs) && roundRetryDelayMs >= 0 ? roundRetryDelayMs : Number.isFinite(nearestQuarantine)
             ? Math.max(500, nearestQuarantine - now)
             : (attemptedThisRound ? positiveInteger(env.AI_ALL_KEYS_RETRY_MS, 15_000) : 1_000);
         emitFailoverEvent(onEvent, { type: 'all-unavailable', round, waitMs, error: lastError });

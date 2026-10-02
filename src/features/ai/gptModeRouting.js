@@ -1,11 +1,9 @@
-/**
- * Чистая маршрутизация ключей моделей mini/gpt54/gpt55/pro/pro2/pro3 и профиля прашны.
- */
+/** Common GPT-6 routing. Legacy GPT-5-era aliases resolve only to GPT-6 models. */
 const ASTRA_TOKEN_SOURCE = [
     'astra',
     'астра',
-    'gpt[\s_-]?6(?:[\s_-]?astra)?',
-    'gpt[\s_-]?6[\s_-]?астра',
+    'gpt[\\s_-]?6(?:[\\s_-]?astra)?',
+    'gpt[\\s_-]?6[\\s_-]?астра',
     'max',
     'latest',
     'последн(?:яя|юю|ий)(?:\s+модел(?:ь|и|ью))?',
@@ -16,6 +14,7 @@ const PRO3_TOKEN_SOURCE = [
     'pro3',
     'sol',
     'сол',
+    'gpt[\\s_-]?6(?:[.]1)?[\\s_-]?sol',
 ].join('|');
 
 const PRO2_TOKEN_SOURCE = [
@@ -30,6 +29,7 @@ const PRO_TOKEN_SOURCE = [
     'pro',
     'luna',
     'луна',
+    'gpt[\\s_-]?6[.]?luna',
 ].join('|');
 
 const GPT55_TOKEN_SOURCE = [
@@ -144,17 +144,9 @@ export function extractExplicitGptMode(input) {
  * packet. A model-side Swiss Ephemeris calculation is only an error fallback.
  */
 export function resolvePrashnaGptMode(requestedMode) {
-    return [
-        'default',
-        'gpt54',
-        'gpt55',
-        'pro',
-        'pro2',
-        'pro3',
-        'astra',
-    ].includes(requestedMode)
-        ? requestedMode
-        : 'default';
+    const aliases = { gpt54: 'default', gpt55: 'pro3', pro: 'default', pro1: 'default', pro2: 'pro3' };
+    const mode = aliases[String(requestedMode ?? '')] || requestedMode;
+    return ['default', 'pro2', 'pro3', 'astra'].includes(mode) ? mode : 'default';
 }
 
 export function getPrashnaPayloadProfile(
@@ -165,7 +157,7 @@ export function getPrashnaPayloadProfile(
         return 'maximum';
     }
 
-    return ['pro', 'pro2', 'pro3', 'astra'].includes(mode)
+    return ['pro2', 'pro3', 'astra'].includes(mode)
         ? 'none'
         : 'maximum';
 }

@@ -182,7 +182,7 @@ function buildActiveCommunicationModelModeChain(_preferredMode = 'default') {
     // finite ladder as normal GPT routing. Older builds intentionally started
     // directly on Luna/Terra, which made visible replies look as if lower
     // models were failing even when they had never been tried.
-    return ['default', 'gpt54', 'gpt55', 'pro', 'pro2', 'pro3', 'astra'];
+    return ['default', 'pro3', 'astra'];
 }
 
 const ACTIVE_COMMUNICATION_PERSONAS = Object.freeze([

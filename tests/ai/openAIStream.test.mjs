@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
 import {
     consumeOpenAIStream,
     extractOpenAIFinalText,
@@ -86,3 +88,13 @@ async function testChatCompletionsNdjson() {
 await testResponsesApiSse();
 await testChatCompletionsNdjson();
 console.log('openAIStream tests: OK');
+
+test('abort signal cancels a stalled stream read', async () => {
+    const controller = new AbortController();
+    const response = new Response(new ReadableStream({ start() {}, cancel() {} }), {
+        headers: { 'content-type': 'text/event-stream' },
+    });
+    const read = consumeOpenAIStream(response, { signal: controller.signal });
+    controller.abort(new DOMException('stream idle timeout', 'TimeoutError'));
+    await assert.rejects(read, /stream idle timeout/u);
+});

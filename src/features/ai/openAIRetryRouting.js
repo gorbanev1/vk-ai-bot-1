@@ -5,11 +5,8 @@
  */
 export const GPT_MODEL_ADVANCEMENT_ORDER = Object.freeze([
     'default',
-    'gpt54',
-    'gpt55',
-    'pro',
-    'pro2',
     'pro3',
+    'astra',
 ]);
 
 export const OPENAI_RETRY_DELAY_MIN_MS = 5_000;
@@ -169,9 +166,8 @@ export async function executeOpenAITextRecovery({
 
 
 /**
- * Последовательно перебирает цепочку моделей. Каждая модель получает две
- * попытки: исходную и задержанный повтор через 5–30 секунд. После второго
- * временного отказа управление переходит к следующей модели цепочки.
+ * Последовательно перебирает модели и делает настроенное число попыток
+ * одной модели до перехода к следующей.
  */
 export async function executeOpenAIModelChainRecovery({
     candidates,

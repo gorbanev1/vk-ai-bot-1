@@ -122,11 +122,9 @@ function scoreModel(provider, model) {
         else if (/sonnet/u.test(id)) score += 3000;
         else if (/haiku/u.test(id)) score += 1000;
     } else if (provider === 'openai') {
-        if (/gpt-6(?:[-_.]astra)?/u.test(id)) score += 16000;
-        else if (/gpt-5\.6-sol/u.test(id)) score += 10000;
-        else if (/gpt-5\.6-terra/u.test(id)) score += 8000;
-        else if (/gpt-5\.6-luna/u.test(id)) score += 7000;
-        else if (/gpt-5\.4-mini/u.test(id)) score += 6000;
+        if (/gpt-6(?:[-_.](?:1-)?astra)?/u.test(id)) score += 16000;
+        else if (/gpt-6[.]1-sol/u.test(id)) score += 15000;
+        else if (/gpt-6-luna/u.test(id)) score += 14000;
         if (/image|audio|realtime|embedding|moderation/u.test(id)) score -= 20000;
     } else if (provider === 'xai') {
         if (/grok-4\.6/u.test(id)) score += 12000;

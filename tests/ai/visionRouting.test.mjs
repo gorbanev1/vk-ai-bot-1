@@ -10,12 +10,12 @@ import {
 
 assert.equal(resolveVisionMode('vision-default'), 'default');
 assert.equal(resolveVisionMode(''), 'default');
-assert.equal(resolveVisionMode('gpt54'), 'gpt54');
+assert.equal(resolveVisionMode('gpt54'), 'default');
 assert.equal(resolveVisionMode('pro3'), 'pro3');
 assert.deepEqual(getVisionModeChain('vision-default'), [
-    'default', 'gpt54', 'gpt55', 'pro', 'pro2', 'pro3',
+    'default', 'pro3', 'astra',
 ]);
-assert.deepEqual(getVisionModeChain('pro2'), ['pro2', 'pro3']);
+assert.deepEqual(getVisionModeChain('pro2'), ['pro3', 'astra']);
 
 assert.equal(isImageInspectionRequest('что на картинке?'), true);
 assert.equal(isImageInspectionRequest('Гигорейв, что изображено'), true);

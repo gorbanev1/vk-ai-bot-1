@@ -24,7 +24,7 @@ export async function runAstraTextStageWithRetry({
     stage, jobId = randomUUID(), prompt, systemPrompt, maxTokens,
     requestModel, onProgress = () => {}, journalRoot = resolve(process.env.GIGORAVE_TEXT_DATA_DIR || 'data', 'astra-text-jobs'),
     maxAttempts = 3, wait = sleep, allowAmbiguousRepost = false, recoverResponse = null, jobSignal = null,
-    model = 'gpt-5.4-mini', reasoningEffort = 'medium',
+    model = 'gpt-6-luna', reasoningEffort = 'none',
 }) {
     if (typeof requestModel !== 'function') throw new TypeError('requestModel is required');
     const stageName = safeName(stage);

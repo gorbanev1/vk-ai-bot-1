@@ -25,10 +25,10 @@ export function extractReasoningEffortModifier(input) {
 }
 export function getDefaultReasoningEffortForMode(mode) {
     const value = clean(mode).toLowerCase();
-    if (value === 'astra') return 'max';
-    if (['pro', 'pro2', 'pro3'].includes(value)) return 'high';
-    return 'medium';
+    if (value === 'default' || value === 'gpt54' || value === 'pro' || value === 'pro1' || value === 'luna') return 'none';
+    if (['astra', 'pro2', 'pro3', 'gpt55', 'sol', 'terra'].includes(value)) return 'low';
+    return 'none';
 }
 export function formatReasoningHelp() {
-    return 'Reasoning: low / medium / high / xhigh / max. Astra по умолчанию использует max.';
+    return 'Reasoning: Luna — none; Sol и Astra — low (при необходимости можно явно выбрать другой поддерживаемый уровень).';
 }

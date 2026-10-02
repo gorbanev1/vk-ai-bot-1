@@ -31,7 +31,7 @@ function modelId(provider, envName, model, capability) {
 function providerModelScore(provider, model) {
     const id = clean(model?.id || model).toLowerCase();
     let score = 0;
-    if (/gpt-5\.6|gpt-5\.5|gpt-5\.4/u.test(id)) score += 30_000;
+    if (/gpt-6(?:[.]1)?-(?:luna|sol|astra)/u.test(id)) score += 30_000;
     if (/grok-4\.6|grok-4\.3/u.test(id)) score += 29_000;
     if (/claude-(?:opus|sonnet)-4/u.test(id)) score += 28_000;
     if (/gemini-(?:3|2\.5)/u.test(id)) score += 27_000;

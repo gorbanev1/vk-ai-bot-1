@@ -33,6 +33,7 @@ export async function consumeOpenAIStream(response, {
     onDone,
     onComment,
     label = 'GPT',
+    signal = null,
 } = {}) {
     if (!response?.body) {
         throw new Error(`${label} API открыл поток без тела ответа.`);
@@ -68,37 +69,60 @@ export async function consumeOpenAIStream(response, {
         await onPayload?.(payload);
     };
 
-    while (true) {
-        const { value, done } = await reader.read();
-        if (value?.byteLength) {
-            onActivity?.({ bytes: value.byteLength, eventCount });
-            await onChunk?.(value);
-        }
-        buffer += decoder.decode(value ?? new Uint8Array(), {
-            stream: !done,
+    const readWithSignal = async () => {
+        if (!signal) return reader.read();
+        if (signal.aborted) throw signal.reason || new DOMException(`${label} stream aborted`, 'AbortError');
+
+        let removeAbortListener = null;
+        const aborted = new Promise((_, reject) => {
+            const onAbort = () => reject(signal.reason || new DOMException(`${label} stream aborted`, 'AbortError'));
+            signal.addEventListener('abort', onAbort, { once: true });
+            removeAbortListener = () => signal.removeEventListener('abort', onAbort);
+            if (signal.aborted) onAbort();
         });
-
-        if (eventStream) {
-            let match;
-
-            while ((match = /\r?\n\r?\n/u.exec(buffer))) {
-                const block = buffer.slice(0, match.index);
-                buffer = buffer.slice(match.index + match[0].length);
-                await consume(block);
-            }
-        } else {
-            let newlineIndex;
-
-            while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
-                const line = buffer.slice(0, newlineIndex);
-                buffer = buffer.slice(newlineIndex + 1);
-                await consume(line);
-            }
+        try {
+            return await Promise.race([reader.read(), aborted]);
+        } catch (error) {
+            void reader.cancel(error).catch(() => {});
+            throw error;
+        } finally {
+            removeAbortListener?.();
         }
+    };
 
-        if (done) {
-            break;
+    try {
+        while (true) {
+            const { value, done } = await readWithSignal();
+            if (value?.byteLength) {
+                onActivity?.({ bytes: value.byteLength, eventCount });
+                await onChunk?.(value);
+            }
+            buffer += decoder.decode(value ?? new Uint8Array(), {
+                stream: !done,
+            });
+
+            if (eventStream) {
+                let match;
+
+                while ((match = /\r?\n\r?\n/u.exec(buffer))) {
+                    const block = buffer.slice(0, match.index);
+                    buffer = buffer.slice(match.index + match[0].length);
+                    await consume(block);
+                }
+            } else {
+                let newlineIndex;
+
+                while ((newlineIndex = buffer.indexOf('\n')) >= 0) {
+                    const line = buffer.slice(0, newlineIndex);
+                    buffer = buffer.slice(newlineIndex + 1);
+                    await consume(line);
+                }
+            }
+
+            if (done) break;
         }
+    } finally {
+        try { reader.releaseLock(); } catch { /* A pending read may still own the lock. */ }
     }
 
     if (buffer.trim()) {
@@ -194,4 +218,43 @@ export function extractOpenAIFinalText(payload) {
 
 export function extractOpenAIStreamUsage(payload) {
     return payload?.usage ?? payload?.response?.usage ?? null;
+}
+
+export function createOpenAIStreamTextCollector() {
+    let streamedText = '';
+    let finalText = '';
+    let usage = null;
+    let finishReason = '';
+    let eventCount = 0;
+    let error = null;
+
+    return {
+        onPayload(payload) {
+            eventCount += 1;
+            if (payload?.error) {
+                const code = String(payload.error?.code ?? '').trim();
+                const message = String(payload.error?.message ?? payload.error).slice(0, 700);
+                error = new Error(`GPT STREAM ERROR${code ? ` ${code}` : ''}: ${message}`);
+                error.code = code || 'GPT_STREAM_ERROR';
+                throw error;
+            }
+            const delta = extractOpenAIIncrementalText(payload);
+            if (delta) streamedText += String(delta);
+            const completed = extractOpenAIFinalText(payload);
+            const normalized = Array.isArray(completed) ? completed.join('') : String(completed ?? '');
+            if (normalized.trim()) finalText = normalized;
+            const reason = String(payload?.choices?.[0]?.finish_reason ?? '').trim();
+            if (reason) finishReason = reason;
+            usage = extractOpenAIStreamUsage(payload) || usage;
+        },
+        result() {
+            return {
+                text: (finalText.trim() || streamedText.trim()),
+                usage,
+                finishReason,
+                eventCount,
+                error,
+            };
+        },
+    };
 }

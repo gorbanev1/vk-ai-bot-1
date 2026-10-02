@@ -1480,7 +1480,7 @@ export async function summarizeAuditWithSol({ report, env = process.env, fetchIm
     const key = clean(env.OPENAI_COMPAT_API_KEY);
     if (!key) return { ok: false, error: 'OPENAI_COMPAT_API_KEY отсутствует; Sol summary пропущен.' };
     const baseUrl = clean(env.OPENAI_COMPAT_BASE_URL) || 'https://router.cheap/v1';
-    const model = clean(env.GPT_MODEL_PRO3) || 'gpt-5.6-sol';
+    const model = clean(env.GPT_MODEL_PRO3) || 'gpt-6.1-sol';
     const facts = buildCompactAuditFacts(report);
     const prompt = [
         'Ты GPT-5.6 Sol. Кратко проанализируй технический аудит AI-провайдеров бота Gigorave.',

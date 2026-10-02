@@ -123,7 +123,7 @@ function modelPriority(model, capability, attemptRows = [], live = false) {
         else if (['payload_or_endpoint', 'model_or_endpoint', 'other'].includes(failure.kind)) score += 20;
         if (isNoFundsCredentialResult(row) || failure.kind === 'invalid_key' || failure.kind === 'access_denied') score -= 100;
     }
-    if (/(?:gpt-5|gpt-4o|claude|gemini|llama|qwen|mixtral|mistral|deepseek|gpt-oss)/u.test(id)) score += capability === 'text' ? 8 : 0;
+    if (/(?:gpt-6|gpt-5|gpt-4o|claude|gemini|llama|qwen|mixtral|mistral|deepseek|gpt-oss)/u.test(id)) score += capability === 'text' ? 8 : 0;
     if (/(?:gpt-image|image|imagen|flux|stable|sdxl)/u.test(id)) score += capability === 'image' ? 8 : 0;
     return score;
 }

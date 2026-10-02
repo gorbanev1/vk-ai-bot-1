@@ -54,19 +54,25 @@ export function buildVisionTaskDescriptor(value) {
 
 export const VISION_MODEL_MODE_ORDER = Object.freeze([
     'default',
-    'gpt54',
-    'gpt55',
-    'pro',
-    'pro2',
     'pro3',
     'astra',
 ]);
 
+const LEGACY_VISION_MODE_ALIASES = Object.freeze({
+    gpt54: 'default',
+    gpt55: 'pro3',
+    pro: 'default',
+    pro1: 'default',
+    pro2: 'pro3',
+    luna: 'default',
+    sol: 'pro3',
+});
+
 export function resolveVisionMode(value = 'vision-default') {
     const mode = String(value ?? '').trim();
-
-    return VISION_MODEL_MODE_ORDER.includes(mode)
-        ? mode
+    const canonical = LEGACY_VISION_MODE_ALIASES[mode] || mode;
+    return VISION_MODEL_MODE_ORDER.includes(canonical)
+        ? canonical
         : 'default';
 }
 

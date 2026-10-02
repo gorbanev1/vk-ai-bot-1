@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { executeRuntimeModelFailover } from '../../src/features/ai/modelProviderFailover.js';
+import { executeRuntimeModelFailover, isTechnicalModelFailure } from '../../src/features/ai/modelProviderFailover.js';
 
 const candidate = {
     provider: 'compat',
@@ -34,4 +34,31 @@ test('V188.48: model retry/backoff stops immediately when operation is aborted',
     controller.abort(error);
     await assert.rejects(run, (caught) => caught === error || caught?.code === 'OPERATION_TIMEOUT');
     assert.equal(attempts, 1, 'abort during retry backoff must prevent the next model attempt');
+});
+
+test('request-local timeout and stream idle watchdog failures retry then advance the model ladder', async () => {
+    assert.equal(isTechnicalModelFailure(new DOMException('GPT vision stream produced no bytes for 900000 ms', 'TimeoutError')), true);
+    assert.equal(isTechnicalModelFailure(Object.assign(new Error('The operation was aborted due to timeout'), { name: 'AbortError' })), true);
+    assert.equal(isTechnicalModelFailure(Object.assign(new Error('operation cancelled by owner'), { code: 'OPERATION_CANCELLED' })), false);
+    assert.equal(isTechnicalModelFailure(Object.assign(new Error('operation deadline exceeded'), { code: 'OPERATION_TIMEOUT' })), false);
+
+    const calls = [];
+    const candidates = [candidate, { ...candidate, model: 'gpt-5.5', mode: 'gpt55' }];
+    const result = await executeRuntimeModelFailover({
+        candidates,
+        failuresBeforeQuarantine: 3,
+        maxRounds: 1,
+        useCredentialHealth: false,
+        sleep: async () => {},
+        request: async (credential) => {
+            calls.push(credential.model);
+            if (credential.model === 'gpt-test') {
+                throw new DOMException('GPT vision stream produced no bytes for 900000 ms', 'TimeoutError');
+            }
+            return 'recovered';
+        },
+    });
+
+    assert.equal(result.value, 'recovered');
+    assert.deepEqual(calls, ['gpt-test', 'gpt-test', 'gpt-test', 'gpt-5.5']);
 });

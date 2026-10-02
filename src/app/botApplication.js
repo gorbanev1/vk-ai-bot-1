@@ -1,3 +1,5 @@
+import { resolveVkOriginalPosts } from '../features/events/vkOriginalPost.js';
+import { explainEventAiAdmission } from '../features/events/eventAiAdmission.js';
 /**
  * Главный оркестратор: связывает VK, Telegram, GPT, базу, события и фоновые задачи. Здесь должны оставаться только сценарии верхнего уровня; чистую логику выносим в features/shared.
  */
@@ -33,10 +35,12 @@ import {
     requestOperationStop,
     requestStopWhere,
     runSupervisedOperation,
-    saveOperationCheckpoint,
+    reconcileInterruptedOperationCheckpoints,
+    saveOperationCheckpoint as persistOperationCheckpoint,
     updateOperationProgress,
 } from '../runtime/operationSupervisor.js';
 import { basename, dirname, extname, resolve, sep } from 'node:path';
+import { loadLatestParserAllRecovery, mergeParserAllCheckpoint, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand } from '../features/scrapers/parserAllRecovery.js';
 import { BOT_PATCH_VERSION } from '../shared/buildVersion.js';
 import { eventPosterRevisionEvidence } from '../features/events/eventSourceRevisionEvidence.js';
 import { createProjectAuditStreamJournal } from '../features/audit/projectAuditStreamJournal.js';
@@ -136,6 +140,8 @@ import {
     clearCommunicationBanterStatesForPeer,
     auditInvalidEventRecords,
     replaceEventDedupeRegistry,
+    getEventDedupeRegistryStats,
+    getEventDedupeDuplicateRefs,
     updateStoredEventRecordFromReparse,
     updateStoredEventSemanticFieldsByOwner,
     consumeUserRateLimit,
@@ -145,8 +151,10 @@ import {
     consumeDmAiNotice,
     getPermanentEventBlocks,
     permanentlyDeleteStoredEvent,
+    permanentlyDeleteStoredEventByIdentity,
     restorePermanentEventBlocks,
     softDeleteMatchingStoredEvents,
+    softDeleteStoredEventByIdentity,
     cleanupDisabledCommunicationAutonomy,
     disableLegacyCommunicationOutburstAutomation,
     getDmPartyFaqAnswers,
@@ -384,6 +392,7 @@ import {
     assignEventImageIndexesFromFacts,
     assignEventImageIndexesFromParsedFacts,
     parseIndexedImageFacts,
+    serializeIndexedImageFacts,
     applyPosterDerivedVenueFallback,
     filterEventsWithAnnouncementImages,
     prepareEventImages,
@@ -539,6 +548,7 @@ import {
     extractOpenAIFinalText,
     extractOpenAIIncrementalText,
     extractOpenAIStreamUsage,
+    createOpenAIStreamTextCollector,
 } from '../features/ai/openAIStream.js';
 
 import {
@@ -570,6 +580,7 @@ import {
     isTechnicalModelFailure,
     resolveProviderModel,
 } from '../features/ai/modelProviderFailover.js';
+import { GPT_MODEL_LADDER, PARSER_MODEL_LADDER, POSTER_VISION_MODEL_LADDER, createParserModelSerialQueue, getGptModelLadderFrom, isRetiredParserModelError, normalizeGpt6ModelId, modelAttemptLimit } from '../features/ai/parserModelLadder.js';
 
 import {
     collectTelegramVoiceAttachments,
@@ -824,6 +835,7 @@ import {
 import {
     buildTelegramEventDeletionMenu,
     buildTelegramEventCandidateSelectionMenu,
+    buildTelegramEventOwnerActions,
     buildTelegramMainMenu,
     buildTelegramPartyMenu,
     createTelegramBot,
@@ -951,6 +963,15 @@ import {
 } from '../features/events/eventValidation.js';
 
 import {
+    buildEventTitleContractPrompt,
+} from '../features/events/eventIdentityTokens.js';
+
+import {
+    collectOwnerEventSourceMaterials,
+    formatOwnerEventSourceRecord,
+} from '../features/events/eventSourceMaterials.js';
+
+import {
     analyzeEventProposalDrafts,
     applyEventProposalCorrections,
     extractEventProposalRestartSource,
@@ -970,6 +991,7 @@ import {
 import {
     parsePublicPostLocally,
     publicPostLooksLikeEventCandidate,
+    setPublicAiResponseMetadata,
 } from '../features/events/publicPostLocalParser.js';
 
 import {
@@ -978,6 +1000,7 @@ import {
 
 import {
     eventHasSafePosterMatch,
+    getEventSourceMediaBindingAssessment,
     getEventPosterSafetyAssessment,
     formatEventProvenance,
 } from '../features/events/eventProvenance.js';
@@ -1232,8 +1255,8 @@ const EVENT_PROPOSAL_AI_TIMEOUT_MS = clampInteger(
 const EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS = clampInteger(
     Number(process.env.EVENT_PARSER_AI_ATTEMPT_TIMEOUT_SECONDS) * 1000,
     60_000,
-    180_000,
-    75_000,
+    900_000,
+    900_000,
 );
 const EVENT_SOURCE_REFRESH_TIMEOUT_MS = clampInteger(
     Number(process.env.EVENT_SOURCE_REFRESH_TIMEOUT_SECONDS) * 1000,
@@ -1282,6 +1305,7 @@ if (telegramOwnerInternalUserId) {
 
 let telegramBotUsername = '';
 let telegramBotStarted = false;
+let interruptedOperationsFromPriorRun = [];
 
 function hasUnlimitedRequests(userId) {
     return UNLIMITED_USER_IDS.has(Number(userId));
@@ -2815,7 +2839,36 @@ function runtimeModelCandidateKey(credential, model, capability) {
     ]);
 }
 
-function buildRuntimeModelCandidates({ capability = 'text', modes = [], requestedModel = '', useHealthFilter = true } = {}) {
+function normalizeRuntimeModelId(value, fallback = 'gpt-6-luna') {
+    const id = String(value ?? '').trim();
+    if (!id) return fallback;
+    if (/(?:gpt[-_ ]?image|dall[\s_-]?e|imagine)/iu.test(id)) return id;
+    // GPT-5 and legacy GPT-6 aliases must never reach the provider. Keep
+    // non-GPT provider ids (for example xAI models) unchanged.
+    if (/gpt/iu.test(id)) return normalizeGpt6ModelId(id, fallback);
+    if (/^luna$/iu.test(id)) return 'gpt-6-luna';
+    if (/^terra$/iu.test(id)) return 'gpt-6-luna';
+    if (/^sol$/iu.test(id)) return 'gpt-6.1-sol';
+    if (/^astra$/iu.test(id)) return 'gpt-6-astra';
+    return id;
+}
+
+function buildRuntimeModelCandidates({ capability = 'text', modes = [], requestedModel = '', modelLadder = null, useHealthFilter = true } = {}) {
+    if (Array.isArray(modelLadder) && modelLadder.length) {
+        const credential = runtimeModelCredentials.find((item) => item.provider === 'compat');
+        if (!credential) return [];
+        return modelLadder.map((step, index) => ({
+            ...credential,
+            model: normalizeRuntimeModelId(step.model),
+            mode: String(step.mode || ''),
+            capability,
+            ladderStep: index + 1,
+            ladderTotal: modelLadder.length,
+            attemptLimit: Math.max(1, Number(step.attempts) || modelAttemptLimit(step.model, 3)),
+            imageDetail: String(step.detail || '').trim(),
+            source: 'parser-model-ladder',
+        })).filter((candidate) => candidate.model);
+    }
     const logicalModes = Array.isArray(modes) && modes.length
         ? modes
         : [getConfiguredModeForModel(requestedModel)];
@@ -2827,8 +2880,8 @@ function buildRuntimeModelCandidates({ capability = 'text', modes = [], requeste
 
     for (const mode of logicalModes) {
         const compatibleModel = mode === getConfiguredModeForModel(requestedModel) && requestedModel
-            ? String(requestedModel).trim()
-            : String(configuredGptModels?.[mode] || requestedModel || '').trim();
+            ? normalizeRuntimeModelId(requestedModel)
+            : normalizeRuntimeModelId(configuredGptModels?.[mode] || requestedModel);
         for (const credential of runtimeModelCredentials) {
             const healthProvider = runtimeProviderHealthName(credential.provider);
             const keyRow = keyHealth.get(`${healthProvider}\u0000${credential.name}`);
@@ -2875,7 +2928,7 @@ function buildRuntimeModelCandidates({ capability = 'text', modes = [], requeste
             for (const credential of runtimeModelCredentials) {
                 const healthProvider = runtimeProviderHealthName(credential.provider);
                 if (healthProvider !== discovered.provider || credential.name !== discovered.envName) continue;
-                const model = String(discovered.model || '').trim();
+                const model = normalizeRuntimeModelId(discovered.model);
                 if (!model) continue;
                 const signature = runtimeModelCandidateKey(credential, model, capability);
                 if (seen.has(signature)) continue;
@@ -2903,17 +2956,22 @@ async function executeBotModelFailover({
     requestedModel = '',
     request,
     failoverMaxRounds = null,
+    roundRetryDelayMs = null,
     failuresBeforeQuarantine = null,
     maxCandidates = 0,
     useCredentialHealth = true,
     oneCandidatePerMode = false,
+    modelLadder = null,
+    streamOverride = undefined,
     onFailoverEvent = null,
     shouldRetry = null,
+    shouldAdvanceCandidate = null,
 }) {
     let candidates = buildRuntimeModelCandidates({
         capability,
         modes,
         requestedModel,
+        modelLadder,
         // Event-parser calls set useCredentialHealth=false on purpose: a timeout
         // on one source must not poison the next source via the persistent
         // health/quarantine cache. In that mode we also bypass the older
@@ -2921,7 +2979,7 @@ async function executeBotModelFailover({
         // real attempts before the ladder advances.
         useHealthFilter: useCredentialHealth,
     });
-    if (oneCandidatePerMode) {
+    if (oneCandidatePerMode && !(Array.isArray(modelLadder) && modelLadder.length)) {
         const seenModes = new Set();
         candidates = candidates.filter((candidate) => {
             const mode = String(candidate?.mode || '');
@@ -2932,17 +2990,29 @@ async function executeBotModelFailover({
     }
     const safeMaxCandidates = Math.max(0, Number(maxCandidates) || 0);
     if (safeMaxCandidates > 0) candidates = candidates.slice(0, safeMaxCandidates);
-    const failoverOptions = {};
-    if (Number.isInteger(failoverMaxRounds) && failoverMaxRounds > 0) {
-        failoverOptions.maxRounds = failoverMaxRounds;
-    }
+    const failoverOptions = {
+        // A logical request gets one finite ladder pass unless a caller
+        // explicitly asks for additional recovery rounds.
+        maxRounds: Number.isInteger(failoverMaxRounds) && failoverMaxRounds > 0
+            ? failoverMaxRounds
+            : 1,
+    };
     if (Number.isInteger(failuresBeforeQuarantine) && failuresBeforeQuarantine > 0) {
         failoverOptions.failuresBeforeQuarantine = failuresBeforeQuarantine;
     }
     return executeRuntimeModelFailover({
         candidates,
         ...failoverOptions,
+        roundRetryDelayMs,
         ...(typeof shouldRetry === 'function' ? { shouldRetry } : {}),
+        ...(typeof shouldAdvanceCandidate === 'function' ? {
+            shouldAdvanceCandidate: (error, context) =>
+                context?.credential?.source === 'parser-model-ladder' && shouldAdvanceCandidate(error, context),
+        } : {}),
+        attemptsForCandidate: (candidate) => Math.max(
+            1,
+            Number(candidate?.attemptLimit) || modelAttemptLimit(candidate?.model, failuresBeforeQuarantine || 3),
+        ),
         useCredentialHealth,
         signal: getCurrentOperationSignal(),
         request: (credential, meta) => request(credential, meta),
@@ -2954,6 +3024,10 @@ async function executeBotModelFailover({
             const mode = String(credential.mode || '');
             const ladderIndex = SUMMARY_MODEL_MODE_ORDER.indexOf(mode);
             const requestId = getCurrentAiRequestId();
+            if (capability === 'vision' && getCurrentOperation()?.category === 'parser') {
+                try { recordParserVisionTiming({ ...event, requestId, model, mode, provider, keyName, ladderStep: Number(credential.ladderStep || (ladderIndex >= 0 ? ladderIndex + 1 : 0)) }); }
+                catch (error) { console.warn('[PARSER VISION TIMING ERROR]', formatPrivateError(error)); }
+            }
             const failoverRecord = {
                 requestId,
                 type: String(event.type || ''),
@@ -2987,7 +3061,7 @@ async function executeBotModelFailover({
                     `provider=${provider}`,
                     `key=${keyName}`,
                     `model=${model}`,
-                    `attempt=${event.attempt}/${failoverOptions.failuresBeforeQuarantine || 3}`,
+                    `attempt=${event.attempt}/${event.attemptLimit || failoverOptions.failuresBeforeQuarantine || 3}`,
                     formatPrivateError(event.error),
                 );
             } else if (event.type === 'rotate') {
@@ -2997,7 +3071,7 @@ async function executeBotModelFailover({
                     `provider=${provider}`,
                     `key=${keyName}`,
                     `model=${model}`,
-                    `reason=${failoverOptions.failuresBeforeQuarantine || 3}-failures`,
+                    `reason=${event.attemptLimit || failoverOptions.failuresBeforeQuarantine || 3}-attempts`,
                 );
             } else if (event.type === 'success' && (event.attempt > 1 || event.round > 1 || provider !== 'compat')) {
                 console.log(
@@ -3404,18 +3478,43 @@ function createIdleAbortWatchdog(timeoutMs, label = 'stream') {
     return { signal: controller.signal, touch, dispose };
 }
 
+function saveOperationCheckpoint(checkpoint, options) {
+    const operation = getCurrentOperation();
+    return persistOperationCheckpoint(/^parser-all(?:$|[:-])/u.test(operation?.name || '')
+        ? mergeParserAllCheckpoint(operation.checkpoint, checkpoint) : checkpoint, options);
+}
+
+async function notifyParserRecovery(recovery) {
+    if (!recovery || recovery.reason === 'superseded' || !telegramBotStarted || !telegramOwnerExternalUserId) return false;
+    if (existsSync(recovery.noticePath)) return false;
+    const notice = buildParserRecoveryNotice(recovery);
+    await telegramBot.api.sendMessage({ chatId: telegramOwnerExternalUserId, text: notice.text, replyMarkup: notice.replyMarkup });
+    writeFileSync(recovery.noticePath, new Date().toISOString(), 'utf8');
+    return true;
+}
+
 function runDetachedSupervisedOperation({
     name,
     category = 'background',
     metadata = {},
     timeoutMs = DEFAULT_OPERATION_TIMEOUT_MS,
 } = {}, task) {
+    let operationId = '';
     const promise = runSupervisedOperation({
         name,
         category,
         metadata,
         timeoutMs,
-    }, task);
+    }, (operation) => {
+        operationId = operation.id;
+        return task(operation);
+    });
+    if (/^parser-all(?:$|[:-])/u.test(name || '')) {
+        const notify = () => notifyParserRecovery(loadLatestParserAllRecovery({
+            partyPool: metadata.partyPool || PARTY_POOL_PRIMARY, expectedId: operationId,
+        })).catch((error) => console.warn('[PARSER RECOVERY NOTICE FAILED]', formatPrivateError(error)));
+        void promise.then(notify, notify).catch((error) => console.warn('[PARSER RECOVERY LOOKUP FAILED]', formatPrivateError(error)));
+    }
     void promise.catch((error) => {
         auditRuntimeEvent('operation.detached.rejected', {
             name,
@@ -3432,48 +3531,43 @@ function runDetachedSupervisedOperation({
 }
 
 const DEFAULT_GPT_MODEL_IDS = Object.freeze({
-    default: 'gpt-5.4-mini',
-    gpt54: 'gpt-5.4',
-    gpt55: 'gpt-5.5',
-    pro: 'gpt-5.6-luna',
-    pro2: 'gpt-5.6-terra',
-    pro3: 'gpt-5.6-sol',
+    default: 'gpt-6-luna',
+    // Legacy keys remain accepted by the command parser, but never resolve
+    // to retired GPT-5 IDs. They are aliases for the current GPT-6 ladder.
+    gpt54: 'gpt-6-luna',
+    gpt55: 'gpt-6.1-sol',
+    pro: 'gpt-6-luna',
+    pro2: 'gpt-6.1-sol',
+    pro3: 'gpt-6.1-sol',
     astra: 'gpt-6-astra',
 });
 const configuredGptModels = {
     default:
-        process.env.GPT_MODEL_DEFAULT?.trim() ||
-        DEFAULT_GPT_MODEL_IDS.default,
+        normalizeGpt6ModelId(process.env.GPT_MODEL_DEFAULT?.trim(), DEFAULT_GPT_MODEL_IDS.default),
     gpt54:
-        process.env.GPT_MODEL_GPT54?.trim() ||
-        DEFAULT_GPT_MODEL_IDS.gpt54,
+        normalizeGpt6ModelId(process.env.GPT_MODEL_GPT54?.trim(), DEFAULT_GPT_MODEL_IDS.gpt54),
     gpt55:
-        process.env.GPT_MODEL_GPT55?.trim() ||
-        DEFAULT_GPT_MODEL_IDS.gpt55,
+        normalizeGpt6ModelId(process.env.GPT_MODEL_GPT55?.trim(), DEFAULT_GPT_MODEL_IDS.gpt55),
     pro:
-        process.env.GPT_MODEL_PRO?.trim() ||
-        DEFAULT_GPT_MODEL_IDS.pro,
+        normalizeGpt6ModelId(process.env.GPT_MODEL_PRO?.trim(), DEFAULT_GPT_MODEL_IDS.pro),
     pro2:
-        process.env.GPT_MODEL_PRO2?.trim() ||
-        DEFAULT_GPT_MODEL_IDS.pro2,
+        normalizeGpt6ModelId(process.env.GPT_MODEL_PRO2?.trim(), DEFAULT_GPT_MODEL_IDS.pro2),
     pro3:
-        process.env.GPT_MODEL_PRO3?.trim() ||
-        DEFAULT_GPT_MODEL_IDS.pro3,
+        normalizeGpt6ModelId(process.env.GPT_MODEL_PRO3?.trim(), DEFAULT_GPT_MODEL_IDS.pro3),
     astra:
-        process.env.GPT_MODEL_ASTRA?.trim() ||
-        DEFAULT_GPT_MODEL_IDS.astra,
+        normalizeGpt6ModelId(process.env.GPT_MODEL_ASTRA?.trim(), DEFAULT_GPT_MODEL_IDS.astra),
 };
 
 function getConfiguredModeForModel(model) {
     const modelId = String(model ?? '').trim();
 
-    for (const mode of ['astra', 'pro3', 'pro2', 'pro', 'gpt55', 'gpt54', 'default']) {
+    for (const mode of ['astra', 'pro3', 'pro2', 'default', 'pro', 'gpt55', 'gpt54']) {
         if (configuredGptModels[mode] === modelId) {
             return mode;
         }
     }
 
-    for (const mode of ['astra', 'pro3', 'pro2', 'pro', 'gpt55', 'gpt54', 'default']) {
+    for (const mode of ['astra', 'pro3', 'pro2', 'default', 'pro', 'gpt55', 'gpt54']) {
         const family = gptModeSettings?.[mode]?.modelFamily;
 
         if (family && modelMatchesFamily(modelId, family)) {
@@ -3491,32 +3585,32 @@ const GOOGLE_GEOCODING_TIMEOUT_MS = 15 * 1000;
 
 const gptModeSettings = Object.freeze({
     default: {
-        label: 'GPT mini',
-        modelFamily: 'mini54',
+        label: 'GPT-6 Luna',
+        modelFamily: 'luna',
         limit: GPT_DAILY_LIMITS.default,
     },
     gpt54: {
-        label: 'GPT 5.4',
-        modelFamily: 'gpt54',
+        label: 'GPT-6 Luna (legacy alias)',
+        modelFamily: 'luna',
         limit: GPT_DAILY_LIMITS.gpt54,
     },
     gpt55: {
-        label: 'GPT 5.5',
-        modelFamily: 'gpt55',
+        label: 'GPT-6.1 Sol (legacy alias)',
+        modelFamily: 'sol',
         limit: GPT_DAILY_LIMITS.gpt55,
     },
     pro: {
-        label: 'GPT pro',
+        label: 'GPT-6 Luna',
         modelFamily: 'luna',
         limit: GPT_DAILY_LIMITS.pro,
     },
     pro2: {
-        label: 'GPT pro2',
-        modelFamily: 'terra',
+        label: 'GPT-6.1 Sol',
+        modelFamily: 'sol',
         limit: GPT_DAILY_LIMITS.pro2,
     },
     pro3: {
-        label: 'GPT pro3',
+        label: 'GPT-6.1 Sol',
         modelFamily: 'sol',
         limit: GPT_DAILY_LIMITS.pro3,
     },
@@ -3537,7 +3631,7 @@ function isDefaultMiniModel(model) {
     const modelId = String(model ?? '').trim();
     return Boolean(modelId) && (
         modelId === String(configuredGptModels.default || '').trim() ||
-        modelMatchesFamily(modelId, 'mini54')
+        modelMatchesFamily(modelId, 'luna')
     );
 }
 
@@ -3845,6 +3939,7 @@ function resolveTelegramUserIdentity({ userId }) {
 const telegramBot = createTelegramBot({
     token: telegramBotToken,
     onMessage: handleTelegramIncoming,
+    onCallbackQuery: handleTelegramEventCardCallbackUpdate,
     resolvePeerId: resolveTelegramPeerIdentity,
     resolveUserId: resolveTelegramUserIdentity,
     ownerUserId: telegramOwnerExternalUserId,
@@ -4292,6 +4387,33 @@ async function attemptTelegramConnection({
                         ? `username=@${telegramBotUsername}`
                         : `botId=${telegramInfo?.id ?? 'unknown'}`,
                 );
+                for (const partyPool of [PARTY_POOL_PRIMARY, PARTY_POOL_SECONDARY]) {
+                    try {
+                        const recovery = loadLatestParserAllRecovery({ partyPool });
+                        if (recovery && !listActiveOperations().some((operation) => operation.id === recovery.id)) {
+                            await notifyParserRecovery(recovery);
+                        }
+                    } catch (error) {
+                        console.warn('[PARSER STARTUP RECOVERY NOTICE FAILED]', formatPrivateError(error));
+                    }
+                }
+                if (interruptedOperationsFromPriorRun.length) {
+                    const interrupted = interruptedOperationsFromPriorRun;
+                    const report = [
+                        `⚠️ При перезапуске обнаружено незавершённых операций: ${interrupted.length}. Сохранённые checkpoint проверены; для доступного кэша парсера отправлено отдельное предложение продолжить.`,
+                        ...interrupted.slice(0, 12).map((operation, index) => {
+                            const phase = operation.checkpoint?.phase || operation.progress?.phase || 'неизвестная фаза';
+                            const trace = operation.checkpoint?.tracePath || operation.progress?.tracePath || '';
+                            return `${index + 1}. ${operation.name || operation.id} — ${phase}${trace ? `; лог: ${trace}` : ''}`;
+                        }),
+                    ].join('\n');
+                    try {
+                        await sendAiModelDiscoveryOwnerReport(report);
+                        interruptedOperationsFromPriorRun = [];
+                    } catch (error) {
+                        console.warn('[INTERRUPTED OPERATIONS OWNER NOTICE FAILED]', formatPrivateError(error));
+                    }
+                }
 
                 return {
                     ok: true,
@@ -4728,6 +4850,7 @@ const qticketsScraper = qticketsScraperEnabled
     : null;
 let qticketsScrapePromise = null;
 
+
 function getManualScraperSources(partyPool = PARTY_POOL_PRIMARY) {
     const normalizedPool = partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
     const telegramScrapers = normalizedPool === PARTY_POOL_SECONDARY
@@ -4966,8 +5089,10 @@ function formatManualScraperStartHelp(unknownSource = '', partyPool = PARTY_POOL
     lines.push(
         'Доступные команды парсера:',
         '• Гигорейв парсер — показать эту подсказку.',
-        '• Гигорейв парсер все / тусы парсер все — полный проход всех настроенных источников.',
-        '• Гигорейв парсер все чисто — быстрый инкрементальный проход: уже виденные source+item id отбрасываются до алгоритма/vision/AI; обрабатываются только новые сообщения и посты.',
+        '• Гигорейв парсер все / тусы парсер все — полный повторный разбор текущей захваченной пачки постов и сообщений по всем источникам основного пула.',
+        '• Гигорейв парсер все чисто — инкрементальный проход: та же source+item запись с финальным статусом и неизменным content hash пропускается до алгоритма/vision/AI.',
+        '• Гигорейв парсер все новые — явный алиас инкрементального режима «парсер все чисто».',
+        '• Гигорейв парсер все восстановить — продолжить последний прерванный parser-all с валидного raw-cache/checkpoint; завершённые ledger-записи не повторяются.',
         '• Гигорейв добавить источник <ссылка> / тусы добавить источник <ссылка> — сохранить новый источник основного пула.',
         '• тусы удалить источник <tg:имя | vk:имя | ссылка> — убрать добавленный владельцем источник из текущего пула и SQLite-реестра, не удаляя старые события.',
         '• тусы быдлячьи добавить источник <ссылка> — сохранить источник отдельного второстепенного пула (алиас: тусы второстепенные добавить источник ...).',
@@ -5038,6 +5163,8 @@ async function startManualScraperSource(sourceId, {
     processingLimiter = null,
     incrementalOnly = false,
     partyPool = PARTY_POOL_PRIMARY,
+    cachedItems = null,
+    resumeCompletedSince = 0,
 } = {}) {
     const normalizedPool = partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
     const normalizedSourceId = String(sourceId ?? '').trim().toLowerCase();
@@ -5084,6 +5211,8 @@ async function startManualScraperSource(sourceId, {
                     : {}),
                 processingLimiter,
                 incrementalOnly: Boolean(incrementalOnly),
+                cachedItems,
+                resumeCompletedSince,
                 // Only this explicitly reported source receives the 20-message
                 // shallow policy in parser-all. Other chat configurations and
                 // single-source/live commands keep their original backfill.
@@ -5154,6 +5283,8 @@ async function startManualScraperSource(sourceId, {
             : {}),
         processingLimiter,
         incrementalOnly: Boolean(incrementalOnly),
+        cachedItems,
+        resumeCompletedSince,
         ...(source.kind === 'vk-public' ? { singleOpenPerRun: true } : {}),
     });
     const lines = [formatManualPublicScraperResult(source, result)];
@@ -5305,11 +5436,13 @@ async function startManualScraperSourceWithRecoveryInner(source, options = {}) {
     }
 }
 
-async function startAllManualScraperSources({ incrementalOnly = false, partyPool = PARTY_POOL_PRIMARY } = {}) {
+async function startAllManualScraperSources({ incrementalOnly = false, partyPool = PARTY_POOL_PRIMARY, recovery = null } = {}) {
     const normalizedPool = partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
     // Preserve the configured source order. In V188.141 sorting by backfill
     // placed the slow c22 chat first, before every other source.
-    const sources = getManualScraperSources(normalizedPool);
+    const configuredSources = getManualScraperSources(normalizedPool);
+    const sources = recovery?.sourceIds?.length
+        ? configuredSources.filter((source) => recovery.sourceIds.includes(source.id)) : configuredSources;
 
     if (!sources.length) {
         return {
@@ -5342,6 +5475,13 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         dataDirectory: './data',
         label: `${normalizedPool === PARTY_POOL_SECONDARY ? 'parser-all-secondary' : 'parser-all'}${incrementalOnly ? '-clean' : ''}`,
     });
+    saveOperationCheckpoint({
+        kind: 'parser-all', phase: 'parser-capture', partyPool: normalizedPool,
+        sourceIds: sources.map((source) => source.id), tracePath: diagnostics.relativeLogPath,
+        recoveryStartedAt: recovery?.startedAt || getCurrentOperation()?.startedAt,
+        recoveryIncrementalOnly: recovery?.originalIncrementalOnly ?? incrementalOnly,
+        captures: recovery ? [...recovery.cacheRows].map(([sourceId, row]) => ({ sourceId, cachePath: row.path, itemCount: row.itemCount })) : [],
+    }, { event: 'parser.checkpoint.manifest' });
     const expectedSourceCount = normalizedPool === PARTY_POOL_PRIMARY ? 16 : null;
     const sourceRegistry = sources.map((source, index) => ({
         index, sourceId: source.id, kind: source.kind, label: source.label,
@@ -5377,6 +5517,7 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
     const posterGateResults = new Map();
     const candidateState = new Map();
     let totalCandidateCount = 0;
+    const visionModelMetrics = new Map();
     let processingStarted = false;
     let releasePosterGateGate = null;
     const posterGateGate = new Promise((resolvePromise) => {
@@ -5645,6 +5786,7 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         saveOperationCheckpoint({
             kind: incrementalOnly ? 'parser-all-clean' : 'parser-all',
             ...captureProgress,
+            captures: [...captureState.values()].map(({ sourceId, cachePath, itemCount, error }) => ({ sourceId, cachePath, itemCount, error })),
         }, { event: 'parser.checkpoint.capture-progress' });
     }
 
@@ -5670,7 +5812,7 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
     }
 
     const tasks = sources.map(async (source, index) => {
-        const isVkBrowserSource = source.kind === 'vk-chat' || source.kind === 'vk-public';
+        const isVkBrowserSource = !recovery?.cacheRows?.has(source.id) && (source.kind === 'vk-chat' || source.kind === 'vk-public');
         // Reserve launch order synchronously, before the first await. This
         // reservation is released on SOURCE START, not on its capture callback.
         const vkLaunchReservation = isVkBrowserSource
@@ -5713,6 +5855,9 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
                 processingConcurrency,
                 processingLimiter,
                 incrementalOnly: Boolean(incrementalOnly),
+                cachedItems: recovery?.cacheRows?.get(source.id)?.items || null,
+                resumeCompletedSince: recovery && !recovery.originalIncrementalOnly
+                    ? Math.floor(Date.parse(recovery.startedAt) / 1000) : 0,
                 onCaptureComplete: (payload) => {
                     finishCaptureBarrier(source, payload);
                 },
@@ -5817,6 +5962,57 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         6,
     );
     const posterGateLimiter = createManualParserLimiter(posterGateConcurrency);
+    let posterGateCompleted = 0;
+    const summarizeVisionModelMetrics = () => [...visionModelMetrics.values()]
+        .map((metric) => {
+            const sorted = [...metric.durationsMs].sort((a, b) => a - b);
+            return {
+                model: metric.model, mode: metric.mode, provider: metric.provider, keyName: metric.keyName, ladderStep: metric.ladderStep,
+                attempts: metric.attempts, responses: metric.responses, successes: metric.successes, failures: metric.failures, timeouts: metric.timeouts,
+                averageMs: metric.responses ? Math.round(metric.totalMs / metric.responses) : 0,
+                p50Ms: sorted.length ? sorted[Math.floor((sorted.length - 1) * 0.5)] : 0,
+                p95Ms: sorted.length ? sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.95) - 1)] : 0,
+                maxMs: sorted.length ? sorted[sorted.length - 1] : 0,
+            };
+        })
+        .sort((left, right) => left.ladderStep - right.ladderStep || left.model.localeCompare(right.model, 'en'));
+    const recordVisionModelEvent = (event, request, imageNumber) => {
+        const model = String(event?.model || 'unknown');
+        const mode = String(event?.mode || '');
+        const provider = String(event?.provider || '');
+        const keyName = String(event?.keyName || '');
+        const ladderStep = Number(event?.ladderStep || 0);
+        const key = `${provider}\u0000${keyName}\u0000${model}`;
+        let metric = visionModelMetrics.get(key);
+        if (!metric) {
+            metric = { model, mode, provider, keyName, ladderStep, attempts: 0, successes: 0, failures: 0, timeouts: 0, responses: 0, totalMs: 0, durationsMs: [] };
+            visionModelMetrics.set(key, metric);
+        }
+        if (event?.type === 'attempt-start') metric.attempts += 1;
+        if (event?.type === 'success' || event?.type === 'failure') {
+            const durationMs = Math.max(0, Number(event?.durationMs || 0));
+            metric.responses += 1;
+            metric.totalMs += durationMs;
+            metric.durationsMs.push(durationMs);
+            if (event.type === 'success') metric.successes += 1;
+            else {
+                metric.failures += 1;
+                if (isParserVisionTimeout(event)) metric.timeouts += 1;
+            }
+            diagnostics.log('vision.model.response', {
+                sourceId: request.sourceId, itemId: String(request.itemId || ''), imageNumber, model, mode, provider, keyName, ladderStep,
+                attempt: Number(event.attempt || 0), round: Number(event.round || 0), outcome: event.type, durationMs,
+                timeout: isParserVisionTimeout(event),
+                error: event.type === 'failure' ? event.error : '',
+            });
+        }
+        updateOperationProgress({
+            phase: 'parser-poster-gate', partyPool: normalizedPool,
+            completedPosterGateRequests: posterGateCompleted, totalPosterGateRequests: posterGateRequests.length,
+            lastVisionResponse: { sourceId: request.sourceId, itemId: String(request.itemId || ''), imageNumber, model, mode, provider, outcome: String(event?.type || ''), durationMs: Math.max(0, Number(event?.durationMs || 0)) },
+            visionModelMetrics: summarizeVisionModelMetrics(),
+        }, { event: 'parser.vision-model.metrics' });
+    };
     diagnostics.log('run.poster-gate.start', {
         requests: posterGateRequests.length,
         concurrency: posterGateConcurrency,
@@ -5832,11 +6028,14 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
                 sourceLabel: request.source || request.sourceLabel || request.sourceId,
                 sourceText: String(request.sourceText || ''),
                 secondaryJointGate: Boolean(request.secondaryJointGate),
-                trace: (stage, data = {}) => diagnostics.log(`item.poster-gate.${stage}`, {
-                    sourceId: request.sourceId,
-                    itemId: String(request.itemId || ''),
-                    ...data,
-                }),
+                trace: (stage, data = {}) => {
+                    if (stage === 'model') recordVisionModelEvent(data, request, Number(data?.imageNumber || 0));
+                    diagnostics.log(`item.poster-gate.${stage}`, {
+                        sourceId: request.sourceId,
+                        itemId: String(request.itemId || ''),
+                        ...data,
+                    });
+                },
             });
         } catch (posterGateError) {
             error = formatPrivateError(posterGateError);
@@ -5851,11 +6050,52 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
             facts: String(facts || ''),
             error,
         });
+        posterGateCompleted += 1;
+        const pendingPosterGate = posterGateRequests.length - posterGateCompleted;
+        updateOperationProgress({
+            phase: 'parser-poster-gate',
+            partyPool: normalizedPool,
+            completedPosterGateRequests: posterGateCompleted,
+            totalPosterGateRequests: posterGateRequests.length,
+            unfinishedPosterGateRequests: pendingPosterGate,
+            lastPosterGateItem: { sourceId: request.sourceId, itemId: String(request.itemId || ''), error },
+        }, { event: 'parser.poster-gate.progress' });
+        saveOperationCheckpoint({
+            kind: incrementalOnly ? 'parser-all-clean' : 'parser-all',
+            phase: 'poster-gate',
+            partyPool: normalizedPool,
+            captureCount: rawCaptureRows.reduce((sum, row) => sum + Number(row?.itemCount || 0), 0),
+            totalPosterGateRequests: posterGateRequests.length,
+            completedPosterGateRequests: posterGateCompleted,
+            unfinishedPosterGateRequests: pendingPosterGate,
+            lastPosterGateItem: { sourceId: request.sourceId, itemId: String(request.itemId || ''), error },
+            visionModelMetrics: summarizeVisionModelMetrics(),
+            tracePath: diagnostics.relativeLogPath,
+        }, { event: 'parser.checkpoint.poster-gate-progress' });
     }, { priority: Number(request.priority || request.score || 0) })));
     diagnostics.log('run.poster-gate.complete', {
         requests: posterGateRequests.length,
         withFacts: [...posterGateResults.values()].filter((item) => String(item?.facts || '').trim()).length,
         failed: [...posterGateResults.values()].filter((item) => item?.error).length,
+        modelMetrics: summarizeVisionModelMetrics(),
+    });
+    const visionTimingReport = {
+        generatedAt: new Date().toISOString(),
+        configuredRequestTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
+        streamIdleTimeoutMs: Math.min(15 * 60 * 1000, Math.max(60_000, EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS)),
+        totalRequests: posterGateRequests.length,
+        completedRequests: posterGateCompleted,
+        failedRequests: [...posterGateResults.values()].filter((item) => item?.error).length,
+        models: summarizeVisionModelMetrics(),
+    };
+    diagnostics.saveParserReport({ sourceId: 'vision-model-timings', kind: 'vision-model-latency', report: visionTimingReport });
+    diagnostics.saveTextReport({
+        sourceId: 'vision-model-timings', kind: 'vision-model-latency-human',
+        text: [
+            'VISION MODEL RESPONSE TIMES',
+            `Image checks completed: ${posterGateCompleted}/${posterGateRequests.length}`,
+            ...visionTimingReport.models.map((model) => `${model.ladderStep || '-'} ${model.model} (${model.provider}/${model.keyName}) — attempts ${model.attempts}, success ${model.successes}, failure ${model.failures}, timeout ${model.timeouts}, avg ${model.averageMs} ms, p50 ${model.p50Ms} ms, p95 ${model.p95Ms} ms, max ${model.maxMs} ms`),
+        ].join('\n'),
     });
     releasePosterGateGate?.();
     await Promise.all(admissionWaiters.map((item) => item.promise));
@@ -6147,17 +6387,46 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
 }
 
 
-const SECONDARY_PARTY_AUTO_TASK_KEY = 'secondary-party-auto-parser-v18880';
+const SECONDARY_PARTY_AUTO_TASK_KEY = 'parser-auto-schedule-v18904';
 const SECONDARY_PARTY_AUTO_TICK_MS = 60 * 1000;
+const PARSER_ACTIVITY_STATE_KEY = 'parser-all-activity-v18904';
 let secondaryPartyAutoParserRunning = false;
 
-function loadSecondaryPartyAutoState() {
-    const details = getMaintenanceState(SECONDARY_PARTY_AUTO_TASK_KEY)?.details;
+function readParserActivityState(partyPool = PARTY_POOL_PRIMARY) {
+    const state = getMaintenanceState(`${PARSER_ACTIVITY_STATE_KEY}:${partyPool}`);
+    const details = state ? { ...state.details, lastRunAt: state.lastRunAt } : null;
     return details && typeof details === 'object' ? details : {};
 }
 
-function saveSecondaryPartyAutoState(details = {}) {
-    return setMaintenanceState(SECONDARY_PARTY_AUTO_TASK_KEY, {
+function markParserActivity({ mode = 'all', partyPool = PARTY_POOL_PRIMARY, status = 'started', error = '' } = {}) {
+    const now = Math.floor(Date.now() / 1000);
+    const previous = readParserActivityState(partyPool);
+    return setMaintenanceState(`${PARSER_ACTIVITY_STATE_KEY}:${partyPool}`, {
+        lastRunAt: now,
+        details: {
+            ...previous,
+            mode: String(mode),
+            partyPool: String(partyPool),
+            status: String(status),
+            startedAt: status === 'started' ? now : Number(previous.startedAt || now),
+            finishedAt: status === 'started' ? 0 : now,
+            error: String(error || '').slice(0, 2000),
+        },
+    })?.details || previous;
+}
+
+function recentPrimaryParserRun({ nowSeconds = Math.floor(Date.now() / 1000), partyPool = PARTY_POOL_PRIMARY, intervalDays = 3 } = {}) {
+    const state = readParserActivityState(partyPool);
+    return Number(state.lastRunAt || 0) > 0 && nowSeconds - Number(state.lastRunAt || 0) < intervalDays * 86400;
+}
+
+function loadSecondaryPartyAutoState(partyPool = PARTY_POOL_SECONDARY) {
+    const details = getMaintenanceState(`${SECONDARY_PARTY_AUTO_TASK_KEY}:${partyPool}`)?.details;
+    return details && typeof details === 'object' ? details : {};
+}
+
+function saveSecondaryPartyAutoState(details = {}, partyPool = PARTY_POOL_SECONDARY) {
+    return setMaintenanceState(`${SECONDARY_PARTY_AUTO_TASK_KEY}:${partyPool}`, {
         lastRunAt: Math.floor(Date.now() / 1000),
         details: {
             intervalDays: SECONDARY_PARTY_AUTO_INTERVAL_DAYS,
@@ -6171,31 +6440,49 @@ function saveSecondaryPartyAutoState(details = {}) {
     })?.details || details;
 }
 
-function ensureSecondaryPartyAutoSchedule({ nowMs = Date.now() } = {}) {
-    const state = loadSecondaryPartyAutoState();
+function ensureSecondaryPartyAutoSchedule({ nowMs = Date.now(), partyPool = PARTY_POOL_SECONDARY } = {}) {
+    const state = loadSecondaryPartyAutoState(partyPool);
     if (Number(state.nextRunAt || 0) > 0) return state;
     return saveSecondaryPartyAutoState({
         ...state,
         status: 'scheduled',
         nextRunAt: getInitialSecondaryPartyAutoRunAt({ now: nowMs, timeZone: botTimeZone }),
         initializedAt: Math.floor(nowMs / 1000),
-    });
+    }, partyPool);
 }
 
 function secondaryPartyParserAlreadyRunning() {
     return listActiveOperations().some((operation) => (
         ['running', 'stopping', 'timed-out-stopping'].includes(String(operation?.status || '')) &&
-        operation?.metadata?.partyPool === PARTY_POOL_SECONDARY &&
-        String(operation?.category || '') === 'parser'
+        ['parser', 'event-snapshot', 'event-maintenance'].includes(String(operation?.category || ''))
     ));
 }
 
-async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
-    let state = ensureSecondaryPartyAutoSchedule({ nowMs });
+function localWeekdayHour(nowMs = Date.now()) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: botTimeZone, weekday: 'short', hour: '2-digit', hour12: false,
+    }).formatToParts(new Date(nowMs));
+    const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return { weekday: String(map.weekday || ''), hour: Number(map.hour || 0) };
+}
+
+async function runSecondaryPartyAutoParserTick({ nowMs = Date.now(), partyPool = PARTY_POOL_SECONDARY } = {}) {
+    let state = ensureSecondaryPartyAutoSchedule({ nowMs, partyPool });
     const dueAt = Number(state.nextRunAt || 0);
     const nowSeconds = Math.floor(nowMs / 1000);
-    if (!(dueAt > 0) || nowSeconds < dueAt) {
+    const local = localWeekdayHour(nowMs);
+    if (local.hour < 2 || local.hour >= 6) return { skipped: true, reason: 'outside-night-window' };
+    const fridayNight = local.weekday === 'Fri' && local.hour >= 2 && local.hour < 6;
+    // A Friday-night catch-up is allowed once when the regular three-day
+    // schedule has not yet become due. It is still blocked by a recent manual
+    // parser pass, so an owner run always wins.
+    const fridayCatchup = fridayNight && Number(state.lastFridayRunAt || 0) < nowSeconds - 2 * 24 * 60 * 60;
+    if (!(dueAt > 0) || (nowSeconds < dueAt && !fridayCatchup)) {
         return { skipped: true, reason: 'not-due', nextRunAt: dueAt };
+    }
+    if (recentPrimaryParserRun({ nowSeconds, partyPool, intervalDays: fridayNight ? 2 : partyPool === PARTY_POOL_PRIMARY ? 3 : 7 })) {
+        saveSecondaryPartyAutoState({ ...state, status: 'deferred-recent-manual', lastDeferredAt: nowSeconds }, partyPool);
+        return { skipped: true, reason: 'recent-manual-parser', nextRunAt: dueAt };
     }
     if (secondaryPartyAutoParserRunning || secondaryPartyParserAlreadyRunning()) {
         const lastDeferredAt = Number(state.lastDeferredAt || 0);
@@ -6205,7 +6492,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
                 status: 'deferred-busy',
                 lastDeferredAt: nowSeconds,
                 nextRunAt: dueAt,
-            });
+            }, partyPool);
             console.log('[SECONDARY PARTY AUTO PARSER]', 'deferred=busy', `dueAt=${dueAt}`);
         }
         return { skipped: true, reason: 'parser-busy', nextRunAt: dueAt };
@@ -6220,40 +6507,42 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
         scheduledAt,
         nextRunAt: scheduledAt,
         lastError: '',
-    });
+        lastFridayRunAt: fridayNight ? nowSeconds : Number(state.lastFridayRunAt || 0),
+    }, partyPool);
 
     try {
+        markParserActivity({ mode: 'all-new', partyPool, status: 'started' });
         const summary = await runDetachedSupervisedOperation({
-            name: 'parser-all-clean:secondary:auto',
+            name: `parser-all-clean:${partyPool}:auto`,
             category: 'parser',
             metadata: {
-                partyPool: PARTY_POOL_SECONDARY,
+                partyPool,
                 incrementalOnly: true,
                 automatic: true,
-                schedule: 'every-3-days@04:00',
+                schedule: partyPool === PARTY_POOL_PRIMARY ? 'every-3-days+friday-after-2-days' : 'weekly+friday',
             },
+            timeoutMs: 3 * 60 * 60 * 1000,
         }, async () => {
             let run = null;
             registerParserOperationStopHandler(() => run);
             saveOperationCheckpoint({
                 kind: 'parser-all-clean',
                 phase: 'started',
-                partyPool: PARTY_POOL_SECONDARY,
+                partyPool,
                 automatic: true,
-                sourceCount: getManualScraperSources(PARTY_POOL_SECONDARY).length,
+                sourceCount: getManualScraperSources(partyPool).length,
                 incrementalOnly: true,
                 similarityThreshold: null,
             cleanSkipPolicy: 'same-item-final-ledger-and-exact-content-hash',
             }, { event: 'parser.auto-secondary.checkpoint.start' });
             run = await startAllManualScraperSources({
                 incrementalOnly: true,
-                partyPool: PARTY_POOL_SECONDARY,
+                partyPool,
             });
             const processingSummary = await run.startProcessing();
             const pendingBeforeVerification = run.getPendingCandidates?.() || [];
-            if (processingSummary?.ok !== true || pendingBeforeVerification.length ||
-                (run.captures || []).some((entry) => entry?.error || entry?.result?.captureInterrupted)) {
-                throw new Error('Secondary parser was incomplete; verified snapshot was not published.');
+            if (processingSummary?.ok !== true || pendingBeforeVerification.length) {
+                auditRuntimeEvent('parser.partial-finalization', { pending: pendingBeforeVerification.length, summary: processingSummary });
             }
             try {
                 backfillCleanLegacyPosterBindingsV18868({ force: true });
@@ -6266,8 +6555,8 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
             const pending = run.getPendingCandidates?.() || [];
             saveOperationCheckpoint({
                 kind: 'parser-all-clean',
-                phase: 'completed',
-                partyPool: PARTY_POOL_SECONDARY,
+                phase: processingSummary?.ok === true && !pending.length ? 'completed' : 'completed-with-warnings',
+                partyPool,
                 automatic: true,
                 sourceCount: Number(run.total || 0),
                 captureCount: Number(run.captureCount || 0),
@@ -6282,7 +6571,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
             run.finishDiagnostics?.({
                 ok: Boolean(processingSummary?.ok),
                 automatic: true,
-                partyPool: PARTY_POOL_SECONDARY,
+                partyPool,
                 incrementalOnly: true,
                 processingSummary,
                 verification: {
@@ -6305,6 +6594,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
             scheduledAt,
             now: finishedAt * 1000,
             timeZone: botTimeZone,
+            intervalDays: partyPool === PARTY_POOL_PRIMARY ? 3 : 7,
         });
         saveSecondaryPartyAutoState({
             ...state,
@@ -6313,6 +6603,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
             lastFinishedAt: finishedAt,
             lastScheduledAt: scheduledAt,
             nextRunAt,
+            ...(fridayCatchup ? { lastFridayRunAt: finishedAt } : {}),
             lastError: '',
             lastSummary: {
                 sources: Number(summary?.total || 0),
@@ -6323,7 +6614,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
                 aiQueueCount: Number(summary?.aiQueueCount || 0),
                 tracePath: String(summary?.tracePath || ''),
             },
-        });
+        }, partyPool);
         console.log(
             '[SECONDARY PARTY AUTO PARSER COMPLETE]',
             `scheduledAt=${scheduledAt}`,
@@ -6332,6 +6623,8 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
             `known=${Number(summary?.incrementalKnownSkippedCount || 0)}`,
             `ai=${Number(summary?.aiQueueCount || 0)}`,
         );
+        markParserActivity({ mode: 'all-new', partyPool, status: 'completed' });
+        await sendAiModelDiscoveryOwnerReport(`✅ Автопарсер ${partyPool} завершён. Новых/изменённых: ${summary?.incrementalNewCount || 0}; AI-кандидатов: ${summary?.aiQueueCount || 0}. Лог: ${summary?.tracePath || ''}`);
         return { skipped: false, summary, nextRunAt };
     } catch (error) {
         const finishedAt = Math.floor(Date.now() / 1000);
@@ -6339,6 +6632,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
             scheduledAt,
             now: finishedAt * 1000,
             timeZone: botTimeZone,
+            intervalDays: partyPool === PARTY_POOL_PRIMARY ? 3 : 7,
         });
         saveSecondaryPartyAutoState({
             ...state,
@@ -6347,12 +6641,21 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now() } = {}) {
             lastScheduledAt: scheduledAt,
             nextRunAt,
             lastError: formatPrivateError(error),
-        });
+        }, partyPool);
+        markParserActivity({ mode: 'all-new', partyPool, status: 'failed', error: formatPrivateError(error) });
+        await sendAiModelDiscoveryOwnerReport(`⚠️ Автопарсер ${partyPool} остановлен: ${formatPrivateError(error)}. Завершённые записи сохранены; незавершённые остаются для следующего прохода.`);
         console.error('[SECONDARY PARTY AUTO PARSER ERROR]', formatPrivateError(error));
         return { skipped: false, failed: true, error: formatPrivateError(error), nextRunAt };
     } finally {
         secondaryPartyAutoParserRunning = false;
     }
+}
+
+async function runScheduledParserPools() {
+    try {
+        await runSecondaryPartyAutoParserTick({ partyPool: PARTY_POOL_PRIMARY });
+        await runSecondaryPartyAutoParserTick({ partyPool: PARTY_POOL_SECONDARY });
+    } catch (error) { console.error('[PARSER SCHEDULE ERROR]', formatPrivateError(error)); }
 }
 
 async function stopManualParserResources(reason = 'operation-stop') {
@@ -6391,7 +6694,7 @@ function registerParserOperationStopHandler(getRun = () => null) {
     });
 }
 
-async function handleManualScraperCommand(context, requestText) {
+async function handleManualScraperCommand(context, requestText, { recoveryCheckpointId = '' } = {}) {
     const command = parseScraperStartCommand(requestText);
     const commandPartyPool = command.partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
 
@@ -6604,7 +6907,30 @@ async function handleManualScraperCommand(context, requestText) {
     }
 
     if (command.all) {
-        const sources = getManualScraperSources(commandPartyPool);
+        const activeParser = listActiveOperations().find((operation) => operation.category === 'parser');
+        if (activeParser) {
+            await context.send(`⚠️ Парсер уже работает: ${activeParser.id}. Статус: «процессы». Дождись завершения или останови его перед восстановлением.`);
+            return true;
+        }
+        const recovery = command.recover ? loadLatestParserAllRecovery({ partyPool: commandPartyPool, expectedId: recoveryCheckpointId }) : null;
+        if (recovery?.reason === 'superseded') {
+            await context.send('Эта кнопка относится к старому запуску. Его заменил более новый «парсер все».');
+            return true;
+        }
+        if (recovery && !recovery.available) {
+            await context.send(buildParserRecoveryNotice(recovery).text);
+            return true;
+        }
+        if (recovery && !recovery.originalIncrementalOnly && !Number.isFinite(Date.parse(recovery.startedAt))) {
+            await context.send('В checkpoint отсутствует время исходного запуска. Без него нельзя надёжно отделить завершённые записи. Запусти новый «парсер все».');
+            return true;
+        }
+        if (command.recover && !recovery) {
+            await context.send('ℹ️ Последний запуск завершён, продолжение отклонено или checkpoint отсутствует. Старые запуски не возобновляются. Для нового прохода: «парсер все».').catch(() => {});
+            return true;
+        }
+        const effectivePartyPool = recovery?.partyPool || commandPartyPool;
+        const sources = getManualScraperSources(effectivePartyPool);
 
         if (!sources.length) {
             await sendLong(context, formatManualScraperStartHelp('', commandPartyPool));
@@ -6613,13 +6939,14 @@ async function handleManualScraperCommand(context, requestText) {
 
         invalidateVerifiedPartySnapshot('parser-all-start-v18836');
 
-        const cleanOnly = Boolean(command.cleanOnly);
+        const cleanOnly = Boolean(command.cleanOnly || command.recover);
         // Owner notification is independent of parser scheduling/processing.
         // Catch both synchronous and asynchronous transport failures.
         void Promise.resolve().then(() => context.send([
-            cleanOnly
-                ? `Запускаю «парсер все чисто» (${commandPartyPool === PARTY_POOL_SECONDARY ? SECONDARY_PARTY_SECTION_LABEL : 'основной пул'}): ${sources.length} источников.`
-                : `Запускаю сбор (${commandPartyPool === PARTY_POOL_SECONDARY ? SECONDARY_PARTY_SECTION_LABEL : 'основной пул'}): ${sources.length} источников.`,
+            command.recover ? `▶️ Продолжаю парсер с сохранённого кэша (${effectivePartyPool}).` : cleanOnly
+                ? `Запускаю «парсер все чисто» (${effectivePartyPool === PARTY_POOL_SECONDARY ? SECONDARY_PARTY_SECTION_LABEL : 'основной пул'}): ${sources.length} источников.`
+                : `Запускаю сбор (${effectivePartyPool === PARTY_POOL_SECONDARY ? SECONDARY_PARTY_SECTION_LABEL : 'основной пул'}): ${sources.length} источников.`,
+            command.recover ? `Checkpoint: ${recovery.id}; фаза: ${recovery.phase}; кэшированных источников: ${recovery.cacheRows.size}/${sources.length}.` : '',
             cleanOnly
                 ? 'Инкрементальный режим: пропускается только та же запись с финальным статусом ledger и полностью совпадающим contentHash. Новая дата, афиша или вложение обрабатываются повторно.'
                 : 'Сначала полностью собираю и кеширую DOM/сообщения/посты. ИИ во время browser-capture не запускается.',
@@ -6630,15 +6957,26 @@ async function handleManualScraperCommand(context, requestText) {
             console.warn('[PARSER START NOTICE FAILED]', formatPrivateError(error));
         });
 
-        const operationName = `${cleanOnly ? 'parser-all-clean' : 'parser-all'}:${commandPartyPool}`;
+        const operationName = `${command.recover ? 'parser-all-recovery' : cleanOnly ? 'parser-all-clean' : 'parser-all'}:${effectivePartyPool}`;
+        markParserActivity({
+            mode: cleanOnly ? 'all-new' : 'all',
+            partyPool: effectivePartyPool,
+            status: 'started',
+        });
         runDetachedSupervisedOperation({
             name: operationName,
             category: 'parser',
-            metadata: { platform: context.platform, senderId: context.senderId, peerId: context.peerId, partyPool: commandPartyPool, incrementalOnly: cleanOnly },
+            // Parser-all is allowed to run longer than the generic two-hour
+            // maintenance watchdog, but never beyond the explicit three-hour
+            // hard limit requested for browser/AI batches. Checkpoints are
+            // written after every source and candidate, so timeout preserves
+            // everything already completed and leaves the rest retryable.
+            timeoutMs: 3 * 60 * 60 * 1000,
+            metadata: { platform: context.platform, senderId: context.senderId, peerId: context.peerId, partyPool: effectivePartyPool, incrementalOnly: cleanOnly, recoveryCheckpointId: recovery?.id || '' },
         }, async () => {
             let run = null;
             registerParserOperationStopHandler(() => run);
-            saveOperationCheckpoint({ kind: cleanOnly ? 'parser-all-clean' : 'parser-all', phase: 'started', partyPool: commandPartyPool, sourceCount: sources.length, incrementalOnly: cleanOnly, similarityThreshold: null, cleanSkipPolicy: cleanOnly ? 'same-item-final-ledger-and-exact-content-hash' : null }, { event: 'parser.checkpoint.start' });
+            saveOperationCheckpoint({ kind: command.recover ? 'parser-all-recovery' : cleanOnly ? 'parser-all-clean' : 'parser-all', phase: 'started', partyPool: effectivePartyPool, sourceCount: sources.length, incrementalOnly: cleanOnly, recoveryCheckpointId: recovery?.id || '', recoveryTracePath: recovery?.tracePath || '', similarityThreshold: null, cleanSkipPolicy: cleanOnly ? 'same-item-final-ledger-and-exact-content-hash' : null }, { event: 'parser.checkpoint.start' });
             let finalNotificationSent = false;
 
             const formatPending = (rows, maximum = 30) => {
@@ -6674,26 +7012,11 @@ async function handleManualScraperCommand(context, requestText) {
                     const unfinishedBeforeVerification = run?.getPendingCandidates?.() || [];
                     const failedCaptures = (run?.captures || []).filter((entry) =>
                         Boolean(entry?.error || entry?.result?.captureInterrupted));
-                    if (summary?.ok !== true || unfinishedBeforeVerification.length || failedCaptures.length) {
-                        run?.finishDiagnostics?.({
-                            ok: false, summary,
-                            unfinishedCandidates: unfinishedBeforeVerification.length,
-                            failedCaptures: failedCaptures.length,
-                            snapshotPublished: false,
-                        });
-                        saveOperationCheckpoint({
-                            kind: cleanOnly ? 'parser-all-clean' : 'parser-all',
-                            phase: 'completed-with-warnings',
-                            summary,
-                            unfinishedCandidates: unfinishedBeforeVerification.length,
-                            failedCaptures: failedCaptures.length,
-                            snapshotPublished: false,
-                            tracePath: String(run?.tracePath || ''),
-                        }, { event: 'parser.checkpoint.completed-with-warnings' });
-                        await sendParserNoticeBestEffort(
-                            '⚠️ Не все источники и кандидаты обработаны. Предыдущий проверенный snapshot сохранён; новый не публиковался.',
-                        );
-                        return;
+                    const partialRun = summary?.ok !== true || unfinishedBeforeVerification.length > 0 || failedCaptures.length > 0;
+                    if (partialRun) {
+                        markParserActivity({ mode: cleanOnly ? 'all-new' : 'all', partyPool: effectivePartyPool, status: 'completed-with-warnings' });
+                        await sendParserNoticeBestEffort(`⚠️ Не завершены кандидаты: ${unfinishedBeforeVerification.length}; источники: ${failedCaptures.length}. Проверяю и публикую успешно сохранённую часть. Остальное остаётся для повторной обработки.`);
+                        run?.logDiagnostics?.('run.partial-finalization', { unfinishedCandidates: unfinishedBeforeVerification.length, failedCaptures: failedCaptures.length });
                     }
 
                     // V188.70: startup backfill is not enough. New rows created by
@@ -6832,7 +7155,7 @@ async function handleManualScraperCommand(context, requestText) {
                     });
                     const artifactSummary = run?.getArtifactsSummary?.() || { domSnapshots: 0 };
                     const finalParserReport = {
-                        partyPool: commandPartyPool,
+                        partyPool: effectivePartyPool,
                         sources: {
                             loaded: Number(summary?.sourceLoadedCount ?? summary?.succeeded ?? 0),
                             reloaded: Number(summary?.sourceReloadCount ?? run?.sourceReloadCount ?? 0),
@@ -6846,6 +7169,7 @@ async function handleManualScraperCommand(context, requestText) {
                             canonical: Number(verification?.canonicalCount || 0),
                         },
                         visionCheckedImages: Number(summary?.visionCheckedImageCount || 0),
+                        visionModelTimings: summarizeParserVisionTimings(getCurrentOperation()?.id),
                         posterMatches: {
                             accepted: Number(summary?.posterMatchAcceptedCount || 0),
                             rejected: Number(summary?.posterMatchRejectedCount || 0),
@@ -6857,6 +7181,12 @@ async function handleManualScraperCommand(context, requestText) {
                         },
                     };
                     run?.saveDiagnosticsReport?.('run-final-report', 'parser-all-final-report', finalParserReport);
+                    run?.saveDiagnosticsReport?.('vision-model-timings-final', 'vision-model-latency', {
+                        generatedAt: new Date().toISOString(),
+                        configuredAttemptTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
+                        streamIdleTimeoutMs: Math.min(15 * 60 * 1000, EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS),
+                        models: finalParserReport.visionModelTimings,
+                    });
                     run?.logDiagnostics?.('run.final-report', finalParserReport);
                     const pendingAfterVerification = run?.getPendingCandidates?.() || [];
                     run?.finishDiagnostics?.({
@@ -6868,6 +7198,7 @@ async function handleManualScraperCommand(context, requestText) {
                     saveOperationCheckpoint({
                         kind: 'parser-all',
                         phase: summary?.ok && pendingAfterVerification.length === 0 ? 'completed' : 'completed-with-warnings',
+                        visionModelTimings: finalParserReport.visionModelTimings,
                         summary: {
                             ok: Boolean(summary?.ok),
                             total: Number(summary?.total || 0),
@@ -6891,9 +7222,14 @@ async function handleManualScraperCommand(context, requestText) {
                         unfinishedCandidates: pendingAfterVerification.length,
                         tracePath: String(run?.tracePath || ''),
                     }, { level: summary?.ok && pendingAfterVerification.length === 0 ? 'info' : 'warn' });
+                    markParserActivity({
+                        mode: cleanOnly ? 'all-new' : 'all',
+                        partyPool: effectivePartyPool,
+                        status: summary?.ok && pendingAfterVerification.length === 0 ? 'completed' : 'completed-with-warnings',
+                    });
                     await sendParserNoticeBestEffort([
-                        '✅ Обработка завершена.',
-                        'Все закешированные данные прошли алгоритмическую обработку и доступный AI-контур.',
+                        partialRun ? '⚠️ Проход завершён частично.' : '✅ Обработка завершена.',
+                        partialRun ? 'Успешно сохранённые карточки прошли итоговый дедуп; незавершённые записи не помечены обработанными.' : 'Все закешированные данные прошли алгоритмическую обработку и доступный AI-контур.',
                         `Источники: loaded=${finalParserReport.sources.loaded}; reloaded=${finalParserReport.sources.reloaded}; failed=${finalParserReport.sources.failed}. DOM snapshots: ${finalParserReport.snapshots}.`,
                         `3 контура: exact=${finalParserReport.contours.exact}; structural=${finalParserReport.contours.structural}; heuristic=${finalParserReport.contours.heuristic}.`,
                         `События: created=${finalParserReport.events.created}; updated=${finalParserReport.events.updated}; canonical=${finalParserReport.events.canonical}.`,
@@ -6901,7 +7237,7 @@ async function handleManualScraperCommand(context, requestText) {
                         `Канонических событий: ${verification.canonicalCount}; финально объединено дублей: ${verification.mergeCount}.`,
                         `Без картинки после финала: ${finalParserReport.posterless.count}; no source media=${posterlessReasonCounts['no source media']}; ordinary photo only=${posterlessReasonCounts['ordinary photo only']}; vision mismatch=${posterlessReasonCounts['vision mismatch']}; source failed=${posterlessReasonCounts['source failed']}; ambiguous multi-event=${posterlessReasonCounts['ambiguous multi-event']}.`,
                         `Dedupe registry: групп ${verification?.dedupeRegistry?.groups ?? 0}; скрытых duplicate-members ${verification?.dedupeRegistry?.duplicateMembers ?? 0}.`,
-                        'Дубли объединяются в выдаче/каноническом registry; исходные raw event-строки сохраняются как evidence и не удаляются.',
+                        'Дубли объединены с сохранением исходных записей и метаданных в архиве дедупликации.',
                         run?.tracePath ? `Полный лог: ${run.tracePath}` : '',
                     ].filter(Boolean).join('\n'));
                 } catch (error) {
@@ -6935,7 +7271,7 @@ async function handleManualScraperCommand(context, requestText) {
                 // This resolves ONLY after every configured source has produced a
                 // durable raw cache (or an explicit capture-error record). No AI
                 // job can cross processingGate before this point.
-                run = await startAllManualScraperSources({ incrementalOnly: cleanOnly, partyPool: commandPartyPool });
+                run = await startAllManualScraperSources({ incrementalOnly: cleanOnly, partyPool: effectivePartyPool, recovery });
                 // Capture is complete. Release downstream processing independently
                 // of Telegram/VK's ability to deliver the owner's status message.
                 const processingPromise = run.startProcessing();
@@ -6957,7 +7293,7 @@ async function handleManualScraperCommand(context, requestText) {
                     `Закешировано элементов: ${Number(run.captureCount ?? 0)}.`,
                     cleanOnly ? `Чистый режим: уже видено в raw-ledger и отброшено ДО алгоритма/vision/AI: ${Number(run.incrementalKnownSkippedCount ?? 0)}; новых source-items: ${Number(run.incrementalNewCount ?? 0)}.` : '',
                     `Структурных подозрений после двухступенчатого gate: ${Number(run.structuralCandidateCount ?? 0)}; уже есть в базе и пропущено: ${Number(run.databaseSkippedCount ?? 0)}; известных карточек отправлено на media-refresh: ${Number(run.databaseRefreshCount ?? 0)}; картинок проверено узким poster-gate: ${Number(run.posterGateCheckedCount ?? 0)}; спасено только по афише: ${Number(run.posterGateRescuedCount ?? 0)}; строгим AI-gate окончательно отклонено: ${Number(run.aiRejectedCount ?? 0)}; отброшено как явный мусор без main AI: ${Number(run.trashCount ?? 0)}; реально поставлено в main AI-очередь: ${Number(run.aiQueueCount ?? run.candidateCount ?? 0)}.`,
-                    commandPartyPool === PARTY_POOL_SECONDARY
+                    effectivePartyPool === PARTY_POOL_SECONDARY
                         ? 'Secondary AI-gate: до vision анализируется ТОЛЬКО смысловой текст поста. Дата мероприятия в тексте обязательна всегда. В vision картинка уходит только по маршруту дата+время+вероятное название либо дата+эвристика тусы/названия ≥65%. Vision получает текст+одну картинку и решает совместно; остальные картинки вообще не отправляются в AI.'
                         : 'AI-gate: сначала проверяется текст. Если текст не прошёл, но есть изображение, ПОСЛЕ полного raw-cache запускается узкое vision-распознавание только самой картинки: афиша/не афиша, название, дата, время. В main AI проходит только если название + сегодняшняя/будущая дата найдены в тексте ИЛИ на афише. Дата публикации/интерфейса сама по себе не засчитывается; publishedAt используется только для определения года, если уже найдены день/месяц без года.',
                     aiQueuePreviewLines.length ? `Что сейчас идёт в AI (первые ${aiQueuePreviewLines.length}):\n${aiQueuePreviewLines.join('\n')}${Number(run.aiQueueCount || 0) > aiQueuePreviewLines.length ? `\n…ещё ${Number(run.aiQueueCount || 0) - aiQueuePreviewLines.length}` : ''}` : 'В AI сейчас ничего не поставлено.',
@@ -6989,7 +7325,7 @@ async function handleManualScraperCommand(context, requestText) {
 
                 let softTimer = null;
                 const softBoundaryMs = clampInteger(
-                    Number(process.env.SCRAPER_ALL_SOFT_STATUS_SECONDS || 600) * 1000,
+                    Number(process.env.SCRAPER_ALL_SOFT_STATUS_SECONDS || 300) * 1000,
                     60_000,
                     60 * 60 * 1000,
                     10 * 60 * 1000,
@@ -7018,7 +7354,7 @@ async function handleManualScraperCommand(context, requestText) {
                     pending,
                 });
                 await sendParserNoticeBestEffort([
-                    '⏱️ 10 минут обработки прошло. Обработка НЕ остановлена и продолжает идти в фоне.',
+                    '⏱️ 5 минут обработки прошло. Обработка НЕ остановлена и продолжает идти в фоне.',
                     ...formatPending(pending),
                     run.tracePath ? `Полный лог и DOM-снимки: ${run.tracePath}` : '',
                     'Как только все фоновые jobs и финальная выверка закончатся, бот пришлёт отдельное «✅ Обработка завершена».',
@@ -7027,12 +7363,12 @@ async function handleManualScraperCommand(context, requestText) {
                 const heartbeatTimer = setInterval(() => {
                     const currentPending = run.getPendingCandidates?.() || [];
                     void sendParserNoticeBestEffort([
-                        '⏱️ Ещё 10 минут обработки прошло. Обработка продолжается.',
+                        '⏱️ Ещё 5 минут обработки прошло. Обработка продолжается.',
                         ...formatPending(currentPending),
                         run.tracePath ? 'Полный лог и DOM-снимки: ' + run.tracePath : '',
                         'После завершения всех jobs бот пришлёт отдельное «✅ Обработка завершена».',
                     ].filter(Boolean).join('\n'));
-                }, 10 * 60 * 1000);
+                }, 5 * 60 * 1000);
                 heartbeatTimer.unref?.();
 
                 // Пользовательский ingress уже освобождён: supervised parser-all сам
@@ -7051,6 +7387,12 @@ async function handleManualScraperCommand(context, requestText) {
                 }
             } catch (error) {
                 console.error('[MANUAL SCRAPER ALL BACKGROUND ERROR]', formatPrivateError(error));
+                markParserActivity({
+                    mode: cleanOnly ? 'all-new' : 'all',
+                    partyPool: effectivePartyPool,
+                    status: error?.code === 'OPERATION_TIMEOUT' ? 'timed-out' : 'failed',
+                    error: formatPrivateError(error),
+                });
                 run?.logDiagnostics?.('run.capture-or-start.error', { error });
                 run?.finishDiagnostics?.({ ok: false, error });
                 const pending = run?.getPendingCandidates?.() || [];
@@ -7070,6 +7412,7 @@ async function handleManualScraperCommand(context, requestText) {
                 await context.send([
                     '❌ Сбор/кеширование источников завершилось ошибкой.',
                     formatScraperErrorForUser(error),
+                    'Сохранённый checkpoint проверяется. Возможность продолжения и состояние кэша придут отдельным сообщением.',
                     run?.tracePath ? `Полный лог: ${run.tracePath}` : '',
                 ].filter(Boolean).join('\n')).catch(() => {});
                 throw error;
@@ -10662,10 +11005,9 @@ async function analyzeIncomingMediaImage({ rawContext, image, session, shaCache 
                 'Проанализируй его как часть пользовательского запроса; сохрани факты и порядок.',
             ].join('\n'),
             maxTokens: 2200,
-            // Interactive media must fail fast. The old 120s * 2 attempts * full
-            // model ladder made a single broken image block a VK request for
-            // 10+ minutes and a multi-image reply for much longer. Event-parser
-            // maintenance has its own retries; user-facing OCR does not.
+            // Ordinary image OCR uses the same finite Luna -> Sol -> Astra
+            // ladder as event parsing, but keeps the cheapest low-detail image
+            // request and the shorter interactive timeout.
             requestTimeoutMs: clampInteger(
                 Number(process.env.INCOMING_MEDIA_VISION_TIMEOUT_MS),
                 10_000,
@@ -10674,14 +11016,9 @@ async function analyzeIncomingMediaImage({ rawContext, image, session, shaCache 
             ),
             failoverMaxRounds: 1,
             failuresBeforeQuarantine: 1,
-            maxCandidates: clampInteger(
-                Number(process.env.INCOMING_MEDIA_VISION_MAX_CANDIDATES),
-                1,
-                3,
-                2,
-            ),
+            maxCandidates: 0,
             oneCandidatePerMode: true,
-            escalateToAdvanced: false,
+            escalateToAdvanced: true,
             tokenUsageOperation: 'universal-image-input-analysis:item',
             tokenUsageMetadata: {
                 operationId: final.operationId,
@@ -10943,6 +11280,8 @@ async function generateDefaultGptText({
     escalateToAdvanced = false,
     useCredentialHealth = true,
     oneCandidatePerMode = false,
+    streamOverride = undefined,
+    validateTextResult = null,
     tokenUsageOperation = '',
     tokenUsageMetadata = null,
     onFailoverEvent = null,
@@ -10970,6 +11309,8 @@ async function generateDefaultGptText({
             escalateToAdvanced,
             useCredentialHealth,
             oneCandidatePerMode,
+            streamOverride,
+            validateTextResult,
             tokenUsageOperation,
             tokenUsageMetadata,
             onFailoverEvent,
@@ -10981,6 +11322,7 @@ async function generateDefaultGptText({
 const VISION_IMAGE_MAX_COUNT = 16;
 const VISION_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 const VISION_IMAGE_DOWNLOAD_TIMEOUT_MS = 15 * 1000;
+const enqueueParserVision = createParserModelSerialQueue();
 
 async function buildVisionModelCandidates(initialMode, initialModel) {
     const modes = getVisionModeChain(initialMode);
@@ -11019,6 +11361,97 @@ async function buildVisionModelCandidates(initialMode, initialModel) {
     }
 
     return candidates;
+}
+
+const parserVisionTimingsByOperation = new Map();
+const parserVisionCheckpointAt = new Map();
+
+function summarizeParserVisionTimings(operationId) {
+    const metrics = parserVisionTimingsByOperation.get(String(operationId || ''));
+    if (!metrics) return [];
+    return [...metrics.values()].map((metric) => {
+        const sorted = [...metric.durationsMs].sort((left, right) => left - right);
+        return {
+            model: metric.model,
+            mode: metric.mode,
+            provider: metric.provider,
+            keyName: metric.keyName,
+            ladderStep: metric.ladderStep,
+            attempts: metric.attempts,
+            responses: metric.responses,
+            successes: metric.successes,
+            failures: metric.failures,
+            timeouts: metric.timeouts,
+            averageMs: metric.responses ? Math.round(metric.totalMs / metric.responses) : 0,
+            p50Ms: sorted.length ? sorted[Math.floor((sorted.length - 1) * 0.5)] : 0,
+            p95Ms: sorted.length ? sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.95) - 1)] : 0,
+            maxMs: sorted.length ? sorted[sorted.length - 1] : 0,
+        };
+    }).sort((left, right) => left.ladderStep - right.ladderStep || left.model.localeCompare(right.model, 'en'));
+}
+
+function isParserVisionTimeout(event) {
+    return Boolean(
+        event?.timeoutFailure
+        || event?.error?.name === 'TimeoutError'
+        || /timeout|timed out|produced no bytes|idle for/iu.test(String(event?.error?.message || event?.error || '')),
+    );
+}
+
+function recordParserVisionTiming(event) {
+    const operation = getCurrentOperation();
+    if (operation?.category !== 'parser' || !operation.id) return;
+    const type = String(event?.type || '');
+    if (!['attempt-start', 'success', 'failure'].includes(type)) return;
+    const operationId = String(operation.id);
+    let metrics = parserVisionTimingsByOperation.get(operationId);
+    if (!metrics) {
+        metrics = new Map();
+        parserVisionTimingsByOperation.set(operationId, metrics);
+    }
+    const model = String(event?.model || 'unknown');
+    const mode = String(event?.mode || '');
+    const provider = String(event?.provider || '');
+    const keyName = String(event?.keyName || '');
+    const ladderStep = Number(event?.ladderStep || 0);
+    const key = `${provider}\u0000${keyName}\u0000${model}`;
+    let metric = metrics.get(key);
+    if (!metric) {
+        metric = { model, mode, provider, keyName, ladderStep, attempts: 0, responses: 0, successes: 0, failures: 0, timeouts: 0, totalMs: 0, durationsMs: [] };
+        metrics.set(key, metric);
+    }
+    if (type === 'attempt-start') metric.attempts += 1;
+    const durationMs = Math.max(0, Number(event?.durationMs || 0));
+    if (type === 'success' || type === 'failure') {
+        metric.responses += 1;
+        metric.totalMs += durationMs;
+        metric.durationsMs.push(durationMs);
+        if (type === 'success') metric.successes += 1;
+        else {
+            metric.failures += 1;
+            if (isParserVisionTimeout(event)) metric.timeouts += 1;
+        }
+    }
+    const entry = {
+        operationId, requestId: String(event?.requestId || ''), capability: 'vision', type,
+        model, mode, provider, keyName, ladderStep, attempt: Number(event?.attempt || 0), round: Number(event?.round || 0),
+        durationMs, outcome: type === 'attempt-start' ? 'started' : type,
+        timeout: isParserVisionTimeout(event),
+        error: type === 'failure' ? event?.error || '' : '',
+        modelSummary: summarizeParserVisionTimings(operationId),
+    };
+    auditRuntimeEvent('parser.vision.model.timing', entry, { level: type === 'failure' ? 'warn' : 'info', operation });
+    if (type === 'success' || type === 'failure') {
+        const now = Date.now();
+        if (!parserVisionCheckpointAt.has(operationId) || now - parserVisionCheckpointAt.get(operationId) >= 15_000) {
+            const current = getOperation(operationId);
+            saveOperationCheckpoint({
+                ...(current?.checkpoint && typeof current.checkpoint === 'object' ? current.checkpoint : {}),
+                visionModelTimings: entry.modelSummary,
+            }, { event: 'parser.checkpoint.vision-model-timing' });
+            parserVisionCheckpointAt.set(operationId, now);
+        }
+    }
 }
 
 function guessImageMimeType(contentType, url) {
@@ -11173,7 +11606,13 @@ async function generateOpenAIVisionTextCore({
     tokenUsageOperation = '',
     tokenUsageMetadata = null,
     requestTimeoutMs = OPENAI_REQUEST_TIMEOUT_MS,
+    streamOverride = false,
+    imageDetail = 'low',
 }) {
+    const useStream = Boolean(streamOverride);
+    const resolvedImageDetail = ['low', 'high', 'original', 'auto'].includes(String(imageDetail || '').trim().toLowerCase())
+        ? String(imageDetail).trim().toLowerCase()
+        : 'low';
     const content = [
         {
             type: 'text',
@@ -11183,7 +11622,7 @@ async function generateOpenAIVisionTextCore({
             type: 'image_url',
             image_url: {
                 url,
-                detail: 'high',
+                detail: resolvedImageDetail,
             },
         })),
     ];
@@ -11196,9 +11635,26 @@ async function generateOpenAIVisionTextCore({
         systemPrompt,
         userPrompt,
     });
-    const response = await fetch(
-        `${requestBaseUrl}/chat/completions`,
-        {
+    const eventRequest = /^event(?:-|:)/u.test(String(tokenUsageOperation || ''));
+    const streamWatchdog = eventRequest && useStream
+        ? createIdleAbortWatchdog(Math.min(15 * 60 * 1000, Math.max(60_000, Number(requestTimeoutMs) || OPENAI_REQUEST_TIMEOUT_MS)), 'GPT vision stream')
+        : null;
+    const streamAttemptTimeout = streamWatchdog
+        ? AbortSignal.timeout(Math.max(60_000, Number(requestTimeoutMs) || OPENAI_REQUEST_TIMEOUT_MS))
+        : null;
+    const requestSignal = streamWatchdog
+        ? combineAbortSignals([getCurrentOperationSignal(), streamWatchdog.signal, streamAttemptTimeout])
+        : eventRequest
+            ? combineAbortSignals([
+                getCurrentOperationSignal(),
+                buildOperationAbortSignal(Math.max(60_000, Number(requestTimeoutMs) || OPENAI_REQUEST_TIMEOUT_MS)),
+            ])
+        : buildOperationAbortSignal(Math.max(5_000, Number(requestTimeoutMs) || OPENAI_REQUEST_TIMEOUT_MS));
+    let response;
+    try {
+        response = await fetch(
+            `${requestBaseUrl}/chat/completions`,
+            {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${requestApiKey}`,
@@ -11217,7 +11673,7 @@ async function generateOpenAIVisionTextCore({
                         content,
                     },
                 ],
-                stream: false,
+                stream: useStream,
                 ...(Number.isSafeInteger(maxTokens) && maxTokens > 0
                     ? { max_completion_tokens: maxTokens }
                     : {}),
@@ -11226,14 +11682,21 @@ async function generateOpenAIVisionTextCore({
             // configured provider/router decides when a request has failed.
             // Keep explicit owner/supervisor cancellation, but never turn slow
             // inference into an artificial TimeoutError in this pathway.
-            signal: /^event(?:-|:)/u.test(String(tokenUsageOperation || ''))
-                ? getCurrentOperationSignal() || undefined
-                : buildOperationAbortSignal(Math.max(5_000, Number(requestTimeoutMs) || OPENAI_REQUEST_TIMEOUT_MS)),
-        },
-    );
+                signal: requestSignal,
+            },
+        );
+    } catch (error) {
+        streamWatchdog?.dispose();
+        throw error;
+    }
 
     if (!response.ok) {
-        const rawBody = await response.text();
+        let rawBody = '';
+        try {
+            rawBody = await response.text();
+        } finally {
+            streamWatchdog?.dispose();
+        }
         let payload = {};
 
         try {
@@ -11253,12 +11716,91 @@ async function generateOpenAIVisionTextCore({
         );
     }
 
-    const payload = await response.json();
-    const contentValue = payload?.choices?.[0]?.message?.content;
-    const text = extractOpenAITextContent(contentValue);
+    let payload = {};
+    let contentValue = null;
+    let text = '';
+    let streamEventCount = 0;
+    let finishReason = '';
+    let streamUsage = null;
+    if (useStream) {
+        const collector = createOpenAIStreamTextCollector();
+        try {
+            await consumeOpenAIStream(response, {
+                label: 'GPT VISION',
+                signal: requestSignal,
+                onActivity: () => streamWatchdog?.touch(),
+                onPayload(event) {
+                    collector.onPayload(event);
+                    payload = event || payload;
+                },
+            });
+        } catch (error) {
+            const partial = collector.result();
+            recordAiTokenUsage({
+                operation: resolvedTokenOperation,
+                capability: 'vision',
+                provider: providerCredential?.provider || 'compat',
+                keyName: providerCredential?.name || '',
+                model,
+                transport: 'chat-completions-vision-stream',
+                usage: partial.usage || payload?.usage,
+                inputChars: String(systemPrompt ?? '').length + String(userPrompt ?? '').length,
+                outputChars: partial.text.length,
+                imageCount: imageUrls.length,
+                durationMs: Date.now() - requestStartedAt,
+                success: false,
+                metadata: tokenUsageMetadata,
+                systemPrompt,
+                userPrompt,
+            });
+            throw error;
+        } finally {
+            streamWatchdog?.dispose();
+        }
+        const collected = collector.result();
+        streamEventCount = collected.eventCount;
+        finishReason = collected.finishReason;
+        streamUsage = collected.usage;
+        text = collected.text;
+        contentValue = payload?.choices?.[0]?.message?.content;
+        if (!text) text = extractOpenAITextContent(contentValue);
+        if (!text) text = extractOpenAITextContent(extractOpenAIFinalText(payload));
+        if (streamUsage) payload = { ...payload, usage: streamUsage };
+    } else {
+        payload = await response.json();
+        contentValue = payload?.choices?.[0]?.message?.content;
+        text = extractOpenAITextContent(contentValue);
+        if (!text) text = extractOpenAITextContent(extractOpenAIFinalText(payload));
+    }
 
     if (!text) {
-        throw new Error('GPT vision API вернул пустой ответ.');
+        recordAiTokenUsage({
+            operation: resolvedTokenOperation,
+            capability: 'vision',
+            provider: providerCredential?.provider || 'compat',
+            keyName: providerCredential?.name || '',
+            model,
+            transport: useStream ? 'chat-completions-vision-stream' : 'chat-completions-vision',
+            usage: payload?.usage || streamUsage,
+            inputChars: String(systemPrompt ?? '').length + String(userPrompt ?? '').length,
+            outputChars: 0,
+            imageCount: imageUrls.length,
+            durationMs: Date.now() - requestStartedAt,
+            success: false,
+            metadata: tokenUsageMetadata,
+            systemPrompt,
+            userPrompt,
+        });
+        const empty = new Error([
+            'GPT vision API вернул пустой ответ.',
+            `stream=${useStream ? 'yes' : 'no'}`,
+            `events=${streamEventCount}`,
+            `finish_reason=${finishReason || 'none'}`,
+            `usage=${streamUsage ? 'present' : 'missing'}`,
+        ].join(' '));
+        empty.code = 'EMPTY_MODEL_TEXT';
+        empty.retryable = true;
+        throw empty;
     }
 
     if (containsOpenAIImageContent(contentValue)) {
@@ -11273,7 +11815,7 @@ async function generateOpenAIVisionTextCore({
         provider: providerCredential?.provider || 'compat',
         keyName: providerCredential?.name || '',
         model,
-        transport: 'chat-completions-vision',
+        transport: useStream ? 'chat-completions-vision-stream' : 'chat-completions-vision',
         usage: payload?.usage,
         inputChars: String(systemPrompt ?? '').length + String(userPrompt ?? '').length,
         outputChars: text.length,
@@ -11288,6 +11830,22 @@ async function generateOpenAIVisionTextCore({
 }
 
 async function generateOpenAIVisionText(options) {
+    const isEventVision = /^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''));
+    if (!isEventVision) return generateOpenAIVisionTextOnce(options);
+    return enqueueParserVision(() => generateOpenAIVisionTextOnce(options));
+}
+
+async function generateOpenAIVisionTextOnce(options) {
+    if (/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) {
+        const eventVisionOperation = String(options?.tokenUsageOperation || '');
+        const defaultEventLadder = /poster|image-metadata|final-poster/iu.test(eventVisionOperation)
+            ? POSTER_VISION_MODEL_LADDER
+            : PARSER_MODEL_LADDER;
+        options = { ...options, streamOverride: true, disableTransportFallback: true, skipIncomingMessageContext: true,
+            failoverMaxRounds: 1, failuresBeforeQuarantine: 4,
+            requestTimeoutMs: Math.min(180_000, Number(options.requestTimeoutMs) || 180_000),
+            modelLadder: options.modelLadder || defaultEventLadder, useCredentialHealth: false };
+    }
     const incomingMessageBlock = options?.skipIncomingMessageContext
         ? ''
         : await getIncomingGptPromptBlock({ includeImageAnalysis: false });
@@ -11297,8 +11855,9 @@ async function generateOpenAIVisionText(options) {
     );
     const preparedUrls = await prepareVisionInputUrls(options?.imageUrls ?? []);
     const initialMode = resolveVisionMode(options?.mode);
-    const initialModel = String(options?.model ?? '').trim() ||
+    const initialModel = String(options?.modelLadder?.[0]?.model ?? options?.model ?? '').trim() ||
         await resolveGptModel(initialMode);
+    const modelLadder = options?.modelLadder || getGptModelLadderFrom(initialModel);
     const onModelSelected = typeof options?.onModelSelected === 'function'
         ? options.onModelSelected
         : null;
@@ -11311,11 +11870,12 @@ async function generateOpenAIVisionText(options) {
 
     const result = await executeBotModelFailover({
         capability: 'vision',
-        modes: options?.escalateToAdvanced
-            ? getVisionModeChain(initialMode)
-            : [initialMode],
+        modes: modelLadder.length ? [] : options?.escalateToAdvanced
+            ? getVisionModeChain(initialMode) : [initialMode],
+        modelLadder,
         requestedModel: initialModel,
         failoverMaxRounds: options?.failoverMaxRounds,
+        roundRetryDelayMs: options?.roundRetryDelayMs,
         failuresBeforeQuarantine: options?.failuresBeforeQuarantine,
         maxCandidates: options?.maxCandidates,
         useCredentialHealth: options?.useCredentialHealth !== false,
@@ -11324,8 +11884,9 @@ async function generateOpenAIVisionText(options) {
         // A model/key transport failure must advance the ladder. Vision-specific
         // 400/404 capability errors are also retryable on the next model, while
         // genuine malformed-input/policy errors remain terminal.
-        shouldRetry: (error) =>
+        shouldRetry: (error) => Boolean(error?.retryable) ||
             isTechnicalModelFailure(error) || isRetryableOpenAITextError(error),
+        shouldAdvanceCandidate: isRetiredParserModelError,
         request: async (credential) => {
             const text = await generateOpenAIVisionTextCore({
                 ...options,
@@ -11334,6 +11895,8 @@ async function generateOpenAIVisionText(options) {
                 userPrompt: enrichedUserPrompt,
                 imageUrls: preparedUrls,
                 tokenUsageOperation,
+                imageDetail: credential.imageDetail || options?.imageDetail || (/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || '')) ? 'high' : 'low'),
+                streamOverride: options?.streamOverride === true,
             });
             // Only callers that request a structured result opt into this gate.
             // A response that cannot be parsed must not masquerade as a successful
@@ -11857,7 +12420,7 @@ async function answerVisionQuestion(context, prompt, model, mode, preloadedImage
             // cheapest-to-strongest ladder pass, two attempts per key/model.
             // This is independent from the per-image OCR preprocessor above.
             failoverMaxRounds: 1,
-            failuresBeforeQuarantine: 2,
+            failuresBeforeQuarantine: 3,
             maxCandidates: 0,
             escalateToAdvanced: true,
             onModelSelected(selection) {
@@ -16770,7 +17333,7 @@ function collectVkAttachmentEventData(context, originalText) {
                 if (
                     /(?:userapi|vkuser|vkcdn|sun\d+-\d+\.userapi|\.(?:jpe?g|png|webp|gif)(?:\?|$))/iu.test(clean)
                 ) {
-                    addUnique(imageUrls, clean, 12);
+                    addUnique(imageUrls, clean, 1000);
                 }
                 return;
             }
@@ -17494,6 +18057,146 @@ async function handleTelegramIncoming(context) {
             textPreview: String(context?.originalText || context?.text || '').slice(0, 1000),
         },
     }, () => handleTelegramIncomingUnsupervised(context));
+}
+
+function findUpcomingEventByIdentityV18900(sourceType, id) {
+    const type = String(sourceType ?? '').trim();
+    const eventId = Number(id);
+    if (!type || !Number.isSafeInteger(eventId) || eventId <= 0) return null;
+    const rows = [
+        ...getAllUpcomingEventRecordsForDedupe({
+            fromDate: getLocalDateString(new Date(), botTimeZone),
+            limitPerTable: 20_000,
+        }),
+        ...getQticketsUpcomingEvents({
+            fromDate: getLocalDateString(new Date(), botTimeZone),
+            limit: 20_000,
+        }),
+    ];
+    return rows.find((event) => String(event?.sourceType || '') === type && Number(event?.id || 0) === eventId) || null;
+}
+
+async function handleTelegramEventCardCallback(context) {
+    const callback = getRawContext(context)?.callbackQuery;
+    if (!callback?.data) return false;
+    const match = String(callback.data).trim().match(/^event_(edit|delete|delete_permanent):([a-z_]{2,16}):(\d+)$/iu);
+    if (!match) return false;
+    if (!isOwnerContext(context) || !isPrivateContext(context)) {
+        await context.answerCallbackQuery({ text: 'Действие доступно только владельцу в личном чате.', showAlert: true }).catch(() => {});
+        return true;
+    }
+    const action = String(match[1]).toLowerCase();
+    const sourceType = String(match[2]).toLowerCase();
+    const id = Number(match[3]);
+    await context.answerCallbackQuery().catch(() => {});
+    const event = findUpcomingEventByIdentityV18900(sourceType, id);
+    if (!event) {
+        await context.send('Карточка уже удалена или больше не доступна.');
+        return true;
+    }
+    if (action === 'edit') {
+        await beginOwnerEventTextEditV18897(context, event);
+        return true;
+    }
+    const key = getEventProposalInputKey(context);
+    const permanent = action === 'delete_permanent';
+    pendingEventDeletionConfirmations.set(key, {
+        event,
+        mode: permanent ? 'permanent' : 'soft',
+        exactIdentity: true,
+        expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
+    });
+    await context.send({
+        message: [
+            permanent ? '🚫 Удалить эту карточку навсегда?' : '🗑 Удалить эту карточку из базы?',
+            `${event.eventDate || 'без даты'} · ${event.title || event.participants || 'без названия'}`,
+            event.venue ? `📍 ${event.venue}` : '',
+            permanent ? 'Карточка и её метаданные будут удалены. Постоянная блокировка не даст автоматически добавить её при перепарсинге. Через меню владельца её всё равно можно добавить вручную.' : 'Карточка и её метаданные удалятся из базы. Исходный пост останется, и при перепарсинге карточка может появиться снова.',
+            'Ответь «да» для удаления или «нет» для отмены.',
+        ].filter(Boolean).join('\n'),
+        replyMarkup: { inline_keyboard: [[
+            { text: permanent ? '🚫 Да, удалить навсегда' : '✅ Да, удалить', callback_data: `${permanent ? 'event_delete_permanent_confirm' : 'event_delete_confirm'}:${sourceType}:${id}` },
+            { text: 'Отмена', callback_data: `${permanent ? 'event_delete_permanent_cancel' : 'event_delete_cancel'}:${sourceType}:${id}` },
+        ]] },
+    });
+    return true;
+}
+
+async function handleTelegramEventCardCallbackUpdate(context) {
+    const callback = getRawContext(context)?.callbackQuery;
+    const data = String(callback?.data || '').trim();
+    const parserRecovery = data.match(/^parser_(resume|keep):([a-z0-9-]+)$/u);
+    if (parserRecovery) {
+        if (!isOwnerContext(context) || !isPrivateContext(context)) {
+            await context.answerCallbackQuery({ text: 'Только владелец в личном чате.', showAlert: true }).catch(() => {});
+            return true;
+        }
+        await context.answerCallbackQuery().catch(() => {});
+        const recovery = [PARTY_POOL_PRIMARY, PARTY_POOL_SECONDARY]
+            .map((partyPool) => loadLatestParserAllRecovery({ partyPool, expectedId: parserRecovery[2] }))
+            .find((entry) => entry?.id === parserRecovery[2] && entry.reason !== 'superseded');
+        if (!recovery) {
+            await context.send('Этот запуск уже завершён, заменён новым или его продолжение отклонено.');
+            return true;
+        }
+        if (parserRecovery[1] === 'keep') {
+            dismissParserAllRecovery(recovery);
+            await context.send('Оставляю сохранённый результат. Этот запуск больше не предлагается к восстановлению.');
+            return true;
+        }
+        return handleManualScraperCommand(context, parserRecoveryCommand(recovery.partyPool), { recoveryCheckpointId: recovery.id });
+    }
+    const confirm = data.match(/^event_delete(?:_(permanent))?_(confirm|cancel):([a-z_]{2,16}):(\d+)$/iu);
+    if (confirm) {
+        if (!isOwnerContext(context) || !isPrivateContext(context)) {
+            await context.answerCallbackQuery({ text: 'Только владелец в личном чате.', showAlert: true }).catch(() => {});
+            return true;
+        }
+        await context.answerCallbackQuery().catch(() => {});
+        const key = getEventProposalInputKey(context);
+        const pending = pendingEventDeletionConfirmations.get(key);
+        const permanent = Boolean(confirm[1]);
+        const sourceType = String(confirm[3]).toLowerCase();
+        const id = Number(confirm[4]);
+        if (!pending ||
+            String(pending.event?.sourceType || '') !== sourceType ||
+            Number(pending.event?.id || 0) !== id ||
+            Boolean(pending.mode === 'permanent') !== permanent ||
+            Date.now() >= Number(pending.expiresAt || 0)) {
+            pendingEventDeletionConfirmations.delete(key);
+            await context.send('Подтверждение устарело. Открой карточку и нажми «Удалить» ещё раз.');
+            return true;
+        }
+        pendingEventDeletionConfirmations.delete(key);
+        if (confirm[2].toLowerCase() === 'cancel') {
+            await context.send('Удаление отменено.');
+            return true;
+        }
+        if (permanent) {
+            const rawContext = getRawContext(context);
+            const result = permanentlyDeleteStoredEventByIdentity(pending.event, {
+                reason: 'owner-permanent-card-delete-v18900',
+                createdByPlatform: String(rawContext?.platform || ''),
+                createdBy: Number(rawContext?.senderId || 0),
+            });
+            invalidateAfterEventDeletionV18894('owner-permanent-card-delete-v18900');
+            await sendDeletedEventNotice(context, pending.event, {
+                permanent: true,
+                changed: result.deleted?.changed || 0,
+                blockId: result.block?.id || 0,
+            });
+        } else {
+            const result = softDeleteStoredEventByIdentity({ sourceType, id });
+            invalidateAfterEventDeletionV18894('owner-exact-card-delete-v18900');
+            await sendDeletedEventNotice(context, pending.event, { permanent: false, changed: result.changed || 0 });
+        }
+        return true;
+    }
+    if (!/^event_(?:edit|delete|delete_permanent):[a-z_]{2,16}:\d+$/iu.test(data)) {
+        await context.answerCallbackQuery().catch(() => {});
+        return false;
+    }
+    return handleTelegramEventCardCallback(context);
 }
 
 async function handleTelegramIncomingCore(context) {
@@ -18249,7 +18952,13 @@ function normalizeEventDedupeRef(event) {
 
     let sourceType = '';
     if (rawType === 'telegram' || rawType === 'tg') sourceType = 'telegram';
-    else if (rawType === 'vk' || rawType === 'vk-public' || rawType === 'vk_public') sourceType = 'vk';
+    // Persisted VK rows historically used both the public-facing `vk` value
+    // and the provenance value `vk_wall`.  They identify the same event table
+    // and must share one registry key; otherwise a row with `source_type =
+    // vk_wall` is silently omitted from `_dedupeRefs`, can never become a
+    // registry member, and leaks back into every public listing.
+    else if (rawType === 'vk' || rawType === 'vk-wall' || rawType === 'vk_wall' ||
+        rawType === 'vk-public' || rawType === 'vk_public') sourceType = 'vk';
     else if (rawType === 'vk_chat' || rawType === 'vk-chat') sourceType = 'vk_chat';
     else if (rawType === 'manual') sourceType = 'manual';
     if (!sourceType) return null;
@@ -18401,6 +19110,10 @@ async function runEventDedupeSeparatedByPartyPool(events, dedupeRunner) {
         events: [...(primary?.events || []), ...(secondary?.events || [])],
         merges: [...(primary?.merges || []), ...(secondary?.merges || [])],
         ambiguous: [...(primary?.ambiguous || []), ...(secondary?.ambiguous || [])],
+        unresolvedAmbiguous: [
+            ...(primary?.unresolvedAmbiguous || []),
+            ...(secondary?.unresolvedAmbiguous || []),
+        ],
         candidatePairCount: numeric('candidatePairCount'),
         totalPossiblePairCount: numeric('totalPossiblePairCount'),
         finalSweepComparedPairs: numeric('finalSweepComparedPairs'),
@@ -18420,8 +19133,16 @@ async function runEventDedupeSeparatedByPartyPool(events, dedupeRunner) {
     };
 }
 
-async function scanEventsWithDeepEventDedupe(rawEvents) {
+async function scanEventsWithDeepEventDedupe(rawEvents, { mode = 'deep' } = {}) {
+    const startedAt = Date.now();
     const source = Array.isArray(rawEvents) ? rawEvents : [];
+    setEventDedupeAuditState('running', {
+        mode,
+        stage: 'read-db',
+        startedAt: Math.floor(startedAt / 1000),
+        processed: 0,
+        total: source.length,
+    });
     const secondarySourceKeys = getSecondaryPartySourceKeys();
     const taggedRawEvents = source.map((event) => {
         const ref = normalizeEventDedupeRef(event);
@@ -18430,19 +19151,50 @@ async function scanEventsWithDeepEventDedupe(rawEvents) {
             ? { ...event, partyPool, _dedupeRefs: [ref] }
             : { ...event, partyPool, _dedupeRefs: [] };
     });
-    const normalizedEvents = (await normalizePublicEventsForDisplay(taggedRawEvents))
-        .map((event) => ({ ...event, partyPool: classifyEventPartyPool(event, { secondarySourceKeys }) }));
+    // Duplicate identity must not depend on the presentation normalizer. That
+    // normalizer makes paid AI calls in batches and was the reason a database
+    // audit could hang before it even reached the dedupe contour. The event
+    // fields are already persisted in SQLite; the dedupe module performs its
+    // own deterministic title/token normalization and sends only ambiguous
+    // pairs to AI.
+    const normalizedEvents = taggedRawEvents
+        .map((event) => ({ ...buildLocalNormalizedEvent(event), partyPool: classifyEventPartyPool(event, { secondarySourceKeys }) }));
+    setEventDedupeAuditState('running', {
+        mode,
+        stage: 'dedupe',
+        startedAt: Math.floor(startedAt / 1000),
+        processed: 0,
+        total: source.length,
+        rawCount: source.length,
+    });
     const dedupe = await runEventDedupeSeparatedByPartyPool(
         normalizedEvents,
         (poolEvents) => deduplicatePublicEventsTwoContour(poolEvents),
     );
     const groups = buildEventDedupeRegistryGroups(source, dedupe.events);
+    const elapsedMs = Date.now() - startedAt;
+    const duplicateRows = groups.reduce((sum, group) => sum + group.ignore.length, 0);
+    setEventDedupeAuditState('completed', {
+        mode,
+        stage: 'done',
+        startedAt: Math.floor(startedAt / 1000),
+        finishedAt: Math.floor(Date.now() / 1000),
+        processed: source.length,
+        total: source.length,
+        rawCount: source.length,
+        canonicalCount: dedupe.events.length,
+        groups: groups.length,
+        duplicateRows,
+        unresolvedAmbiguous: Array.isArray(dedupe.unresolvedAmbiguous) ? dedupe.unresolvedAmbiguous.length : 0,
+        elapsedMs,
+    });
     return {
         rawEvents: source,
         normalizedEvents,
         dedupe,
         groups,
-        duplicateRows: groups.reduce((sum, group) => sum + group.ignore.length, 0),
+        duplicateRows,
+        elapsedMs,
     };
 }
 
@@ -18452,7 +19204,36 @@ async function scanCurrentDatabaseWithDeepEventDedupe() {
         fromDate: todayIso,
         limitPerTable: 20_000,
     });
-    return scanEventsWithDeepEventDedupe(rawEvents);
+    return scanEventsWithDeepEventDedupe(rawEvents, { mode: 'dry-run' });
+}
+
+// Script/maintenance entry point for the owner command. It deliberately uses
+// the exact same scanner and registry writer as Telegram, so a manual night
+// run cannot silently use a weaker duplicate algorithm than the bot command.
+export async function runEventDedupeMaintenanceForCurrentDatabase({
+    apply = false,
+    rebuildSnapshot = false,
+} = {}) {
+    const scan = await scanCurrentDatabaseWithDeepEventDedupe();
+    const unresolved = Array.isArray(scan?.dedupe?.unresolvedAmbiguous)
+        ? scan.dedupe.unresolvedAmbiguous
+        : [];
+    let registry = getEventDedupeRegistryStats('configured');
+    let snapshot = null;
+    if (apply) {
+        registry = replaceEventDedupeRegistry(scan.groups, {
+            scope: 'configured',
+            purgeDuplicateRows: true,
+            algorithmVersion: EVENT_DEDUPE_ALGORITHM_VERSION,
+        });
+        verifiedEventSnapshotMemory = null;
+        if (rebuildSnapshot) console.warn('[EVENT DEDUPE SNAPSHOT SKIPPED]', 'the deep scan result is already verified; a second AI pass is intentionally avoided');
+    }
+    return {
+        ...scan, applied: Boolean(apply), registry, snapshot,
+        purgedDuplicateRows: Number(registry?.purgedDuplicateRows || 0),
+        unresolvedAmbiguous: unresolved,
+    };
 }
 
 const EVENT_DEDUPE_AUDIT_TASK_KEY = 'event-dedupe-audit-v149';
@@ -18536,16 +19317,37 @@ async function scanCurrentDatabaseWithFastEventDedupe({
         canonicalCount: dedupe.events.length,
         groups: groups.length,
         duplicateRows: result.duplicateRows,
+        unresolvedAmbiguous: Array.isArray(dedupe.unresolvedAmbiguous) ? dedupe.unresolvedAmbiguous.length : 0,
         elapsedMs,
     });
 
     return result;
 }
 
-
 async function rebuildPersistentEventDedupeRegistryDeterministic({
     reason = 'startup-v147',
 } = {}) {
+    // The configured registry is durable state. A bounded deterministic startup
+    // pass must never replace a previously completed deep/AI registry with a
+    // weaker result (this used to turn 10 deep groups into 4 fast groups on
+    // every restart). Explicit dedupe commands and the verified snapshot path
+    // remain responsible for rebuilding it after source changes.
+    const existingRegistry = getEventDedupeRegistryStats('configured');
+    if (existingRegistry.groups > 0 || existingRegistry.members > 0) {
+        console.log(
+            '[EVENT DEDUPE PERSISTENT FAST REBUILD SKIP]',
+            `reason=${reason}`,
+            `existingGroups=${existingRegistry.groups}`,
+            `existingMembers=${existingRegistry.members}`,
+        );
+        return {
+            rawEvents: [],
+            dedupe: { events: [], merges: [], ambiguous: [] },
+            groups: [],
+            registry: existingRegistry,
+            skipped: true,
+        };
+    }
     const todayIso = getLocalDateString(new Date(), botTimeZone);
     const rawEvents = getAllUpcomingEventRecordsForDedupe({
         fromDate: todayIso,
@@ -18610,9 +19412,9 @@ function getCombinedUpcomingEvents(limit = 20) {
     reportEventDedupeMerges(deduplicated);
     reportEventDedupeMerges(strictDeduplicated);
 
-    // V188.94: the legacy title-only JSON blocklist is no longer an active
-    // deletion mechanism. Soft deletes are persisted as ignored rows; permanent
-    // deletes use event_permanent_blocks with date + rich event/source metadata.
+    // V189.00: the legacy title-only JSON blocklist is no longer an active
+    // deletion mechanism. Both delete modes purge current event rows; only
+    // permanent deletion keeps an active event_permanent_blocks fingerprint.
     return strictDeduplicated.events.slice(0, requestedLimit);
 }
 
@@ -18626,7 +19428,16 @@ function getPublicEventsForRange(range, limit = 50, { partyPool = PARTY_POOL_PRI
     // persistence-слоем, а старый title-only JSON blacklist больше не фильтрует выдачу.
     const normalizedPool = partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
     const secondarySourceKeys = getSecondaryPartySourceKeys();
+    const duplicateRefs = new Set(
+        getEventDedupeDuplicateRefs('configured')
+            .map((ref) => eventDedupeRefKey(ref))
+            .filter(Boolean),
+    );
     const raw = getRawUpcomingEventsForModeration(2000)
+        .filter((event) => {
+            const ref = normalizeEventDedupeRef(event);
+            return !ref || !duplicateRefs.has(eventDedupeRefKey(ref));
+        })
         .filter((event) => classifyEventPartyPool(event, { secondarySourceKeys }) === normalizedPool);
     const fromMs = Date.parse(`${range.fromDate}T00:00:00Z`);
     const toMs = Date.parse(`${range.toDate}T23:59:59Z`);
@@ -18704,6 +19515,10 @@ async function selectAllPartyCandidatesForRange(range, limit = 2000) {
     const selectPool = async (partyPool) => {
         let selection = selectVerifiedEventSnapshotItems(range, limit, { partyPool });
         if (!selection.snapshot) {
+            // A stale verified snapshot is being rebuilt. Do not fall back to
+            // raw SQLite rows here: the all-parties route used to bypass the
+            // public-route gate and could briefly show a freshly parsed
+            // duplicate while the replacement snapshot was still pending.
             selection = {
                 snapshot: null,
                 items: await buildFastUnverifiedItemsForRange(range, limit, { partyPool }),
@@ -19028,7 +19843,7 @@ function normalizeBlockingSourceForReparse(value) {
     return text ? text.split('#')[0].split('?')[0].replace(/\/+$/u, '') : '';
 }
 
-async function captureStoredEventSourceForReparseV188147(sourceUrl, records = [], { diagnostics = null, noMinimumDwell = false, separateTab = false } = {}) {
+async function captureStoredEventSourceForReparseV188147(sourceUrl, records = [], { diagnostics = null, noMinimumDwell = false, separateTab = true } = {}) {
     const canonicalUrl = canonicalEventSourceUrl(sourceUrl);
     const diagnosticSourceId = `reparse:${canonicalUrl || sourceUrl}`;
     const diagnosticDomWrites = [];
@@ -19068,9 +19883,10 @@ async function captureStoredEventSourceForReparseV188147(sourceUrl, records = []
             notifyAttention: notifyScraperAttention,
             keepPageOpen: false,
             separateTab,
-            // Only this capture-first flow may waive the old 180-second dwell;
-            // the ordinary manual review keeps its existing capture policy.
-            minimumOpenMs: noMinimumDwell ? 0 : undefined,
+            // Every source capture keeps the tab open long enough for VK's
+            // delayed DOM/media hydration. Pipelining analysis never waives
+            // the two-minute browser dwell.
+            minimumOpenMs: undefined,
             trace: reparseTrace,
         }).then(
             (value) => ({ value, error: null }),
@@ -19541,7 +20357,7 @@ async function runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster = fal
                 })),
             });
             const browserTask = captureStoredEventSourceForReparseV188147(sourceUrl, records, {
-                diagnostics, noMinimumDwell: true, separateTab: onlyMissingPoster,
+                diagnostics, separateTab: true,
             });
             const tracked = browserTask.then(() => {}, () => {});
             openCaptures.add(tracked);
@@ -19571,7 +20387,7 @@ async function runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster = fal
         };
         for (let index = 0; index < entries.length; index += 1) {
             if (index > 0) {
-                const delayMs = 5_000 + Math.floor(Math.random() * 11_001);
+                const delayMs = 5_000 + Math.floor(Math.random() * 10_001);
                 diagnostics.log('future-refresh.source.stagger', { index, delayMs });
                 await new Promise((done) => setTimeout(done, delayMs));
             }
@@ -20098,7 +20914,116 @@ async function beginOwnerEventTextEditV18897(context, event) {
     } else {
         await context.send(message);
     }
+    await sendOwnerEventSourceMaterialsV18900(context, event);
     return true;
+}
+
+/**
+ * Показывает владельцу именно исходник выбранной карточки. Карточка может
+ * быть результатом мультианонса, поэтому здесь нельзя использовать
+ * getEventAttachments(): он специально оставляет только безопасную афишу
+ * для публичной выдачи. В режиме исправления нужны все локальные исходные
+ * изображения, чтобы владелец мог выбрать правильные и прислать новый набор.
+ */
+async function sendOwnerEventSourceMaterialsV18900(context, event) {
+    const rawContext = getRawContext(context);
+    const materials = collectOwnerEventSourceMaterials(event);
+    await sendLong(context, [
+        '📎 Исходные материалы анонса.',
+        'Ниже каждый исходный пост идёт отдельным блоком: полный текст, ссылка и только его картинки. Если картинок несколько, они пронумерованы в порядке исходника.',
+        'Можно прислать исправленный полный текст, одну или несколько картинок следующим сообщением.',
+    ].join('\n'));
+
+    const failures = [];
+    for (let sourceIndex = 0; sourceIndex < materials.records.length; sourceIndex += 1) {
+        const record = materials.records[sourceIndex];
+        await sendLong(context, formatOwnerEventSourceRecord(record, sourceIndex, materials.records.length));
+
+        const localPaths = Array.isArray(record?.imagePaths) ? record.imagePaths : [];
+        const imageUrls = Array.isArray(record?.imageUrls) ? record.imageUrls : [];
+        const entries = [];
+        const fallbackUrls = [];
+        const seenPaths = new Set();
+        const rememberFallbackUrl = (url) => {
+            const clean = String(url ?? '').trim();
+            if (/^https?:\/\//iu.test(clean) && !fallbackUrls.includes(clean)) fallbackUrls.push(clean);
+        };
+
+        for (let imageIndex = 0; imageIndex < localPaths.length; imageIndex += 1) {
+            const path = String(localPaths[imageIndex] ?? '').trim();
+            if (!path || seenPaths.has(path)) continue;
+            seenPaths.add(path);
+            try {
+                const attachment = await uploadEventImageAttachment(path, context);
+                if (attachment) entries.push({ path, attachment });
+                else {
+                    failures.push(path);
+                    rememberFallbackUrl(imageUrls[imageIndex]);
+                }
+            } catch (error) {
+                failures.push(`${path}: ${String(error?.message ?? error).slice(0, 180)}`);
+                rememberFallbackUrl(imageUrls[imageIndex]);
+            }
+        }
+        // A source URL can outlive its local file. Recover those missing slots
+        // for this source only, keeping the text/image association unambiguous.
+        if (!localPaths.length) imageUrls.forEach(rememberFallbackUrl);
+        else if (imageUrls.length > localPaths.length) imageUrls.slice(localPaths.length).forEach(rememberFallbackUrl);
+
+        if (fallbackUrls.length) {
+            try {
+                const [prepared] = await prepareEventImages({
+                    events: [{ title: 'owner-source-material', isMultiAnnouncement: false }],
+                    sourceKey: 'owner-event-source-materials-v18900',
+                    itemId: `owner-material-${Date.now()}-${sourceIndex}`,
+                    imageUrls: fallbackUrls,
+                    dataDirectory: RUNTIME_DATA_DIRECTORY,
+                    targetFolder: 'owner_source_materials',
+                    sourceLabel: 'Исходные материалы владельца',
+                    notifyAttention: notifyScraperAttention,
+                    maxSourceImages: fallbackUrls.length,
+                    generateFallback: false,
+                });
+                const recoveredPaths = Array.isArray(prepared?._sourceImagePaths)
+                    ? prepared._sourceImagePaths
+                    : (Array.isArray(prepared?.imagePaths) ? prepared.imagePaths : []);
+                for (const path of recoveredPaths) {
+                    const clean = String(path ?? '').trim();
+                    if (!clean || seenPaths.has(clean)) continue;
+                    seenPaths.add(clean);
+                    const attachment = await uploadEventImageAttachment(clean, context).catch(() => null);
+                    if (attachment) entries.push({ path: clean, attachment });
+                    else failures.push(clean);
+                }
+                if (!recoveredPaths.length) failures.push(...fallbackUrls.map((url) => `URL: ${url}`));
+            } catch (error) {
+                failures.push(...fallbackUrls.map((url) => `URL: ${url} (${String(error?.message ?? error).slice(0, 180)})`));
+            }
+        }
+
+        for (let offset = 0; offset < entries.length; offset += 10) {
+            const batch = entries.slice(offset, offset + 10);
+            const batchStart = offset + 1;
+            await sendLong(context, [
+                `🖼 Картинки этого источника ${batchStart}${batch.length > 1 ? `–${batchStart + batch.length - 1}` : ''}:`,
+                ...batch.map((item, index) => `${batchStart + index}. ${item.path}`),
+            ].join('\n'));
+            if (rawContext?.platform === 'telegram' && batch.length > 1) {
+                await context.send({ message: '', attachments: batch.map((item) => item.attachment), mediaGroup: true, singleMediaMessage: true });
+            } else if (rawContext?.platform === 'telegram') {
+                await context.send({ message: '', attachment: batch[0].attachment, singleMediaMessage: true });
+            } else {
+                await context.send({ message: '🖼 Картинки этого источника.', attachment: batch.map((item) => item.attachment).join(',') });
+            }
+        }
+        if (!entries.length && (localPaths.length || imageUrls.length)) {
+            await context.send('⚠️ Картинки этого источника не удалось отправить. Пришли нужную картинку следующим сообщением.');
+        }
+    }
+    if (failures.length) await context.send([
+        `⚠️ Не удалось отправить ${failures.length} исходных картинок.`,
+        'Карточка не изменена. Можно прислать картинку заново следующим сообщением.',
+    ].join('\n'));
 }
 
 async function applyOwnerEventDeletionSelectionV18897(context, pending, indexes) {
@@ -20135,12 +21060,12 @@ async function applyOwnerEventDeletionSelectionV18897(context, pending, indexes)
         pending.deletionMode === 'permanent'
             ? `🚫 Удалено насовсем: ${selected.length}.`
             : `🗑 Удалено карточек: ${selected.length}.`,
-        `Строк БД переведено в ignored: ${changed}.`,
+        `Карточек удалено из базы: ${changed}.`,
         ...labels.map((label) => `• ${label}`),
         blockIds.length ? `Permanent fingerprints: ${blockIds.map((id) => `#${id}`).join(', ')}.` : '',
         pending.deletionMode === 'permanent'
-            ? 'Эти события не вернутся при перепарсинге, пока permanent fingerprint активен.'
-            : 'Это мягкое удаление: при новом парсинге карточка может появиться заново.',
+            ? 'Эти события автоматически не вернутся при перепарсинге, пока постоянная блокировка активна.'
+            : 'Карточки удалены из базы без постоянной блокировки и могут восстановиться при перепарсинге исходных постов.',
     ].filter(Boolean).join('\n');
     if (rawContext?.platform === 'telegram') {
         await context.send({
@@ -20239,7 +21164,21 @@ async function prepareOwnerEventPosterReplacementV18898({ event, correctedEvent,
         maxSourceImages: EVENT_PROPOSAL_MAX_POST_IMAGES,
         generateFallback: false,
     });
-    const imagePath = String(prepared?.imagePaths?.[0] || '').trim();
+    // `prepareEventImages` keeps the complete source gallery for a mono
+    // announcement. The owner correction, however, must persist the exact
+    // image that Vision selected, otherwise sending two images would always
+    // replace the card with image #1 even when image #2 was the confirmed
+    // poster. Resolve the downloaded path by its source index first and only
+    // fall back to the first path for legacy/unindexed fixtures.
+    const preparedPaths = Array.isArray(prepared?._sourceImagePaths) && prepared._sourceImagePaths.length
+        ? prepared._sourceImagePaths
+        : (Array.isArray(prepared?.imagePaths) ? prepared.imagePaths : []);
+    const imagePath = String(
+        sourceImagePathForIndexV18892({ imagePaths: preparedPaths }, selectedIndex)
+        || prepared?.imagePaths?.[0]
+        || preparedPaths[0]
+        || '',
+    ).trim();
     if (!imagePath || !isStrongLocalEventPosterPath(imagePath)) {
         return { ok: false, reason: 'poster-download-or-file-validation-failed', mapped: prepared || mapped };
     }
@@ -20452,18 +21391,18 @@ async function sendDeletedEventNotice(context, event, { permanent = false, chang
     const body = permanent
         ? [
             '🚫 Тусовка удалена НАСОВСЕМ.',
-            `Текущих совпадающих карточек скрыто: ${Number(changed || 0)}.`,
+            `Карточек удалено из базы: ${Number(changed || 0)}.`,
             blockId ? `Permanent fingerprint: #${blockId}.` : '',
-            'Дата + название/участники/площадка/source lineage/метаданные афиши сохранены в SQLite. При следующем парсинге совпавшее событие не будет записано обратно.',
+            'Карточка и её метаданные удалены; fingerprint сохранён отдельно в SQLite. Совпавшее событие не будет добавлено автоматически при перепарсинге. Через меню владельца его можно добавить вручную.',
             '',
             buildSinglePublicEventMessage(event),
             '',
             `Чтобы снять постоянный запрет: «вернуть тусу ${title}».`,
         ].filter(Boolean).join('\n')
         : [
-            '🗑 Карточка удалена из текущей афиши.',
-            `Текущих совпадающих карточек скрыто: ${Number(changed || 0)}.`,
-            'Постоянный запрет НЕ создан: после нового парсинга/перепарсинга событие может появиться снова уже как заново собранная карточка.',
+            '🗑 Карточка удалена из базы вместе с метаданными.',
+            `Карточек удалено: ${Number(changed || 0)}.`,
+            'Постоянный запрет не создан. Исходный пост сохранён, поэтому событие может появиться снова после перепарсинга.',
             '',
             buildSinglePublicEventMessage(event),
         ].join('\n');
@@ -20660,19 +21599,32 @@ async function maybeHandleEventDeletionConfirmationIncoming(context, text) {
     const permanent = pending.mode === 'permanent';
     if (permanent) {
         const rawContext = getRawContext(context);
-        const result = permanentlyDeleteStoredEvent(pending.event, {
+        const result = pending.exactIdentity
+            ? permanentlyDeleteStoredEventByIdentity(pending.event, {
+                reason: 'owner-exact-permanent-delete-v18900',
+                createdByPlatform: String(rawContext?.platform || ''),
+                createdBy: Number(rawContext?.senderId || 0),
+            })
+            : permanentlyDeleteStoredEvent(pending.event, {
             reason: 'owner-permanent-delete-v18894',
             createdByPlatform: String(rawContext?.platform || ''),
             createdBy: Number(rawContext?.senderId || 0),
-        });
-        invalidateAfterEventDeletionV18894('owner-permanent-delete-v18894');
+            });
+        invalidateAfterEventDeletionV18894(pending.exactIdentity
+            ? 'owner-exact-permanent-delete-v18900'
+            : 'owner-permanent-delete-v18894');
         await sendDeletedEventNotice(context, pending.event, {
             permanent: true,
             changed: result.deleted?.changed || 0,
             blockId: result.block?.id || 0,
         });
     } else {
-        const result = softDeleteMatchingStoredEvents(pending.event);
+        const result = pending.exactIdentity
+            ? softDeleteStoredEventByIdentity({
+                sourceType: pending.event?.sourceType,
+                id: pending.event?.id,
+            })
+            : softDeleteMatchingStoredEvents(pending.event);
         invalidateAfterEventDeletionV18894('owner-soft-delete-v18894');
         await sendDeletedEventNotice(context, pending.event, { permanent: false, changed: result.changed || 0 });
     }
@@ -20692,11 +21644,14 @@ function sourceImagePathForIndexV18892(group, index) {
         const match = String(path ?? '').replace(/\\+/gu, '/').match(/-(\d+)(?:-[a-f0-9]{8,64})?\.(?:png|jpe?g|webp|gif)$/iu);
         return Number(match?.[1] || 0) === target;
     });
-    return indexed || paths[target - 1] || '';
+    if (indexed) return indexed;
+    const allUnindexed = paths.length > 0 && paths.every((path) => !String(path ?? '').replace(/\\+/gu, '/').match(/-(\d+)(?:-[a-f0-9]{8,64})?\.(?:png|jpe?g|webp|gif)$/iu));
+    return allUnindexed ? paths[target - 1] || '' : '';
 }
 
-function buildEventImageMetadataReviewV18892() {
-    const groups = getStartupPosterRepairGroupsV18877({ fromDate: '0001-01-01', limitPerTable: 20_000 });
+function buildEventImageMetadataReviewV18892({ fromDate = getLocalDateString(new Date(), botTimeZone) } = {}) {
+    const safeFromDate = String(fromDate || getLocalDateString(new Date(), botTimeZone));
+    const groups = getStartupPosterRepairGroupsV18877({ fromDate: safeFromDate, limitPerTable: 20_000 });
     const rows = [];
     for (const group of groups) {
         const sourceFacts = Array.isArray(group?.imageVisionFacts) ? group.imageVisionFacts : [];
@@ -20746,7 +21701,7 @@ function buildEventImageMetadataReviewV18892() {
         }
     }
 
-    const manualEvents = getAllUpcomingEventRecordsForDedupe({ fromDate: '0001-01-01', limitPerTable: 20_000 })
+    const manualEvents = getAllUpcomingEventRecordsForDedupe({ fromDate: safeFromDate, limitPerTable: 20_000 })
         .filter((event) => event?.sourceType === 'manual' && Array.isArray(event?.imagePaths) && event.imagePaths.length);
     for (const event of manualEvents) {
         const eventPaths = event.imagePaths;
@@ -20848,10 +21803,43 @@ async function readSourceImageMetadataV18892({ imagePath, imageIndex, sourceText
     return { ...fact, index: Number(imageIndex || fact.index || 1) };
 }
 
-async function runEventImageMetadataBackfillV18892(context, { recheckEveryImage = false, onProgress = null } = {}) {
-    const baseline = buildEventImageMetadataReviewV18892();
-    const groups = recheckEveryImage ? getAllStoredSourceImageAuditGroupsV188100() : baseline.groups;
-    const manualEvents = baseline.manualEvents;
+function visionFactNeedsInspectionV18892(fact) {
+    if (!fact || typeof fact !== 'object') return true;
+    const status = String(fact.visionStatus || '').trim().toLowerCase();
+    if (status === 'metadata_found') {
+        return ![fact.title, fact.dates, fact.time, fact.venue, fact.city, fact.locality,
+            fact.address, fact.participants, fact.price, fact.age, fact.program,
+            fact.tags, fact.recognizedText]
+            .some((value) => String(value ?? '').trim());
+    }
+    if (status === 'metadata_not_found') {
+        // A status written without the structured Vision block is a partial
+        // write (or a legacy malformed fact), so it must be retried.
+        const text = String(fact.text || '');
+        const fields = [...text.matchAll(/(?:^|[\n;])[ \t]*(?:Тип изображения|Тип|Image type|Это афиша события|Афиша|Poster|Распознанный текст|OCR|Текст на изображении|Причина|Почему|Reason)[ \t]*:/giu)];
+        const hasOutcome = /(?:^|[\n;])[ \t]*(?:Это афиша события|Афиша|Poster|Распознанный текст|OCR|Текст на изображении)[ \t]*:/iu.test(text);
+        return !(fact.visionInspected === true && fields.length >= 2 && hasOutcome);
+    }
+    return true;
+}
+
+async function runEventImageMetadataBackfillV18892(context, { recheckEveryImage = false, forceVision = false, onProgress = null } = {}) {
+    const today = getLocalDateString(new Date(), botTimeZone);
+    // The explicit owner audit covers archived manual events too. The regular
+    // backfill remains limited to upcoming events to avoid needless Vision work.
+    const baseline = buildEventImageMetadataReviewV18892({
+        fromDate: recheckEveryImage ? '0001-01-01' : today,
+    });
+    const groups = (recheckEveryImage
+        // The explicit full audit is an inventory of every locally saved image,
+        // including archived events and source rows that have no event yet.
+        ? getAllStoredSourceImageAuditGroupsV188100({ fromDate: '0001-01-01', includeOrphans: true })
+        : baseline.groups.filter((group) => (group?.events || []).some((event) => String(event?.eventDate || '') >= today))
+            .map((group) => ({ ...group, events: (group?.events || []).filter((event) => String(event?.eventDate || '') >= today) }))
+            .filter((group) => group.events.length > 0));
+    const manualEvents = recheckEveryImage
+        ? baseline.manualEvents
+        : baseline.manualEvents.filter((event) => String(event?.eventDate || '') >= today);
     // Full archive audit is owner-initiated and can incur substantial Vision costs.
     // Keep all evidence, source images and existing event bindings on errors.
     const fullAuditDirectory = recheckEveryImage
@@ -20915,24 +21903,32 @@ async function runEventImageMetadataBackfillV18892(context, { recheckEveryImage 
             .map((fact) => [Number(fact?.index || 0), fact])
             .filter(([index]) => index > 0));
         const indexes = new Set();
+        // Every locally stored image belonging to a future event source is a
+        // Vision candidate. Binding a single image to a child card remains a
+        // separate matching decision; it must not prevent inspection of the
+        // rest of the source gallery.
+        for (let index = 1; index <= Number(group?.imagePaths?.length || 0); index += 1) indexes.add(index);
         for (const event of Array.isArray(group?.events) ? group.events : []) {
             const current = Number(event?.posterImageIndex || 0);
             if (current > 0) indexes.add(current);
-            if (!current || !factsByIndex.has(current)) {
-                for (let index = 1; index <= Number(group?.imagePaths?.length || 0); index += 1) indexes.add(index);
+            const eventIndexes = Array.isArray(event?.imageIndexes)
+                ? event.imageIndexes.map(Number).filter((value) => Number.isInteger(value) && value > 0)
+                : [];
+            for (const imageIndex of eventIndexes) indexes.add(imageIndex);
+            const eventPaths = Array.isArray(event?.imagePaths) ? event.imagePaths : [];
+            for (const path of eventPaths) {
+                const sourceIndex = (group?.imagePaths || []).findIndex((sourcePath) => String(sourcePath) === String(path));
+                if (sourceIndex >= 0) indexes.add(sourceIndex + 1);
+            }
+            if (!current && !eventIndexes.length && !eventPaths.length &&
+                !Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement) && Number(group?.imagePaths?.length || 0) > 0) {
+                indexes.add(1);
             }
         }
-        if (recheckEveryImage) {
-            for (let index = 1; index <= Number(group?.imagePaths?.length || 0); index += 1) indexes.add(index);
-        }
-        const missing = [...indexes].filter((index) => {
+        const relevantIndexes = [...indexes].filter((index) => sourceImagePathForIndexV18892(group, index));
+        const missing = relevantIndexes.filter((index) => {
             const previous = factsByIndex.get(index);
-            const previousStatus = String(previous?.visionStatus || '').trim().toLowerCase();
-            // A prior empty/error Vision result is evidence for retry, not a
-            // successful inspection. This lets the explicit owner command
-            // recover cards that were previously left without image metadata.
-            const retryable = previousStatus === 'error' || previousStatus === 'metadata_not_found' || previousStatus === 'not_found';
-            return (recheckEveryImage || !factsByIndex.has(index) || retryable)
+            return (recheckEveryImage || forceVision || visionFactNeedsInspectionV18892(previous))
                 && sourceImagePathForIndexV18892(group, index);
         });
         const discovered = await Promise.all(missing.map((index) => limiter.run(async () => {
@@ -20944,23 +21940,26 @@ async function runEventImageMetadataBackfillV18892(context, { recheckEveryImage 
                     sourceText: group?.rawText || '', sourceKey: group?.sourceKey || '',
                 });
                 const previous = factsByIndex.get(index);
+                const visionStatus = String(fact?.visionStatus || '').trim().toLowerCase() === 'metadata_found'
+                    ? 'metadata_found' : 'metadata_not_found';
                 const inspectedFact = {
                     ...fact,
                     index,
                     imagePath,
                     visionInspected: true,
-                    visionStatus: 'metadata_found',
+                    visionStatus,
                     visionAttempts: Number(previous?.visionAttempts || 0) + 1,
                     visionCheckedAt: new Date().toISOString(),
                 };
-                added += 1;
-                recordAudit(group, index, imagePath, 'metadata_found', inspectedFact);
+                if (visionStatus === 'metadata_found') added += 1;
+                recordAudit(group, index, imagePath, visionStatus, inspectedFact);
+                factsByIndex.set(index, inspectedFact);
+                saveStartupPosterRepairVisionFactsV18877(group, [...factsByIndex.values()]);
                 return inspectedFact;
             } catch (error) {
                 failed += 1;
                 const errorText = String(error?.message || error);
-                const status = /не вернул структурированные metadata|metadata/iu.test(errorText)
-                    ? 'metadata_not_found' : 'error';
+                const status = 'error';
                 const previous = factsByIndex.get(index);
                 const failedFact = {
                     ...(previous && typeof previous === 'object' ? previous : {}),
@@ -20974,13 +21973,15 @@ async function runEventImageMetadataBackfillV18892(context, { recheckEveryImage 
                 };
                 recordAudit(group, index, imagePath, status, failedFact, errorText);
                 console.warn('[V188100 IMAGE METADATA AUDIT ERROR]', group?.sourceKey || '', `image=${index}`, formatPrivateError(error));
+                factsByIndex.set(index, failedFact);
+                saveStartupPosterRepairVisionFactsV18877(group, [...factsByIndex.values()]);
                 return failedFact;
             }
         })));
         reportProgress();
         for (const fact of discovered.filter(Boolean)) factsByIndex.set(Number(fact.index), fact);
         if (recheckEveryImage) {
-            for (let index = 1; index <= Number(group?.imagePaths?.length || 0); index += 1) {
+            for (const index of relevantIndexes) {
                 if (missing.includes(index)) continue;
                 const fact = factsByIndex.get(index) || null;
                 recordAudit(group, index, sourceImagePathForIndexV18892(group, index), fact ? 'stored-vision-only' : 'missing-vision', fact);
@@ -20991,10 +21992,6 @@ async function runEventImageMetadataBackfillV18892(context, { recheckEveryImage 
 
         // If full Vision audit could not inspect every image, keep the old
         // event binding untouched and report retry instead of declaring success.
-        if (recheckEveryImage && (discovered.some((fact) => !fact) || discovered.some((fact) => {
-            const status = String(fact?.visionStatus || '').trim().toLowerCase();
-            return status === 'error' || status === 'metadata_not_found' || status === 'not_found';
-        }))) continue;
         for (const event of Array.isArray(group?.events) ? group.events : []) {
             const result = reconcileStoredEventPosterFromMetadataV18892({
                 sourceType: event.sourceType,
@@ -21016,10 +22013,10 @@ async function runEventImageMetadataBackfillV18892(context, { recheckEveryImage 
             .filter(([index]) => index > 0));
         const firstIndex = Number(event?.posterImageIndex || 1);
         let currentFactsChanged = false;
-        for (let offset = 0; offset < (recheckEveryImage ? paths.length : Math.min(1, paths.length)); offset += 1) {
+        for (let offset = 0; offset < paths.length; offset += 1) {
             const imagePath = paths[offset];
             const imageIndex = offset === 0 ? firstIndex : offset + 1;
-            if (!recheckEveryImage && factsByIndex.has(imageIndex)) continue;
+            if (!(recheckEveryImage || forceVision || visionFactNeedsInspectionV18892(factsByIndex.get(imageIndex)))) continue;
             scanned += 1;
             try {
                 const fact = await readSourceImageMetadataV18892({
@@ -21080,6 +22077,299 @@ async function runEventImageMetadataBackfillV18892(context, { recheckEveryImage 
         await sendNextPosterReviewV18893(context);
     }
     return { scanned, added, failed, reconciled, reviewRequired, missing, mismatched, reportPath, fullAuditDirectory };
+}
+
+const HIDDEN_POSTER_RECOVERY_VERSION_V18903 = 'v18903-hidden-future-poster-recovery';
+
+function persistHiddenPosterRecoveryReportV18903(report) {
+    const directory = resolve('./data/logs/hidden-poster-recovery');
+    mkdirSync(directory, { recursive: true });
+    const target = String(report?.reportPath || '').trim();
+    if (!target) return '';
+    const temporary = target + '.tmp-' + process.pid;
+    writeFileSync(temporary, JSON.stringify(report, null, 2) + '\n', 'utf8');
+    renameSync(temporary, target);
+    return target;
+}
+
+function readLatestHiddenPosterRecoveryReportV18903() {
+    const directory = resolve('./data/logs/hidden-poster-recovery');
+    if (!existsSync(directory)) return null;
+    const files = readdirSync(directory)
+        .filter((name) => name.endsWith('.json'))
+        .map((name) => {
+            const path = resolve(directory, name);
+            try { return { path, mtime: Number(statSync(path).mtimeMs || 0) }; } catch { return null; }
+        })
+        .filter(Boolean)
+        .sort((left, right) => right.mtime - left.mtime);
+    for (const item of files) {
+        try {
+            const report = JSON.parse(readFileSync(item.path, 'utf8'));
+            if (report && typeof report === 'object') return { path: item.path, report };
+        } catch {
+            // A temporary/partial file is ignored; the previous report remains usable.
+        }
+    }
+    return null;
+}
+
+function markLatestHiddenPosterRecoveryReportV18903(status, error = '') {
+    const latest = readLatestHiddenPosterRecoveryReportV18903();
+    if (!latest?.report) return;
+    const report = {
+        ...latest.report,
+        status: String(status || 'failed'),
+        phase: String(status || 'failed'),
+        finishedAt: new Date().toISOString(),
+        ...(error ? { error: String(error).slice(0, 1000) } : {}),
+    };
+    try { persistHiddenPosterRecoveryReportV18903({ ...report, reportPath: latest.path }); } catch (writeError) {
+        console.warn('[HIDDEN POSTER RECOVERY FINAL REPORT ERROR]', formatPrivateError(writeError));
+    }
+}
+
+function throwIfHiddenPosterRecoveryStoppedV18903() {
+    const signal = getCurrentOperationSignal();
+    if (signal?.aborted) throw signal.reason || new Error('Восстановление афиш остановлено владельцем');
+}
+
+function hiddenPosterRecoveryEventKeyV18903(event) {
+    const type = String(event?.sourceType || '').trim();
+    if (type === 'vk') return 'vk:' + String(event?.screenName || '').trim() + ':' + Number(event?.postId || 0);
+    if (type === 'telegram') return 'telegram:' + String(event?.channel || '').trim() + ':' + Number(event?.messageId || 0);
+    if (type === 'vk_chat') return 'vk_chat:' + Number(event?.peerId || 0) + ':' + Number(event?.conversationMessageId || 0);
+    return 'manual:' + Number(event?.id || 0);
+}
+
+function parseHiddenPosterRecoveryJsonV18903(value) {
+    const parsed = parseJsonObjectFromText(String(value || ''));
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
+    const required = [
+        ['isEventAnnouncement', 'is_event_announcement', 'isAnnouncement'],
+        ['matchesCard', 'matches_card', 'sameEvent'],
+        ['isMultiAnnouncement', 'is_multi_announcement'],
+        ['confidence', 'eventConfidence'],
+        ['reason', 'explanation'],
+    ];
+    if (required.some((keys) => !keys.some((key) => Object.prototype.hasOwnProperty.call(parsed, key)))) return null;
+    const bool = (candidate) => typeof candidate === 'boolean'
+        ? candidate
+        : /^(?:да|yes|true|1)$/iu.test(String(candidate || '').trim());
+    const result = {
+        isEventAnnouncement: bool(parsed.isEventAnnouncement ?? parsed.is_event_announcement ?? parsed.isAnnouncement),
+        matchesCard: bool(parsed.matchesCard ?? parsed.matches_card ?? parsed.sameEvent),
+        isMultiAnnouncement: bool(parsed.isMultiAnnouncement ?? parsed.is_multi_announcement),
+        confidence: Number(parsed.confidence ?? parsed.eventConfidence ?? 0),
+        reason: String(parsed.reason ?? parsed.explanation ?? '').trim(),
+        title: String(parsed.title ?? '').trim(),
+        date: String(parsed.date ?? parsed.eventDate ?? '').trim(),
+        venue: String(parsed.venue ?? '').trim(),
+    };
+    if (!Number.isFinite(result.confidence)) result.confidence = 0;
+    if (!result.reason && !result.title && !result.date && !result.venue) return null;
+    return result;
+}
+
+async function readHiddenPosterRecoveryTextV18903({ event, group, onFailoverEvent = null }) {
+    const sourceText = String(group?.rawText || event?.sourceText || event?.rawSource || '').trim();
+    if (!sourceText) throw new Error('полный исходный текст поста отсутствует');
+    const response = await generateDefaultGptText({
+        systemPrompt: [
+            'Ты проводишь строгий аудит одной будущей карточки события по ПОЛНОМУ исходному тексту поста.',
+            'Определи, содержит ли исходник полноценный анонс конкретного события и относится ли он к проверяемой карточке.',
+            'Сравнивай прежде всего название и участников, затем дату, место и цену; отсутствие одного поля не означает другое событие.',
+            'Не используй Vision, не исправляй карточку и не придумывай факты. Определи mono-анонс или multi-анонс.',
+            'Верни только JSON: {"isEventAnnouncement":true/false,"matchesCard":true/false,"isMultiAnnouncement":true/false,"confidence":0-100,"title":"","date":"YYYY-MM-DD или пусто","venue":"","reason":""}.',
+            'Неполный или неструктурированный ответ недействителен.',
+        ].join(' '),
+        userPrompt: [
+            'Проверяемая карточка:',
+            JSON.stringify({ title: event?.title || '', eventDate: event?.eventDate || '', eventTime: event?.eventTime || '', venue: event?.venue || '', participants: event?.participants || '', price: event?.price || '' }),
+            '',
+            'Полный исходный текст поста/сообщения:',
+            sourceText,
+        ].join('\n'),
+        maxTokens: 1200,
+        requestTimeoutMs: OPENAI_REQUEST_TIMEOUT_MS,
+        failoverMaxRounds: 1,
+        failuresBeforeQuarantine: 3,
+        maxCandidates: 0,
+        escalateToAdvanced: true,
+        useCredentialHealth: false,
+        oneCandidatePerMode: true,
+        streamOverride: true,
+        onFailoverEvent,
+        skipIncomingMessageContext: true,
+        validateTextResult: (text) => Boolean(parseHiddenPosterRecoveryJsonV18903(text)),
+        tokenUsageOperation: 'event-hidden-poster-recovery:text-audit:v18903',
+        tokenUsageMetadata: { sourceType: group?.sourceType || event?.sourceType || '', sourceKey: group?.sourceKey || '', eventId: Number(event?.id || 0) },
+    });
+    const parsed = parseHiddenPosterRecoveryJsonV18903(response);
+    if (!parsed) {
+        const error = new Error('AI вернул неполный или неструктурированный аудит исходного текста');
+        error.retryable = true;
+        throw error;
+    }
+    return { ...parsed, sourceTextLength: sourceText.length };
+}
+
+async function readHiddenPosterRecoveryVisionV18903({ group, imagePath, imageIndex, onFailoverEvent = null }) {
+    const imageDataUrl = localEventImageDataUrl(imagePath);
+    if (!imageDataUrl) throw new Error('локальная картинка недоступна: ' + imagePath);
+    const index = Number(imageIndex || 1);
+    const response = await generateOpenAIVisionText({
+        mode: 'default', imageUrls: [imageDataUrl],
+        systemPrompt: [
+            'Ты проводишь строгую проверку ОДНОЙ картинки из исходного поста будущего события.',
+            'Это [IMAGE ' + index + ']. Верни строго один блок [IMAGE ' + index + '].',
+            'Определи, является ли картинка настоящей афишей конкретного события. Фото людей, репортаж, аватар, эмодзи, UI, логотип без анонса, обложка альбома и обычная фотография не являются афишей.',
+            'Ставь афиша: да только при визуальном анонсе события и хотя бы одном явном event-факте.',
+            'Верни строки: Тип изображения:, Это афиша события: да/нет, Уверенность афиши: 0-100, Читаемость текста: 0-100, Название:, Дата:, Время:, Начало:, Окончание:, Место:, Город:, Населенный пункт:, Адрес:, Участники:, Цена:, Возраст:, Программа:, Теги:, Распознанный текст:, Причина:.',
+            'Факты бери только с картинки. Не выдумывай отсутствующие надписи.',
+        ].join(' '),
+        userPrompt: 'Проверь только изображение ' + index + '. Текст поста дан только как технический контекст:\n' + String(group?.rawText || '').slice(0, 8000),
+        maxTokens: 1800,
+        requestTimeoutMs: OPENAI_REQUEST_TIMEOUT_MS,
+        failoverMaxRounds: 1,
+        failuresBeforeQuarantine: 3,
+        maxCandidates: 0,
+        escalateToAdvanced: true,
+        useCredentialHealth: false,
+        oneCandidatePerMode: true,
+        streamOverride: true,
+        onFailoverEvent,
+        skipIncomingMessageContext: true,
+        validateVisionResult: (text) => {
+            const fact = parseIndexedImageFacts(String(text || '')).find((item) => Number(item?.index || 0) === index);
+            return Boolean(fact && typeof fact.poster === 'boolean' && String(fact.imageType || '').trim() && (String(fact.reason || '').trim() || String(fact.recognizedText || '').trim()));
+        },
+        tokenUsageOperation: 'event-hidden-poster-recovery:vision-audit:v18903',
+        tokenUsageMetadata: { sourceType: group?.sourceType || '', sourceKey: group?.sourceKey || '', imageIndex: index, imagePath },
+    });
+    const fact = parseIndexedImageFacts(String(response || '')).find((item) => Number(item?.index || 0) === index);
+    if (!fact || typeof fact.poster !== 'boolean') throw new Error('Vision не подтвердил структуру проверки изображения');
+    const evidence = localPosterEvidenceV18886(imagePath);
+    return { ...fact, index, visionInspected: true, visionStatus: 'metadata_found', visionCheckedAt: new Date().toISOString(), ...(evidence ? { imagePath: evidence.path, imageFilename: evidence.filename, imageSha256: evidence.sha256 } : {}) };
+}
+
+async function runHiddenFuturePosterRecoveryV18903({ onProgress = null } = {}) {
+    const today = getLocalDateString(new Date(), botTimeZone);
+    const groups = getStartupPosterRepairGroupsV18877({ fromDate: today, limitPerTable: 20000 });
+    const records = getAllUpcomingEventRecordsForDedupe({ fromDate: today, limitPerTable: 20000 });
+    const hiddenGroups = groups.map((group) => ({ ...group, events: (Array.isArray(group?.events) ? group.events : []).filter((event) => !eventHasSafePosterMatch(event)) })).filter((group) => group.events.length);
+    // Manual owner cards have no source-table group, but they still carry an
+    // original description and retained image paths. Audit them through the
+    // same text + Vision gates instead of silently reporting them as missing.
+    const manualHidden = records.filter((event) => String(event?.sourceType || '') === 'manual' && !eventHasSafePosterMatch(event));
+    hiddenGroups.push(...manualHidden.map((event) => ({
+        sourceType: 'manual',
+        sourceKey: 'manual:' + Number(event?.id || 0),
+        rawText: String(event?.sourceText || event?.rawSource || event?.description || ''),
+        imageUrls: [],
+        imagePaths: Array.isArray(event?.imagePaths) ? event.imagePaths : [],
+        imageVisionFacts: Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : [],
+        events: [event],
+    })));
+    const groupedKeys = new Set(hiddenGroups.flatMap((group) => group.events.map(hiddenPosterRecoveryEventKeyV18903)));
+    const missingSourceCards = records.filter((event) => !eventHasSafePosterMatch(event) && !groupedKeys.has(hiddenPosterRecoveryEventKeyV18903(event)));
+    const directory = resolve('./data/logs/hidden-poster-recovery'); mkdirSync(directory, { recursive: true });
+    const reportPath = resolve(directory, new Date().toISOString().replace(/[:.]/gu, '-') + '.json');
+    const report = { version: HIDDEN_POSTER_RECOVERY_VERSION_V18903, status: 'running', reportPath, startedAt: new Date().toISOString(), fromDate: today, totalFutureCards: records.length, hiddenCards: hiddenGroups.reduce((n, group) => n + group.events.length, 0) + missingSourceCards.length, groups: hiddenGroups.length, textAudited: 0, textRejected: 0, textAiFailures: 0, imagesAudited: 0, imageAiFailures: 0, modelAttempts: 0, modelAttemptFailures: 0, modelLadderChanges: 0, currentAiRequest: null, recovered: 0, noMedia: 0, noCompatiblePoster: 0, ambiguous: 0, failures: missingSourceCards.length, missingSourceRows: missingSourceCards.map((event) => ({ sourceType: event.sourceType, id: event.id, title: event.title, eventDate: event.eventDate, reason: 'source-row-not-found' })), imageAudit: [], cards: missingSourceCards.map((event) => ({ sourceType: event.sourceType, id: event.id, title: event.title, eventDate: event.eventDate, action: 'source-row-not-found' })) };
+    const total = Math.max(1, hiddenGroups.length + missingSourceCards.length); let done = missingSourceCards.length;
+    const progress = (phase = 'audit') => {
+        report.phase = phase;
+        report.progress = { done, total, pending: Math.max(0, total - done), failed: report.failures, errors: report.textAiFailures + report.imageAiFailures, missingSourceRows: report.missingSourceRows.length, modelAttempts: report.modelAttempts, modelAttemptFailures: report.modelAttemptFailures, modelLadderChanges: report.modelLadderChanges, scanned: report.imagesAudited };
+        try { persistHiddenPosterRecoveryReportV18903(report); } catch (error) { console.warn('[HIDDEN POSTER RECOVERY REPORT WRITE ERROR]', formatPrivateError(error)); }
+        try { onProgress?.({ phase, ...report.progress, reportPath }); } catch {}
+    };
+    const onModelFailoverEvent = (event = {}) => {
+        if (event.type === 'attempt-start') report.modelAttempts += 1;
+        if (event.type === 'failure') report.modelAttemptFailures += 1;
+        if (event.type === 'rotate' || event.type === 'fallback') report.modelLadderChanges += 1;
+        const credential = event.credential || event.nextCandidate || event.candidate || {};
+        report.currentAiRequest = {
+            type: event.capability || report.currentAiRequest?.type || 'AI',
+            model: String(credential.model || event.model || ''),
+            mode: String(credential.mode || event.mode || ''),
+            attempt: Number(event.attempt || 0),
+            round: Number(event.round || 0),
+            stage: String(event.type || ''),
+            error: event.type === 'failure' ? formatPrivateError(event.error).slice(0, 350) : '',
+        };
+        progress('ai-' + String(event.type || 'request'));
+    };
+    progress('started');
+    for (const group of hiddenGroups) {
+        throwIfHiddenPosterRecoveryStoppedV18903();
+        const events = group.events; const cards = new Map();
+        for (const event of events) {
+            throwIfHiddenPosterRecoveryStoppedV18903();
+            const card = { sourceType: event.sourceType, id: event.id, title: event.title, eventDate: event.eventDate, action: '' };
+            try { card.text = await readHiddenPosterRecoveryTextV18903({ event, group, onFailoverEvent: onModelFailoverEvent }); report.textAudited += 1; card.accepted = card.text.isEventAnnouncement && card.text.matchesCard && Number(card.text.confidence || 0) >= 60; if (!card.accepted) { card.action = 'text-not-confirmed'; report.textRejected += 1; } }
+            catch (error) { if (getCurrentOperationSignal()?.aborted) throw error; card.action = 'text-ai-error'; card.error = String(error?.message || error).slice(0, 500); report.failures += 1; report.textAiFailures += 1; card.accepted = false; }
+            cards.set(Number(event.id), card);
+            report.cards.push(card);
+            progress('text-audit');
+        }
+        const candidates = (Array.isArray(group.imagePaths) ? group.imagePaths : [])
+            .map((value, offset) => ({ path: String(value || '').trim(), sourceIndex: sourceImageIndexFromStoredPath(value, offset + 1) }))
+            // Do not pre-filter small files here: an avatar, sticker or emoji
+            // must be sent to Vision and explicitly classified as a non-poster.
+            // Only generated cards and physically missing files are excluded.
+            .filter((item) => item.path && !isGeneratedEventCardPath(item.path) &&
+                Boolean(resolveEventImagePath(item.path) && existsSync(resolveEventImagePath(item.path))) &&
+                Number.isInteger(item.sourceIndex) && item.sourceIndex > 0);
+        if (!candidates.length) { report.noMedia += events.length; report.imageAudit.push({ sourceType: group.sourceType, sourceKey: group.sourceKey, status: 'no-local-source-image', imageUrls: Array.isArray(group.imageUrls) ? group.imageUrls : [] }); for (const card of cards.values()) if (!card.action) card.action = 'no-local-source-image'; done += 1; progress('no-local-image'); continue; }
+        const factsByIndex = new Map((Array.isArray(group?.imageVisionFacts) ? group.imageVisionFacts : [])
+            .map((fact) => [Number(fact?.index || 0), fact]).filter(([index]) => index > 0));
+        const facts = []; let imageError = false;
+        const imageAudit = { sourceType: group.sourceType, sourceKey: group.sourceKey, images: [] };
+        for (const candidate of candidates) {
+            throwIfHiddenPosterRecoveryStoppedV18903();
+            const index = candidate.sourceIndex;
+            report.imagesAudited += 1;
+            try { const fact = await readHiddenPosterRecoveryVisionV18903({ group, imagePath: candidate.path, imageIndex: index, onFailoverEvent: onModelFailoverEvent }); factsByIndex.set(index, fact); facts.push(fact); imageAudit.images.push({ index, path: candidate.path, status: 'ok', poster: fact.poster === true, imageType: fact.imageType || '', title: fact.title || '', dates: fact.dates || '', reason: fact.reason || '' }); }
+            catch (error) {
+                if (getCurrentOperationSignal()?.aborted) throw error;
+                imageError = true; report.failures += 1; report.imageAiFailures += 1;
+                const errorText = String(error?.message || error).slice(0, 500);
+                factsByIndex.set(index, { index, imagePath: candidate.path, visionInspected: true, visionStatus: 'error', visionError: errorText, visionCheckedAt: new Date().toISOString() });
+                imageAudit.images.push({ index, path: candidate.path, status: 'error', reason: errorText });
+            }
+            const imageFacts = [...factsByIndex.values()].sort((left, right) => Number(left?.index || 0) - Number(right?.index || 0));
+            if (group.sourceType === 'manual') {
+                const manualEvent = events[0];
+                saveManualPosterMetadataV18892({ id: manualEvent?.id, posterVisionFacts: imageFacts, posterImageIndex: Number(manualEvent?.posterImageIndex || 0) });
+            } else {
+                saveStartupPosterRepairVisionFactsV18877(group, imageFacts);
+            }
+            report.imageAudit[report.imageAudit.length] = imageAudit;
+            progress('vision-audit');
+            report.imageAudit.pop();
+        }
+        report.imageAudit.push(imageAudit);
+        const mergedFacts = [...factsByIndex.values()].sort((left, right) => Number(left?.index || 0) - Number(right?.index || 0));
+        if (mergedFacts.length && group.sourceType === 'manual') {
+            const manualEvent = events[0];
+            saveManualPosterMetadataV18892({ id: manualEvent?.id, posterVisionFacts: mergedFacts, posterImageIndex: Number(manualEvent?.posterImageIndex || 0) });
+        }
+        for (const event of events) {
+            throwIfHiddenPosterRecoveryStoppedV18903();
+            const card = cards.get(Number(event.id));
+            if (!card?.accepted) continue;
+            if (imageError) { card.action = 'retry-image-ai'; continue; }
+            const result = reconcileStoredEventPosterFromMetadataV18892({ sourceType: event.sourceType, id: event.id, sourceImagePaths: candidates.map((item) => item.path), sourceVisionFacts: mergedFacts });
+            card.action = result.accepted ? 'recovered' : String(result.action || 'no-compatible-poster'); card.posterReason = result.reason || ''; card.imageIndex = Number(result.imageIndex || 0);
+            if (result.accepted) report.recovered += 1; else if (card.action === 'review-required') report.ambiguous += 1; else report.noCompatiblePoster += 1;
+        }
+        progress('card-reconciliation');
+        done += 1; progress();
+    }
+    report.finishedAt = new Date().toISOString(); report.complete = report.failures === 0; report.status = report.complete ? 'completed' : 'completed-with-errors'; report.phase = 'completed';
+    progress('completed');
+    if (report.complete && report.recovered > 0) { invalidateVerifiedPartySnapshot('hidden-future-poster-recovery-v18903'); await rebuildVerifiedPartySnapshotQueued({ reason: 'hidden-future-poster-recovery-v18903' }); }
+    return { ...report, reportPath };
 }
 
 async function compressPastEventImagesV18893(context) {
@@ -21207,7 +22497,7 @@ async function handleEventModerationCommand(context, command) {
             await context.send('Полная Vision-проверка старых изображений доступна владельцу в личном Telegram-чате.');
             return;
         }
-        await context.send('🖼 Полный повторный Vision-анализ всех сохранённых локальных изображений: это может вызвать много платных запросов. Исходные фото и старые подтверждённые события сохраняются. Отчёт с причинами и копиями картинок будет в data/event-image-review/.');
+        await context.send('🖼 Запускаю полную Vision-проверку всех локально сохранённых исходных картинок, включая архивные события и source-only записи. Подтверждённые привязки и исходные фото сохраняются; ошибки и отсутствие metadata попадут в retry-отчёт.');
         const progress = { scanned: 0, pending: 0, failed: 0 };
         await runOwnerMaintenanceWithHeartbeatV188145(context, {
             label: 'Полный Vision-аудит картинок',
@@ -21224,13 +22514,14 @@ async function handleEventModerationCommand(context, command) {
             await context.send('Повторная Vision-проверка исходных картинок доступна владельцу в личном Telegram-чате.');
             return;
         }
-        await context.send('🖼 Запускаю отдельную Vision-проверку всех сохранённых исходных изображений (включая source-only). Для каждой картинки фиксируется результат: metadata найдены, не найдены или ошибка; прежние привязки не удаляются.');
+        await context.send('🖼 Запускаю принудительную Vision-проверку всех локально сохранённых картинок будущих event-источников, включая все изображения mono/multi-анонсов. Прежние привязки не удаляются; результат каждого изображения и ошибки сохраняются отдельно.');
         const progress = { scanned: 0, pending: 0, failed: 0 };
         await runOwnerMaintenanceWithHeartbeatV188145(context, {
             label: 'Vision-аудит исходных картинок',
             getProgress: () => progress,
             run: () => runEventImageMetadataBackfillV18892(context, {
-                recheckEveryImage: true,
+                recheckEveryImage: false,
+                forceVision: true,
                 onProgress: (next) => Object.assign(progress, next),
             }),
         });
@@ -21246,6 +22537,98 @@ async function handleEventModerationCommand(context, command) {
                 onProgress: (next) => Object.assign(progress, next),
             }),
         });
+        return;
+    }
+
+    if (command.action === 'hidden-poster-recovery') {
+        if (!await requireOwnerDm(context)) return;
+        if (futureEventsRefreshRunningV188145) {
+            await context.send('⚠️ Другая операция восстановления будущих событий уже запущена. Второй проход не открываю.');
+            return;
+        }
+        futureEventsRefreshRunningV188145 = true;
+        await context.send([
+            '🖼 Проверяю только будущие скрытые карточки без безопасно подтверждённой афиши.',
+            'Для каждой карточки сначала проверю полный исходный текст, затем все сохранённые исходные картинки через Vision.',
+            'Карточка вернётся в выдачу только после успешного прохождения обоих этапов; ошибка, отсутствие файла и сомнение останутся в отчёте для повтора.',
+            'Проход запущен в фоне. Состояние: «процессы статус»; подробности: «процесс <id>».',
+        ].join('\n'));
+        runDetachedSupervisedOperation({
+            name: 'event-hidden-poster-recovery',
+            category: 'event-maintenance',
+            metadata: { platform: context.platform, senderId: context.senderId, peerId: context.peerId, futureOnly: true },
+        }, async ({ updateProgress, saveCheckpoint }) => {
+            const progress = { done: 0, pending: 0, failed: 0, scanned: 0 };
+            const publishProgress = (next) => {
+                Object.assign(progress, next || {});
+                updateProgress({ phase: 'text-and-vision-audit', ...progress }, { checkpoint: true, event: 'event-hidden-poster-recovery.progress' });
+                saveCheckpoint({ kind: 'event-hidden-poster-recovery', phase: 'text-and-vision-audit', ...progress }, { event: 'event-hidden-poster-recovery.checkpoint' });
+            };
+            saveCheckpoint({ kind: 'event-hidden-poster-recovery', phase: 'started', futureOnly: true }, { event: 'event-hidden-poster-recovery.started' });
+            try {
+                const result = await runOwnerMaintenanceWithHeartbeatV188145(context, {
+                    label: 'Восстановление скрытых афиш',
+                    getProgress: () => progress,
+                    run: () => runHiddenFuturePosterRecoveryV18903({ onProgress: publishProgress }),
+                });
+                updateProgress({ phase: result.complete ? 'completed' : 'completed-with-warnings', ...result }, { checkpoint: true, event: 'event-hidden-poster-recovery.completed' });
+                saveCheckpoint({ kind: 'event-hidden-poster-recovery', phase: result.complete ? 'completed' : 'completed-with-warnings', reportPath: result.reportPath, ...progress }, { event: 'event-hidden-poster-recovery.completed' });
+                await sendLong(context, [
+                    result.complete ? '✅ Проверка скрытых будущих карточек завершена.' : '⚠️ Проверка завершена частично; неполные результаты не объявлены безопасными.',
+                    'Будущих карточек всего: ' + result.totalFutureCards + '; скрытых проверено: ' + result.hiddenCards + '; групп источников: ' + result.groups + '.',
+                    'Текст AI проверен: ' + result.textAudited + '; текст не подтвердил карточку: ' + result.textRejected + '.',
+                    'Изображений проверено: ' + result.imagesAudited + '; восстановлено афиш: ' + result.recovered + '; без локального изображения: ' + result.noMedia + '.',
+                    'Нет совместимой афиши: ' + result.noCompatiblePoster + '; неоднозначных: ' + result.ambiguous + '; ошибок/повторов: ' + result.failures + '.',
+                    'Полный JSON-отчёт: ' + result.reportPath,
+                    result.complete ? 'Проверенный snapshot пересобран только после полного прохода.' : 'Проверенный snapshot не заменялся из-за ошибок; исходные строки и Vision-факты сохранены.',
+                ].join('\n'));
+                if (getRawContext(context)?.platform === 'telegram' && result.reportPath) {
+                    const attachment = createTelegramDocumentAttachment({ filePath: result.reportPath, filename: basename(result.reportPath), mimeType: 'application/json' });
+                    if (attachment) await context.send({ message: '📎 Полный отчёт восстановления скрытых афиш.', attachment });
+                }
+                return result;
+            } catch (error) {
+                console.error('[HIDDEN POSTER RECOVERY ERROR]', formatPrivateError(error));
+                markLatestHiddenPosterRecoveryReportV18903(
+                    error?.code === 'OPERATION_CANCELLED' ? 'cancelled' : 'failed',
+                    formatPrivateError(error),
+                );
+                saveCheckpoint({ kind: 'event-hidden-poster-recovery', phase: 'failed-or-stopped', ...progress, error: formatPrivateError(error) }, { event: 'event-hidden-poster-recovery.failed' });
+                await context.send('❌ Восстановление скрытых афиш завершилось ошибкой: ' + formatScraperErrorForUser(error) + '. Исходные карточки и медиа сохранены.').catch(() => {});
+                throw error;
+            } finally {
+                futureEventsRefreshRunningV188145 = false;
+            }
+        });
+        return;
+    }
+
+    if (command.action === 'hidden-poster-recovery-status') {
+        if (!await requireOwnerDm(context)) return;
+        const latest = readLatestHiddenPosterRecoveryReportV18903();
+        const active = listActiveOperations().find((operation) => operation.name === 'event-hidden-poster-recovery');
+        if (!latest?.report && !active) {
+            await context.send('Проверка скрытых будущих афиш ещё не запускалась. Команда: «тусы восстановить скрытые афиши».');
+            return;
+        }
+        const report = latest?.report || {};
+        const progress = report.progress || active?.progress || {};
+        await sendLong(context, [
+            active ? `⏳ Восстановление скрытых афиш выполняется: ${active.id}.` : `Статус последнего восстановления: ${report.status || 'неизвестно'}.`,
+            report.phase || active?.progress?.phase ? `Фаза: ${report.phase || active?.progress?.phase}.` : '',
+            `Карточек будущих: ${report.totalFutureCards ?? '?'}; скрытых: ${report.hiddenCards ?? '?'}; обработано групп: ${progress.done ?? '?'}/${progress.total ?? '?'}.`,
+            `Текст AI: ${report.textAudited ?? 0}; отказано текстом: ${report.textRejected ?? 0}; ошибок текста: ${report.textAiFailures ?? 0}.`,
+            `Vision: ${report.imagesAudited ?? 0}; ошибок Vision: ${report.imageAiFailures ?? 0}; без исходника: ${report.noMedia ?? 0}; восстановлено: ${report.recovered ?? 0}.`,
+            `Попыток моделей: ${report.modelAttempts ?? 0}; неудач попыток: ${report.modelAttemptFailures ?? 0}; переходов по лестнице: ${report.modelLadderChanges ?? 0}.`,
+            report.currentAiRequest?.model ? `Текущий AI-запрос: ${report.currentAiRequest.model}, попытка ${report.currentAiRequest.attempt || "?"}, этап ${report.currentAiRequest.stage || "?"}.` : '',
+            `Ошибок карточек: ${report.failures ?? 0}; отсутствующих source rows: ${report.missingSourceRows?.length ?? 0}; неоднозначных: ${report.ambiguous ?? 0}.`,
+            latest?.path ? `JSON-отчёт: ${latest.path}` : '',
+            active ? 'Остановить: «прервать процесс ' + active.id + '».' : '',
+        ].filter(Boolean).join('\n'));
+        if (getRawContext(context)?.platform === 'telegram' && latest?.path) {
+            const attachment = createTelegramDocumentAttachment({ filePath: latest.path, filename: basename(latest.path), mimeType: 'application/json' });
+            if (attachment) await context.send({ message: '📎 Последний JSON-отчёт восстановления скрытых афиш.', attachment });
+        }
         return;
     }
 
@@ -21447,7 +22830,12 @@ async function handleEventModerationCommand(context, command) {
             '🔎 Проверяю всю SQLite-базу на повторы: точные название+дата решаю локально; только частично похожие названия на той же дате отправляю ИИ как серую зону. Базу пока не меняю.',
         );
         try {
-            const scan = await scanCurrentDatabaseWithFastEventDedupe({ mode: 'dry-run' });
+            // The database audit must use the same two-contour pipeline as the
+            // parser: local deterministic scoring first, then the strict AI
+            // arbiter for every same-date pair with a shared content word.
+            // The old fast path silently skipped normalization/AI and was the
+            // reason ORIGAMI/COREFEST/SELLOUT variants survived the audit.
+            const scan = await scanCurrentDatabaseWithDeepEventDedupe();
             if (!scan.groups.length) {
                 await context.send([
                     '✅ Проверка завершена. Подтверждённых групп дублей не найдено.',
@@ -21496,32 +22884,50 @@ async function handleEventModerationCommand(context, command) {
             '🧹 Пересчитываю дубли: exact название+дата без ИИ, спорные частичные совпадения на той же дате — через ИИ. Затем записываю canonical/duplicate registry в SQLite.',
         );
         try {
-            const scan = await scanCurrentDatabaseWithFastEventDedupe({ mode: 'apply' });
+            // Apply exactly the result that the parser uses.  This writes the
+            // canonical/duplicate registry and rebuilds the verified snapshot;
+            // raw rows remain evidence so their source text, links and Vision
+            // facts are not lost.
+            const scan = await scanCurrentDatabaseWithDeepEventDedupe();
+            const unresolved = Array.isArray(scan?.dedupe?.unresolvedAmbiguous)
+                ? scan.dedupe.unresolvedAmbiguous
+                : [];
             const registry = replaceEventDedupeRegistry(scan.groups, {
-                scope: 'all-db',
+                // Public/event-table reads suppress duplicate members from the
+                // configured scope. Writing all-db here made the command report
+                // success while the duplicate cards stayed visible.
+                scope: 'configured',
+                purgeDuplicateRows: true,
+                algorithmVersion: EVENT_DEDUPE_ALGORITHM_VERSION,
             });
 
+            // Keep the last verified snapshot as a rollback point until the
+            // replacement has completed every AI and poster invariant. The
+            // public selector compares sourceRevision and falls back to SQLite
+            // while this background rebuild is in progress.
             verifiedEventSnapshotMemory = null;
-            try {
-                if (existsSync(EVENT_VERIFIED_SNAPSHOT_FILE)) {
-                    unlinkSync(EVENT_VERIFIED_SNAPSHOT_FILE);
-                }
-            } catch (error) {
-                console.warn('[EVENT DEDUPE SNAPSHOT INVALIDATE ERROR]', formatPrivateError(error));
-            }
-
-            runDetachedSupervisedOperation({ name: 'event-snapshot:dedupe-apply', category: 'event-snapshot' }, () =>
-                rebuildVerifiedPartySnapshotQueued({ reason: 'owner-command:event-dedupe-apply-v148-background' }));
 
             await sendLong(context, [
-                '✅ Дедупликация записана в SQLite.',
+                unresolved.length
+                    ? '⚠️ Подтверждённые дубли удалены; пары без решения ИИ оставлены нетронутыми.'
+                    : '✅ Подтверждённые дубли физически удалены из таблиц событий.',
                 `Сырых будущих записей: ${scan.rawEvents.length}.`,
                 `Канонических событий по быстрому проходу: ${scan.dedupe.events.length}.`,
-                `Групп дублей: ${registry.groups}; скрытых duplicate-членов: ${registry.duplicateMembers}.`,
+                `Групп дублей: ${registry.groups}; физически удалено повторных карточек: ${registry.purgedDuplicateRows}.`,
+                unresolved.length ? `Не разрешено ИИ: ${unresolved.length} пар; смотри EVENT_DUPLICATES_DEEP_REPORT.txt.` : '',
                 `Время основного прохода: ${(scan.elapsedMs / 1000).toFixed(2)} сек.`,
-                'Сырые event-строки не удалены: registry скрывает повторы, а исходные записи остаются evidence.',
-                'Полный verified snapshot пересобирается в фоне и больше не держит эту команду.',
-            ].join('\n'));
+                'Перед удалением снимки повторных карточек, ссылки на исходные посты и их Vision-метаданные сохранены в event_dedupe_archive; исходные посты не удалялись.',
+                'Выдача проверяется по текущим строкам SQLite; повторный запуск ИИ для snapshot не блокирует очистку.',
+            ].filter(Boolean).join('\n'));
+            if (unresolved.length) {
+                const reportPath = resolve('./EVENT_DUPLICATES_DEEP_REPORT.txt');
+                writeFileSync(reportPath, [
+                    'Подтверждённые группы дедупликации применены. Неоднозначные пары оставлены без изменений.',
+                    `Неразрешённых пар: ${unresolved.length}.`,
+                    ...unresolved.slice(0, 100).map((item, index) =>
+                        `${index + 1}. ${item.eventDate || 'без даты'} · ${item.leftTitle || 'без названия'} ↔ ${item.rightTitle || 'без названия'} · ${item.reason || 'AI не дал решения'}`),
+                ].join('\n') + '\n', 'utf8');
+            }
         } catch (error) {
             setEventDedupeAuditState('failed', {
                 mode: 'apply',
@@ -21644,7 +23050,7 @@ async function handleEventModerationCommand(context, command) {
         invalidateVerifiedPartySnapshot('owner-event-block-restore-v18894');
         const restoredMessage = [
             `✅ Снял запрет: ${restoredLabels.join(', ')}.`,
-            'Постоянно удалённые строки остаются ignored до следующего парсинга/перепарсинга; после него событие снова сможет записаться.',
+            'После снятия постоянного запрета исходный пост снова сможет пройти обычный парсинг и создать карточку.',
         ].join('\n');
         if (getRawContext(context)?.platform === 'telegram') {
             await context.send({
@@ -21659,6 +23065,35 @@ async function handleEventModerationCommand(context, command) {
 
     if (command.action === 'edit-start') {
         await beginOwnerEventEditSearchV18897(context);
+        return;
+    }
+
+    if (command.action === 'edit-exact' || command.action === 'delete-exact' || command.action === 'delete-exact-permanent') {
+        const exactMatch = String(command.query || '').match(/^([a-z_]{2,16}):(\d+)$/iu);
+        const exactEvent = exactMatch
+            ? findUpcomingEventByIdentityV18900(exactMatch[1].toLowerCase(), Number(exactMatch[2]))
+            : null;
+        if (!exactEvent) {
+            await context.send('Карточка с таким точным идентификатором не найдена среди будущих событий.');
+            return;
+        }
+        if (command.action === 'edit-exact') {
+            await beginOwnerEventTextEditV18897(context, exactEvent);
+            return;
+        }
+        const permanent = command.action === 'delete-exact-permanent';
+        pendingEventDeletionConfirmations.set(getEventProposalInputKey(context), {
+            event: exactEvent,
+            mode: permanent ? 'permanent' : 'soft',
+            exactIdentity: true,
+            expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
+        });
+        await context.send([
+            permanent ? '🚫 Удалить эту карточку навсегда?' : '🗑 Удалить именно эту карточку?',
+            `${exactEvent.eventDate || 'без даты'} · ${exactEvent.title || exactEvent.participants || 'без названия'}`,
+            permanent ? 'Автопарсинг больше не добавит её; ручное добавление через меню владельца останется доступно.' : 'При перепарсинге событие можно будет добавить снова.',
+            'Ответь «да» или «нет».',
+        ].join('\n'));
         return;
     }
 
@@ -21715,7 +23150,7 @@ async function handleEventModerationCommand(context, command) {
 
     if (deletionMode === 'permanent') {
         const rawContext = getRawContext(context);
-        const result = permanentlyDeleteStoredEvent(best.event, {
+            const result = permanentlyDeleteStoredEvent(best.event, {
             reason: 'owner-permanent-delete-v18897',
             createdByPlatform: String(rawContext?.platform || ''),
             createdBy: Number(rawContext?.senderId || 0),
@@ -21873,7 +23308,7 @@ function buildLocalNormalizedEvent(event) {
 async function arbitrateAmbiguousEventDuplicatesWithMini(pairs) {
     const sourcePairs = Array.isArray(pairs) ? pairs : [];
     const decisions = new Map();
-    if (!sourcePairs.length || !openAIApiKey) return decisions;
+    if (!sourcePairs.length || !runtimeModelCredentials.length) return decisions;
 
     const reviewPairs = sourcePairs.filter(shouldReviewEventDuplicatePairWithAi);
     const skipped = sourcePairs.length - reviewPairs.length;
@@ -21890,17 +23325,45 @@ async function arbitrateAmbiguousEventDuplicatesWithMini(pairs) {
     for (let offset = 0; offset < reviewPairs.length; offset += batchSize) {
         const batch = reviewPairs.slice(offset, offset + batchSize);
         try {
-            const response = await generateDefaultGptText({
-                systemPrompt: buildEventDuplicateAiSystemPrompt(),
-                userPrompt: JSON.stringify({ pairs: batch }),
-                temperature: 0,
-                maxTokens: 2200,
-            });
-            const parsed = parseJsonObjectFromText(response);
-            const returned = Array.isArray(parsed?.pairs) ? parsed.pairs : [];
+            let returned = [];
+            let complete = false;
+            for (let attempt = 1; attempt <= 3; attempt += 1) {
+                const response = await generateDefaultGptText({
+                    systemPrompt: buildEventDuplicateAiSystemPrompt(),
+                    userPrompt: JSON.stringify({ pairs: batch, retryAttempt: attempt, strictContract: true }),
+                    temperature: 0,
+                    maxTokens: 2200,
+                    requestTimeoutMs: OPENAI_REQUEST_TIMEOUT_MS,
+                    failoverMaxRounds: 1,
+                    failuresBeforeQuarantine: 3,
+                    escalateToAdvanced: true,
+                    useCredentialHealth: false,
+                    oneCandidatePerMode: true,
+                    streamOverride: true,
+                    tokenUsageOperation: 'event-dedupe-arbitration',
+                });
+                const parsed = parseJsonObjectFromText(response);
+                returned = Array.isArray(parsed?.pairs) ? parsed.pairs : [];
+                const returnedKeys = new Set(returned.map((item) => String(item?.key || '').trim()).filter(Boolean));
+                const requestedKeys = new Set(batch.map((pair) => String(pair?.key || '').trim()).filter(Boolean));
+                complete = requestedKeys.size === returnedKeys.size && [...requestedKeys].every((key) => returnedKeys.has(key));
+                if (complete) break;
+                console.warn('[EVENT DEDUPE AI INCOMPLETE RETRY]', `attempt=${attempt}/3`, `requested=${requestedKeys.size}`, `returned=${returnedKeys.size}`);
+            }
+            const requestedKeys = new Set(batch.map((pair) => String(pair?.key || '').trim()).filter(Boolean));
+            const returnedKeys = new Set(returned.map((item) => String(item?.key || '').trim()).filter(Boolean));
+            if (!complete) {
+                console.warn('[EVENT DEDUPE AI INCOMPLETE]', `requested=${requestedKeys.size}`, `returned=${returnedKeys.size}`);
+                continue;
+            }
             for (const item of returned) {
                 const key = String(item?.key ?? '').trim();
-                const verdict = String(item?.verdict ?? 'uncertain').trim().toLowerCase();
+                const rawVerdict = String(item?.verdict ?? 'no').trim().toLowerCase();
+                const verdict = rawVerdict === 'yes' || rawVerdict === 'same'
+                    ? 'same'
+                    : rawVerdict === 'no' || rawVerdict === 'different'
+                        ? 'different'
+                        : 'uncertain';
                 if (!key || !['same', 'different', 'uncertain'].includes(verdict)) continue;
                 decisions.set(key, {
                     verdict,
@@ -22283,6 +23746,11 @@ function selectVerifiedEventSnapshotItems(range, limit = 500, { partyPool = PART
 
     const normalizedPool = partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
     const secondarySourceKeys = getSecondaryPartySourceKeys();
+    const duplicateRefs = new Set(
+        getEventDedupeDuplicateRefs('configured')
+            .map((ref) => eventDedupeRefKey(ref))
+            .filter(Boolean),
+    );
 
     // V184: verified snapshot is only a cache, never the source of truth.
     // Any scraper/manual/source change makes the SQLite fingerprint differ.
@@ -22322,6 +23790,12 @@ function selectVerifiedEventSnapshotItems(range, limit = 500, { partyPool = PART
         return {
             snapshot: null,
             staleSnapshot: snapshot,
+            // Raw SQLite rows are intentionally withheld while the verified
+            // replacement is being rebuilt. They may include a freshly parsed
+            // duplicate or a partially processed card; serving them here
+            // would make the public result change before the final dedupe
+            // transaction has completed.
+            verificationPending: true,
             sourceRevision: currentSourceRevision,
             items: [],
         };
@@ -22332,6 +23806,8 @@ function selectVerifiedEventSnapshotItems(range, limit = 500, { partyPool = PART
     const safeLimit = Math.min(500, Math.max(1, Number(limit) || 50));
     const items = snapshot.items
         .filter((item) => {
+            const ref = normalizeEventDedupeRef(item?.event);
+            if (ref && duplicateRefs.has(eventDedupeRefKey(ref))) return false;
             if (classifyEventPartyPool(item?.event, { secondarySourceKeys }) !== normalizedPool) return false;
             const evidence = getEventDateEvidence(item?.event);
             if (!evidence.known) return false;
@@ -22368,8 +23844,13 @@ async function rebuildVerifiedPartySnapshot({
         dedupe,
         groups: dedupeGroups,
     } = scan;
+    const unresolvedAmbiguous = Array.isArray(dedupe?.unresolvedAmbiguous)
+        ? dedupe.unresolvedAmbiguous
+        : [];
     const registry = replaceEventDedupeRegistry(dedupeGroups, {
         scope: 'configured',
+        purgeDuplicateRows: true,
+        algorithmVersion: EVENT_DEDUPE_ALGORITHM_VERSION,
     });
     console.log(
         '[EVENT DEDUPE REGISTRY]',
@@ -22526,7 +24007,9 @@ async function rebuildVerifiedPartySnapshot({
     const snapshot = {
         version: EVENT_VERIFIED_SNAPSHOT_VERSION,
         dedupeAlgorithmVersion: EVENT_DEDUPE_ALGORITHM_VERSION,
-        sourceRevision: computeConfiguredEventSourceRevision(rawEvents),
+        sourceRevision: computeConfiguredEventSourceRevision(
+            getRawUpcomingEventsForModeration(20_000),
+        ),
         verifiedAt: Math.floor(Date.now() / 1000),
         reason,
         rawCount: rawEvents.length,
@@ -22592,7 +24075,7 @@ async function rebuildVerifiedPartySnapshot({
     };
 }
 
-function rebuildVerifiedPartySnapshotQueued({
+export function rebuildVerifiedPartySnapshotQueued({
     reason = 'manual',
 } = {}) {
     const task = eventVerificationQueue.then(
@@ -22754,7 +24237,19 @@ function buildCompactPublicEventsMessage(items, range) {
 
 async function sendCompactPublicEventList(context, verifiedItems, range) {
     const summarized = (Array.isArray(verifiedItems) ? verifiedItems : [])
-        .filter((item) => item?.event);
+        .filter((item) => item?.event)
+        // Compact mode omits the image from the message, but it is still a
+        // public event card. Keep the same poster invariant as full mode so a
+        // text-only duplicate/garbage-image row cannot leak through here.
+        .filter((item) => {
+            const event = item.event;
+            const paths = [
+                ...(Array.isArray(event?.verifiedImagePaths) ? event.verifiedImagePaths : []),
+                ...(Array.isArray(event?.imagePaths) ? event.imagePaths : []),
+            ];
+            return (eventHasSafePosterMatch(event) || getEventSourceMediaBindingAssessment(event).accepted) &&
+                filterGarbageEventImagePaths(event, paths).length > 0;
+        });
     const message = buildCompactPublicEventsMessage(summarized, range);
     if (message) {
         await sendLong(context, message);
@@ -23065,9 +24560,9 @@ function isStrongLocalEventPosterPath(relativePath) {
         const area = width * height;
         const ratio = width / height;
         return byteLength >= 1_024 &&
-            Math.max(width, height) >= 48 &&
-            Math.min(width, height) >= 32 &&
-            area >= 2_048 &&
+            Math.max(width, height) >= 180 &&
+            Math.min(width, height) >= 120 &&
+            area >= 45_000 &&
             ratio >= 0.12 &&
             ratio <= 8.0;
     } catch {
@@ -23087,7 +24582,7 @@ function isUsableLocalEventMediaPath(relativePath) {
         const buffer = readFileSync(absolute);
         const { width, height } = detectRasterImageDimensions(buffer);
         if (!width || !height) return byteLength >= 8_000;
-        return Math.max(width, height) >= 48 && Math.min(width, height) >= 32;
+        return Math.max(width, height) >= 180 && Math.min(width, height) >= 120 && width * height >= 45_000;
     } catch {
         return false;
     }
@@ -23146,7 +24641,36 @@ function filterKnownVkUiImagePathsForDisplay(event, imagePaths) {
     const paths = Array.isArray(imagePaths) ? imagePaths : [];
     const sourceName = String(event?.sourceName ?? '').trim();
     const postId = Number(event?.postId ?? 0);
-    if (!sourceName || !Number.isSafeInteger(postId) || postId <= 0 || !paths.length) return paths;
+    if (!paths.length) return paths;
+
+    // Apply persisted Vision facts and source URL heuristics before any
+    // platform-specific hash lookup. This catches emoji/avatar/icon files
+    // saved by older parsers even when the post metadata table is incomplete.
+    const facts = [
+        ...(Array.isArray(event?.imageVisionFacts) ? event.imageVisionFacts : []),
+        ...(Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : []),
+    ];
+    const localUiRejected = new Set();
+    for (const relativePath of paths) {
+        const cleanPath = String(relativePath ?? '').replace(/\\+/gu, '/');
+        const basenameValue = cleanPath.split('/').pop()?.toLowerCase() || '';
+        const indexMatch = basenameValue.match(/-(\d+)(?:-[a-f0-9]{8,64})?\.(?:png|jpe?g|webp|gif)$/iu);
+        const imageIndex = Number(indexMatch?.[1] || 0);
+        const url = imageIndex > 0 && Array.isArray(event?.imageUrls)
+            ? String(event.imageUrls[imageIndex - 1] || '')
+            : '';
+        const fact = imageIndex > 0 ? facts.find((item) => Number(item?.index || 0) === imageIndex) : null;
+        const type = String(fact?.type || fact?.imageType || '').trim().toLowerCase();
+        const posterFlag = fact?.poster ?? fact?.isPoster ?? fact?.is_event_poster;
+        if (url && isLikelyVkNonPosterUiImageUrl(url) ||
+            /(?:avatar|emoji|reaction|sticker|favicon|badge|smile|gift|icon)[._/-]/iu.test(basenameValue) ||
+            ['avatar', 'emoji', 'reaction', 'sticker', 'ui', 'icon', 'badge'].includes(type) ||
+            posterFlag === false) {
+            localUiRejected.add(relativePath);
+        }
+    }
+    const locallyClean = paths.filter((path) => !localUiRejected.has(path));
+    if (!sourceName || !Number.isSafeInteger(postId) || postId <= 0 || !locallyClean.length) return locallyClean;
 
     try {
         const meta = getVkPostMeta({ screenName: sourceName, postId });
@@ -23154,9 +24678,9 @@ function filterKnownVkUiImagePathsForDisplay(event, imagePaths) {
             .filter((item) => isLikelyVkNonPosterUiImageUrl(item?.url))
             .map((item) => String(item?.sha256 ?? '').trim())
             .filter((value) => /^[a-f0-9]{64}$/iu.test(value)));
-        if (!rejectedHashes.size) return paths;
+        if (!rejectedHashes.size) return locallyClean;
 
-        const clean = paths.filter((relativePath) => {
+        const clean = locallyClean.filter((relativePath) => {
             const absolute = resolveEventImagePath(relativePath);
             if (!absolute) return false;
             try {
@@ -23175,14 +24699,33 @@ function filterKnownVkUiImagePathsForDisplay(event, imagePaths) {
         }
         return clean;
     } catch {
-        return paths;
+        return locallyClean;
     }
+}
+
+function filterGarbageEventImagePaths(event, imagePaths) {
+    const paths = Array.isArray(imagePaths) ? imagePaths : [];
+    if (!paths.length) return [];
+    const facts = [
+        ...(Array.isArray(event?.imageVisionFacts) ? event.imageVisionFacts : []),
+        ...(Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : []),
+    ];
+    return paths.filter((path) => {
+        const clean = String(path ?? '').replace(/\\+/gu, '/');
+        if (!clean || isGeneratedEventCardPath(clean)) return false;
+        const basenameValue = clean.split('/').pop()?.toLowerCase() || '';
+        if (/(?:avatar|emoji|reaction|sticker|favicon|badge|smile|gift|icon|logo)[._/-]/iu.test(basenameValue)) return false;
+        const index = Number(basenameValue.match(/-(\d+)(?:-[a-f0-9]{8,64})?\.(?:png|jpe?g|webp|gif)$/iu)?.[1] || 0);
+        const fact = index > 0 ? facts.find((item) => Number(item?.index || 0) === index) : null;
+        if (fact?.poster === false || /(?:avatar|emoji|reaction|sticker|favicon|badge|icon|logo|ordinary[- ]?photo|ui)/iu.test(String(fact?.imageType || ''))) return false;
+        return isStrongLocalEventPosterPath(clean);
+    });
 }
 
 
 
 const V18877_STARTUP_POSTER_REPAIR_DELAY_MS = 8_000;
-const V18877_STARTUP_POSTER_REPAIR_MAX_IMAGES_PER_SOURCE = 12;
+const V18877_STARTUP_POSTER_REPAIR_MAX_IMAGES_PER_SOURCE = 1000;
 
 function sourceImageIndexFromStoredPath(path, fallbackIndex) {
     const clean = String(path ?? '').trim().replace(/\\+/gu, '/');
@@ -23199,7 +24742,7 @@ function startupPosterRepairCandidateImages(group) {
         const path = String(sourcePaths[offset] ?? '').trim();
         if (!path || seen.has(path) || !isStrongLocalEventPosterPath(path)) continue;
         const sourceIndex = sourceImageIndexFromStoredPath(path, offset + 1);
-        if (!Number.isInteger(sourceIndex) || sourceIndex <= 0 || sourceIndex > 24) continue;
+        if (!Number.isInteger(sourceIndex) || sourceIndex <= 0 || sourceIndex > 1000) continue;
         const sourceUrl = Array.isArray(group?.imageUrls) ? String(group.imageUrls[sourceIndex - 1] || '') : '';
         if (sourceUrl && isLikelyVkNonPosterUiImageUrl(sourceUrl)) continue;
         seen.add(path);
@@ -23418,7 +24961,7 @@ async function repairMissingUpcomingSourceEventPostersV18877() {
 
 
 const V18883_STARTUP_MEDIA_REPAIR_DELAY_MS = 12_000;
-const V18883_STARTUP_MEDIA_MAX_IMAGES_PER_SOURCE = 12;
+const V18883_STARTUP_MEDIA_MAX_IMAGES_PER_SOURCE = 1000;
 const V18883_STARTUP_MEDIA_VISION_CONCURRENCY = clampInteger(
     process.env.V18883_STARTUP_MEDIA_VISION_CONCURRENCY,
     1,
@@ -23440,7 +24983,7 @@ function startupMediaRepairCandidateImagesV18883(group) {
         const path = String(sourcePaths[offset] ?? '').trim();
         if (!path || seen.has(path) || !isStrongLocalEventPosterPath(path)) continue;
         const sourceIndex = sourceImageIndexFromStoredPath(path, offset + 1);
-        if (!Number.isInteger(sourceIndex) || sourceIndex <= 0 || sourceIndex > 24) continue;
+        if (!Number.isInteger(sourceIndex) || sourceIndex <= 0 || sourceIndex > 1000) continue;
         const sourceUrl = Array.isArray(group?.imageUrls) ? String(group.imageUrls[sourceIndex - 1] || '') : '';
         if (sourceUrl && isLikelyVkNonPosterUiImageUrl(sourceUrl)) continue;
         seen.add(path);
@@ -24021,22 +25564,47 @@ async function getEventAttachments(event, context) {
     const attachments = [];
     const uploadErrors = [];
     const posterSafety = getEventPosterSafetyAssessment(event);
+    const sourceMediaBinding = getEventSourceMediaBindingAssessment(event);
+    const isMultiAnnouncement = Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement);
+    const monoSourcePaths = !isMultiAnnouncement
+        ? [...new Set([
+            ...(Array.isArray(event?.verifiedImagePaths) ? event.verifiedImagePaths : []),
+            ...(Array.isArray(event?.imagePaths) ? event.imagePaths : []),
+        ].map((path) => String(path ?? '').trim()).filter((path) => path && !isGeneratedEventCardPath(path)))]
+        : [];
     // V188.99 final: renderer is handed exactly the file path proven by the
     // selected Vision fact. Array ordering can no longer swap in a different
     // stale/verified path after safety validation.
+    // A mono announcement may carry a gallery, but one event card must use the
+    // single path bound to the source-media fact. Sending the whole gallery
+    // used to leak avatars, screenshots and unrelated photos into cards when
+    // Vision had not yet inspected every attachment.
+    const singletonSourceMedia = sourceMediaBinding.accepted && sourceMediaBinding.paths.length === 1
+        && Boolean(sourceMediaBinding.boundPath);
+    const sourceMediaPath = singletonSourceMedia
+        ? String(sourceMediaBinding.boundPath || sourceMediaBinding.paths[0] || '').trim()
+        : '';
     const candidatePaths = posterSafety.accepted && posterSafety.boundPath
         ? [posterSafety.boundPath]
-        : [];
-    const safeStoredImagePaths = filterKnownVkUiImagePathsForDisplay(event, candidatePaths);
+        : sourceMediaPath
+            ? [sourceMediaPath]
+            : monoSourcePaths;
+    const safeStoredImagePaths = filterGarbageEventImagePaths(
+        event,
+        filterKnownVkUiImagePathsForDisplay(event, candidatePaths),
+    );
     const safeStatus = String(event?.posterMatchStatus || '').trim().toLowerCase();
-    const singleEventGallery = safeStatus === 'verified_single_event_source_media';
+    const singleEventGallery = false;
     const existingStrongImagePaths = safeStoredImagePaths.filter((path) => (
         !isGeneratedEventCardPath(path) &&
         (singleEventGallery ? isUsableLocalEventMediaPath(path) : isStrongLocalEventPosterPath(path))
     ));
-    const safePoster = posterSafety.accepted;
-    let imagePaths = safePoster ? existingStrongImagePaths : [];
-    if (existingStrongImagePaths.length && !safePoster) {
+    // Mono-announcement source media is intentionally renderable even when
+    // Vision failed, returned no metadata, or the legacy row has no fallback
+    // fact. Multi-announcement cards still require an explicit matched image.
+    const safeMediaBinding = posterSafety.accepted || singletonSourceMedia;
+    let imagePaths = safeMediaBinding ? existingStrongImagePaths : [];
+    if (existingStrongImagePaths.length && !safeMediaBinding) {
         console.warn(
             '[EVENT POSTER REJECTED]',
             `event=${JSON.stringify(String(event?.title || ''))}`,
@@ -24093,7 +25661,7 @@ async function getEventAttachments(event, context) {
 
     appendPosterDeliveryForensic({ stage: 'poster-selection-and-upload', event,
         platform: String(getRawContext(context)?.platform || ''),
-        safety: { accepted: posterSafety.accepted, reason: posterSafety.reason, boundPath: posterSafety.boundPath },
+        safety: { accepted: posterSafety.accepted, mediaBindingAccepted: sourceMediaBinding.accepted, reason: posterSafety.reason, boundPath: posterSafety.boundPath },
         candidatePaths, safeStoredImagePaths, existingStrongImagePaths, selectedImagePaths: imagePaths,
         uploadsAccepted: attachments.length, uploadErrors,
         outcome: attachments.length ? 'image-uploaded' : (imagePaths.length ? 'upload-failed' : 'no-proven-poster'),
@@ -24123,6 +25691,9 @@ async function sendPublicEventMessages(context, events, { preverified = false } 
     for (const event of visibleEvents) {
         try {
         const message = buildSinglePublicEventMessage(event);
+        const ownerActions = platform === 'telegram' && isOwnerContext(context) && isPrivateContext(context)
+            ? buildTelegramEventOwnerActions({ sourceType: event?.sourceType, id: event?.id })
+            : null;
         const attachmentResult = await getEventAttachments(event, context);
         const attachments = attachmentResult.attachments;
 
@@ -24156,10 +25727,12 @@ async function sendPublicEventMessages(context, events, { preverified = false } 
                 `date=${String(event?.eventDate ?? '')}`,
                 `source=${String(event?.sourceUrl ?? '')}`,
             );
-            await context.send(message);
-            appendPosterDeliveryForensic({ stage: 'card-sent-text-only', event, platform,
+            // A public event card without a usable source poster is not a
+            // publishable card. Keep the row in SQLite for repair/reparse, but
+            // never expose a text-only placeholder that looks like a valid
+            // announcement.
+            appendPosterDeliveryForensic({ stage: 'card-withheld-no-poster', event, platform,
                 reason: getEventPosterSafetyAssessment(event).reason, imagePaths: attachmentResult.imagePaths });
-            sentCount += 1;
             continue;
         }
 
@@ -24169,6 +25742,7 @@ async function sendPublicEventMessages(context, events, { preverified = false } 
                 attachments: attachments.slice(0, 10),
                 mediaGroup: true,
                 singleMediaMessage: true,
+                ...(ownerActions ? { replyMarkup: ownerActions } : {}),
             });
         } else if (platform !== 'telegram' && attachments.length > 1) {
             // VK accepts several message photo attachments in one send call.
@@ -24184,6 +25758,7 @@ async function sendPublicEventMessages(context, events, { preverified = false } 
                 message,
                 attachment: attachments[0],
                 singleMediaMessage: true,
+                ...(ownerActions ? { replyMarkup: ownerActions } : {}),
             });
         }
         sentCount += 1;
@@ -24211,8 +25786,8 @@ function formatNoPublicEvents(range = null) {
     const rangeLabel = range?.label || 'Ближайшие мероприятия';
 
     return [
-        `В свежей локальной базе пока нет мероприятий за период «${rangeLabel}».`,
-        'Verified-кэш проверен на актуальность; устаревший кэш больше не может скрывать события из SQLite.',
+        `В локальной выдаче не нашлось событий за период «${rangeLabel}» после проверки дат и дублей.`,
+        'Новый или изменённый источник может ещё проходить обработку; это сообщение само по себе не означает, что скрейпер проверил все источники.',
     ].join('\n');
 }
 
@@ -24230,12 +25805,20 @@ async function sendPublicEventsForRange(context, range, routeMethod, { compact =
      * fallback, чтобы афиша всё равно отвечала быстро.
      */
     if (!selection.snapshot) {
-        const fallbackItems = await buildFastUnverifiedItemsForRange(range, limit, { partyPool: normalizedPool });
-        selection = {
-            snapshot: null,
-            items: fallbackItems,
-        };
-        snapshotMode = 'deterministic-fallback';
+        if (selection.verificationPending) {
+            selection = {
+                snapshot: null,
+                items: await buildFastUnverifiedItemsForRange(range, limit, { partyPool: normalizedPool }),
+            };
+            snapshotMode = 'deterministic-fallback-stale-snapshot';
+        } else {
+            const fallbackItems = await buildFastUnverifiedItemsForRange(range, limit, { partyPool: normalizedPool });
+            selection = {
+                snapshot: null,
+                items: fallbackItems,
+            };
+            snapshotMode = 'deterministic-fallback';
+        }
     }
 
     const items = selection.items.filter((item) => eventMatchesSearchFilters(item.event, filters || {}));
@@ -24556,7 +26139,7 @@ function parseVkWallPostUrl(value) {
 }
 
 const VK_EVENT_MAX_REPOST_NODES = 64;
-const EVENT_PROPOSAL_MAX_POST_IMAGES = 12;
+const EVENT_PROPOSAL_MAX_POST_IMAGES = 1000;
 
 function collectVkWallNodesRecursive(wall, {
     maxNodes = VK_EVENT_MAX_REPOST_NODES,
@@ -25678,6 +27261,7 @@ async function extractPosterGateFactsWithVision({
             const systemPrompt = secondaryJointGate
                 ? [
                     'Ты выполняешь строгий joint-gate для второстепенных/клубных тус: ОДИН смысловой текст поста + ОДНА прикреплённая картинка.',
+                    buildEventTitleContractPrompt(),
                     'Дата публикации, DOM-метаданные, подписи интерфейса и любые служебные timestamps ЗАПРЕЩЕНО считать датой/временем события.',
                     'До тебя текст уже прошёл детерминированный pre-gate: дата мероприятия обязательно найдена именно в смысловом тексте поста. Не отменяй это требование и не подменяй её метаданными.',
                     `Это [IMAGE ${imageNumber}].`,
@@ -25714,6 +27298,7 @@ async function extractPosterGateFactsWithVision({
                 ].join(' ')
                 : [
                     'Ты выполняешь узкий pre-AI gate для ОДНОЙ картинки.',
+                    buildEventTitleContractPrompt(),
                     'Смотри ТОЛЬКО на изображение; текст поста, дату публикации, подписи интерфейса и метаданные тебе не передаются и не должны использоваться.',
                     `Это [IMAGE ${imageNumber}].`,
                     'Ответь строго отдельными строками:',
@@ -25760,12 +27345,14 @@ async function extractPosterGateFactsWithVision({
                 imageUrls: [imageUrl],
                 maxTokens: 360,
                 requestTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
-                failoverMaxRounds: 1,
-                failuresBeforeQuarantine: 2,
+                failoverMaxRounds: 2,
+                failuresBeforeQuarantine: 3,
                 maxCandidates: 0,
                 escalateToAdvanced: true,
                 useCredentialHealth: false,
                 oneCandidatePerMode: true,
+                streamOverride: true,
+                validateVisionResult: (value) => parseIndexedImageFacts(String(value || '')).some((fact) => Number(fact.index) === imageNumber && typeof fact.poster === 'boolean'),
                 onFailoverEvent: (event) => trace?.('model', { imageNumber, ...event }),
                 tokenUsageOperation: 'event-parser:poster-gate-vision',
                 tokenUsageMetadata: { sourceUrl, sourceLabel, imageNumber, secondaryJointGate: Boolean(secondaryJointGate) },
@@ -25786,15 +27373,20 @@ async function extractPosterGateFactsWithVision({
 
 async function readManualEventImageFacts({
     imageUrls,
+    imageIndexes = null,
+    onImageVisionResult = null,
     postText,
     requestTimeoutMs = OPENAI_REQUEST_TIMEOUT_MS,
     trace = null,
     traceStage = 'proposal.image_facts',
     sourceUrl = '',
 }) {
-    const urls = [...new Set((Array.isArray(imageUrls) ? imageUrls : [])
+    const rawUrls = (Array.isArray(imageUrls) ? imageUrls : [])
         .map((url) => String(url ?? '').trim())
-        .filter((url) => /^https?:\/\//iu.test(url)))]
+        .filter((url) => /^https?:\/\//iu.test(url));
+    const urls = [...new Map(rawUrls.map((url, offset) => [url, {
+        url, imageNumber: Number(imageIndexes?.[offset] || offset + 1),
+    }])).values()]
         .slice(0, EVENT_PROPOSAL_MAX_POST_IMAGES);
 
     if (!urls.length) return '';
@@ -25807,24 +27399,25 @@ async function readManualEventImageFacts({
     const boundedTimeoutMs = clampInteger(
         Number(requestTimeoutMs),
         15_000,
-        180_000,
+        900_000,
         EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
     );
 
     trace?.(`${traceStage}.batch_start`, {
         sourceUrl,
         discovered: urls.length,
-        imageNumbers: urls.map((_, index) => index + 1),
+        imageNumbers: urls.map((item) => item.imageNumber),
     });
 
     for (let offset = 0; offset < urls.length; offset += 1) {
-        const imageNumber = offset + 1;
-        const imageUrl = urls[offset];
+        const imageNumber = urls[offset].imageNumber;
+        const imageUrl = urls[offset].url;
         try {
             const response = await generateOpenAIVisionText({
                 mode: 'default',
                 systemPrompt: [
                     'Ты считываешь ОДНУ афишу/фотографию из поста мероприятия.',
+                    buildEventTitleContractPrompt(),
                     `Это изображение [IMAGE ${imageNumber}].`,
                     'Верни только факты, явно видимые на этой картинке.',
                     'Начни строго с [IMAGE N], затем отдельными строками: Тип изображения: poster / ordinary-photo / event-photo / album-cover / logo / avatar / ui / other, Это афиша события: да/нет, Уверенность афиши: 0-100, Читаемость текста: 0-100, Название:, Дата:, Время:, Начало:, Окончание:, Место:, Город:, Населенный пункт:, Адрес:, Участники:, Цена:, Возраст:, Программа:, Теги:, Распознанный текст:, Причина:.',
@@ -25843,16 +27436,17 @@ async function readManualEventImageFacts({
                 imageUrls: [imageUrl],
                 maxTokens: 1200,
                 requestTimeoutMs: boundedTimeoutMs,
-                // Для event parser таймаут одной операции не должен отравлять
-                // следующие посты глобальным quarantine. Каждая модель/ключ
-                // получает две попытки, затем запрос ступенчато идёт к более
-                // мощным моделям default -> gpt54 -> gpt55 -> pro -> pro2 -> pro3.
+                // Each model/key gets three attempts, then the request moves
+                // up the configured default -> gpt54 -> gpt55 -> pro ladder.
+                // One full ladder is bounded by the parser's 3-hour supervisor.
                 failoverMaxRounds: 1,
-                failuresBeforeQuarantine: 2,
+                failuresBeforeQuarantine: 3,
                 maxCandidates: 0,
                 escalateToAdvanced: true,
                 useCredentialHealth: false,
                 oneCandidatePerMode: true,
+                validateVisionResult: (value) => parseIndexedImageFacts(String(value || '')).some((fact) => Number(fact.index) === imageNumber && typeof fact.poster === 'boolean'),
+                streamOverride: true,
                 onFailoverEvent: (event) => {
                     trace?.(`${traceStage}.model`, {
                         sourceUrl,
@@ -25864,8 +27458,15 @@ async function readManualEventImageFacts({
                 tokenUsageMetadata: { sourceUrl, imageNumber },
             });
             const text = String(response ?? '').trim();
+            const parsedFact = parseIndexedImageFacts(text)
+                .find((item) => Number(item?.index || 0) === imageNumber);
+            if (!parsedFact) throw new Error('Vision вернул пустой или неструктурированный ответ');
             completedImageNumbers.push(imageNumber);
-            if (text) facts.push(text);
+            facts.push(text);
+            // Persist one-image outcomes immediately, before the next model
+            // request. An interrupted batch can then resume without redoing
+            // completed images.
+            onImageVisionResult?.({ imageNumber, factText: text });
             trace?.(`${traceStage}.image`, {
                 sourceUrl,
                 imageNumber,
@@ -25874,7 +27475,17 @@ async function readManualEventImageFacts({
                 responseText: text,
             });
         } catch (error) {
+            if (getCurrentOperationSignal()?.aborted) throw error;
             failedImageNumbers.push(imageNumber);
+            // Persist an explicit retryable fact. A missing block would be
+            // indistinguishable from a never-inspected image after restart.
+            facts.push([
+                `[IMAGE ${imageNumber}]`,
+                'Тип изображения: other',
+                'Это афиша события: нет',
+                `Причина: Vision error: ${String(error?.message || error).slice(0, 300)}`,
+            ].join('\n'));
+            onImageVisionResult?.({ imageNumber, factText: facts.at(-1), retryable: true });
             trace?.(`${traceStage}.image_error`, {
                 sourceUrl,
                 imageNumber,
@@ -26196,6 +27807,7 @@ async function extractStrictManualEventWithPosterVision({
             'Ты финальный мультимодальный парсер городской афиши. Перед тобой ОДНА большая афиша и полный текст исходного поста вместе со всей доступной цепочкой репостов.',
             'Верни РОВНО ОДНО событие, которому принадлежит эта афиша. Изображение — главный визуальный якорь; текст поста и репостов нужен для дополнения фактов.',
             'Алгоритмические localHints — только подсказки. Если они конфликтуют с афишей или исходным текстом, НЕ копируй ошибку алгоритма: выбери корректный факт по смыслу.',
+            buildEventTitleContractPrompt(),
             'Дата публикации и время сообщения не являются датой/временем события. Год для даты без года определяй по referenceDate и publishedAt как для ближайшего релевантного будущего события.',
             'Поля: title, date YYYY-MM-DD, time HH:MM|null, venue, participants, price, announcement, evidence, tags.',
             formatEventTagPromptInstruction(),
@@ -26483,7 +28095,7 @@ async function auditProposalVenuesSemantically({
             temperature: 0,
             requestTimeoutMs: Math.min(EVENT_PROPOSAL_AI_TIMEOUT_MS, 18_000),
             failoverMaxRounds: 1,
-            failuresBeforeQuarantine: 2,
+            failuresBeforeQuarantine: 3,
             maxCandidates: 0,
             escalateToAdvanced: true,
             useCredentialHealth: false,
@@ -27976,7 +29588,7 @@ async function handleManualEventCommand(context, body, { forceUpdate = false, re
                 const imageUrls = [...new Set([
                     ...(Array.isArray(event?._imageUrls) ? event._imageUrls : []),
                     ...incomingImageUrls,
-                ].map((url) => String(url ?? '').trim()).filter((url) => /^https?:\/\//iu.test(url)))].slice(0, 12);
+                ].map((url) => String(url ?? '').trim()).filter((url) => /^https?:\/\//iu.test(url)))].slice(0, 1000);
                 let finalEvent = event;
                 if (imageUrls.length) {
                     try {
@@ -30709,16 +32321,13 @@ async function sendHelp(context) {
         '• В обычных вопросах GPT автоматически использует подходящие записи памяти.',
         '',
         'МОДЕЛИ GPT — КЛЮЧ МОЖНО СТАВИТЬ В ЛЮБУЮ ТЕКСТОВУЮ КОМАНДУ',
-        '• Без ключа / mini / мини / база — gpt-5.4-mini; для неё пользовательский дневной лимит отключён и подпись модели в обычных ответах не показывается.',
-        '• gpt54 / стандарт — gpt-5.4.',
-        '• gpt55 / классик — gpt-5.5.',
-        '• pro / луна — gpt-5.6-luna.',
-        '• pro2 / терра — gpt-5.6-terra.',
-        '• pro3 / сол — gpt-5.6-sol.',
+        '• Без ключа / mini / мини / база — gpt-6-luna; это самая дешёвая модель по умолчанию.',
+        '• gpt54 / стандарт и pro / луна — совместимые алиасы gpt-6-luna.',
+        '• gpt55 / классик, pro2 / терра и pro3 / сол — совместимые алиасы gpt-6.1-sol.',
         '• astra / астра / gpt6 / самая продвинутая модель / max — gpt-6-astra.',
         '• Пример: «Гигорейв pro2 резюмируй 500 сообщений». Картинки всегда создаёт gpt-image-2; ключ выбирает текстовую модель подготовки.',
         '• Ключ модели распознаётся перед командой, после команды и внутри AI-запроса. Для локальных команд вроде «помощь», «парсер» или «nvidia проверить» маршрут сохраняется, а ключ явно отмечается в логе как неприменимый.',
-        '• pro/pro2/pro3 работают в глубоком режиме; Astra по умолчанию запускается с reasoning=max.',
+        '• Единая лестница отказов: gpt-6-luna (4 попытки) → gpt-6.1-sol (3) → gpt-6-astra (2). Для Luna reasoning=none, для Sol/Astra по умолчанию low.',
         ...getAstrologyHelpLines({ platform: rawContext?.platform, isPrivate: false }),
         '',
         'РЕЗЮМЕ И АНАЛИЗ БЕСЕДЫ',
@@ -30741,6 +32350,12 @@ async function sendHelp(context) {
         '• Гигорейв тусы на этих выходных / на этой неделе / на месяц.',
         '• Гигорейв тусы 22 августа / тусы в августе.',
         '• Добавьте «кратко» или «коротко» — один общий текстовый список: название, дата/время, место и цена. Без описаний, участников, источников и картинок.',
+        '• Афиша обрабатывается автоматически из исходного текста и сохранённых афиш; перед походом уточняйте сведения на странице события.',
+        '• Название карточки — только название события. Слова «концерт», «гиг», «рейв», «пати» и похожие слова считаются форматом, если источник явно не оформляет их как часть имени.',
+        '• ИИ сам решает: один анонс, программа одного события или несколько самостоятельных событий. Vision дополняет текст и проверяет картинку, но не перезаписывает подтверждённые факты исходного анонса.',
+        '• Для одного события с несколькими источниками данные объединяются; моноанонс и его афиша имеют приоритет, мультианонс добавляет только проверенную новую информацию.',
+        '• Дубли сравниваются по календарной дате и смысловой идентичности. Время помогает ранжировать, но само по себе не разделяет событие; конфликт цены/места/времени показывается через « / » с пометкой «❗ уточните на странице события».',
+        '• Картинка показывается только после безопасной проверки: эмодзи, аватары, логотипы и обычные фотографии не считаются афишами.',
         '',
         'ИЗОБРАЖЕНИЯ',
         `• ${helpProfile.imageLimitText}`,
@@ -30750,7 +32365,7 @@ async function sendHelp(context) {
         '• Гигорейв что на картинке / что изображено / опиши фото / предложи варианты — анализ изображения в сообщении, reply, комментарии к посту или пересылке.',
         '• Гигорейв возьми за основу и дорисуй <что изменить> — отредактировать присланное изображение или картинку из reply.',
         '• Гигорейв дорисуй <что изменить> / измени изображение <что изменить> — использовать присланную картинку как основу и вернуть новую версию.',
-        '• Ответьте «Гигорейв что на картинке / что изображено / предложи варианты» на сообщение, комментарий или пост с картинкой — бот проанализирует изображение. Без ключа начинает gpt-5.4-mini; можно явно указать mini/gpt54/gpt55/pro/pro2/pro3/astra. После повторных отказов бот поднимается по лестнице вплоть до Astra.',
+        '• Ответьте «Гигорейв что на картинке / что изображено / предложи варианты» на сообщение, комментарий или пост с картинкой — бот проанализирует изображение. Обычный Vision использует detail=low и поднимается по общей лестнице Luna → Sol → Astra; для афиш используется OCR detail=high, затем original.',
         '',
         'МАНЕРА ОБЩЕНИЯ',
         '• Гигорейв теплота общения <1–10>.',
@@ -30809,17 +32424,14 @@ async function sendHelp(context) {
         '• Обычные сообщения ЛС на диск не записываются; исключение — явная команда «запомни».',
         '',
         'МОДЕЛИ GPT — КЛЮЧ МОЖНО ДОБАВИТЬ К ЛЮБОЙ ТЕКСТОВОЙ КОМАНДЕ',
-        '• Без ключа / mini / мини / база — gpt-5.4-mini; пользовательский дневной лимит отключён.',
-        '• gpt54 / стандарт — gpt-5.4.',
-        '• gpt55 / классик — gpt-5.5.',
-        '• pro / луна — gpt-5.6-luna.',
-        '• pro2 / терра — gpt-5.6-terra.',
-        '• pro3 / sol / сол — gpt-5.6-sol.',
+        '• Без ключа / mini / мини / база — gpt-6-luna; пользовательский дневной лимит отключён.',
+        '• gpt54 / стандарт и pro / луна — совместимые алиасы gpt-6-luna.',
+        '• gpt55 / классик, pro2 / терра и pro3 / sol / сол — совместимые алиасы gpt-6.1-sol.',
         '• astra / астра / gpt6 / самая продвинутая модель / max — gpt-6-astra.',
-        '• Reasoning: mini/gpt54/gpt55 по умолчанию medium; Luna/Terra/Sol — high; Astra — max.',
+        '• Reasoning: gpt-6-luna — none; gpt-6.1-sol и gpt-6-astra — low по умолчанию.',
         '• Ключи интеллекта: low / medium / high / xhigh (x-high) / max. Максимум: «astra max разберись ...».',
         '• Ключ модели распознаётся перед командой, после команды и внутри AI-запроса. Локальные команды не уходят в GPT: ключ для них отмечается как неприменимый, но сама команда не ломается.',
-        '• pro/pro2/pro3 работают в глубоком режиме; Astra использует reasoning=max.',
+        '• Единая лестница отказов: gpt-6-luna (4 попытки) → gpt-6.1-sol (3) → gpt-6-astra (2).',
         ...getAstrologyHelpLines({ platform: rawContext?.platform, isPrivate: true }),
         '',
         'МАНЕРА ОБЩЕНИЯ',
@@ -30832,13 +32444,15 @@ async function sendHelp(context) {
         `• ${helpProfile.imageLimitText}`,
         '• нарисуй <описание>.',
         '• картинка <описание>.',
-        '• Ответьте «что на картинке / что изображено / предложи варианты» на сообщение с картинкой — бот проанализирует изображение. Без ключа начинает gpt-5.4-mini; можно явно указать mini/gpt54/gpt55/pro/pro2/pro3/astra. При повторных отказах автоматически поднимается по цепочке до Astra.',
+        '• Ответьте «что на картинке / что изображено / предложи варианты» на сообщение с картинкой — бот использует detail=low и общую лестницу Luna → Sol → Astra; для афиш применяется OCR detail=high/original.',
         '',
         'АФИША И БЛИЖАЙШАЯ ТУСА',
         '• ближайшие тусы.',
         '• тусы на этих выходных / на этой неделе / на месяц.',
         '• тусы 22 августа / тусы в августе.',
         '• кратко тусы / тусы на месяц коротко — один общий текстовый список: название, дата/время, место и цена; без описаний, участников, источников и картинок.',
+        '• Афиша формируется автоматически из исходных постов и изображений; окончательные дату, место, цену и условия проверяйте на странице события.',
+        '• ИИ определяет структуру анонса и дубликаты; текст источника главнее Vision, Vision только дополняет и подтверждает картинку.',
         '• Когда следующая туса? Какой будет формат? Когда появятся подробности?',
         '• предложить информацию о тусе — бот попросит ссылку или текст, подготовит карточку и отправит владельцу на модерацию; без ответа владельца за сутки заявка добавится автоматически.',
         '• куаркод / qr — показать QR-код поддержки вместе с реквизитами.',
@@ -30872,13 +32486,18 @@ async function sendHelp(context) {
         '• тусы проверить — полностью выверить текущую афишу: нормализация, глубокий дедуп, GPT только для спорных пар, обновление canonical registry и сохранение V2-кэша без повторов.',
         '• тусы дубли проверить — dry-run всей SQLite-базы: точные название+дата без GPT; частично похожие названия на той же дате проверяются ИИ; ничего не меняет.',
         '• тусы дубли статус — показать состояние проверки: running/completed/failed/interrupted, этап, прогресс, количество дублей и время.',
-        '• тусы дубли применить — записать результат быстрого deterministic-dedupe в canonical/duplicate registry SQLite; raw event-строки не удаляются, полный verified snapshot перестраивается в фоне.',
+        '• тусы дубли применить — заново прогнать тот же глубокий дедуп, что используется после парсинга: дата + нормализованное название/смысл, служебные слова и окончания не учитываются, спорные пары решает ИИ; подтверждённые повторы физически удаляются из event-таблиц после архивирования evidence, исходные посты и Vision-факты сохраняются.',
+        '• Дедуп не выбирает время, место или цену молча: при конфликте сохраняются оба значения через « / » и «❗ уточните ... на странице события». Разное время само по себе не создаёт вторую карточку.',
+        '• mono/multi merge: моноанонс — основной источник названия, фактов и картинки; полный текст и Vision-факты мультианонса сохраняются в связи, а в карточку попадает только проверенная новая информация.',
         '• тусы обновить будущие — проверить фото по сохранённым Vision-фактам в SQLite, пройти беседу 22, затем по одной открыть ВСЕ ссылки будущих тус с паузами 10–15 секунд; по ссылкам обновлять только карточки без подтверждённой афиши; неполный проход не публикует новый verified snapshot.',
         '• тусы перепарсить ссылки — заново открыть исходные ссылки будущих событий, обновить поля/анонс/картинки и пересобрать dedupe + verified snapshot. Неоднозначные дайджесты с несколькими разными событиями автоматически не перезаписываются.',
         '• тусы метаданные картинок — CSV-ревью всех event-картинок: дата/место/город/адрес/начало/участники/прочие Vision metadata и совместимость с карточкой.',
         '• тусы метаданные картинок заполнить — явный Vision-backfill отсутствующих metadata и безопасное перепривязывание. Старые startup-repair автоматически больше не запускаются.',
         '• тусы исходники картинки через vision — повторно пропустить через Vision все сохранённые исходные картинки, включая source-only; отдельно фиксируются «не запускался», «метаданных нет» и ошибки.',
+        '• парсер все восстановить — продолжить последний незавершённый проход из кэша; готовые записи не повторяются. Для второго пула: «тусы второстепенные парсер все восстановить».',
         '• тусы источники восстановить — восстановить отсутствующие source rows по ссылкам будущих карточек, затем добрать Vision metadata и безопасно перепривязать подходящие афиши; спорные записи попадут в отчёт.',
+        '• тусы восстановить скрытые афиши — только будущие скрытые карточки: полный исходный текст через AI, затем все исходные картинки через Vision; афиша возвращается лишь после успешного подтверждения обоих этапов. Ошибки и сомнения не меняют карточку и записываются в JSON-отчёт.',
+        '• тусы восстановить скрытые афиши статус / отчёт — показать последний промежуточный или завершённый JSON-отчёт: фаза, карточки, ошибки текста и Vision, отсутствующие source rows, попытки моделей и переходы по лестнице.',
         '• проверить тусы на совпадения — быстрый диагностический аудит текущих configured sources без изменения БД.',
         '• тусы картинки на ревью — если несколько афиш одинаково подходят по дате/metadata, прислать владельцу кандидатов и выбрать номером.',
         '• тусы архив картинок сжать — WebP-сжатие картинок только прошедших событий; картинки будущих карточек не трогаются.',
@@ -30908,10 +32527,17 @@ async function sendHelp(context) {
         '• добавить источник <ссылка> / тусы добавить источник <ссылка> — только владелец: добавить публичный Telegram/VK-источник в постоянный SQLite-registry и сразу запустить первый проход.',
         '• тусы удалить источник <vk:название | tg:канал | ссылка> — только владелец: убрать собственный источник из SQLite-реестра и активного списка парсера. События, исходные посты и ledger остаются в базе. Источники из .env/обязательной конфигурации удаляются там, где заданы.',
         '• В Telegram: 🎉 Тусы → Добавить источник. Кнопка видна только владельцу.',
-        '• парсер все / тусы парсер все — полный проход всех настроенных публичных источников и VK-бесед.',
-        '• парсер все чисто — только новые source-items; уже виденные id режутся по SQLite-ledger до алгоритма/vision/AI.',
+        '• парсер все / тусы парсер все — полный проход только по основному пулу: сначала последовательно сохраняются DOM, сообщения, посты и картинки, затем единым проходом обрабатываются текст, Vision, AI и дедуп; незавершённый проход не заменяет проверенный snapshot.',
+        '• парсер все чисто — инкрементальный проход основного пула: пропускается только тот же source-item с финальным ledger-статусом и тем же content hash; новая дата, текст, картинка или вложение обрабатываются снова.',
+        '• парсер все новые — явный алиас «парсер все чисто».',
+        '• тусы быдлячьи парсер все / тусы быдлячьи парсер все чисто — те же два режима, но только для отдельного второстепенного пула; он не смешивается с основными источниками.',
+        '• qtickets парсер / qtickets обновить — отдельный источник QTickets; его карточки не открываются обычным парсером. Фильтр цены включается только при явной команде «до/не дороже N», без фильтра цена не ограничивается.',
         '• парсер запустить <источник> — запустить только указанный источник.',
         '• парсер статус — показать состояние публичных источников.',
+        '• процессы статус / активные процессы — показать все активные и незавершённые фоновые операции с id, фазой, прогрессом и пределом 2 часа.',
+        '• процесс <id> — показать checkpoint, дедлайн и последний прогресс конкретной операции.',
+        '• прервать процесс <id> / прервать все процессы — запросить остановку; checkpoint, уже сохранённые источники и Vision-факты остаются, неполный snapshot не публикуется.',
+        '• AI-контуры событий и афиш используют потоковый транспорт, до трёх технических попыток на текущей модели и переход к следующей модели лестницы; одна попытка ограничена 15 минутами.',
         '• телеграм проверить — проверить Bot API, t.me, токен, webhook и повторное подключение.',
         '• api — показать отдельные настройки OpenAI/NVIDIA и команды диагностики.',
         '• api openai проверить / api nvidia проверить — отдельно проверить ключ и GET /models.',
@@ -31660,6 +33286,7 @@ async function handleGptCommand(context, requestText) {
             effectiveMode,
             terminology,
             parsed.reasoningEffort || '',
+            parsed.reasoningSource === 'implicit',
         );
     } catch (error) {
         if (quota) {
@@ -31707,7 +33334,7 @@ function parseGptCommand(requestText) {
     body = explicitMode.body;
     const explicitReasoning = extractReasoningEffortModifier(body);
     body = explicitReasoning.body;
-    const reasoningEffort = explicitReasoning.effort || (mode === 'astra' ? 'max' : '');
+    const reasoningEffort = explicitReasoning.effort || getDefaultReasoningEffortForMode(mode);
 
     const imagePrefix = body.match(
         /^(?:image|img|картин(?:ка|ку|ки|кой)?|изображени(?:е|я|ю|ем)?|нарисуй|рисуй|нарисовать|рисовать|сгенерируй\s+(?:картинку|изображение)|создай\s+(?:картинку|изображение)|сделай\s+(?:картинку|изображение))(?=$|\s)/iu,
@@ -32020,6 +33647,7 @@ async function answerGptQuestion(
     mode,
     terminology = null,
     reasoningEffort = '',
+    reasoningEffortAuto = false,
 ) {
     const prompt = String(originalPrompt).trim();
 
@@ -32536,6 +34164,7 @@ async function answerGptQuestion(
         onModelSelected: rememberEffectiveModel,
         ...getProInferenceControls(mode),
         reasoningEffort: reasoningEffort || getDefaultReasoningEffortForMode(mode),
+        reasoningEffortAuto,
         ...(telegramTextStreamSession
             ? {
                 onTextDelta: (delta, metadata = {}) => {
@@ -39646,6 +41275,13 @@ async function resolveNextAdvancedGptModel(currentModel, currentModeOverride = '
 }
 
 async function generateOpenAIText(options) {
+    if (/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) {
+        options = { ...options, streamOverride: true, disableTransportFallback: true, skipIncomingMessageContext: true,
+            failoverMaxRounds: 1, failuresBeforeQuarantine: 3, roundRetryDelayMs: 60_000,
+            requestTimeoutMs: Math.min(900_000, Number(options.requestTimeoutMs) || 900_000),
+            escalateToAdvanced: true, useCredentialHealth: false,
+            modelLadder: options.modelLadder || PARSER_MODEL_LADDER };
+    }
     const incomingMessageBlock = options?.skipIncomingMessageContext
         ? ''
         : await getIncomingGptPromptBlock({
@@ -39684,22 +41320,24 @@ async function generateOpenAIText(options) {
         ? enrichedOptions.onModelSelected
         : null;
 
+    const runtimeLadder = enrichedOptions?.modelLadder || getGptModelLadderFrom(initialModel);
     const result = await executeBotModelFailover({
         capability: 'text',
-        modes: enrichedOptions?.escalateToAdvanced
-            ? getVisionModeChain(initialMode)
-            : [initialMode],
+        modes: [],
         requestedModel: initialModel,
+        modelLadder: runtimeLadder.length ? runtimeLadder : GPT_MODEL_LADDER,
         failoverMaxRounds: enrichedOptions?.failoverMaxRounds,
+        roundRetryDelayMs: enrichedOptions?.roundRetryDelayMs,
         failuresBeforeQuarantine: enrichedOptions?.failuresBeforeQuarantine,
         maxCandidates: enrichedOptions?.maxCandidates,
         useCredentialHealth: enrichedOptions?.useCredentialHealth !== false,
         oneCandidatePerMode: Boolean(enrichedOptions?.oneCandidatePerMode),
+        streamOverride: enrichedOptions?.streamOverride,
         onFailoverEvent: enrichedOptions?.onFailoverEvent,
         shouldRetry: (error) => {
             if (enrichedOptions?.disableProviderRetry === true) return false;
             if (error?.probeOnly || error?.code === 'PROJECT_AUDIT_ROUTER_PROBE_COMPLETE') return false;
-            if (error?.streamOutputStarted || error?.inferenceMayHaveStarted || error?.responseId) return false;
+            if ((error?.streamOutputStarted || error?.inferenceMayHaveStarted || error?.responseId) && !/^event(?:-|:)/u.test(String(enrichedOptions.tokenUsageOperation || ''))) return false;
             const hasInputFiles = Array.isArray(enrichedOptions?.inputFiles) && enrichedOptions.inputFiles.length > 0;
             return Boolean(
                 isEmptyModelTextError(error) ||
@@ -39708,11 +41346,26 @@ async function generateOpenAIText(options) {
                 (hasInputFiles && /GPT (?:FILE INPUT|RESPONSES) API (?:404|405|415|422|501)/u.test(String(error?.message ?? error)))
             );
         },
-        request: (credential) => generateOpenAITextCore({
-            ...enrichedOptions,
-            model: credential.model,
-            providerCredential: credential,
-        }),
+        request: async (credential) => {
+            const text = await generateOpenAITextCore({
+                ...enrichedOptions,
+                model: credential.model,
+                reasoningEffort: enrichedOptions?.reasoningEffortAuto === true
+                    ? getDefaultReasoningEffortForMode(credential.mode)
+                    : enrichedOptions?.reasoningEffort,
+                providerCredential: credential,
+            });
+            if (typeof enrichedOptions?.validateTextResult === 'function') {
+                const valid = enrichedOptions.validateTextResult(text);
+                if (valid === false) {
+                    const error = new Error('GPT не вернул запрошенный структурированный ответ.');
+                    error.code = 'EMPTY_MODEL_TEXT';
+                    error.retryable = true;
+                    throw error;
+                }
+            }
+            return text;
+        },
     });
     const selected = result.credential || {};
     const usedMode = String(selected.mode || initialMode);
@@ -41374,7 +43027,10 @@ async function generateOpenAITextCoreAttempt({
                 signal: textAttachmentStreaming
                     ? textJobAbortSignal || undefined
                     : /^event(?:-|:)/u.test(String(tokenUsageOperation || ''))
-                        ? getCurrentOperationSignal() || undefined
+                        ? combineAbortSignals([
+                            getCurrentOperationSignal(),
+                            buildOperationAbortSignal(Math.max(60_000, Number(requestTimeoutMs) || OPENAI_REQUEST_TIMEOUT_MS)),
+                        ])
                         : buildOperationAbortSignal(Math.max(5_000,
                             Number(requestTimeoutMs) || OPENAI_REQUEST_TIMEOUT_MS)),
             },
@@ -43672,9 +45328,42 @@ async function toBuffer(content) {
 }
 
 
+function isReusableVisionFactV18892(fact) {
+    if (!fact || typeof fact !== 'object') return false;
+    const status = String(fact?.visionStatus || '').trim().toLowerCase();
+    if (status === 'metadata_found') {
+        return [
+            fact.title, fact.dates, fact.time, fact.venue, fact.city, fact.locality,
+            fact.address, fact.participants, fact.price, fact.age, fact.program,
+            fact.tags, fact.recognizedText,
+        ].some((value) => String(value ?? '').trim());
+    }
+    if (status !== 'metadata_not_found' || fact.visionInspected !== true) return false;
+    const text = String(fact.text || '');
+    const structured = [...text.matchAll(
+        /(?:^|[\n;])[ \t]*(?:Тип изображения|Тип|Image type|Это афиша события|Афиша|Poster|Распознанный текст|OCR|Текст на изображении|Причина|Почему|Reason)[ \t]*:/giu,
+    )];
+    return structured.length >= 2 && /(?:^|[\n;])[ \t]*(?:Это афиша события|Афиша|Poster|Распознанный текст|OCR|Текст на изображении)[ \t]*:/iu.test(text);
+}
+
 async function extractPublicPostImageFactsWithVision(post) {
-    return readManualEventImageFacts({
-        imageUrls: post?.imageUrls,
+    const dateGate = explainEventAiAdmission({ text: post?.text, publishedAt: post?.publishedAt, timeZone: botTimeZone });
+    if (dateGate.pastOnly) {
+        post?.__aiTrace?.('ai.skipped-past', dateGate);
+        return '';
+    }
+    const storedFacts = parseIndexedImageFacts(String(post?.__storedImageVisionFacts || ''));
+    const terminal = new Set(storedFacts
+        .filter(isReusableVisionFactV18892)
+        .map((fact) => Number(fact?.index || 0))
+        .filter((index) => index > 0));
+    const sourceUrls = Array.isArray(post?.imageUrls) ? post.imageUrls : [];
+    const retryUrls = sourceUrls.filter((_, offset) => !terminal.has(offset + 1));
+    const retryIndexes = sourceUrls.map((_, offset) => offset + 1).filter((index) => !terminal.has(index));
+    const fresh = await readManualEventImageFacts({
+        imageUrls: retryUrls,
+        imageIndexes: retryIndexes,
+        onImageVisionResult: post?.__onImageVisionResult,
         postText: post?.text,
         requestTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
         trace: typeof post?.__aiTrace === 'function'
@@ -43683,6 +45372,7 @@ async function extractPublicPostImageFactsWithVision(post) {
         traceStage: 'poster-vision',
         sourceUrl: post?.sourceUrl || '',
     });
+    return [serializeIndexedImageFacts(storedFacts), fresh].filter(Boolean).join('\n\n');
 }
 
 function estimatePublicAnnouncementMultiplicity(sourceText) {
@@ -43697,17 +45387,11 @@ function estimatePublicAnnouncementMultiplicity(sourceText) {
             .map((match) => Number(match[1]))
             .filter((value) => Number.isSafeInteger(value) && value > 0),
     );
-    const sequential = buildSequentialAnnouncementBlocks(text);
     return {
         distinctDateSignals: dateSignals.length,
         distinctTimeSignals: [...new Set(timeSignals.map((match) => match[0]))].length,
         imageSignals: imageSignals.size,
-        sequentialBlockCount: sequential.blocks.length,
-        // V188.92: only text dates can make a text post multi-announcement.
-        // Image/Vision metadata is a later validation contour and never changes
-        // the number of cards extracted from the announcement text.
-        likelyMultiple: dateSignals.length >= 2 || sequential.blocks.length >= 2 || timeSignals.length >= 2,
-        sequential,
+        likelyMultiple: dateSignals.length >= 2 || timeSignals.length >= 2,
     };
 }
 
@@ -43720,6 +45404,13 @@ async function extractPublicEventsWithGpt(post) {
         return [];
     }
 
+    const dateGate = explainEventAiAdmission({ text: sourceText, publishedAt: post?.publishedAt, timeZone: botTimeZone });
+    if (dateGate.pastOnly) {
+        post?.__aiTrace?.('ai.skipped-past', dateGate);
+        const empty = [];
+        setPublicAiResponseMetadata(empty, { structure: 'not_event', reason: 'all-body-event-dates-are-past', valid: true });
+        return empty;
+    }
     const multiplicity = estimatePublicAnnouncementMultiplicity(sourceText);
     const callExtractor = async ({ repair = false } = {}) => {
         const response = await generateDefaultGptText({
@@ -43730,23 +45421,19 @@ async function extractPublicEventsWithGpt(post) {
                         ? getLocalDateString(new Date(post.publishedAt * 1000), botTimeZone)
                         : getLocalDateString(new Date(), botTimeZone),
                 }),
-                'Один пост может содержать расписание из НЕСКОЛЬКИХ разных мероприятий. В таком случае ОБЯЗАТЕЛЬНО верни отдельный объект events для КАЖДОЙ даты/самостоятельного блока; не объединяй разные даты/артистов в одну карточку и не ограничивай ответ первым событием.',
-                'Для мультианонса читай текст ПОСЛЕДОВАТЕЛЬНО: строка/блок с датой открывает событие, весь следующий текст относится к этой дате до появления следующей даты. Соседний блок после новой даты относится уже к новой карточке.',
-                'sequential_text_blocks ниже подготовлены только из текста поста. Используй именно их для определения количества и состава карточек.',
+                'Один пост может содержать одно событие, программу одного события или несколько самостоятельных мероприятий. Сначала сам реши структуру по смыслу исходника и верни structure=single_event, single_event_program, multiple_events, not_event или uncertain. Даты и последовательные блоки — только подсказки для проверки, они не задают число карточек.',
+                'Для multiple_events выделяй только самостоятельно анонсированные события. Не принимай ошибку/исправление даты, повтор одного анонса, дату публикации или несколько времён программы за новое событие. Для single_event и single_event_program верни ровно один объект events; для uncertain и not_event верни пустой events.',
                 'Vision/OCR metadata изображения НЕ МОЖЕТ создавать, удалять, объединять или делить текстовые карточки и НЕ МОЖЕТ переносить текст между датами. Метаданные картинки сохраняются отдельно и проверяют уже полученные карточки позже.',
                 repair
-                    ? `Это повторная проверка полноты. В ТЕКСТЕ обнаружены признаки нескольких анонсов (разных дат: ${multiplicity.distinctDateSignals}, последовательных date-блоков: ${multiplicity.sequentialBlockCount}). Первый проход вернул слишком мало событий. Перечисли ВСЕ самостоятельные текстовые анонсы по блокам; изображение не меняет число событий.`
+                    ? `Это повторная проверка ответа. В тексте обнаружено несколько дат или времён (дат: ${multiplicity.distinctDateSignals}, времён: ${multiplicity.distinctTimeSignals}), но это само по себе не означает несколько событий. Проверь смысл исходника, учти возможную ошибку/исправление в посте и верни только подтверждённую структуру либо uncertain.`
                     : '',
                 formatEventTagPromptInstruction(),
-                'Допустимый формат результата: {"structure":"single_event|single_event_program|multiple_events|uncertain","structure_reason":"краткое основание","events":[{"date":"YYYY-MM-DD","time":"HH:MM или null","title":"...","venue":"...","participants":"...","price":"...","announcement":"только этот анонс","source_segment":"точный фрагмент только этого анонса","program_items":[{"time":"HH:MM","text":"этап программы"}],"evidence":"точный фрагмент","tags":["rock","dj"],"image_indexes":[1]}]}. Если structure=single_event_program, верни одну карточку и все времена программы в program_items. Если structure=multiple_events, верни отдельный source_segment и announcement для каждого события. Разные календарные даты всегда отдельные карточки. Верни только JSON.',
+                'Допустимый формат результата: {"structure":"single_event|single_event_program|multiple_events|not_event|uncertain","structure_reason":"краткое основание","events":[{"date":"YYYY-MM-DD","time":"HH:MM или null","title":"...","venue":"...","participants":"...","price":"...","announcement":"только этот анонс","source_segment":"точный фрагмент только этого анонса","program_items":[{"time":"HH:MM","text":"этап программы"}],"evidence":"точный фрагмент","tags":["rock","dj"],"image_indexes":[1]}]}. Для single_event/single_event_program верни ровно одну карточку; для multiple_events — все самостоятельные карточки; для not_event/uncertain — пустой events. Верни только JSON.',
             ].filter(Boolean).join(' '),
             userPrompt: [
                 `Дата публикации: ${post?.publishedAt ? new Date(post.publishedAt * 1000).toISOString() : 'неизвестна'}`,
                 `Ссылка: ${post?.sourceUrl ?? ''}`,
                 '',
-                multiplicity.likelyMultiple
-                    ? `sequential_text_blocks: ${JSON.stringify(multiplicity.sequential)}`
-                    : '',
                 '',
                 sourceText,
             ].join('\n'),
@@ -43757,11 +45444,12 @@ async function extractPublicEventsWithGpt(post) {
             maxTokens: 6000,
             requestTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
             failoverMaxRounds: 1,
-            failuresBeforeQuarantine: 2,
+            failuresBeforeQuarantine: 3,
             maxCandidates: 0,
             escalateToAdvanced: true,
             useCredentialHealth: false,
             oneCandidatePerMode: true,
+                streamOverride: true,
             tokenUsageOperation: repair
                 ? 'event-parser:public-text-completeness-retry'
                 : 'event-parser:public-text',
@@ -43776,8 +45464,20 @@ async function extractPublicEventsWithGpt(post) {
         });
         const responseText = String(response ?? '').trim();
         const parsed = parseJsonObjectFromText(responseText);
-        post.__aiStructureDecision = String(parsed?.structure || parsed?.structure_decision || '').trim();
-        post.__aiStructureReason = String(parsed?.structure_reason || parsed?.structureReason || '').trim();
+        const decision = String(parsed?.structure || parsed?.structure_decision || '').trim();
+        const reason = String(parsed?.structure_reason || parsed?.structureReason || '').trim();
+        const rawEvents = Array.isArray(parsed?.events) ? parsed.events : [];
+        const supportedDecisions = new Set(['single_event', 'single_event_program', 'multiple_events', 'not_event', 'uncertain']);
+        const decisionCountMatches = ['single_event', 'single_event_program'].includes(decision)
+            ? rawEvents.length === 1
+            : decision === 'multiple_events'
+                ? rawEvents.length >= 2 && rawEvents.length <= 20
+                : ['not_event', 'uncertain'].includes(decision) && rawEvents.length === 0;
+        const decisionFieldsValid = Boolean(parsed && typeof parsed === 'object' && !Array.isArray(parsed) &&
+            supportedDecisions.has(decision) && typeof parsed.structure_reason === 'string' && parsed.structure_reason.trim());
+        const responseValid = decisionFieldsValid && decisionCountMatches;
+        post.__aiStructureDecision = decision;
+        post.__aiStructureReason = reason;
         const parsedEvents = Array.isArray(parsed?.events)
             ? parsed.events.map((event) => ({
                 ...event,
@@ -43785,6 +45485,12 @@ async function extractPublicEventsWithGpt(post) {
                 _structureReason: String(parsed?.structure_reason || parsed?.structureReason || '').trim(),
             }))
             : [];
+        setPublicAiResponseMetadata(parsedEvents, {
+            structure: decision,
+            reason,
+            valid: responseValid,
+            error: !decisionFieldsValid ? 'missing-or-invalid-structure-fields' : !decisionCountMatches ? 'structure-event-count-mismatch' : '',
+        });
         post?.__aiTrace?.(repair ? 'text-extraction.completeness-response' : 'text-extraction.response', {
             sourceUrl: post?.sourceUrl ?? '',
             repair,
@@ -43795,35 +45501,16 @@ async function extractPublicEventsWithGpt(post) {
         return parsedEvents;
     };
 
-    const firstEvents = await callExtractor({ repair: false });
-    const firstStructureDecision = String(firstEvents[0]?._structure || '').trim();
-    if (!multiplicity.likelyMultiple || ['single_event', 'single_event_program'].includes(firstStructureDecision) || (firstEvents.length >= 2 && firstStructureDecision !== 'uncertain')) {
-        return firstEvents;
-    }
-
-    post?.__aiTrace?.('text-extraction.completeness-retry', {
-        sourceUrl: post?.sourceUrl ?? '',
-        firstEventCount: firstEvents.length,
-        distinctDateSignals: multiplicity.distinctDateSignals,
-        imageSignals: multiplicity.imageSignals,
-    });
-    try {
-        const repairedEvents = await callExtractor({ repair: true });
-        post?.__aiTrace?.('text-extraction.completeness-result', {
-            sourceUrl: post?.sourceUrl ?? '',
-            firstEventCount: firstEvents.length,
-            repairedEventCount: repairedEvents.length,
-            selected: repairedEvents.length > firstEvents.length ? 'repair' : 'first',
-        });
-        return repairedEvents.length > firstEvents.length ? repairedEvents : firstEvents;
-    } catch (error) {
-        post?.__aiTrace?.('text-extraction.completeness-error', {
-            sourceUrl: post?.sourceUrl ?? '',
-            firstEventCount: firstEvents.length,
-            error: formatPrivateError(error),
-        });
-        return firstEvents;
-    }
+    // The model is the authority for cardinality.  A malformed response or an
+    // explicit `uncertain` decision gets one bounded repair request with the
+    // same source text.  We never fall back to the local date/time splitter: if
+    // the repair is still unresolved the caller keeps the source retryable.
+    const first = await callExtractor({ repair: false });
+    const firstStructure = String(first?.aiStructureDecision || first?.[0]?._structure || '').trim();
+    const firstResolved = first?.aiResponseValid === true && firstStructure !== 'uncertain';
+    if (firstResolved) return first;
+    const repaired = await callExtractor({ repair: true });
+    return repaired;
 }
 
 function collectVkChatEmbeddedText(
@@ -43885,7 +45572,7 @@ async function hydrateVkChatMessageEvidence(message) {
         }
     };
 
-    addUrls(imageUrls, message?.imageUrls, 12);
+    addUrls(imageUrls, message?.imageUrls, 1000);
     addUrls(links, message?.links, 20);
 
     if (
@@ -43901,7 +45588,7 @@ async function hydrateVkChatMessageEvidence(message) {
             });
             const hydrated = response?.items?.[0] ?? null;
             if (hydrated) {
-                addUrls(imageUrls, extractVkImageTargets(hydrated), 12);
+                addUrls(imageUrls, extractVkImageTargets(hydrated), 1000);
                 const normalizedContent = extractVkMessageContent(hydrated);
                 addText(normalizedContent?.text ? [normalizedContent.text] : []);
                 addText(collectVkChatEmbeddedText(hydrated));
@@ -43984,6 +45671,23 @@ ${item.transcript}`
         }
     }
 
+    const explicitReposts = (message?.repostUrls || []).map((ref) => typeof ref === 'object' ? ref.url : ref).filter((url) => parseVkWallPostUrl(url));
+    const rootUrls = [...new Set(explicitReposts.length ? explicitReposts : [...links, ...extractHttpUrls(message?.text || '')].filter((url) => parseVkWallPostUrl(url)))];
+    const resolved = rootUrls.length ? await resolveVkOriginalPosts(rootUrls, {
+        signal: getCurrentOperationSignal(),
+        fetchWall: async (url) => {
+            const descriptor = parseVkWallPostUrl(url);
+            const response = await vk.api.wall.getById({ posts: `${descriptor.ownerId}_${descriptor.postId}`, extended: 1 });
+            return (Array.isArray(response) ? response : response?.items || [])[0];
+        },
+    }) : { nodes: [], repostUrls: [], originalUrl: '' };
+    const originalImages = [];
+    for (const node of resolved.nodes.filter((node) => node.leaf)) {
+        addText([node.wall.text]);
+        addUrls(originalImages, extractVkImageTargets({ attachments: [{ type: 'wall', wall: node.wall }] }), 1000);
+        addUrls(links, [node.url, ...extractHttpUrls(node.wall.text)], 1000);
+    }
+
     addUrls(links, extractHttpUrls(textFragments.join('\n')), 20);
 
     const originalText = cleanVkEventText(message?.text ?? '', 12_000).trim();
@@ -44003,7 +45707,7 @@ ${item.transcript}`
         );
     }
 
-    return { imageUrls, links, embeddedText, hasRepostEvidence };
+    return { imageUrls: resolved.original ? originalImages : imageUrls, links, embeddedText, hasRepostEvidence: hasRepostEvidence || resolved.nodes.length > 0, repostUrls: resolved.repostUrls, originalPost: resolved.original || null };
 }
 
 async function analyzeVkChatMessageWithGpt(message) {
@@ -44029,12 +45733,12 @@ async function analyzeVkChatMessageWithGpt(message) {
         (Array.isArray(richEvidence.links) ? richEvidence.links : [])
             .map((value) => String(value ?? '').trim())
             .filter(Boolean),
-    )].slice(0, 12);
+    )].slice(0, 1000);
     const imageUrls = [...new Set(
         (Array.isArray(richEvidence.imageUrls) ? richEvidence.imageUrls : [])
             .map((value) => String(value ?? '').trim())
             .filter(Boolean),
-    )].slice(0, 12);
+    )].slice(0, 1000);
 
     if (!cleanText && !links.length && !imageUrls.length) {
         return [];
@@ -44062,17 +45766,51 @@ async function analyzeVkChatMessageWithGpt(message) {
             : '',
         formatEventTagPromptInstruction(),
         imageUrls.length
-            ? 'Для каждого события обязательно верни image_indexes — номера изображений, где явно находится именно его анонс. Не назначай событию чужую картинку. Верни JSON: {"visual_text":"[IMAGE 1] ...","events":[{"date":"YYYY-MM-DD","time":"HH:MM или null","title":"...","venue":"...","participants":"...","price":"...","announcement":"...","evidence":"точный фрагмент","tags":["rock","dj"],"image_indexes":[1]}]}. evidence для события должен быть точной подстрокой из текста сообщения или visual_text.'
+            ? 'Для каждого события обязательно верни image_indexes — номера изображений, где явно находится именно его анонс. Не назначай событию чужую картинку. Не сокращай контракт структуры: верни JSON {"structure":"single_event|single_event_program|multiple_events|uncertain","structure_reason":"краткое основание","visual_text":"[IMAGE 1] ...","events":[{"date":"YYYY-MM-DD","time":"HH:MM или null","title":"...","venue":"...","participants":"...","price":"...","program_items":[{"time":"HH:MM","text":"этап программы"}],"announcement":"только этот анонс","source_segment":"точный фрагмент только этого анонса","evidence":"точный фрагмент","tags":["rock","dj"],"image_indexes":[1]}]}. Для разных календарных дат — отдельный объект; при одной дате и нескольких временах выбери single_event_program, multiple_events или uncertain по правилам выше. evidence для события должен быть точной подстрокой из текста сообщения или visual_text.'
             : '',
     ].filter(Boolean).join(' ');
 
-    const cachedPosterFacts = String(message?.__posterGateFacts || '').trim();
+    let cachedPosterFacts = String(message?.__posterGateFacts || '').trim();
     const cachedImageNumbers = [...cachedPosterFacts.matchAll(/\[IMAGE\s+(\d+)\]/giu)]
         .map((match) => Number(match[1]));
-    const cachedFactsCoverImages = Boolean(
+    let cachedFactsCoverImages = Boolean(
         imageUrls.length && cachedPosterFacts &&
         imageUrls.every((_, index) => cachedImageNumbers.includes(index + 1))
     );
+    const storedFacts = Array.isArray(message?.__storedImageVisionFacts)
+        ? message.__storedImageVisionFacts
+        : [];
+    cachedPosterFacts = [
+        serializeIndexedImageFacts(storedFacts),
+        cachedPosterFacts,
+    ].filter(Boolean).join('\n\n');
+    const terminalImageNumbers = new Set(storedFacts
+        .filter(isReusableVisionFactV18892)
+        .map((fact) => Number(fact?.index || 0))
+        .filter((index) => index > 0));
+    const pendingImageNumbers = imageUrls.map((_, offset) => offset + 1)
+        .filter((index) => !terminalImageNumbers.has(index));
+    if (imageUrls.length && pendingImageNumbers.length) {
+        const freshFacts = await readManualEventImageFacts({
+            imageUrls: pendingImageNumbers.map((index) => imageUrls[index - 1]),
+            imageIndexes: pendingImageNumbers,
+            onImageVisionResult: message?.__onImageVisionResult,
+            postText: cleanText,
+            requestTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
+            trace: typeof message?.__aiTrace === 'function'
+                ? (stage, data) => message.__aiTrace(stage, data)
+                : null,
+            traceStage: 'vk-chat-poster-vision',
+            sourceUrl: links[0] || '',
+        });
+        if (freshFacts) {
+            message.__posterGateFacts = [cachedPosterFacts, freshFacts].filter(Boolean).join('\n\n');
+            cachedPosterFacts = String(message.__posterGateFacts);
+        }
+        cachedFactsCoverImages = true;
+    } else if (imageUrls.length && terminalImageNumbers.size >= imageUrls.length) {
+        cachedFactsCoverImages = true;
+    }
     const userPrompt = [
         cleanText ? `Текст сообщения/репоста:
 ${cleanText}` : 'Текст сообщения отсутствует.',
@@ -44096,11 +45834,12 @@ ${cachedPosterFacts}` : '',
             maxTokens: 1600,
             requestTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
             failoverMaxRounds: 1,
-            failuresBeforeQuarantine: 2,
+            failuresBeforeQuarantine: 3,
             maxCandidates: 0,
             escalateToAdvanced: true,
             useCredentialHealth: false,
             oneCandidatePerMode: true,
+                streamOverride: true,
             tokenUsageOperation: 'event-parser:vk-chat-vision',
             tokenUsageMetadata: {
                 peerId: Number(message?.peerId ?? 0),
@@ -44125,11 +45864,12 @@ ${cachedPosterFacts}` : '',
             userPrompt,
             requestTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
             failoverMaxRounds: 1,
-            failuresBeforeQuarantine: 2,
+            failuresBeforeQuarantine: 3,
             maxCandidates: 0,
             escalateToAdvanced: true,
             useCredentialHealth: false,
             oneCandidatePerMode: true,
+                streamOverride: true,
             tokenUsageOperation: 'event-parser:vk-chat-text',
             tokenUsageMetadata: {
                 peerId: Number(message?.peerId ?? 0),
@@ -44171,7 +45911,7 @@ ${cachedPosterFacts}` : '',
                 ? event.imageIndexes
                 : [])
             .map(Number)
-            .filter((value) => Number.isInteger(value) && value >= 1 && value <= 12))],
+            .filter((value) => Number.isInteger(value) && value >= 1 && value <= EVENT_PROPOSAL_MAX_POST_IMAGES))],
     }));
 
     const resolvedEvidence = {
@@ -44948,7 +46688,7 @@ const NVIDIA_IMAGE_TRANSLATE_TO_ENGLISH = !/^(?:0|false|off|no)$/iu.test(
     String(process.env.NVIDIA_IMAGE_TRANSLATE_TO_ENGLISH ?? '1').trim(),
 );
 const NVIDIA_IMAGE_TRANSLATION_MODEL = String(
-    process.env.NVIDIA_IMAGE_TRANSLATION_MODEL || 'gpt-5.4-mini',
+    process.env.NVIDIA_IMAGE_TRANSLATION_MODEL || 'gpt-6-luna',
 ).trim();
 
 function containsCyrillic(text) {
@@ -45204,6 +46944,16 @@ function runWeeklyEventCleanup({ force = false } = {}) {
 // Запуск приложения
 // -----------------------------------------------------------------------------
 export async function startApplication() {
+    interruptedOperationsFromPriorRun = reconcileInterruptedOperationCheckpoints();
+    if (interruptedOperationsFromPriorRun.length) {
+        console.error('[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS]', JSON.stringify(interruptedOperationsFromPriorRun.map((operation) => ({
+            id: operation.id,
+            name: operation.name,
+            phase: operation.checkpoint?.phase || operation.progress?.phase || '',
+            tracePath: operation.checkpoint?.tracePath || operation.progress?.tracePath || '',
+        }))));
+    }
+
     if (gigaChat) {
         // Диагностика необязательного провайдера не должна задерживать запуск
         // Telegram/VK transport. Она идёт независимо и имеет собственный deadline.
@@ -45390,26 +47140,59 @@ export async function startApplication() {
     );
 
     for (const connection of vkConnections) {
-        // Каждый Long Poll запускается независимо. Если библиотека держит
-        // Promise живым до остановки polling, это больше не блокирует запуск
-        // второго сообщества, Telegram и фоновых задач.
-        void Promise.resolve()
-            .then(() => connection.client.updates.start())
-            .then(() => {
-                console.log(
-                    '[VK LONG POLL STOPPED]',
+        // updates.start() can resolve when VK closes a long-poll session. Keep
+        // one reconnect loop per community so a transient stop cannot silently
+        // disable incoming VK commands. The loop never starts a second poll
+        // while the previous start() promise is still active.
+        void (async () => {
+            let attempt = 0;
+            while (true) {
+                attempt += 1;
+                try {
+                    await connection.client.updates.start();
+                    if (connection.client.updates.isStarted) {
+                        console.log(
+                            '[VK LONG POLL ACTIVE]',
+                            `role=${connection.label}`,
+                            `groupId=${connection.groupId}`,
+                        );
+                        return;
+                    }
+                    console.warn(
+                        '[VK LONG POLL STOPPED]',
+                        `role=${connection.label}`,
+                        `groupId=${connection.groupId}`,
+                        `attempt=${attempt}`,
+                    );
+                } catch (error) {
+                    if (connection.client.updates.isStarted) {
+                        console.log(
+                            '[VK LONG POLL ACTIVE AFTER ERROR]',
+                            `role=${connection.label}`,
+                            `groupId=${connection.groupId}`,
+                        );
+                        return;
+                    }
+                    console.error(
+                        '[VK LONG POLL ERROR]',
+                        `role=${connection.label}`,
+                        `groupId=${connection.groupId}`,
+                        `attempt=${attempt}`,
+                        formatPrivateError(error),
+                    );
+                }
+                const delay = Math.min(60_000, 5_000 * Math.min(attempt, 6));
+                console.warn(
+                    '[VK LONG POLL RECONNECT]',
                     `role=${connection.label}`,
                     `groupId=${connection.groupId}`,
+                    `afterMs=${delay}`,
                 );
-            })
-            .catch((error) => {
-                console.error(
-                    '[VK LONG POLL ERROR]',
-                    `role=${connection.label}`,
-                    `groupId=${connection.groupId}`,
-                    formatPrivateError(error),
-                );
-            });
+                await waitMilliseconds(delay);
+            }
+        })().catch((error) => {
+            console.error('[VK LONG POLL LOOP FATAL]', `role=${connection.label}`, formatPrivateError(error));
+        });
         console.log(
             '[VK LONG POLL STARTED]',
             `role=${connection.label}`,
@@ -45492,15 +47275,15 @@ export async function startApplication() {
     const secondaryAutoState = ensureSecondaryPartyAutoSchedule();
     console.log(
         '[SCRAPER MODE]',
-        'Основной пул запускается вручную. Secondary/bydlo пул автоматически запускает только clean/new pass раз в 3 дня в 04:00.',
+        'Основной пул: новые раз в 3 дня, в пятницу после 2 дней. Второстепенный: раз в неделю и в пятницу. Только ночью 02:00–06:00 без пересечения операций.',
         `timeZone=${botTimeZone}`,
         `nextSecondaryAutoAt=${Number(secondaryAutoState?.nextRunAt || 0)}`,
         'manualFull=«тусы быдлячьи парсер все»',
         'manualClean=«тусы быдлячьи парсер все чисто»',
     );
-    void runSecondaryPartyAutoParserTick();
+    void runScheduledParserPools();
     const secondaryPartyAutoTimer = setInterval(() => {
-        void runSecondaryPartyAutoParserTick();
+        void runScheduledParserPools();
     }, SECONDARY_PARTY_AUTO_TICK_MS);
     secondaryPartyAutoTimer.unref();
 

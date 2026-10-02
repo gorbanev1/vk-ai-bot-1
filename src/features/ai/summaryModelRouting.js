@@ -14,15 +14,15 @@ export function resolveSummaryStartMode() {
 }
 
 /**
- * One summary request gets exactly two technical attempts on each logical
- * model, then advances to the next mode. A non-technical/content error is
+ * Summary calls share the bot-wide model-specific attempt budgets
+ * (Luna 4, Sol 3, Astra 2), then advance to the next mode. A non-technical/content error is
  * returned to the caller immediately and must not burn the whole ladder.
  */
 export function getSummaryModelFailoverOptions() {
     return {
         escalateToAdvanced: true,
         failoverMaxRounds: 1,
-        failuresBeforeQuarantine: 2,
+        failuresBeforeQuarantine: 4,
         useCredentialHealth: false,
         oneCandidatePerMode: true,
     };

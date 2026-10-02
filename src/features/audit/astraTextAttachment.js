@@ -85,7 +85,7 @@ export function splitAstraTextAttachment(text, maxChars = ASTRA_TEXT_ATTACHMENT_
 // Documents exceeding the conservative local threshold are split BEFORE any
 // paid POST. Smaller documents use one request, with batch fallback ONLY after
 // an explicit provider context rejection, never after a lost/ambiguous stream.
-export async function runAstraTextAttachmentAnalysis({ descriptor, requestText, download, requestModel, deliver, onProgress, onDecoded = null, retryOptions = {}, jobId = randomUUID(), model = 'gpt-5.4-mini', reasoningEffort = 'medium', wholeFile = false }) {
+export async function runAstraTextAttachmentAnalysis({ descriptor, requestText, download, requestModel, deliver, onProgress, onDecoded = null, retryOptions = {}, jobId = randomUUID(), model = 'gpt-6-luna', reasoningEffort = 'none', wholeFile = false }) {
     const sourceText = decodeAstraTextAttachment(await download(descriptor));
     const filename = String(descriptor?.filename || 'document.txt').replace(/[\r\n]/gu, '').slice(0, 160);
     const task = String(requestText || '').trim() || 'Прочитай прикреплённый текстовый файл целиком, проанализируй его и верни подробный результат обычным TXT.';

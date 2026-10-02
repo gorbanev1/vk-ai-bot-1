@@ -173,7 +173,7 @@ export function classifyModelCapabilities(provider, model) {
     if (/(image|imagine|imagen|dall[\s_-]?e|flux|stable-diffusion|sdxl|gpt-image)/u.test(joined)) caps.add('image');
     if (/(guard|safeguard|moderation|content[\s_-]?safety|nemoguard)/u.test(joined)) caps.add('moderation');
     if (/(video|sora|veo)/u.test(joined)) caps.add('video');
-    if (/(vision|multimodal|vlm|llava|paligemma|vila|gemini|claude|gpt-5|gpt-4o)/u.test(joined)) caps.add('vision');
+    if (/(vision|multimodal|vlm|llava|paligemma|vila|gemini|claude|gpt-6|gpt-5|gpt-4o)/u.test(joined)) caps.add('vision');
     if (/(embed|embedding|retriev)/u.test(joined)) caps.add('embedding');
     if (/(rerank)/u.test(joined)) caps.add('rerank');
     if (/(audio|speech|tts|whisper|transcri)/u.test(joined)) caps.add('audio');
