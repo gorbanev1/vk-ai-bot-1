@@ -32,8 +32,9 @@ test('V188.79 zero-post recovery reloads only after delayed page-health recheck'
     assert.match(publicSource, /page-recovered-during-wait/u);
 });
 
-test('V188.73 no longer treats source membership as poster proof', () => {
+test('source membership remains auditable while one-image multi-announcements share the image', () => {
     assert.doesNotMatch(publicSource, /single-event-source-media\+ui-filtered/u);
     const assetsSource = readFileSync(new URL('../../src/features/events/eventAssets.js', import.meta.url), 'utf8');
-    assert.match(assetsSource, /shareSourceImagesAcrossEvents is intentionally ignored/u);
+    assert.match(assetsSource, /shareSourceImagesAcrossEvents && safeEvents\.length > 1 && sourceImageCount === 1/u);
+    assert.match(assetsSource, /multi-event-shared-source-image/u);
 });

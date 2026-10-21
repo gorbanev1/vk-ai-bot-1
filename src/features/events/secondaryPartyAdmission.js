@@ -185,6 +185,8 @@ export function explainSecondaryPartyTextGate({
     publishedAt = 0,
     referenceNow = new Date(),
     timeZone = 'Europe/Moscow',
+    allowDateFreeImage = false,
+    hasImage = false,
 } = {}) {
     const bodyText = sanitizeEventBodyText(text).trim();
     const retrospective = explainRetrospectivePost(bodyText);
@@ -192,7 +194,7 @@ export function explainSecondaryPartyTextGate({
     const relativeDates = relativeDateEvidence(bodyText);
     const dateAdmission = explainEventAiAdmission({ text: bodyText, publishedAt, referenceNow, timeZone });
     const hasCalendarDateInBody = rawDateMentions.length > 0 || relativeDates.length > 0;
-    const hasNonPastDate = relativeDates.length > 0 || Boolean(dateAdmission.hasNonPastDate);
+    const hasNonPastDate = Boolean(dateAdmission.hasNonPastDate);
     const timeEvidence = collectTimeEvidence(bodyText);
     const hasTimeInBody = timeEvidence.length > 0;
     const title = inferLikelyTitle(bodyText);
@@ -214,12 +216,16 @@ export function explainSecondaryPartyTextGate({
         title.confidence >= 65 &&
         intent.confidence >= 65
     );
-    const visionEligible = Boolean(direct || heuristic);
+    // Secondary/bydlo sources use a separate image pass. When explicitly
+    // enabled by the caller, an image without a dated body goes to independent
+    // Vision classification. A retrospective body cannot veto a future poster.
+    const dateFreeImage = Boolean(allowDateFreeImage && hasImage && !hasCalendarDateInBody);
+    const visionEligible = Boolean(direct || heuristic || dateFreeImage);
 
     let rejectionReason = '';
     if (!bodyText) rejectionReason = 'empty-semantic-body';
     else if (retrospectiveRejected) rejectionReason = 'retrospective-post';
-    else if (!hasCalendarDateInBody) rejectionReason = 'no-date-in-semantic-body';
+    else if (!hasCalendarDateInBody && !dateFreeImage) rejectionReason = 'no-date-in-semantic-body';
     else if (!hasNonPastDate) rejectionReason = 'no-current-or-future-date-in-semantic-body';
     else if (!title.title || title.confidence < 50) rejectionReason = 'no-likely-event-title-in-body';
     else if (!hasTimeInBody && !(title.confidence >= 65 && intent.confidence >= 65)) rejectionReason = 'no-time-and-heuristic-below-65';
@@ -229,7 +235,7 @@ export function explainSecondaryPartyTextGate({
     return {
         candidate: visionEligible,
         visionEligible,
-        route: direct ? 'date-time-title-direct' : heuristic ? 'date-title-party-heuristic-65' : 'blocked',
+        route: direct ? 'date-time-title-direct' : heuristic ? 'date-title-party-heuristic-65' : dateFreeImage ? 'date-free-image-pass' : 'blocked',
         rejectionReason,
         evidenceSource: 'semantic-post-text-only',
         metadataDateAccepted: false,
@@ -254,6 +260,7 @@ export function explainSecondaryPartyTextGate({
         retrospectiveRejected,
         direct,
         heuristic,
+        dateFreeImage,
     };
 }
 

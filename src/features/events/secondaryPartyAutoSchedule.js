@@ -4,7 +4,7 @@ import {
     zonedDateTimeToUtcMilliseconds,
 } from '../../shared/date.js';
 
-export const SECONDARY_PARTY_AUTO_INTERVAL_DAYS = 3;
+export const SECONDARY_PARTY_AUTO_INTERVAL_DAYS = 7;
 export const SECONDARY_PARTY_AUTO_HOUR = 4;
 
 function safeNowMs(value) {
@@ -38,6 +38,7 @@ export function getNextSecondaryPartyAutoRunAt({
     scheduledAt,
     now = Date.now(),
     timeZone = 'Europe/Moscow',
+    intervalDays = SECONDARY_PARTY_AUTO_INTERVAL_DAYS,
 } = {}) {
     const nowMs = safeNowMs(now);
     let baseSeconds = Number(scheduledAt || 0);
@@ -48,7 +49,7 @@ export function getNextSecondaryPartyAutoRunAt({
     let localDay = getLocalDateString(new Date(baseSeconds * 1000), timeZone);
     let candidateMs = baseSeconds * 1000;
     do {
-        localDay = addDaysToDateString(localDay, SECONDARY_PARTY_AUTO_INTERVAL_DAYS);
+        localDay = addDaysToDateString(localDay, Math.max(1, Math.floor(Number(intervalDays) || SECONDARY_PARTY_AUTO_INTERVAL_DAYS)));
         candidateMs = zonedDateTimeToUtcMilliseconds(
             localDay,
             SECONDARY_PARTY_AUTO_HOUR,

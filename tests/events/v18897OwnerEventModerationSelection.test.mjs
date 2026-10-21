@@ -69,4 +69,7 @@ test('V188.97 moderation routing supports soft/permanent delete and edit command
     assert.deepEqual(parseEventModerationCommand('тусы удалить насовсем Цупникова'), { action: 'delete-permanent', query: 'Цупникова' });
     assert.deepEqual(parseEventModerationCommand('тусы исправить'), { action: 'edit-start', query: '' });
     assert.deepEqual(parseEventModerationCommand('тусы исправить Цупникова'), { action: 'edit', query: 'Цупникова' });
+    assert.deepEqual(parseEventModerationCommand('тусы исправить карточку vk:304'), { action: 'edit-exact', query: 'vk:304' });
+    assert.deepEqual(parseEventModerationCommand('тусы удалить карточку vk_chat:18'), { action: 'delete-exact', query: 'vk_chat:18' });
+    assert.deepEqual(parseEventModerationCommand('тусы удалить карточку навсегда vk:304'), { action: 'delete-exact-permanent', query: 'vk:304' });
 });

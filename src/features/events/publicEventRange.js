@@ -99,6 +99,16 @@ function getIsoEventMonthLastDay(year, month) {
     return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
 
+function addIsoEventMonths(dateString, months) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const absoluteMonth = year * 12 + (month - 1) + months;
+    const targetYear = Math.floor(absoluteMonth / 12);
+    const targetMonth = (absoluteMonth % 12) + 1;
+    return makeIsoEventDate(
+        targetYear, targetMonth, Math.min(day, getIsoEventMonthLastDay(targetYear, targetMonth)),
+    );
+}
+
 function formatIsoEventRange(fromDate, toDate) {
     if (fromDate === toDate) {
         return formatIsoEventDate(fromDate);
@@ -194,8 +204,8 @@ export function createPublicEventRangeService({
                 );
             case 'next30':
                 return createPublicEventsRange(
-                    'next30', localToday, addDaysToDateString(localToday, 29),
-                    'Ближайшие 30 дней',
+                    'next30', localToday, addDaysToDateString(addIsoEventMonths(localToday, 1), -1),
+                    'Ближайший месяц',
                 );
             default:
                 return null;
@@ -272,6 +282,37 @@ export function createPublicEventRangeService({
             : null;
     }
 
+    function parseNamedMonths(command, localToday) {
+        const monthWords = Object.keys(RUSSIAN_EVENT_MONTHS)
+            .sort((left, right) => right.length - left.length)
+            .join('|');
+        const matches = [...command.matchAll(new RegExp(
+            '(?:^|\\s)(?:в\\s+)?(' + monthWords + ')(?:\\s+(\\d{4}))?(?=$|\\s)',
+            'gu',
+        ))];
+        if (matches.length < 2) return null;
+        const currentYear = Number(localToday.slice(0, 4));
+        const parsed = matches.map((match) => ({
+            month: RUSSIAN_EVENT_MONTHS[match[1]],
+            year: match[2] ? Number(match[2]) : currentYear,
+            explicitYear: Boolean(match[2]),
+        })).filter((item) => Number.isInteger(item.month));
+        if (parsed.length < 2) return null;
+        for (let index = 1; index < parsed.length; index += 1) {
+            if (!parsed[index].explicitYear) {
+                parsed[index].year = parsed[index - 1].year +
+                    (parsed[index].month < parsed[index - 1].month ? 1 : 0);
+            }
+        }
+        let first = makeIsoEventDate(parsed[0].year, parsed[0].month, 1);
+        let lastItem = parsed.at(-1);
+        let last = makeIsoEventDate(lastItem.year, lastItem.month, getIsoEventMonthLastDay(lastItem.year, lastItem.month));
+        if (!first || !last) return null;
+        const fromDate = first;
+        const names = parsed.map((item) => RUSSIAN_EVENT_MONTH_NAMES_NOMINATIVE[item.month]);
+        return createPublicEventsRange('month', fromDate, last, 'Тусы за ' + names.join(' '));
+    }
+
     function parseNamedMonth(command, localToday) {
         const monthWords = Object.keys(RUSSIAN_EVENT_MONTHS)
             .sort((left, right) => right.length - left.length)
@@ -290,15 +331,7 @@ export function createPublicEventRangeService({
 
         if (!first || !last) return null;
 
-        if (!match[2] && compareIsoEventDates(last, localToday) < 0) {
-            year += 1;
-            first = makeIsoEventDate(year, month, 1);
-            last = makeIsoEventDate(year, month, getIsoEventMonthLastDay(year, month));
-        }
-
-        const fromDate = compareIsoEventDates(first, localToday) < 0
-            ? localToday
-            : first;
+        const fromDate = first;
 
         return createPublicEventsRange(
             'month', fromDate, last,
@@ -324,19 +357,35 @@ export function createPublicEventRangeService({
         if (specificDate) return specificDate;
         const namedWeekday = parseNamedWeekday(command, localToday);
         if (namedWeekday) return namedWeekday;
-        if (/^(?:все|вся)\s+(?:тусы|афиша|мероприятия|концерты)$/u.test(command)) return createByKind('all');
+        // The all-time qualifier is commonly prefixed by a subject and/or
+        // section marker ("тусы вообще за всё время", "qtickets события").
+        // Match the qualifier as a phrase instead of requiring the whole
+        // normalized command to equal it.
+        if (
+            /(?:^|\s)(?:(?:вообще\s+)?все\s+(?:тусы|тусовки|мероприятия|события))(?:$|\s)/u.test(command) ||
+            /(?:^|\s)(?:(?:вообще\s+)?за\s+все\s+(?:будущие\s+)?(?:тусы|события|время)|(?:все|вся)\s+будущие\s+(?:тусы|события)|(?:все|вся)\s+время)(?:$|\s)/u.test(command) ||
+            /(?:^|\s)(?:вообще\s+)?за\s+все\s+время(?:$|\s)/u.test(command)
+        ) return createByKind('all');
         if (/(?:^|\s)(?:ближайшие\s+дни|на\s+ближайшие\s+дни|до\s+конца\s+выходных)(?:$|\s)/u.test(command)) return createByKind('nearWeekend');
         if (/(?:^|\s)(?:сегодня|на\s+сегодня)(?:$|\s)/u.test(command)) return createByKind('today');
         if (/(?:^|\s)(?:завтра|на\s+завтра)(?:$|\s)/u.test(command)) return createByKind('tomorrow');
         if (/(?:^|\s)(?:эти\s+выходные|на\s+(?:этих\s+)?выходных|выходные)(?:$|\s)/u.test(command)) return createByKind('weekend');
-        if (/(?:^|\s)(?:эта\s+неделя|этой\s+неделе|на\s+этой\s+неделе|за\s+эту\s+неделю)(?:$|\s)/u.test(command)) return createByKind('week');
-        if (/(?:^|\s)(?:месяц|на\s+месяц|ближайший\s+месяц|следующие\s+30\s+дней)(?:$|\s)/u.test(command)) return createByKind('next30');
+        if (/(?:^|\s)(?:(?:эта\s+неделя|эту\s+неделю|этой\s+неделе|на\s+эту\s+неделю|на\s+этой\s+неделе|за\s+эту\s+неделю)|(?:на\s+)?недел(?:ю|я))(?:$|\s)/u.test(command)) {
+            // «Эта неделя» is the remaining calendar week through Sunday.
+            // The weekend button remains a narrower Friday–Sunday view; the
+            // two commands intentionally overlap so a user asking for the
+            // whole current week does not lose Friday–Sunday events.
+            const week = createByKind('week');
+            if (!week) return null;
+            return createPublicEventsRange('week', week.fromDate, week.toDate, 'Эта неделя');
+        }
+        if (/(?:^|\s)(?:месяц|на\s+месяц|на\s+месяц\s+вперед|на\s+месяц\s+вперёд|ближайший\s+месяц|следующие\s+30\s+дней)(?:$|\s)/u.test(command)) return createByKind('next30');
 
-        const namedMonth = parseNamedMonth(command, localToday);
+        const namedMonth = parseNamedMonths(command, localToday) || parseNamedMonth(command, localToday);
         if (namedMonth) return namedMonth;
 
         if (
-            /(?:ближайш|скоро|в\s+ближайшее\s+время|(?:следующие|на)?\s*две\s+недели)/u.test(command) ||
+            /(?:ближайш|скоро|в\s+ближайшее\s+время|(?:следующие|на)?\s*две\s+недели|на\s+две\s+недели\s+вперед|на\s+две\s+недели\s+вперёд)/u.test(command) ||
             new Set([
                 'тусы', 'концерты', 'афиша', 'мероприятия',
                 'тусы из источников', 'тусы из телеграма', 'тусы из вк',

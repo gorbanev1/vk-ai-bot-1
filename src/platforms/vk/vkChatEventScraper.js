@@ -1,3 +1,4 @@
+import { applyPosterGateResult } from '../../features/scrapers/posterGateResult.js';
 /**
  * Ручной скрейпер VK-бесед. Не открывает беседы сам при старте; вкладку запускает явная команда владельца.
  */
@@ -11,6 +12,9 @@ import {
     markManualParserSeenItemProcessing,
     upsertManualParserSeenItem,
     getVkChatMessageMeta,
+    isPermanentlyBlockedMonoSource,
+    upsertVkChatSourceMessage,
+    saveVkChatSourceVisionFacts,
     getVkChatScraperState,
     getVkChatUpcomingEvents,
     persistVkChatSourceAndEvents,
@@ -59,6 +63,7 @@ import {
 
 import {
     shouldPreserveStoredEventsOnEmptyReparse,
+    shouldPreserveStoredEventsOnPartialReparse,
 } from '../../features/events/sourceEventPersistence.js';
 
 import {
@@ -81,6 +86,11 @@ import {
     vkChatSourceMediaFingerprint,
     stableVkChatMessageId,
 } from './vkChatIngestSafety.js';
+
+import {
+    pendingVisionImageIndexes,
+} from '../../features/events/eventVisionPolicy.js';
+import { explainRecentOrFuturePost } from '../../features/scrapers/recentEventPassPolicy.js';
 
 const VK_CHAT_PARSER_VERSION = 'vk-chat-diagnostic-priority-v18838';
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -136,6 +146,70 @@ function formatErrorText(error) {
     }
 
     return parts.join(' | ') || 'Неизвестная ошибка';
+}
+
+// Vision is durable per image, while the final AI response may contain only a
+// partial/shortened visual_text aggregate. Merge by image index so that a
+// partial response can enrich the ledger but can never erase a fact that was
+// committed by __onImageVisionResult before cancellation or restart.
+function mergeIndexedVisionFacts(...groups) {
+    const byIndex = new Map();
+    const empty = (value) => value == null || (typeof value === 'string' && !value.trim()) ||
+        (Array.isArray(value) && value.length === 0);
+    const visionStatusRank = (value) => {
+        switch (String(value || '').trim().toLowerCase()) {
+            case 'metadata_found':
+                return 3;
+            case 'metadata_not_found':
+                return 2;
+            case 'error':
+                return 1;
+            default:
+                return 0;
+        }
+    };
+    for (const group of groups) {
+        for (const raw of Array.isArray(group) ? group : []) {
+            const index = Number(raw?.index || 0);
+            if (!Number.isInteger(index) || index <= 0) continue;
+            const previous = byIndex.get(index);
+            if (!previous) {
+                byIndex.set(index, { ...raw, index });
+                continue;
+            }
+            const next = { ...previous, ...raw, index };
+            for (const [key, value] of Object.entries(raw)) {
+                if (empty(value) && !empty(previous[key])) next[key] = previous[key];
+            }
+            // Preserve the strongest durable result for this image. A later
+            // metadata_not_found or error must not downgrade metadata_found.
+            const previousStatusRank = visionStatusRank(previous.visionStatus);
+            const rawStatusRank = visionStatusRank(raw.visionStatus);
+            if (previousStatusRank > rawStatusRank) {
+                // Do not let a weaker retry/aggregate overwrite any concrete
+                // metadata already committed for this image. Empty fields in
+                // the new fact were handled above; this also protects against
+                // malformed non-empty values from a partial model response.
+                for (const key of [
+                    'imageUrl', 'imageSha256', 'imageVisualHash', 'imageType',
+                    'poster', 'posterConfidence', 'textReadability', 'title',
+                    'dates', 'time', 'startTime', 'endTime', 'venue', 'city',
+                    'locality', 'address', 'participants', 'price', 'age',
+                    'program', 'tags', 'recognizedText', 'reason',
+                ]) {
+                    if (!empty(previous[key])) next[key] = previous[key];
+                }
+                next.visionStatus = previous.visionStatus;
+                next.visionError = previous.visionError;
+                next.visionInspected = previous.visionInspected;
+            }
+            if (String(previous.text || '').length > String(raw.text || '').length) {
+                next.text = previous.text;
+            }
+            byIndex.set(index, next);
+        }
+    }
+    return [...byIndex.values()].sort((left, right) => left.index - right.index);
 }
 
 function clampInteger(value, minimum, maximum, fallback) {
@@ -202,6 +276,35 @@ function uniqueStrings(values, maximum = 100) {
     return result;
 }
 
+function uniqueRepostRefs(values, maximum = 1000) {
+    const result = [];
+    const seen = new Set();
+    for (const value of Array.isArray(values) ? values : []) {
+        const url = typeof value === 'object' && value !== null
+            ? String(value.url || value.href || '').trim()
+            : String(value ?? '').trim();
+        if (!url || result.length >= maximum) continue;
+        if (seen.has(url)) {
+            const index = result.findIndex((item) => (typeof item === 'string' ? item : item.url) === url);
+            if (value && typeof value === 'object' && Number(value.depth || 0) >= Number(result[index]?.depth || 0)) {
+                result[index] = { ...value, url };
+            }
+            continue;
+        }
+        seen.add(url);
+        if (typeof value === 'object' && value !== null) {
+            result.push({
+                ...value,
+                url,
+                depth: Math.max(0, Number(value.depth ?? value.repostDepth ?? 0) || 0),
+            });
+        } else {
+            result.push(url);
+        }
+    }
+    return result;
+}
+
 function trimText(value, maximum = 12_000) {
     return String(value ?? '')
         .replace(/\u00a0/gu, ' ')
@@ -210,6 +313,71 @@ function trimText(value, maximum = 12_000) {
         .replace(/\n{3,}/gu, '\n\n')
         .trim()
         .slice(0, maximum);
+}
+
+// A raw DOM fixture may preserve the forwarded wall body only in outerHtml.
+// Keep this recovery dependency-free: extract VK message containers with a
+// balanced tag scan, then strip markup and decode serialized HTML entities.
+function extractDomAuditRootTexts(domAudit) {
+    const html = String(domAudit?.outerHtml || '').trim();
+    if (!html) return [];
+    const marker = /(?:^|\s)(?:attachwallnew__message|forwardedmessage\S*|wallpost\S*|postcontent\S*)(?:\s|$)/iu;
+    const decodeEntities = (value) => String(value || '').replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z][a-z0-9]+);/giu, (full, token) => {
+        const lower = String(token).toLowerCase();
+        if (lower === 'nbsp') return ' ';
+        if (lower === 'amp') return '&';
+        if (lower === 'lt') return '<';
+        if (lower === 'gt') return '>';
+        if (lower === 'quot') return '"';
+        if (lower === 'apos' || lower === '#39' || lower === '#x27') return "'";
+        if (lower.startsWith('#x')) {
+            const code = Number.parseInt(lower.slice(2), 16);
+            return Number.isFinite(code) ? String.fromCodePoint(code) : full;
+        }
+        if (lower.startsWith('#')) {
+            const code = Number.parseInt(lower.slice(1), 10);
+            return Number.isFinite(code) ? String.fromCodePoint(code) : full;
+        }
+        return full;
+    });
+    const textFromMarkup = (value) => decodeEntities(String(value || '')
+        .replace(/<\/?(?:script|style)\b[^>]*>[\s\S]*?<\/\s*(?:script|style)\s*>/giu, ' ')
+        .replace(/<br\s*\/?\s*>/giu, '\n')
+        .replace(/<[^>]*>/gu, ' '))
+        .replace(/[ \t]+/gu, ' ')
+        .replace(/\n[ \t]+/gu, '\n')
+        .replace(/\n{3,}/gu, '\n\n')
+        .trim();
+    const texts = [];
+    const openTag = /<([a-z][a-z0-9:-]*)\b([^>]*?)\bclass\s*=\s*(["'])([^"']*)\3[^>]*>/giu;
+    for (const match of html.matchAll(openTag)) {
+        const className = String(match[4] || '').trim();
+        if (!marker.test(className)) continue;
+        const tagName = String(match[1] || '').toLowerCase();
+        const start = Number(match.index || 0) + match[0].length;
+        const tokenRe = /<!--[\s\S]*?-->|<\/?([a-z][a-z0-9:-]*)\b[^>]*>/giu;
+        tokenRe.lastIndex = start;
+        let depth = 1;
+        let end = html.length;
+        let token;
+        while ((token = tokenRe.exec(html))) {
+            const tokenText = token[0];
+            const tokenTag = String(token[1] || '').toLowerCase();
+            if (!tokenTag || tokenTag !== tagName) continue;
+            if (/^<\//u.test(tokenText)) {
+                depth -= 1;
+                if (depth === 0) {
+                    end = Number(token.index || html.length);
+                    break;
+                }
+            } else if (!/\/\s*>$/u.test(tokenText)) {
+                depth += 1;
+            }
+        }
+        const text = textFromMarkup(html.slice(start, end));
+        if (text.length >= 3 && !texts.includes(text)) texts.push(text);
+    }
+    return texts.sort((left, right) => right.length - left.length).slice(0, 8);
 }
 
 export { looksLikeVkChatEventCandidate };
@@ -250,6 +418,99 @@ function normalizeBrowserMessage(raw, conversationUrl) {
     // Keep body and embedded post separate across both stages.
     const primaryText = cleanVkEventText(raw?.contentText ?? raw?.text, 12_000);
     const embeddedText = cleanVkEventText(raw?.embeddedText ?? raw?.repostText, 10_000);
+    // The Messenger container can contain the complete forwarded wall tree even
+    // when messages.getByConversationMessageId/wall.getById cannot return the
+    // root (for example group-token Code 27). Prefer that structural leaf over
+    // the wrapper text and preserve the proof through normalization/cache.
+    const structuralRoot = (() => {
+        const leaves = [];
+        const urls = [];
+        const visit = (node, depth = 0) => {
+            if (!node || typeof node !== 'object') return;
+            const nodeUrl = String(node.postUrl || node.sourceUrl || '').trim();
+            if (nodeUrl && !urls.includes(nodeUrl)) urls.push(nodeUrl);
+            const children = Array.isArray(node.embeddedPosts) ? node.embeddedPosts
+                : Array.isArray(node.children) ? node.children : [];
+            if (children.length) {
+                for (const child of children) visit(child, depth + 1);
+                return;
+            }
+            const value = cleanVkEventText(node.ownText ?? node.text ?? '', 12_000);
+            if (value) leaves.push({ text: value, depth, url: String(node.postUrl || node.sourceUrl || '').trim() });
+        };
+        visit({ embeddedPosts: raw?.embeddedPosts });
+        for (const item of Array.isArray(raw?.repostChain) ? raw.repostChain : []) {
+            const value = cleanVkEventText(item?.text || '', 12_000);
+            const itemUrl = String(item?.sourceUrl || item?.postUrl || '').trim();
+            if (itemUrl && !urls.includes(itemUrl)) urls.push(itemUrl);
+            if (value) leaves.push({ text: value, depth: Number(item?.repostDepth || item?.depth || 0), url: String(item?.sourceUrl || '').trim() });
+        }
+        leaves.sort((a, b) => b.depth - a.depth || b.text.length - a.text.length);
+        return leaves[0] ? { ...leaves[0], urls } : null;
+    })();
+    const domStructuralEvidence = /AttachWall|ForwardedMessage|data-post-nesting-lvl|copy_history/iu.test(
+        raw?.domAudit && typeof raw.domAudit === 'object' ? JSON.stringify(raw.domAudit) : '',
+    );
+    const domAuditRootTexts = extractDomAuditRootTexts(raw?.domAudit);
+    const rawWallSourceUrl = String(raw?.rootPostSourceUrl || raw?.originalSourceUrl || '').trim() ||
+        uniqueStrings(raw?.links).find((url) => /(?:[?&]w=|\/)wall-?\d+_\d+/iu.test(url)) || '';
+    const bodyLooksLikeCapturedRoot = Boolean(
+        // A wall URL and event-like prose can also occur in a bot's ordinary
+        // message (for example a previously generated announcement). Require
+        // a long, event-like body or an explicit source marker; a bare URL or
+        // short wrapper must never promote itself to a root post. Some older
+        // captures lost the AttachWall marker, so an explicit «Источник» line
+        // remains sufficient when the body itself is complete.
+        rawWallSourceUrl && primaryText.length >= 180 &&
+        ((domStructuralEvidence &&
+            /(?:Источник|Полный текст сообщения|Анонс)\s*:/iu.test(primaryText)) ||
+            /(?:Источник|Полный текст сообщения|Анонс)\s*:/iu.test(primaryText) ||
+            (domStructuralEvidence &&
+                /(?:концерт|фестивал|вечерин|выступ|мероприят|начало|вход свободный|стоимость)/iu.test(primaryText))),
+    );
+    // VK Messenger sometimes puts the wall body in the message block's text
+    // while leaving the dedicated embeddedText field empty. The DOM marker is
+    // the structural proof; in that case the captured body is still the root
+    // body and must be preserved without an API call. A bare wall URL never
+    // qualifies here.
+    const structuralRootCandidateText = cleanVkEventText(structuralRoot?.text || '', 12_000);
+    // A stale cache may retain rootPostText after the structural proof was
+    // lost. Trust an explicit root only when the capture marked it resolved;
+    // otherwise a normal bot message containing a wall URL must stay wrapper
+    // text and go through the bounded browser fallback.
+    const explicitRootText = raw?.rootPostTextResolved === true &&
+        (domStructuralEvidence || embeddedText || structuralRoot ||
+            Array.isArray(raw?.embeddedPosts) || Array.isArray(raw?.repostChain))
+        ? raw?.rootPostText
+        : '';
+    const rootCandidates = [
+        explicitRootText,
+        structuralRootCandidateText,
+        ...domAuditRootTexts,
+        // The complete wall body is sometimes placed directly in the message
+        // text while embeddedText is empty. Keep it only with the DOM/body
+        // proof above; a bare wrapper must never satisfy the root gate.
+        bodyLooksLikeCapturedRoot ? primaryText : '',
+        domStructuralEvidence ? embeddedText : '',
+        // A stale cache flag alone is not DOM proof. Only trust the cached
+        // embedded body when the current record still carries a structural
+        // AttachWall/ForwardedMessage marker.
+        domStructuralEvidence && raw?.rootPostTextResolved === true ? embeddedText : '',
+    ]
+        .map((value) => cleanVkEventText(value, 12_000))
+        .filter(Boolean);
+    // Stale caches occasionally retain a short title in rootPostText while the
+    // complete root body is still present in embeddedText/DOM. Select the most
+    // informative candidate so that a short UI fragment cannot mask it.
+    // The serialized AttachWall/ForwardedMessage body is the closest evidence
+    // to what the user sees in the Messenger DOM. Prefer it over a shorter
+    // nested title selected by the adaptive parser; otherwise use the explicit
+    // embedded tree, then the most informative remaining candidate.
+    const domAuditRootText = domAuditRootTexts.find((value) => value.length >= 60) || '';
+    const rootPostText = domAuditRootText ||
+        (structuralRootCandidateText.length >= 60 ? structuralRootCandidateText : '') ||
+        rootCandidates.sort((left, right) => right.length - left.length)[0] || '';
+    const rootPostTextResolved = Boolean(rootPostText);
     const text = [
         primaryText,
         embeddedText && !primaryText.includes(embeddedText)
@@ -268,11 +529,15 @@ function normalizeBrowserMessage(raw, conversationUrl) {
     const links = filterVkChatPublicMessageLinks(
         uniqueStrings(raw?.links),
     );
-    const rawRepostUrls = uniqueStrings(raw?.repostUrls);
+    const rawRepostUrls = uniqueRepostRefs(raw?.repostUrls);
     const inferredRepostUrls = embeddedText
         ? links.filter((value) => /(?:[?&]w=|\/)wall-?\d+_\d+/iu.test(String(value)))
         : [];
-    const repostUrls = uniqueStrings([...rawRepostUrls, ...inferredRepostUrls]);
+    const repostUrls = uniqueRepostRefs([
+        ...rawRepostUrls,
+        ...inferredRepostUrls,
+        ...(Array.isArray(structuralRoot?.urls) ? structuralRoot.urls : []),
+    ]);
     const attachmentLinks = uniqueStrings([
         ...(Array.isArray(raw?.attachmentLinks) ? raw.attachmentLinks : []),
         ...links.filter((value) => !repostUrls.includes(value)),
@@ -283,6 +548,13 @@ function normalizeBrowserMessage(raw, conversationUrl) {
         repostUrls,
         attachmentLinks,
         links,
+    });
+
+    const hasStructuralRepostEvidence = hasVkChatRepostEvidence({
+        text, embeddedText, rootPostText, rootPostTextResolved, rootPostSourceUrl: rawWallSourceUrl,
+        nestedRepostDetected: Boolean(raw?.nestedRepostDetected || rawRepostUrls.length || structuralRoot),
+        embeddedPosts: raw?.embeddedPosts, repostChain: raw?.repostChain,
+        imageMedia: raw?.imageMedia, domAudit: raw?.domAudit,
     });
 
     return {
@@ -297,10 +569,15 @@ function normalizeBrowserMessage(raw, conversationUrl) {
         contentText: primaryText,
         repostText: embeddedText,
         embeddedText,
-        hasRepostEvidence: Boolean(embeddedText) || hasVkChatRepostEvidence({
-            text,
-            links: raw?.links,
-        }),
+        rootPostText,
+        rootPostTextResolved,
+        // The deepest DOM layer is authoritative. A stale outer URL in an old
+        // cache must not hide the original root source.
+        rootPostSourceUrl: String(structuralRoot?.url || raw?.rootPostSourceUrl || raw?.originalSourceUrl || '').trim(),
+        // Recompute from current structural fields. A stale broad flag from an
+        // older cache must not turn an ordinary wall link into an unresolved
+        // repost.
+        hasRepostEvidence: hasStructuralRepostEvidence,
         text,
         links,
         repostUrls,
@@ -325,8 +602,16 @@ function normalizeBrowserMessage(raw, conversationUrl) {
         parserPass: trimText(raw?.parserPass, 80),
         // Internal poster-gate evidence survives processing-stage normalization.
         __posterGateVisionAttempted: raw?.__posterGateVisionAttempted === true,
+        __dateFreeVisionPhase: raw?.__dateFreeVisionPhase === true,
         __posterGateFacts: String(raw?.__posterGateFacts ?? ''),
         __posterGateError: String(raw?.__posterGateError ?? ''),
+        // The finite admission pass may already have hydrated the repost from
+        // the message cache/browser. Preserve that boundary when the same
+        // record enters the AI worker; otherwise it calls VK again and repeats
+        // a known Code 27 failure.
+        richEvidenceHydrated: raw?.richEvidenceHydrated === true || rootPostTextResolved || !hasStructuralRepostEvidence,
+        nestedRepostDetected: Boolean(raw?.nestedRepostDetected || rawRepostUrls.length || structuralRoot),
+        __originHydrationError: String(raw?.__originHydrationError ?? ''),
         /*
          * Ссылка на саму беседу персональна и не является источником события.
          * Публикуем только первую обычную ссылку из исходного сообщения.
@@ -825,7 +1110,7 @@ async function extractRenderedMessages(page, conversationUrl, { snapshotHtml = '
             return score;
         }
 
-        function embeddedPostTextFrom(node) {
+        function embeddedPostTextCandidatesFrom(node) {
             const selectors = [
                 '.AttachWallNew__message',
                 '[class*="AttachWall"] [class*="message"]',
@@ -858,14 +1143,19 @@ async function extractRenderedMessages(page, conversationUrl, { snapshotHtml = '
                 }
             }
 
-            candidates.sort((left, right) => (
+            // A deeply nested title/link can outrank the actual wall body.
+            // Prefer substantial candidates first so a short UI fragment never
+            // becomes rootPostText when the full body is already in the DOM.
+            const substantial = candidates.filter((candidate) => candidate.text.length >= 60);
+            const rankedCandidates = substantial.length ? substantial : candidates;
+            rankedCandidates.sort((left, right) => (
                 right.depth - left.depth ||
-                left.area - right.area ||
-                right.text.length - left.text.length
+                right.text.length - left.text.length ||
+                left.area - right.area
             ));
 
             const selected = [];
-            for (const candidate of candidates) {
+            for (const candidate of rankedCandidates) {
                 // Deepest specific repost text wins over a larger parent wrapper
                 // containing the same text. Keep multiple independent forwards.
                 if (selected.some((item) => (
@@ -875,7 +1165,11 @@ async function extractRenderedMessages(page, conversationUrl, { snapshotHtml = '
                 selected.push(candidate);
                 if (selected.length >= 4) break;
             }
-            return selected.map((item) => item.text).join('\n\n').slice(0, 10_000);
+            return selected;
+        }
+
+        function embeddedPostTextFrom(node) {
+            return embeddedPostTextCandidatesFrom(node).map((item) => item.text).join('\n\n').slice(0, 10_000);
         }
 
         function rootText(node) {
@@ -909,6 +1203,12 @@ async function extractRenderedMessages(page, conversationUrl, { snapshotHtml = '
             const imageUrls = [];
             const imageMedia = [];
             const embeddedText = embeddedPostTextFrom(node);
+            const embeddedCandidates = embeddedPostTextCandidatesFrom(node);
+            const structuralRootCandidate = embeddedCandidates[0] || null;
+            const structuralRootText = cleanRenderedText(structuralRootCandidate?.text || '');
+            const structuralRootAnchor = [...node.querySelectorAll?.('a[href*="wall"]') || []]
+                .map((anchor) => ({ anchor, score: embeddedNodeDepth(anchor, node) }))
+                .sort((a, b) => b.score - a.score)[0]?.anchor;
             const renderedText = rootText(node);
             const react = useReactEvidence ? collectReactMetadata(node) : null;
             const text = cleanRenderedText(
@@ -961,6 +1261,9 @@ async function extractRenderedMessages(page, conversationUrl, { snapshotHtml = '
                 createdAt,
                 text,
                 embeddedText,
+                rootPostText: structuralRootText,
+                rootPostTextResolved: Boolean(structuralRootText),
+                rootPostSourceUrl: String(structuralRootAnchor?.href || '').trim(),
                 links,
                 repostUrls,
                 attachmentLinks,
@@ -1305,28 +1608,73 @@ async function extractRenderedMessages(page, conversationUrl, { snapshotHtml = '
         }
 
         const exact = passOneExact();
-        if (exact.ok) {
-            return {
-                pass: PASS_EXACT,
-                reason: exact.reason,
-                messages: exact.items,
-            };
-        }
-
+        // Always execute the two tolerant contours against this same immutable
+        // document. Previously they ran only when exact returned zero rows, so
+        // a partially parsed snapshot could silently lose messages that only
+        // adaptive/heuristic selectors could see. Exact remains canonical on a
+        // collision; the tolerant passes may add a stable-CMID row or enrich an
+        // exact row with root repost text, links, and media.
         const adaptive = passTwoAdaptive();
-        if (adaptive.ok) {
-            return {
-                pass: PASS_ADAPTIVE,
-                reason: `${exact.reason}; ${adaptive.reason}`,
-                messages: adaptive.items,
-            };
-        }
-
         const heuristic = passThreeHeuristic();
+        const stageRows = [
+            [1, exact.items],
+            [2, adaptive.items],
+            [3, heuristic.items],
+        ];
+        const merged = new Map();
+        const stageFor = (raw) => Number(raw?.conversationMessageId || 0) > 0;
+        const mergeList = (left, right) => {
+            const unique = (values) => [...new Set((Array.isArray(values) ? values : [])
+                .map((value) => String(value || '').trim()).filter(Boolean))];
+            const media = unique([...(left?.imageUrls || []), ...(right?.imageUrls || [])]);
+            return {
+                ...left,
+                // Exact direct message text is authoritative; a later contour
+                // only fills it when exact had no text at all.
+                text: String(left?.text || '').trim() || String(right?.text || '').trim(),
+                embeddedText: String(left?.embeddedText || '').trim() || String(right?.embeddedText || '').trim(),
+                rootPostText: String(left?.rootPostText || '').trim() || String(right?.rootPostText || '').trim(),
+                rootPostTextResolved: Boolean(left?.rootPostTextResolved || right?.rootPostTextResolved),
+                rootPostSourceUrl: String(left?.rootPostSourceUrl || '').trim() || String(right?.rootPostSourceUrl || '').trim(),
+                createdAt: Number(left?.createdAt || right?.createdAt || 0),
+                senderId: Number(left?.senderId || right?.senderId || 0),
+                peerId: Number(left?.peerId || right?.peerId || 0),
+                links: unique([...(left?.links || []), ...(right?.links || [])]),
+                repostUrls: unique([...(left?.repostUrls || []), ...(right?.repostUrls || [])]),
+                attachmentLinks: unique([...(left?.attachmentLinks || []), ...(right?.attachmentLinks || [])]),
+                imageUrls: media,
+                imageMedia: [...(Array.isArray(left?.imageMedia) ? left.imageMedia : []), ...(Array.isArray(right?.imageMedia) ? right.imageMedia : [])]
+                    .filter((item, index, all) => {
+                        const url = String(item?.url || '').trim();
+                        return url && all.findIndex((candidate) => String(candidate?.url || '').trim() === url) === index;
+                    }),
+                hasRepostEvidence: Boolean(left?.hasRepostEvidence || right?.hasRepostEvidence),
+                parserStages: [...new Set([...(left?.parserStages || []), ...(right?.parserStages || [])])].sort(),
+                parserPass: [...new Set(String(`${left?.parserPass || ''}+${right?.parserPass || ''}`).split('+').filter(Boolean))].join('+'),
+            };
+        };
+        for (const [stageNumber, rows] of stageRows) {
+            for (const raw of Array.isArray(rows) ? rows : []) {
+                if (!stageFor(raw)) continue;
+                const key = Number(raw.conversationMessageId);
+                const tagged = { ...raw, parserStages: [stageNumber], parserPass: stageNumber === 1 ? PASS_EXACT : stageNumber === 2 ? PASS_ADAPTIVE : PASS_HEURISTIC };
+                const previous = merged.get(key);
+                merged.set(key, previous ? mergeList(previous, tagged) : tagged);
+            }
+        }
+        const messages = [...merged.values()];
         return {
-            pass: PASS_HEURISTIC,
+            pass: [exact.items.length ? PASS_EXACT : '', adaptive.items.length ? PASS_ADAPTIVE : '', heuristic.items.length ? PASS_HEURISTIC : ''].filter(Boolean).join('+') || PASS_EXACT,
             reason: `${exact.reason}; ${adaptive.reason}; ${heuristic.reason}`,
-            messages: heuristic.items,
+            messages,
+            contourCounts: {
+                exact: exact.items.length,
+                adaptive: adaptive.items.length,
+                heuristic: heuristic.items.length,
+                merged: messages.length,
+                recoveredByAdaptive: adaptive.items.filter((item) => !exact.items.some((candidate) => Number(candidate?.conversationMessageId || 0) === Number(item?.conversationMessageId || 0))).length,
+                recoveredByHeuristic: heuristic.items.filter((item) => !exact.items.some((candidate) => Number(candidate?.conversationMessageId || 0) === Number(item?.conversationMessageId || 0)) && !adaptive.items.some((candidate) => Number(candidate?.conversationMessageId || 0) === Number(item?.conversationMessageId || 0))).length,
+            },
         };
     }, {
         targetPeerId: expectedPeerId,
@@ -1361,6 +1709,12 @@ async function extractRenderedMessages(page, conversationUrl, { snapshotHtml = '
         },
         parserReason: {
             value: String(extraction?.reason || '').slice(0, 1000),
+            enumerable: false,
+        },
+        parserContourCounts: {
+            value: extraction?.contourCounts && typeof extraction.contourCounts === 'object'
+                ? { ...extraction.contourCounts }
+                : { exact: 0, adaptive: 0, heuristic: 0, merged: result.length, recoveredByAdaptive: 0, recoveredByHeuristic: 0 },
             enumerable: false,
         },
     });
@@ -1681,10 +2035,13 @@ function mergeSnapshotAndRenderedMessages(snapshotMessages, renderedMessages) {
             contentText: String(exact?.contentText || '').trim() || String(rendered?.contentText || '').trim(),
             repostText: String(exact?.repostText || exact?.embeddedText || '').trim() || String(rendered?.repostText || rendered?.embeddedText || '').trim(),
             embeddedText: String(exact?.embeddedText || exact?.repostText || '').trim() || String(rendered?.embeddedText || rendered?.repostText || '').trim(),
+            rootPostText: String(exact?.rootPostText || '').trim() || String(rendered?.rootPostText || '').trim(),
+            rootPostTextResolved: Boolean(exact?.rootPostTextResolved || rendered?.rootPostTextResolved),
+            rootPostSourceUrl: String(exact?.rootPostSourceUrl || '').trim() || String(rendered?.rootPostSourceUrl || '').trim(),
             hasRepostEvidence: Boolean(exact?.hasRepostEvidence || rendered?.hasRepostEvidence),
             text: String(exact?.text || '').trim() || String(rendered?.text || '').trim(),
             links: [...new Set([...(exact?.links || []), ...(rendered?.links || [])])],
-            repostUrls: [...new Set([...(exact?.repostUrls || []), ...(rendered?.repostUrls || [])])],
+            repostUrls: uniqueRepostRefs([...(exact?.repostUrls || []), ...(rendered?.repostUrls || [])]),
             attachmentLinks: [...new Set([...(exact?.attachmentLinks || []), ...(rendered?.attachmentLinks || [])])],
             // Exact anchors known media; adaptive can supply later-loaded media
             // ONLY when it exposes a stable VK photo/attachment identity.
@@ -2477,6 +2834,16 @@ function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
         1000,
     );
 
+    // Do not materialize child cards while the mandatory AI cardinality step is
+    // unresolved (typically one calendar date with several times). The source
+    // message remains persisted for a later retry/repair pass.
+    if (responseStructure === 'uncertain') {
+        for (const event of sourceEvents) {
+            rejectedEvents.push({ event, reason: 'structure-uncertain' });
+        }
+        return [];
+    }
+
     for (const event of sourceEvents) {
         const eventDate = String(
             event?.date ?? event?.eventDate ?? '',
@@ -2513,7 +2880,8 @@ function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
             event?.structure_reason ?? event?.structureReason ?? responseStructureReason,
             1000,
         );
-        const description = normalizeAnnouncement(
+        const description = acceptedDateFreePoster(message) && String(message.text || '').trim()
+            ? trimText(message.text, 12_000) : normalizeAnnouncement(
             sourceSegment || announcement || event?.description,
             {
                 ...event,
@@ -2558,12 +2926,12 @@ function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
                     ? event.imageIndexes
                     : [])
                 .map(Number)
-                .filter((value) => Number.isInteger(value) && value >= 1 && value <= 12))],
-            parseMethod: 'gpt_chat_live_v4',
+                .filter((value) => Number.isInteger(value) && value >= 1 && value <= 1000))],
+            parseMethod: acceptedDateFreePoster(message) ? 'gpt_chat_live_v4_phase2_poster_v2' : 'gpt_chat_live_v4',
             status: 'pending',
         };
 
-        if (!isEventDateConsistentWithSource({
+        if (!acceptedDateFreePoster(message) && !isEventDateConsistentWithSource({
             eventDate,
             sourceText: validationSourceText,
             publishedAt: Number(message?.createdAt || 0),
@@ -2575,7 +2943,8 @@ function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
 
         const strict = explainStrictEventRecord(candidate, {
             sourceText: validationSourceText,
-            requireEvidence: true,
+            requireEvidence: !acceptedDateFreePoster(message),
+            trustedPosterEvent: acceptedDateFreePoster(message),
         });
         if (strict.ok) {
             events.push(candidate);
@@ -2603,10 +2972,28 @@ async function processMessage(message, {
         peerId,
         conversationMessageId: message.conversationMessageId,
     });
+    if (isPermanentlyBlockedMonoSource({
+        sourceType: 'vk_chat',
+        sourceItemId: `vk_chat:${peerId}:${message.conversationMessageId}`,
+        sourceUrl: message.sourceUrl,
+        canonicalPostUrl: message.sourceUrl,
+    })) {
+        traceAi?.('database.skip', { reason: 'permanent-mono-source-block' });
+        console.log('[PERMANENT EVENT SOURCE SKIP]', `source=vk_chat:${peerId}/${message.conversationMessageId}`);
+        return { changed: false, candidateChecked: false, eventCount: 0, skippedPermanentSource: true };
+    }
+    let storedImageVisionFacts = [];
+    try {
+        const parsed = JSON.parse(String(previous?.imageVisionFactsJson || '[]'));
+        storedImageVisionFacts = Array.isArray(parsed) ? parsed : [];
+    } catch {
+        storedImageVisionFacts = [];
+    }
+    message.__storedImageVisionFacts = storedImageVisionFacts;
     const refreshProvenance = () => {
         const wallLinks = uniqueStrings((message.links ?? []).filter((value) => /(?:[?&]w=|\/)wall-?\d+_\d+/iu.test(String(value))));
         if (message.hasRepostEvidence || message.embeddedText || message.repostText) {
-            message.repostUrls = uniqueStrings([...(message.repostUrls ?? []), ...wallLinks]);
+            message.repostUrls = uniqueRepostRefs([...(message.repostUrls ?? []), ...wallLinks]);
         }
         message.attachmentLinks = uniqueStrings([
             ...(message.attachmentLinks ?? []),
@@ -2630,7 +3017,19 @@ async function processMessage(message, {
         typeof previous?.contentHash === 'string' &&
         previous.contentHash === hashMessage(message)
     );
-    if (existingAnnouncement && !forceReprocess && exactKnownAnnouncementContent) {
+    let storedImageCount = 0;
+    try {
+        const storedUrls = JSON.parse(String(previous?.imageUrlsJson || '[]'));
+        storedImageCount = Array.isArray(storedUrls) ? storedUrls.length : 0;
+    } catch {
+        storedImageCount = 0;
+    }
+    const currentImageCount = Math.max(
+        storedImageCount,
+        Array.isArray(message?.imageUrls) ? message.imageUrls.length : 0,
+    );
+    const pendingStoredVision = pendingVisionImageIndexes(currentImageCount, storedImageVisionFacts).length > 0;
+    if (existingAnnouncement && !forceReprocess && exactKnownAnnouncementContent && !pendingStoredVision) {
         traceAi?.('database.skip', {
             reason: 'same-source-content-hash',
             eventCount: Number(previous.eventCount ?? 0),
@@ -2645,7 +3044,7 @@ async function processMessage(message, {
     const rawDecision = explainVkChatEventCandidate(message);
     const rawVisualEvidence = Boolean(rawDecision.evidence?.hasPoster);
     const rawTextCandidate = rawDecision.candidate;
-    const rawRepostEvidence = Boolean(message?.hasRepostEvidence) || hasVkChatRepostEvidence(message);
+    const rawRepostEvidence = hasVkChatRepostEvidence(message);
 
     // Cheap trash rejection must happen before VK API hydration and long before
     // AI. A normal chat line such as "Да, почитала уже" must finish here.
@@ -2674,7 +3073,22 @@ async function processMessage(message, {
         };
     }
 
-    if (typeof hydrateMessageEvidence === 'function') {
+    // A wall.getById failure (especially VK Code 27 with a group token) is an
+    // enrichment failure. The captured repost body/media remain valid evidence
+    // and must continue through the normal AI/poster gate. Only a message with
+    // no local evidence at all is unresolved and can be retried later.
+    if (message.__originHydrationError) {
+        traceAi?.('evidence.hydration-unavailable', {
+            error: message.__originHydrationError,
+            hasLocalText: Boolean(String(message?.text || message?.contentText || message?.embeddedText || message?.repostText).trim()),
+            imageCount: Array.isArray(message?.imageUrls) ? message.imageUrls.length : 0,
+        });
+    }
+    if (!message.richEvidenceHydrated || (rawRepostEvidence && message.rootPostTextResolved !== true)) {
+        // Keep this as a separate guard: hydration is intentionally performed
+        // only after the cheap prefilter above, and the static policy test
+        // documents that ordering explicitly.
+        if (typeof hydrateMessageEvidence === 'function') {
         try {
             const evidence = await hydrateMessageEvidence({
                 ...message,
@@ -2701,6 +3115,15 @@ async function processMessage(message, {
                         `[Репост/вложенный пост VK — API]\n${embeddedText}`,
                     ].filter(Boolean).join('\n\n').slice(0, 12_000);
                 }
+                message.repostUrls = uniqueRepostRefs([...(message.repostUrls || []), ...(evidence.repostUrls || [])]);
+                if (evidence.originalPost?.wall?.text) {
+                    message.text = cleanVkEventText(evidence.originalPost.wall.text, 12_000);
+                    message.embeddedText = message.text;
+                    message.repostText = message.text;
+                    message.createdAt = Number(evidence.originalPost.wall.date || message.createdAt || 0);
+                }
+                message.rootPostTextResolved = Boolean(evidence.rootPostTextResolved);
+                message.rootPostText = String(evidence.rootPostText || '').trim();
                 message.hasRepostEvidence = Boolean(
                     evidence.hasRepostEvidence || embeddedText,
                 );
@@ -2714,28 +3137,132 @@ async function processMessage(message, {
                 `cmid=${message?.conversationMessageId ?? 0}`,
                 formatErrorText(error),
             );
+            message.__originHydrationError = String(error?.message || error);
+            message.richEvidenceHydrated = Boolean(
+                String(message?.text || message?.contentText || message?.embeddedText || message?.repostText).trim() ||
+                (Array.isArray(message?.imageUrls) && message.imageUrls.length),
+            );
+            message.hasRepostEvidence = Boolean(
+                message.hasRepostEvidence ||
+                hasVkChatRepostEvidence(message),
+            );
+        }
         }
     }
+
+    // Create/update the durable source row before Vision. Each image result can
+    // then be committed immediately and a cancelled gallery resumes by index.
+    // VK API/AI hydration can add images after the first DOM capture, so this
+    // binding is deliberately repeatable and is called again before AI Vision.
+    const persistImageVisionFact = ({ imageNumber, factText } = {}) => {
+        const fact = parseIndexedImageFacts(String(factText || ''))
+            .find((item) => Number(item?.index || 0) === Number(imageNumber || 0));
+        if (!fact) return;
+        // Merge by index so a later partial/negative aggregate cannot downgrade
+        // a stronger durable result already committed for this image.
+        storedImageVisionFacts = mergeIndexedVisionFacts(storedImageVisionFacts, [{
+            ...fact,
+            imageUrl: String(message?.imageUrls?.[Number(imageNumber) - 1] || ''),
+        }]);
+        message.__storedImageVisionFacts = storedImageVisionFacts;
+        saveVkChatSourceVisionFacts({
+            peerId, conversationMessageId: message.conversationMessageId,
+            imageVisionFacts: storedImageVisionFacts,
+        });
+    };
+    const bindImageVisionPersistence = () => {
+        // Install the callback even before images are known. The AI adapter may
+        // discover VK API media inside its own hydration step and invoke it
+        // before processMessage receives resolvedImageUrls back.
+        message.__onImageVisionResult = persistImageVisionFact;
+        if (!Array.isArray(message?.imageUrls) || !message.imageUrls.length) return;
+        // Hydration may discover URLs after Vision has already returned a
+        // durable fact. Fill missing identities before the next persistence
+        // boundary so replay/remapping can match facts to the same image.
+        let identitiesChanged = false;
+        storedImageVisionFacts = storedImageVisionFacts.map((fact) => {
+            const index = Number(fact?.index || 0);
+            const imageUrl = String(message.imageUrls[index - 1] || '').trim();
+            if (index > 0 && imageUrl && !String(fact?.imageUrl || '').trim()) {
+                identitiesChanged = true;
+                return { ...fact, imageUrl };
+            }
+            return fact;
+        });
+        message.__storedImageVisionFacts = storedImageVisionFacts;
+        if (identitiesChanged) {
+            saveVkChatSourceVisionFacts({
+                peerId, conversationMessageId: message.conversationMessageId,
+                imageVisionFacts: storedImageVisionFacts,
+            });
+        }
+        upsertVkChatSourceMessage({
+            peerId, conversationMessageId: message.conversationMessageId,
+            conversationUrl, conversationName, senderId: message.senderId,
+            createdAt: message.createdAt, rawText: message.text, links: message.links,
+            repostUrls: message.repostUrls, attachmentLinks: message.attachmentLinks,
+            imageUrls: message.imageUrls,
+            imagePaths: (() => { try { const value = JSON.parse(String(previous?.imagePathsJson || '[]')); return Array.isArray(value) ? value : []; } catch { return []; } })(),
+            imageMedia: message.imageMedia || [],
+            imageVisionFacts: storedImageVisionFacts, provenance: message.provenance || {},
+            contentHash: hashMessage(message), parseStatus: 'vision_processing',
+            fetchedAt: Math.floor(Date.now() / 1000),
+        });
+    };
+    bindImageVisionPersistence();
 
 
     const hydratedDecision = explainVkChatEventCandidate(message);
     const hasVisualEvidence = Boolean(hydratedDecision.evidence?.hasPoster);
-    const hasRepostEvidence = Boolean(message?.hasRepostEvidence) || hasVkChatRepostEvidence(message);
-    const textCandidate = Boolean(hydratedDecision.aiEligible);
+    const hasRepostEvidence = hasVkChatRepostEvidence(message);
+    const hasLocalRecoveryEvidence = Boolean(
+        message.__originHydrationError &&
+        (String(message?.text || message?.contentText || message?.embeddedText || message?.repostText).trim() ||
+            (Array.isArray(message?.imageUrls) && message.imageUrls.length) ||
+            (Array.isArray(message?.links) && message.links.length)),
+    );
+    // Hydration recovery supplies evidence only. It must never bypass the
+    // strict root-body date gate; an unresolved root is rejected explicitly.
+    const phaseTwoPosterAccepted = Number(peerId) === 2000000022 && acceptedDateFreePoster(message);
+    const effectiveHydratedDecision = { ...hydratedDecision };
+    if (hasRepostEvidence && message.rootPostTextResolved !== true && !phaseTwoPosterAccepted) {
+        effectiveHydratedDecision.candidate = false;
+        effectiveHydratedDecision.aiEligible = false;
+        effectiveHydratedDecision.score = -1000;
+        effectiveHydratedDecision.reasons = [...(Array.isArray(effectiveHydratedDecision.reasons) ? effectiveHydratedDecision.reasons : []), 'repost-root-text-unresolved'];
+        effectiveHydratedDecision.aiAdmission = { ...(effectiveHydratedDecision.aiAdmission || {}), eligible: false, rejectionReason: 'repost-root-text-unresolved', dateSource: 'repost-root-text-required' };
+    }
+    const textCandidate = Boolean(effectiveHydratedDecision.aiEligible);
     traceAi?.('prefilter.post-hydration', {
-        candidate: hydratedDecision.candidate,
-        aiEligible: hydratedDecision.aiEligible,
-        score: hydratedDecision.score,
-        reasons: hydratedDecision.reasons,
-        evidence: hydratedDecision.evidence,
-        aiAdmission: hydratedDecision.aiAdmission,
+        candidate: effectiveHydratedDecision.candidate,
+        aiEligible: effectiveHydratedDecision.aiEligible,
+        score: effectiveHydratedDecision.score,
+        reasons: effectiveHydratedDecision.reasons,
+        evidence: effectiveHydratedDecision.evidence,
+        aiAdmission: effectiveHydratedDecision.aiAdmission,
+        localRecoveryEvidence: hasLocalRecoveryEvidence,
     });
 
-    // Hydration/repost recovery is cheap evidence recovery. The expensive main-AI
-    // stage is stricter: either the recovered BODY or the post-capture poster gate
-    // must contain a usable event title/participants plus a today/future event date.
-    // Poster presence alone is never enough; the poster must have been read and admitted.
-    if (!textCandidate) {
+    // Repost hydration is evidence recovery, not an admission bypass. The
+    // expensive main-AI stage requires the deepest/root wall text to be present
+    // and that text must contain a current/future event date. A wrapper message,
+    // publication timestamp, or poster alone is never enough.
+    // The old diagnostic label `repost-hydrated-without-event-date-or-poster`
+    // is retained in the audit vocabulary for historical report compatibility;
+    // unresolved roots now use the stricter `repost-root-text-unresolved`.
+    if (hasRepostEvidence && message.rootPostTextResolved !== true && !phaseTwoPosterAccepted) {
+        const error = new Error('VK root repost text was not recovered; retry the source hydration.');
+        error.code = 'ROOT_POST_TEXT_UNRESOLVED';
+        error.retryable = true;
+        traceAi?.('root-post-text-unresolved', {
+            reason: 'repost-root-text-unresolved',
+            rootPostTextResolved: false,
+            hasVisualEvidence,
+            hasRepostEvidence,
+        });
+        throw error;
+    }
+    if (!textCandidate && !hasVisualEvidence) {
         appendEventIngestAudit({
             dataDirectory,
             sourceType: 'vk-chat',
@@ -2745,7 +3272,7 @@ async function processMessage(message, {
             status: 'skipped',
             reason: hydratedDecision.aiAdmission?.rejectionReason || (
                 hasRepostEvidence
-                    ? 'repost-hydrated-without-strict-ai-evidence'
+                    ? (message.rootPostTextResolved === true ? 'repost-hydrated-without-strict-ai-evidence' : 'repost-root-text-unresolved')
                     : 'not-an-ai-candidate-post-hydration'
             ),
             rawText: message.text,
@@ -2819,6 +3346,9 @@ async function processMessage(message, {
                 message.hasRepostEvidence = true;
             }
             refreshProvenance();
+            // Persist images discovered only by API/AI hydration and ensure
+            // the Vision adapter has a durable per-index callback for them.
+            bindImageVisionPersistence();
         }
     } catch (error) {
         traceAi?.('pipeline.error', {
@@ -2849,6 +3379,7 @@ async function processMessage(message, {
             12_000,
         );
         events = assignEventImageIndexesFromFacts(events, imageFacts, {
+            dateFreePhase: acceptedDateFreePoster(message),
             onAudit: ({ event, imageIndex, accepted, reason, score, imageType, poster, posterConfidence, textReadability, facts }) => {
                 const row = {
                     eventDate: event?.eventDate || '', title: event?.title || '', imageIndex,
@@ -2888,6 +3419,10 @@ async function processMessage(message, {
     const preserveStoredEvents = shouldPreserveStoredEventsOnEmptyReparse({
         previousEventCount: previous?.eventCount,
         acceptedEventCount: events.length,
+    }) || shouldPreserveStoredEventsOnPartialReparse({
+        previousEventCount: previous?.eventCount,
+        acceptedEventCount: events.length,
+        phaseTwo: acceptedDateFreePoster(message),
     });
     const imagePaths = preserveStoredEvents
         ? previousImagePaths
@@ -2899,7 +3434,18 @@ async function processMessage(message, {
     const effectiveEventCount = preserveStoredEvents
         ? Number(previous?.eventCount ?? 0)
         : events.length;
-    const parsedImageVisionFacts = parseIndexedImageFacts((!Array.isArray(aiEvents) && aiEvents && typeof aiEvents === 'object' ? (aiEvents.visualText ?? aiEvents.visual_text ?? '') : '') || message.__posterGateFacts || '');
+    const aggregateImageVisionFacts = parseIndexedImageFacts(
+        (!Array.isArray(aiEvents) && aiEvents && typeof aiEvents === 'object'
+            ? (aiEvents.visualText ?? aiEvents.visual_text ?? '')
+            : '') || message.__posterGateFacts || '',
+    );
+    // The aggregate response can be partial (or can contain only the poster
+    // gate block). Keep every per-image fact already committed durably and let
+    // the aggregate enrich it by index.
+    const parsedImageVisionFacts = mergeIndexedVisionFacts(
+        storedImageVisionFacts,
+        aggregateImageVisionFacts,
+    );
     const sourcePathsForAudit = uniqueStrings(events.flatMap((event) => Array.isArray(event?._sourceImagePaths) ? event._sourceImagePaths : []));
     const sourceMediaAudit = (Array.isArray(message.imageUrls) ? message.imageUrls : []).map((url, offset) => {
         const imageIndex = offset + 1;
@@ -2941,7 +3487,7 @@ async function processMessage(message, {
         contentHash,
         parseStatus: effectiveEventCount ? 'event' : 'not_event',
         fetchedAt,
-    }, replacement: preserveStoredEvents ? null : {
+    }, replacement: events.length ? {
         peerId,
         conversationMessageId: message.conversationMessageId,
         sourceUrl: message.sourceUrl,
@@ -2949,7 +3495,8 @@ async function processMessage(message, {
         events,
         updatedAt: fetchedAt,
         provenance: provenanceForStorage,
-    }});
+        preserveUnmatchedStoredEvents: preserveStoredEvents,
+    } : null });
 
     traceAi?.('database.write', {
         sourceTable: 'vk_chat_source_messages',
@@ -3734,6 +4281,11 @@ export function createVkChatEventScraper({
         processingLimiter = null,
         incrementalOnly = false,
         disableHistoryBackfill = false,
+        cachedItems = null,
+        resumeCompletedSince = 0,
+        recentDays = 0,
+        phaseCount = 2,
+        itemIds = null,
     } = {}) {
         const requestedMaxDurationMs = Number(maxDurationMs) || 0;
         const safeMaxDurationMs = requestedMaxDurationMs > 0
@@ -3779,10 +4331,12 @@ export function createVkChatEventScraper({
         let timedOut = false;
         let reachedTop = false;
         let finitePageReadyAt = 0;
+        let finalDomHtml = '';
         let failedProcessingItems = 0;
         // These counters are returned outside try/finally.
         let incrementalKnownSkippedCount = 0;
         let incrementalNewCount = 0;
+        let staleFilteredCount = 0;
         const parserComparisons = [];
         const parserExactErrors = [];
 
@@ -3801,6 +4355,23 @@ export function createVkChatEventScraper({
         queuedFingerprints.clear();
 
         try {
+            if (Array.isArray(cachedItems)) {
+                // Cached captures are raw DOM records from an earlier pass.
+                // Re-run the same DOM-first normalization during replay so a
+                // stale/short rootPostText cannot hide the full body that is
+                // still present in contentText or domAudit. This is local
+                // normalization only; it must never trigger API hydration.
+                capturedMessages.push(...cachedItems.map((item) => ({
+                    ...item,
+                    ...normalizeBrowserMessage(item, conversationUrl),
+                })));
+                loaded = capturedMessages.length;
+                lastMessageId = Math.max(0, ...capturedMessages.map(stableVkChatMessageId));
+                diagnostics?.log?.('source.cache.replay', {
+                    sourceId: String(`chat:`) + peerId,
+                    itemCount: cachedItems.length,
+                });
+            } else {
             if (!livePage || livePage.isClosed()) {
                 await openLivePage();
             }
@@ -4084,10 +4655,14 @@ export function createVkChatEventScraper({
                         round: round + 1,
                         exactCount: exactSnapshot.length,
                         exactDiagnostics: exactSnapshot?.snapshotDiagnostics || {},
-                        adaptiveCount: Array.isArray(liveRendered) ? liveRendered.length : 0,
+                        adaptiveCount: Number(liveRendered?.parserContourCounts?.adaptive || 0),
+                        heuristicCount: Number(liveRendered?.parserContourCounts?.heuristic || 0),
+                        mergedCount: Number(liveRendered?.parserContourCounts?.merged || (Array.isArray(liveRendered) ? liveRendered.length : 0)),
+                        recoveredByAdaptive: Number(liveRendered?.parserContourCounts?.recoveredByAdaptive || 0),
+                        recoveredByHeuristic: Number(liveRendered?.parserContourCounts?.recoveredByHeuristic || 0),
                         adaptivePass: String(liveRendered?.parserPass || 'unknown'),
                         adaptiveReason: String(liveRendered?.parserReason || '').slice(0, 1000),
-                        mergedCount: rendered.length,
+                        renderedCount: rendered.length,
                         liveOnlyIds,
                         exactOnlyIds,
                         fallbackUsed: exactSnapshot.length === 0 && Boolean(liveIds.size),
@@ -4294,7 +4869,6 @@ export function createVkChatEventScraper({
             // No artificial dwell after the structural/history target is met.
             // Cache is the phase barrier: as soon as the required raw material
             // is captured, downstream processing may start independently of Chromium.
-            let finalDomHtml = '';
 
             if (livePage && !livePage.isClosed() && (deadlineAt <= 0 || Date.now() < deadlineAt)) {
                 await withPageOperation(() => settleScraperPage({
@@ -4397,6 +4971,7 @@ export function createVkChatEventScraper({
                 }
             }
 
+            }
             const sourceId = `chat:${peerId}`;
             const ledgerRunId = `${sourceId}:${Math.floor(finitePassStartedAt / 1000)}:${process.pid}`;
             const orderedCapturedMessages = [...capturedMessages].sort((left, right) => (
@@ -4411,6 +4986,46 @@ export function createVkChatEventScraper({
             let aiRejectedCount = 0;
             let trashCount = 0;
             for (const message of orderedCapturedMessages) {
+                // Resolve the source before the date gate: the wrapper can omit
+                // the date or contain a different date from the original post.
+                if (typeof hydrateMessageEvidence === 'function' && hasVkChatRepostEvidence(message)) {
+                    try {
+                        const evidence = await hydrateMessageEvidence({ ...message, peerId, conversationUrl, conversationName: safeName });
+                        message.repostUrls = uniqueRepostRefs([...(evidence?.repostUrls || []), ...(message.repostUrls || [])]);
+                        message.links = uniqueStrings([...(evidence?.links || []), ...(message.links || [])], 1000);
+                        if (evidence?.originalPost?.wall) {
+                            message.text = cleanVkEventText(evidence.originalPost.wall.text || '', 12_000);
+                            message.embeddedText = message.text;
+                            message.repostText = message.text;
+                            message.createdAt = Number(evidence.originalPost.wall.date || message.createdAt || 0);
+                            message.imageUrls = evidence.imageUrls || [];
+                            message.sourceUrl = evidence.originalPost.url;
+                        } else if (evidence?.embeddedText) {
+                            // Group-token wall.getById can fail with VK Code 27,
+                            // while the forwarded body is already present in the
+                            // message/DOM. Preserve that text for the AI gate.
+                            message.embeddedText = cleanVkEventText(evidence.embeddedText, 12_000);
+                            message.repostText = message.embeddedText;
+                    if (evidence?.hasRepostEvidence) message.text = message.embeddedText;
+                        }
+                        message.rootPostTextResolved = Boolean(evidence?.rootPostTextResolved);
+                        message.rootPostText = String(evidence?.rootPostText || '').trim();
+                        message.apiAudit = Array.isArray(evidence?.apiAudit) ? evidence.apiAudit : [];
+                        message.richEvidenceHydrated = true;
+                        message.hasRepostEvidence = Boolean(evidence?.hasRepostEvidence || hasVkChatRepostEvidence(message));
+                    } catch (error) {
+                        message.__originHydrationError = String(error?.message || error);
+                        message.richEvidenceHydrated = Boolean(
+                            String(message?.text || message?.contentText || message?.embeddedText || message?.repostText).trim() ||
+                            (Array.isArray(message?.imageUrls) && message.imageUrls.length) ||
+                            (Array.isArray(message?.links) && message.links.length),
+                        );
+                        message.hasRepostEvidence = Boolean(
+                            message.hasRepostEvidence || hasVkChatRepostEvidence(message),
+                        );
+                        diagnostics?.log?.('item.original-post-unresolved', { itemId: message.conversationMessageId, error: message.__originHydrationError });
+                    }
+                }
                 const itemId = String(message?.conversationMessageId ?? '');
                 message.provenance = resolveVkChatProvenance({
                     peerId,
@@ -4426,12 +5041,22 @@ export function createVkChatEventScraper({
                 message.sourceUrl = message.provenance.canonicalPostUrl || '';
                 const ledgerBefore = getManualParserSeenItem({ sourceId, itemId });
                 const rawContentHash = hashMessage(message);
+                const recency = explainRecentOrFuturePost({
+                    publishedAt: Number(message?.createdAt || 0),
+                    updatedAt: Number(message?.updatedAt || 0),
+                    text: String(message?.text || ''),
+                    referenceNow: message?.referenceNow,
+                    recentDays,
+                    contentChanged: Boolean(ledgerBefore?.contentHash && ledgerBefore.contentHash !== rawContentHash),
+                });
+                if (!recency.allowed) staleFilteredCount += 1;
                 // Matching CMID without a matching content hash is not unchanged content.
                 // Legacy rows with no hash must be reprocessed rather than skipped.
                 const incrementalKnown = Boolean(
                     incrementalOnly && ledgerBefore &&
                     isManualParserSeenItemFinalStatus(ledgerBefore.parseStatus) &&
-                    ledgerBefore.contentHash && ledgerBefore.contentHash === rawContentHash
+                    ledgerBefore.contentHash && ledgerBefore.contentHash === rawContentHash &&
+                    (!resumeCompletedSince || Number(ledgerBefore.processedAt || 0) >= resumeCompletedSince)
                 );
                 upsertManualParserSeenItem({
                     sourceId, sourceKind: 'vk-chat', itemId, sourceUrl: String(message?.sourceUrl || conversationUrl || ''),
@@ -4451,9 +5076,24 @@ export function createVkChatEventScraper({
                 });
                 if (incrementalKnown) incrementalKnownSkippedCount += 1;
                 else incrementalNewCount += 1;
-                const decision = incrementalKnown
+                const baseDecision = !recency.allowed
+                    ? { candidate: false, aiEligible: false, score: -1000, reasons: [recency.reason], evidence: { recency }, aiAdmission: { rejectionReason: recency.reason, dateSource: 'recent-pass-policy' } }
+                    : incrementalKnown
                     ? { candidate: false, aiEligible: false, score: -1000, reasons: ['clean-mode-database-known'], evidence: {}, aiAdmission: { rejectionReason: 'clean-mode-database-known', dateSource: 'not-evaluated' } }
                     : explainVkChatEventCandidate(message);
+                // Hydration errors never bypass the strict root-body date gate.
+                // A recovered root without a current/future calendar date stays
+                // structural evidence only and is not sent to the main AI.
+                const decision = baseDecision;
+                const rootTextUnresolved = message.rootPostTextResolved !== true && hasVkChatRepostEvidence(message);
+                if (rootTextUnresolved) {
+                    decision.candidate = false;
+                    decision.aiEligible = false;
+                    decision.score = -1000;
+                    decision.reasons = [...(Array.isArray(decision.reasons) ? decision.reasons : []), 'repost-root-text-unresolved'];
+                    decision.aiAdmission = { ...(decision.aiAdmission || {}), eligible: false, rejectionReason: 'repost-root-text-unresolved', dateSource: 'repost-root-text-required' };
+                    decision.rootTextUnresolved = true;
+                }
                 if (decision.candidate) structuralCandidateCount += 1;
                 // Text/URL similarity cannot prove the poster is unchanged.
                 // Known identical captures were already skipped by ledger + hash.
@@ -4465,21 +5105,47 @@ export function createVkChatEventScraper({
                 const priority = aiCandidate ? decision.score : -1000;
                 const posterGateImageUrls = [...new Set((Array.isArray(message?.imageUrls) ? message.imageUrls : [])
                     .map((value) => String(value ?? '').trim())
-                    .filter((url) => /^https?:\/\//iu.test(url)))]
-                    .slice(0, 12);
-                const posterGatePending = Boolean(
-                    !incrementalKnown && !decision.aiEligible && !existing && posterGateImageUrls.length
+                    .filter((url) => /^https?:\/\//iu.test(url))
+                    .filter((url) => !/(?:[?&])type=(?:audio|emoji|reaction|sticker|gift|icon)(?:&|$)/iu.test(url))
+                    .filter((url) => !/(?:^|[/?&._-])(?:emoji|reaction|sticker|favicon|badge|smile|avatar)(?:[/?&._=-]|$)/iu.test(url)))]
+                    .slice(0, 1000);
+                // Date-free poster Vision is deliberately limited to the
+                // configured announcement conversation. Other VK chats keep
+                // the strict text-date gate and are never sent to Vision just
+                // because an arbitrary image is attached.
+                const allowDateFreeImageVision = Number(peerId) === 2000000022;
+                const dateDecision = !recency.allowed ? explainVkChatEventCandidate(message) : decision;
+                const phase1DateCandidate = Boolean(dateDecision?.evidence?.hasDate || dateDecision?.aiAdmission?.hasCalendarDate);
+                const repostRootTextReady = !hasVkChatRepostEvidence(message) || message.rootPostTextResolved === true ||
+                    (allowDateFreeImageVision && Number(phaseCount) !== 1 && !phase1DateCandidate);
+                const posterGatePending = Number(phaseCount) === 1 && !phase1DateCandidate ? false : Boolean(
+                    repostRootTextReady && recency.allowed && !incrementalKnown && !decision.aiAdmission?.pastOnly &&
+                    !decision.aiEligible && !existing && posterGateImageUrls.length && (phase1DateCandidate || allowDateFreeImageVision)
                 );
                 candidateDecisions.set(itemId, {
                     ...decision, existing, aiCandidate, priority, bodyAiEligible: Boolean(decision.aiEligible),
-                    posterGatePending, posterGateImageUrls, incrementalKnown, ledgerBefore,
+                    posterGatePending, posterGateImageUrls, incrementalKnown, ledgerBefore, recency,
+                    visionPhase: phase1DateCandidate ? 'phase1' : 'phase2-date-free-image',
                 });
+                // Keep the candidate set aligned with processingMessages: an
+                // unchanged final-ledger item is skipped and must not appear as
+                // a permanently pending repost candidate.
+                // An unresolved root is a bounded hydration-recovery item.
+                // `before` only exists in the later poster-gate pass; using it
+                // here caused a ReferenceError exactly on the records that
+                // needed root repost recovery. Keep the item in the recovery
+                // queue only when this capture was not already finalized.
+                // A root-text recovery failure is tracked separately; it is not
+                // an AI candidate and must not keep the main queue pending.
                 if (posterGatePending) {
                     posterGateRequests.push({
                         itemId, source: safeName || `VK chat ${peerId}`,
                         sourceUrl: String(message?.sourceUrl || conversationUrl || ''), imageUrls: posterGateImageUrls,
+                        originalImageUrls: message.imageUrls,
                         priority: Number(decision.score || 0), score: Number(decision.score || 0),
                         preview: parserCandidatePreview(message?.text),
+                        sourceText: String(message?.text || ''),
+                        visionPhase: phase1DateCandidate ? 'phase1' : 'phase2-date-free-image',
                     });
                 }
                 if (aiCandidate) candidateIds.add(itemId);
@@ -4498,6 +5164,7 @@ export function createVkChatEventScraper({
                     databaseMatch: existing,
                     incrementalOnly: Boolean(incrementalOnly),
                     incrementalKnown,
+                    recency,
                     preview: parserCandidatePreview(message?.text),
                 });
             }
@@ -4600,6 +5267,7 @@ export function createVkChatEventScraper({
                     posterGatePendingCount: posterGateRequests.length,
                     incrementalKnownSkippedCount,
                     incrementalNewCount,
+                    apiAudit: orderedCapturedMessages.flatMap((message) => Array.isArray(message?.apiAudit) ? message.apiAudit : []),
                 },
                 posterGateRequests,
                 candidatePreviews: orderedCapturedMessages
@@ -4622,6 +5290,8 @@ export function createVkChatEventScraper({
                     const itemId = String(message?.conversationMessageId ?? '');
                     const decision = candidateDecisions.get(itemId) || {};
                     return {
+                        visionPhase: decision.visionPhase,
+                        imageUrls: decision.posterGateImageUrls || [],
                         itemId,
                         source: safeName || `VK chat ${peerId}`,
                         sourceUrl: String(message?.sourceUrl || conversationUrl || ''),
@@ -4661,13 +5331,40 @@ export function createVkChatEventScraper({
                     : null;
                 if (gate?.attempted) {
                     posterGateCheckedCount += 1;
-                    message.__posterGateVisionAttempted = true;
-                    message.__posterGateFacts = String(gate?.facts || '');
-                    message.__posterGateError = String(gate?.error || '');
+                    applyPosterGateResult(message, gate);
                 }
-                const decision = before.incrementalKnown
+                const decision = !before.recency?.allowed
+                    ? { candidate: false, aiEligible: false, score: -1000, reasons: [before.recency.reason], evidence: { recency: before.recency }, aiAdmission: { rejectionReason: before.recency.reason, dateSource: 'recent-pass-policy' } }
+                    : before.incrementalKnown
                     ? { candidate: false, aiEligible: false, score: -1000, reasons: ['clean-mode-database-known'], evidence: {}, aiAdmission: { rejectionReason: 'clean-mode-database-known', dateSource: 'not-evaluated' } }
                     : explainVkChatEventCandidate(message);
+                const dateFreeVisionAccepted = Boolean(
+                    Number(peerId) === 2000000022 && acceptedDateFreePoster(message),
+                );
+                if (dateFreeVisionAccepted && !before.incrementalKnown) {
+                    // The configured date-free second phase trusts a positive
+                    // poster classification. Body text is enrichment and
+                    // cannot veto the image's independent event evidence.
+                    decision.candidate = true;
+                    decision.aiEligible = true;
+                    decision.aiAdmission = {
+                        ...(decision.aiAdmission || {}),
+                        eligible: true,
+                        admissionPath: 'phase-two-confirmed-poster',
+                        rejectionReason: '',
+                        dateSource: 'poster-vision',
+                    };
+                    decision.reasons = [...(Array.isArray(decision.reasons) ? decision.reasons : []), 'phase-two-confirmed-poster'];
+                }
+                const rootTextUnresolved = !dateFreeVisionAccepted && message.rootPostTextResolved !== true && hasVkChatRepostEvidence(message);
+                if (rootTextUnresolved) {
+                    decision.candidate = false;
+                    decision.aiEligible = false;
+                    decision.score = -1000;
+                    decision.reasons = [...(Array.isArray(decision.reasons) ? decision.reasons : []), 'repost-root-text-unresolved'];
+                    decision.aiAdmission = { ...(decision.aiAdmission || {}), eligible: false, rejectionReason: 'repost-root-text-unresolved', dateSource: 'repost-root-text-required' };
+                    decision.rootTextUnresolved = true;
+                }
                 if (decision.candidate) structuralCandidateCount += 1;
                 const existing = before.existing || null;
                 if (existing) databaseSkippedCount += 1;
@@ -4679,6 +5376,7 @@ export function createVkChatEventScraper({
                     posterGateRescuedCount += 1;
                 }
                 candidateDecisions.set(itemId, { ...before, ...decision, existing, aiCandidate, priority });
+                // Do not re-add unresolved roots to the AI queue.
                 if (aiCandidate) candidateIds.add(itemId);
                 diagnostics?.log?.('item.admission', {
                     sourceId, itemId, candidate: decision.candidate, aiEligible: decision.aiEligible, aiCandidate,
@@ -4700,6 +5398,7 @@ export function createVkChatEventScraper({
                 const itemId = String(message?.conversationMessageId ?? '');
                 const decision = candidateDecisions.get(itemId) || {};
                 return { itemId, source: safeName || `VK chat ${peerId}`,
+                    visionPhase: decision.visionPhase, imageUrls: decision.posterGateImageUrls || [],
                     sourceUrl: String(message?.sourceUrl || conversationUrl || ''), preview: parserCandidatePreview(message?.text),
                     candidate: Boolean(decision.candidate), aiEligible: Boolean(decision.aiEligible),
                     aiCandidate: Boolean(decision.aiCandidate), reasons: Array.isArray(decision.reasons) ? decision.reasons : [],
@@ -4711,7 +5410,7 @@ export function createVkChatEventScraper({
                 sourceId, kind: 'vk-chat', itemCount: orderedCapturedMessages.length, cachePath, domPath, parserReportPath,
                 prefilterStats: { structuralCandidateCount, databaseSkippedCount, aiRejectedCount, trashCount,
                     aiQueueCount: candidateIds.size, posterGateCheckedCount, posterGateRescuedCount,
-                    incrementalKnownSkippedCount, incrementalNewCount },
+                    incrementalKnownSkippedCount, incrementalNewCount, staleFilteredCount },
                 candidatePreviews: finalCandidatePreviews, prefilterPreviews: finalPrefilterPreviews,
             });
 
@@ -4730,6 +5429,8 @@ export function createVkChatEventScraper({
             });
 
             const processingMessages = orderedCapturedMessages
+                .filter((message) => !Array.isArray(itemIds) || itemIds.map(String).includes(String(message?.conversationMessageId ?? '')))
+                .filter((message) => Number(phaseCount) !== 1 || candidateDecisions.get(String(message?.conversationMessageId ?? ''))?.visionPhase !== 'phase2-date-free-image' || !candidateDecisions.get(String(message?.conversationMessageId ?? ''))?.posterGateImageUrls?.length)
                 .filter((message) => !incrementalOnly || !candidateDecisions.get(String(message?.conversationMessageId ?? ''))?.incrementalKnown)
                 .sort((left, right) => {
                 const leftDecision = candidateDecisions.get(String(left?.conversationMessageId ?? '')) || {};
@@ -4745,6 +5446,44 @@ export function createVkChatEventScraper({
                     // Do not finalize a message as "not event" after session shutdown.
                     assertVkChatSessionActive(manualSessionActive);
                     markManualParserSeenItemProcessing({ sourceId, itemId, runId: ledgerRunId });
+                    if (decision.rootTextUnresolved) {
+                        // Root text is mandatory. Retry the actual hydration on
+                        // every pool cycle instead of retrying the same stale
+                        // decision object. Once recovered, re-run the strict
+                        // date gate before allowing AI or final rejection.
+                        if (typeof hydrateMessageEvidence === 'function') {
+                            try {
+                                const evidence = await hydrateMessageEvidence({ ...message, peerId, conversationUrl, conversationName: safeName });
+                                message.rootPostTextResolved = Boolean(evidence?.rootPostTextResolved);
+                                message.rootPostText = String(evidence?.rootPostText || '').trim();
+                            message.apiAudit = Array.isArray(evidence?.apiAudit) ? evidence.apiAudit : [];
+                                if (evidence?.originalPost?.wall) {
+                                    message.text = cleanVkEventText(evidence.originalPost.wall.text || '', 12_000);
+                                    message.embeddedText = message.text;
+                                    message.repostText = message.text;
+                                    message.sourceUrl = evidence.originalPost.url || message.sourceUrl;
+                                    message.createdAt = Number(evidence.originalPost.wall.date || message.createdAt || 0);
+                                }
+                                message.imageUrls = uniqueStrings([...(message.imageUrls || []), ...(evidence?.imageUrls || [])], 1000);
+                                message.links = uniqueStrings([...(message.links || []), ...(evidence?.links || [])], 1000);
+                                message.repostUrls = uniqueRepostRefs([...(message.repostUrls || []), ...(evidence?.repostUrls || [])]);
+                                message.hasRepostEvidence = Boolean(evidence?.hasRepostEvidence || message.hasRepostEvidence);
+                            } catch (error) {
+                                message.__originHydrationError = String(error?.message || error);
+                            }
+                        }
+                        if (!message.rootPostTextResolved) {
+                            const error = new Error('VK root repost text was not recovered; retry the source hydration.');
+                            error.code = 'ROOT_POST_TEXT_UNRESOLVED';
+                            error.retryable = true;
+                            throw error;
+                        }
+                        const refreshed = explainVkChatEventCandidate(message);
+                        Object.assign(decision, refreshed, { rootTextUnresolved: false, existing: decision.existing || null });
+                        decision.aiCandidate = Boolean(decision.aiEligible && !decision.existing);
+                        decision.priority = decision.aiCandidate ? Number(decision.score || 0) : -1000;
+                        candidateDecisions.set(itemId, decision);
+                    }
                     // A poster-gate outage is not a confirmed "no event" decision.
                     if (!decision.existing && !decision.aiCandidate && decision.posterGatePending &&
                         (String(message.__posterGateError ?? '').trim() || !message.__posterGateVisionAttempted)) {
@@ -4772,7 +5511,7 @@ export function createVkChatEventScraper({
                         return result;
                     }
                     const result = await processLiveMessage(message, {
-                        forceReprocess: !incrementalOnly,
+                        forceReprocess: !incrementalOnly || resumeCompletedSince > 0,
                         traceAi: (stage, data = {}) => diagnostics?.log?.(`item.ai.${stage}`, {
                             sourceId,
                             itemId,
@@ -4839,8 +5578,14 @@ export function createVkChatEventScraper({
                     isRetryableFailure: (error, message) => (
                         !['POSTER_GATE_UNRESOLVED', 'MANUAL_SESSION_INACTIVE'].includes(error?.code) &&
                         candidateIds.has(String(message?.conversationMessageId ?? '')) &&
-                        (String(error?.vkChatStage || '') === 'gpt' || /(?:gpt|ai|429|5\d\d|timeout|network|fetch|socket|abort)/iu.test(String(error?.message ?? error ?? '')))
+                        (error?.code === 'ROOT_POST_TEXT_UNRESOLVED' ||
+                            String(error?.vkChatStage || '') === 'gpt' ||
+                            /(?:gpt|ai|429|5\d\d|timeout|network|fetch|socket|abort)/iu.test(String(error?.message ?? error ?? '')))
                     ),
+                    // Model failover already exhausts the configured ladder in
+                    // one worker call. Keep at most one transient recovery
+                    // pass; do not restart Luna/vision six times for a card.
+                    maxRetryCycles: 2,
                     retryDelayMs: clampInteger(
                         process.env.MANUAL_PARSER_BACKGROUND_RETRY_MS,
                         5_000,
@@ -4864,16 +5609,31 @@ export function createVkChatEventScraper({
                     }),
                 },
             );
-            processingResults.forEach((entry, index) => {
-                if (entry?.status !== 'rejected') return;
+            for (const [index, entry] of processingResults.entries()) {
+                if (entry?.status !== 'rejected') continue;
                 const message = processingMessages[index];
+                const exhausted = entry?.reason?.code === 'MANUAL_PARSER_RETRY_EXHAUSTED';
+                if (exhausted) {
+                    finalizeManualParserSeenItem({
+                        sourceId,
+                        itemId: String(message?.conversationMessageId ?? ''),
+                        runId: ledgerRunId,
+                        parseStatus: 'processed_unresolved',
+                        error: String(entry?.reason?.message ?? entry?.reason ?? ''),
+                    });
+                    const unresolvedError = entry?.reason || new Error('Parser exhausted recovery for unresolved item');
+                    unresolvedError.code = unresolvedError.code || 'MANUAL_PARSER_RETRY_EXHAUSTED';
+                    await diagnostics?.onParserItemError?.({ sourceId, itemId: String(message?.conversationMessageId ?? ''), sourceKind: 'vk-chat', item: message, error: unresolvedError, stage: 'processing-unresolved', sourceLabel: `VK-беседа ${safeName}`, sourceUrl: conversationUrl, partyPool: 'primary' });
+                    continue;
+                }
                 markManualParserSeenItemFailed({
                     sourceId,
                     itemId: String(message?.conversationMessageId ?? ''),
                     runId: ledgerRunId,
                     error: String(entry?.reason?.message ?? entry?.reason ?? ''),
                 });
-            });
+                await diagnostics?.onParserItemError?.({ sourceId, itemId: String(message?.conversationMessageId ?? ''), sourceKind: 'vk-chat', item: message, error: entry?.reason, stage: 'processing-error', sourceLabel: `VK-беседа ${safeName}`, sourceUrl: conversationUrl, partyPool: 'primary' });
+            }
             failedProcessingItems = processingResults.filter((item) => item?.status === 'rejected').length;
             diagnostics?.log?.('source.processing.finish', {
                 sourceId,
@@ -4959,6 +5719,7 @@ export function createVkChatEventScraper({
             historyBackfillTarget,
             incrementalKnownSkippedCount,
             incrementalNewCount,
+            staleFilteredCount,
             initialMinCmid,
             initialMaxCmid,
             downSweepRequested,
@@ -4971,6 +5732,10 @@ export function createVkChatEventScraper({
             priorityBackfillTarget: historyBackfillTarget,
             stoppedByOwner: false,
             failedProcessingItems,
+            // The ordered capture list is scoped to the processing block;
+            // return the same audit data from the function-level capture list
+            // so a failed/recovered chat pass cannot throw at finalization.
+            apiAudit: capturedMessages.flatMap((message) => Array.isArray(message?.apiAudit) ? message.apiAudit : []),
         };
     }
 
@@ -5293,3 +6058,4 @@ export function createVkChatEventScraper({
         start,
     };
 }
+import { acceptedDateFreePoster } from '../../features/events/dateFreeEventEvidence.js';

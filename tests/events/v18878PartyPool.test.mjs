@@ -10,13 +10,14 @@ import {
   partitionEventsByPartyPool,
 } from '../../src/features/events/partyPool.js';
 
-test('secondary source seed matches handoff and uses about 10 posts', () => {
-  assert.equal(SECONDARY_PARTY_INITIAL_SOURCES.length, 25);
+test('secondary source seed excludes the primary Club 12 source', () => {
+  assert.equal(SECONDARY_PARTY_INITIAL_SOURCES.length, 24);
   assert.ok(SECONDARY_PARTY_INITIAL_SOURCES.every((item) => item.initialCount === 10));
   assert.ok(SECONDARY_PARTY_INITIAL_SOURCES.some((item) => item.source === 'arena_voronez'));
   assert.ok(SECONDARY_PARTY_INITIAL_SOURCES.some((item) => item.source === 'kommunavrn'));
   assert.ok(SECONDARY_PARTY_INITIAL_SOURCES.some((item) => item.kind === 'vk-public' && item.source === 'literabar'));
   assert.equal(SECONDARY_PARTY_INITIAL_SOURCES.some((item) => item.kind === 'telegram' && item.source.toLowerCase() === 'litera_vrn_restobar'), false);
+  assert.equal(SECONDARY_PARTY_INITIAL_SOURCES.some((item) => item.kind === 'vk-public' && item.source.toLowerCase() === '12bpg'), false);
 });
 
 test('event pool is classified from Telegram/VK provenance and partitioned before dedupe', () => {
@@ -32,6 +33,14 @@ test('event pool is classified from Telegram/VK provenance and partitioned befor
   assert.deepEqual(split.primary.map((item) => item.id), [2]);
 });
 
+test('current source configuration overrides a stale cached secondary pool label', () => {
+  assert.equal(classifyEventPartyPool({
+    sourceType: 'vk',
+    sourceName: '12bpg',
+    partyPool: 'secondary',
+  }, { secondarySourceKeys: new Set() }), PARTY_POOL_PRIMARY);
+});
+
 test('canonical secondary request and alias select the secondary pool', () => {
   assert.deepEqual(parsePartyPoolRequest('второстепенные / быдлячьи тусы на месяц'), {
     partyPool: PARTY_POOL_SECONDARY,
@@ -39,4 +48,10 @@ test('canonical secondary request and alias select the secondary pool', () => {
   });
   assert.equal(parsePartyPoolRequest('быдлячьи тусы').partyPool, PARTY_POOL_SECONDARY);
   assert.equal(parsePartyPoolRequest('тусы на месяц').partyPool, PARTY_POOL_PRIMARY);
+});
+
+test('natural secondary event requests select the independent secondary feed', () => {
+  for (const phrase of ['второстепенные тусы на выходных', 'быдлячьи тусы сегодня', 'тусы второстепенные на месяц']) {
+    assert.equal(parsePartyPoolRequest(phrase).partyPool, PARTY_POOL_SECONDARY, phrase);
+  }
 });

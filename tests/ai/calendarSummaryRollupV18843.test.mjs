@@ -13,7 +13,7 @@ import {
 } from '../../src/features/ai/calendarSummaryRollup.js';
 import { createHierarchicalSummaryStateStore } from '../../src/infrastructure/database/hierarchicalSummaryStateStore.js';
 
-const appSource = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
+const appSource = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8').replace(/\r\n/gu, '\n');
 const storeSource = readFileSync(new URL('../../src/infrastructure/database/hierarchicalSummaryStateStore.js', import.meta.url), 'utf8');
 
 test('V188.43 calendar boundaries are day 24:00, Sunday 24:00 and last-day 24:00', () => {
@@ -22,9 +22,11 @@ test('V188.43 calendar boundaries are day 24:00, Sunday 24:00 and last-day 24:00
     assert.equal(calendarWeekEndExclusive('2026-08-31'), '2026-09-07');
     assert.equal(nextCalendarMonthStart('2026-09'), '2026-10-01');
 
-    assert.match(appSource, /daily=00:00-local/u);
+    assert.match(appSource, /daily=23:59-local\+tail-22:30-23:59/u);
     assert.match(appSource, /weekly=Sunday-24:00\/Monday-00:00-local/u);
-    assert.match(appSource, /monthly=last-day-24:00\/next-month-00:00-local/u);
+    assert.match(appSource, /monthly=first-day-11:00-local/u);
+    assert.match(appSource, /seasonal=first-day-new-season-11:00-local/u);
+    assert.match(appSource, /yearly=January-1-12:00-local/u);
     assert.match(appSource, /CALENDAR_SUMMARY_MIDNIGHT_TICK_MINUTES/u);
     assert.doesNotMatch(appSource, /HIERARCHICAL_PERIOD_SEND_HOUR = 20/u);
 });

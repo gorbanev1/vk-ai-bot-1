@@ -4,6 +4,7 @@ import {
     extractTicketLink,
     isCompactPartyRequest,
     normalizeCompactSummary,
+    isCompactSummaryUsable,
     getCompactSupportedTime,
 } from '../../src/features/events/compactPartySummary.js';
 
@@ -26,8 +27,20 @@ assert.equal(payload[0].ticketLink, 'https://tickets.example/e/1');
 assert.match(payload[0].sourceText, /Две сцены/u);
 assert.doesNotMatch(payload[0].sourceText, /https?:/u);
 
+const qticketsRootPayload = buildCompactPartyPayload([{
+    detailUrl: 'https://voronezh.qtickets.events/259022-dima-vagin-kontsert-2809-kopiya',
+    sourceUrl: 'https://voronezh.qtickets.events/259022-dima-vagin-kontsert-2809-kopiya',
+    ticketUrl: 'https://voronezh.qtickets.events/',
+    description: 'Дима Вагин. Купить билет на странице события.',
+}]);
+assert.equal(qticketsRootPayload[0].ticketLink, '');
+
 const summary = normalizeCompactSummary('Первая фраза. Вторая фраза! Третья? Четвёртая.', 300);
-assert.equal(summary, 'Первая фраза. Вторая фраза! Третья?');
+assert.equal(summary, 'Первая фраза. Вторая фраза! Третья? Четвёртая.');
+assert.equal(isCompactSummaryUsable(summary), true);
+assert.equal(isCompactSummaryUsable('Вечер живой музыки.'), false);
+assert.equal(isCompactSummaryUsable('Фестиваль выпускников музыкального проекта. На сцене выступят участники прошлых сезонов с живой программой.'), true);
+assert.equal(isCompactSummaryUsable('ДействияСегодня выступит группа. Показать ещё 5Ответить Поделиться'), false);
 
 console.log('compactPartySummary tests: OK');
 

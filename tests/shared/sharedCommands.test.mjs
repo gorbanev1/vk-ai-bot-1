@@ -22,6 +22,8 @@ assert.equal(tools.containsBotMention('Гигарейф, ты лох'), true);
 assert.equal(tools.removeBotMentions('Гигарейф, теперь ты лох'), 'теперь ты лох');
 assert.equal(tools.containsBotMention('@Gigorave_bot привет'), true);
 assert.equal(tools.removeBotMentions('@Gigorave_bot, привет!'), 'привет');
+assert.ok(tools.getBotAddressedCommandCandidates('Гигорейв чтиво низший пилотаж').includes('чтиво низший пилотаж'));
+assert.ok(tools.getBotAddressedCommandCandidates('чтиво низший пилотаж, Гигорейв').includes('чтиво низший пилотаж'));
 assert.equal(
     tools.removeBotMentions('[club233007447|Гигорейв] — тест'),
     'тест',

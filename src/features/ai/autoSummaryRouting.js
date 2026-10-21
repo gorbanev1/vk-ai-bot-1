@@ -17,9 +17,9 @@ export const AUTO_SUMMARY_STALE_GRACE_SECONDS = 10 * 60;
 export const AUTO_SUMMARY_DAY_BOUNDARY_HOUR = 0; // V188.45: calendar day starts at midnight.
 
 const MODE_SLOTS = Object.freeze({
-    [AUTO_SUMMARY_MODE_FULL]: Object.freeze(['09:00', '13:00', '15:00', '18:00', '21:00', '23:59']),
-    [AUTO_SUMMARY_MODE_DAY]: Object.freeze(['09:00', '13:00', '15:00', '18:00', '21:00', '23:59']),
-    [AUTO_SUMMARY_MODE_EVENING]: Object.freeze(['09:00', '13:00', '15:00', '18:00', '21:00', '23:59']),
+    [AUTO_SUMMARY_MODE_FULL]: Object.freeze(['03:00', '09:00', '12:00', '15:00', '18:00', '21:00', '22:30', '23:59']),
+    [AUTO_SUMMARY_MODE_DAY]: Object.freeze(['03:00', '09:00', '12:00', '15:00', '18:00', '21:00', '22:30', '23:59']),
+    [AUTO_SUMMARY_MODE_EVENING]: Object.freeze(['03:00', '09:00', '12:00', '15:00', '18:00', '21:00', '22:30', '23:59']),
 });
 
 const RUSSIAN_HOUR_WORDS = new Map([
@@ -139,10 +139,19 @@ function extractConversationTarget(value) {
      *   беседа 6 / чат 6 / c6
      *   https://vk.com/im?sel=c6
      *
-     * /im/convo/<...> намеренно НЕ используется как источник peer_id:
-     * веб-маршрут VK может быть персональным/редиректиться и ранее приводил
-     * к выбору не той беседы.
+     * /im/convo/<peer_id> содержит точный peer_id и имеет приоритет над
+     * короткими алиасами беседы.
      */
+    const convoUrl = text.match(/https?:\/\/(?:m\.)?(?:vk\.com|vk\.ru)\/im\/convo\/(200000\d+)/iu);
+    if (convoUrl) {
+        return {
+            platform: 'vk',
+            externalPeerId: String(convoUrl[1]),
+            canonicalUrl: '',
+            matchedText: convoUrl[0].trim(),
+        };
+    }
+
     const explicitPeer = text.match(/(?:^|\s)(?:peer(?:_id)?\s*[:=]?\s*)?(200000\d{4,})(?=\s|$)/iu);
     if (explicitPeer) {
         return {
@@ -221,6 +230,13 @@ export function parseAutoSummaryCommand(value) {
     if (/^(?:статус|status|настройки)$/u.test(text)) {
         return { matched: true, action: 'status', all: false, ...(target ? { target } : {}) };
     }
+    const limitsMatch = text.match(/^(?:лимиты|limits)(?:\s+(?:показать|покажи|статус))?(?:\s+([\s\S]+))?$/u);
+    if (limitsMatch) {
+        return { matched: true, action: 'limits', limitsText: String(limitsMatch[1] || '').trim(), ...(target ? { target } : {}) };
+    }
+    if (/^(?:шаблон|интервалы|расписание|schedule)$/u.test(text)) {
+        return { matched: true, action: 'template', ...(target ? { target } : {}) };
+    }
     if (/^(?:все\s+)?(?:статус(?:ы)?|status|настройки)\s+(?:все|всех|во\s+всех\s+беседах|всех\s+беседах)$/u.test(text) || /^(?:все\s+беседы|всех\s+бесед)$/u.test(text)) {
         return { matched: true, action: 'status', all: true, ...(target ? { target } : {}) };
     }
@@ -269,11 +285,12 @@ export function parseAutoSummaryCommand(value) {
     return { matched: true, action: 'help', ...(target ? { target } : {}) };
 }
 
-export function getAutoSummaryScheduleSlots(_mode, _customSchedule = []) {
-    // V188.45: one canonical schedule everywhere. Legacy mode/custom values may
-    // remain in old SQLite rows for migration compatibility, but they no longer
-    // change runtime boundaries.
-    return [...MODE_SLOTS[AUTO_SUMMARY_MODE_FULL]];
+export function getAutoSummaryScheduleSlots(mode, customSchedule = []) {
+    // An explicitly supplied schedule is the editable public template. Empty
+    // legacy values retain the canonical production intervals.
+    const custom = normalizeAutoSummarySchedule(customSchedule);
+    if (custom.length) return custom;
+    return [...(MODE_SLOTS[mode] || MODE_SLOTS[AUTO_SUMMARY_MODE_FULL])];
 }
 
 // Legacy helper retained for older tests/callers.
@@ -289,8 +306,8 @@ export function formatAutoSummarySchedule(schedule = []) {
     return slots.length ? slots.join(', ') : '—';
 }
 
-export function formatAutoSummaryMode() {
-    return '09:00, 13:00, 15:00, 18:00, 21:00 и 23:59';
+export function formatAutoSummaryMode(mode = AUTO_SUMMARY_MODE_FULL, schedule = []) {
+    return getAutoSummaryScheduleSlots(mode, schedule).join(', ').replace(/, ([^,]+)$/u, ' и $1');
 }
 
 function candidateForDate(dateString, slot, timeZone) {

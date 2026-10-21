@@ -1,0 +1,400 @@
+[TEST ISOLATION] data=C:\Users\Adm\AppData\Local\Temp\gigorave-test-43xLBv\data
+✔ event Vision and text requests retain operation cancellation and cap stalled model attempts (1.3838ms)
+✔ upstream 403 changes model/key instead of restarting same model in another transport (2.2169ms)
+✔ future cards have two independently routed modes and a real capture-before-AI queue (3.0304ms)
+✔ startup recovery marks active checkpoints interrupted and preserves their resume payload (3.7375ms)
+✔ V188.48: global hard algorithm ceiling is exactly two hours (0.5619ms)
+✔ V188.48: stop handlers have their own finite deadline so stop command cannot hang forever (0.091ms)
+✔ V188.48: manual stop aborts a cooperative operation and preserves checkpoint/progress (67.4277ms)
+✔ V188.48: hard deadline aborts a cooperative operation instead of waiting forever (1026.5404ms)
+✔ V188.48: manual stop returns promptly even when underlying third-party promise ignores abort (38.2535ms)
+✔ V188.48: manually cancelled task is removed after an SDK eventually settles late (58.487ms)
+✔ V188.48: process control commands discover/details/stop unfinished work (2.3489ms)
+✔ latest invocation wins despite restart timestamp; successful run supersedes old failures (17.2743ms)
+✔ partial completed run is recoverable, pools and dismissal remain independent (13.8694ms)
+✔ trace recovers cache paths despite malformed JSONL; text and attachments stay together (10.2254ms)
+✔ corrupt or wrong-source cache is reported; no silent recapture or fallback to old run (8.8388ms)
+✔ failed empty capture is recaptured while successful source caches are reused (9.4059ms)
+✔ capture manifests survive failure, stop and finalization checkpoint updates (0.3801ms)
+✔ full resume skips only finalized unchanged records from this pass (0.224ms)
+✔ recovery command aliases include secondary pool (1.6176ms)
+✔ durable raw cache preserves shared attachments rather than serializing them as CIRCULAR (10.5327ms)
+[SCRAPER V130 DATE CLEANUP] telegramRemoved=0 vkRemoved=0
+[SCRAPER V147 DB REPAIR] vkSharedMediaCleared=0 telegramSharedMediaCleared=0 generatedCleared=0
+[VK HTML SCRAPER] source=vk.ru/recovery_vk mode=initial fetched=2 changed=0 events=0 lastPostId=2
+[VK HTML SCRAPER] source=vk.ru/recovery_vk mode=initial fetched=2 changed=0 events=0 lastPostId=2
+[VK HTML SCRAPER] source=vk.ru/recovery_vk mode=initial fetched=2 changed=0 events=0 lastPostId=2
+[VK HTML SCRAPER] source=vk.ru/recovery_vk mode=initial fetched=0 changed=0 events=0 lastPostId=2
+[TG HTML SCRAPER] channel=@recovery_tg mode=initial fetched=2 changed=0 events=0 lastMessageId=2
+[TG HTML SCRAPER] channel=@recovery_tg mode=daily fetched=2 changed=0 events=0 lastMessageId=2
+[TG HTML SCRAPER] channel=@recovery_tg mode=daily fetched=2 changed=0 events=0 lastMessageId=2
+[TG HTML SCRAPER] channel=@recovery_tg mode=daily fetched=0 changed=0 events=0 lastMessageId=2
+[VK CHAT FINITE PASS] peer=2000099922 loaded=2 checked=0 events=0 timedOut=false reachedTop=false historyOlder=0/0 initialMinCmid=0 initialMaxCmid=0 downFirst=false unreadAtStart=0 downCaptured=0 returnedToFrontier=true durationMs=9
+[VK CHAT FINITE PASS] peer=2000099922 loaded=2 checked=0 events=0 timedOut=false reachedTop=false historyOlder=0/0 initialMinCmid=0 initialMaxCmid=0 downFirst=false unreadAtStart=0 downCaptured=0 returnedToFrontier=true durationMs=2
+[VK CHAT FINITE PASS] peer=2000099922 loaded=2 checked=0 events=0 timedOut=false reachedTop=false historyOlder=0/0 initialMinCmid=0 initialMaxCmid=0 downFirst=false unreadAtStart=0 downCaptured=0 returnedToFrontier=true durationMs=0
+[VK CHAT FINITE PASS] peer=2000099922 loaded=0 checked=0 events=0 timedOut=false reachedTop=false historyOlder=0/0 initialMinCmid=0 initialMaxCmid=0 downFirst=false unreadAtStart=0 downCaptured=0 returnedToFrontier=true durationMs=0
+(node:19784) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ vk: cached replay resumes failed item, skips completed item and is idempotent (42.2502ms)
+✔ tg: cached replay resumes failed item, skips completed item and is idempotent (9.2957ms)
+✔ chat: cached replay resumes failed item, skips completed item and is idempotent (13.1384ms)
+✔ V18836 strong current/future repost candidate outranks old/noisy chat lines (35.8592ms)
+✔ global limiter arbitrates first free slots by candidate priority (88.3061ms)
+✔ diagnostic run persists verbatim DOM, parsed report and run manifest together (16.6553ms)
+✔ VK sources record exact-vs-fallback reasons and keep last DOM on interrupted public capture (0.6008ms)
+✖ parser-all invalidates stale display/image snapshot caches and audits final DB visibility (2.7124ms)
+scraperCommandRouting tests: OK
+✔ tests\scrapers\scraperCommandRouting.test.mjs (68.4761ms)
+✔ V188.70 finite VK-chat pass builds ledger id from finitePassStartedAt, not undefined startedAt (5.526ms)
+✔ canonical and alias secondary add-source commands stay in secondary pool (1.7067ms)
+✔ secondary parser-all has an isolated namespace (0.634ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 31
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2676.5258
+
+✖ failing tests:
+
+test at tests\scrapers\parserDiagnosticsV18836.test.mjs:96:1
+✖ parser-all invalidates stale display/image snapshot caches and audits final DB visibility (2.7124ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /label: `vk-public-vision:[^`]+`[\s\S]{0,100}maxAttempts: 1/u. Input:
+  
+  '/**\n' +
+    ' * Скрейпер публичных VK-страниц. Переиспользует общий браузер и строгую проверку событий.\n' +
+    ' */\n' +
+    "import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';\n" +
+    "import { createHash, randomInt } from 'node:crypto';\n" +
+    "import { extname, join } from 'node:path';\n" +
+    '\n' +
+    'import {\n' +
+    '    findExistingAnnouncementEvidence,\n' +
+    '    finalizeManualParserSeenItem,\n' +
+    '    getManualParserSeenItem,\n' +
+    '    isManualParserSeenItemFinalStatus,\n' +
+    '    markManualParserSeenItemFailed,\n' +
+    '    markManualParserSeenItemProcessing,\n' +
+    '    upsertManualParserSeenItem,\n' +
+    '    getVkEventsForPostRefresh,\n' +
+    '    getVkPostMeta,\n' +
+    '    isPermanentlyBlockedMonoSource,\n' +
+    '    getVkScraperState,\n' +
+    '    getVkUpcomingEvents,\n' +
+    '    persistVkSourceAndEvents,\n' +
+    '    upsertVkSourcePost,\n' +
+    '    saveStartupPosterRepairVisionFactsV18877,\n' +
+    '    updateStoredEventRecordFromReparse,\n' +
+    '    updateVkScraperState,\n' +
+    "} from '../../infrastructure/database/index.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    browserDownloadBuffer,\n' +
+    '    openScraperPage,\n' +
+    '    settleScraperPage,\n' +
+    '    waitForManualAccess,\n' +
+    "} from '../../infrastructure/browser/browserGrabber.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    explainPublicPostEventCandidate,\n' +
+    '    parsePublicPostLocally,\n' +
+    '    publicPostLooksLikeEventCandidate,\n' +
+    '    selectPublicAiEventsForPersistence,\n' +
+    '    setPublicAiResponseMetadata,\n' +
+    '    validatePublicAiEvents,\n' +
+    "} from '../../features/events/publicPostLocalParser.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    prepareEventImages,\n' +
+    '    assignEventImageIndexesFromFacts,\n' +
+    '    applyPosterDerivedVenueFallback,\n' +
+    '    parseIndexedImageFacts,\n' +
+    '    serializeIndexedImageFacts,\n' +
+    '    filterEventsWithAnnouncementImages,\n' +
+    "} from '../../features/events/eventAssets.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    isScraperTargetClosedError,\n' +
+    "} from '../../features/scrapers/browserRecoveryPolicy.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    getManualParserProcessingConcurrency,\n' +
+    '    parserCandidatePreview,\n' +
+    '    runManualParserPoolUntilSettled,\n' +
+    "} from '../../features/scrapers/manualProcessingPool.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    rankEventImageCandidates,\n' +
+    "} from '../../features/events/eventImageSelection.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    cleanVkEventText,\n' +
+    "} from '../../features/events/eventText.js';\n" +
+    'import {\n' +
+    '    sanitizeEventBodyText,\n' +
+    "} from '../../features/events/eventTextSanitation.js';\n" +
+    'import {\n' +
+    '    attachVkChildSourceProvenance,\n' +
+    '    boundedVkEventSourceLinks,\n' +
+    '    classifyVkEventSourceUrl,\n' +
+    '    resolveVkShortUrlControlled,\n' +
+    "} from '../../features/events/vkEventLinkEnrichment.js';\n" +
+    'import {\n' +
+    '    mergeVkCapturedImageMedia,\n' +
+    "} from '../../features/events/vkCapturedMediaMerge.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    classifyVkSourcePageHealth,\n' +
+    "} from './vkSourcePageHealth.js';\n" +
+    '\n' +
+    '// The staged parser is serialized into page.evaluate() and is the stable\n' +
+    '// structure based fallback for immutable VK DOM snapshots.  Keep the legacy\n' +
+    '// extractor below as the exact contour; the staged parser is only admitted\n' +
+    '// when that contour cannot recover a post, so adaptive/heuristic recovery\n' +
+    '// never changes a healthy exact result.\n' +
+    "import { extractVkPublicDomStaged } from './vkStagedDomParser.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    explainStrictEventRecord,\n' +
+    "} from '../../features/events/eventValidation.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    appendEventIngestAudit,\n' +
+    "} from '../../features/events/eventIngestAudit.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    shouldPreserveStoredEventsOnEmptyReparse,\n' +
+    "} from '../../features/events/sourceEventPersistence.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    mergeStoredEventWithFreshSource,\n' +
+    '    selectFreshEventForStoredEvent,\n' +
+    "} from '../../features/events/eventSourceRefresh.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    runEventOperationWithRetries,\n' +
+    "} from '../../features/events/eventRetry.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    storedImageResultIsReusable,\n' +
+    '    pendingVisionImageIndexes,\n' +
+    '    textEventsAreComplete,\n' +
+    '    visionSkipReason,\n' +
+    "} from '../../features/events/eventVisionPolicy.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    extractRawDateMentions,\n' +
+    '    isEventDateConsistentWithSource,\n' +
+    '    parseVkPublishedAtLabel,\n' +
+    "} from '../../features/events/publicPostDateEvidence.js';\n" +
+    '\n' +
+    'import {\n' +
+    '    createSourceTextFingerprint,\n' +
+    '    fingerprintRemoteImages,\n' +
+    '    imageFingerprintSetsEqual,\n' +
+    '    parseImageFingerprints,\n' +
+    '    sourceTextSimilarity,\n' +
+    '    isLikelyVkNonPosterUiImageUrl,\n' +
+    "} from '../../features/events/sourcePostFingerprint.js';\n" +
+    '\n' +
+    '\n' +
+    'import {\n' +
+    '    explainSecondaryPartyTextGate,\n' +
+    '    secondaryJointVisionAccepted,\n' +
+    "} from '../../features/events/secondaryPartyAdmission.js';\n" +
+    "import { createVkPublicCaptureHash } from '../../features/events/vkPublicContentHash.js';\n" +
+    "import { shouldSkipUnchangedCapturedItem } from '../../features/scrapers/manualParserCleanSkip.js';\n" +
+    '\n' +
+    "const VK_PARSER_VERSION = 'vk-public-parser-multi-announcement-poster-repair-v18861';\n" +
+    'const ONE_DAY_MS = 24 * 60 * 60 * 1000;\n' +
+    'const MAX_HTML_BYTES = 8 * 1024 * 1024;\n' +
+    'const MAX_IMAGE_BYTES = 15 * 1024 * 1024;\n' +
+    'const MAX_IMAGES_PER_POST = 1000;\n' +
+    'const DEFAULT_USER_AGENT = [\n' +
+    "    'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',\n" +
+    "    'AppleWebKit/537.36 (KHTML, like Gecko)',\n" +
+    "    'Chrome/126.0.0.0 Safari/537.36',\n" +
+    "].join(' ');\n" +
+    'const activeRunPromises = new Map();\n' +
+    'const keptManualPages = new Map();\n' +
+    'const manualLiveLoops = new Map();\n' +
+    '\n' +
+    'function currentIsoDate(timeZone) {\n' +
+    "    const parts = new Intl.DateTimeFormat('en-CA', {\n" +
+    '        timeZone,\n' +
+    "        year: 'numeric',\n" +
+    "        month: '2-digit',\n" +
+    "        day: '2-digit',\n" +
+    '    }).formatToParts(new Date());\n' +
+    '    const map = Object.fromEntries(\n' +
+    '        parts.map((part) => [part.type, part.value]),\n' +
+    '    );\n' +
+    '    return `${map.year}-${map.month}-${map.day}`;\n' +
+    '}\n' +
+    '\n' +
+    'function sleep(milliseconds) {\n' +
+    '    return new Promise((resolve) => setTimeout(resolve, milliseconds));\n' +
+    '}\n' +
+    '\n' +
+    'function clampInteger(value, minimum, maximum, fallback) {\n' +
+    '    const parsed = Number(value);\n' +
+    '\n' +
+    '    if (!Number.isFinite(parsed)) {\n' +
+    '        return fallback;\n' +
+    '    }\n' +
+    '\n' +
+    '    return Math.min(maximum, Math.max(minimum, Math.trunc(parsed)));\n' +
+    '}\n' +
+    '\n' +
+    'function normalizeScreenName(value) {\n' +
+    "    const source = String(value ?? '').trim();\n" +
+    '    const match = source.match(\n' +
+    '        /^(?:https?:\\/\\/)?(?:www\\.)?(?:vk\\.com|vk\\.ru|m\\.vk\\.com)\\/([A-Za-z0-9_.-]+)\\/?(?:\\?.*)?$/iu,\n' +
+    '    );\n' +
+    "    const screenName = (match?.[1] ?? source.replace(/^@/u, '')).trim();\n" +
+    '\n' +
+    '    if (!/^[A-Za-z0-9_.-]{2,}$/u.test(screenName)) {\n' +
+    '        throw new Error(`Некорректное имя VK-паблика: ${source}`);\n' +
+    '    }\n' +
+    '\n' +
+    '    return screenName;\n' +
+    '}\n' +
+    '\n' +
+    'function decodeHtmlEntities(value) {\n' +
+    '    const named = {\n' +
+    `        amp: '&', apos: "'", gt: '>', lt: '<', nbsp: ' ', quot: '"',\n` +
+    "        laquo: '«', raquo: '»', mdash: '—', ndash: '–', hellip: '…', shy: '',\n" +
+    '    };\n' +
+    '\n' +
+    "    return String(value ?? '').replace(\n" +
+    '        /&(#x?[0-9a-f]+|[a-z][a-z0-9]+);/giu,\n' +
+    '        (entity, code) => {\n' +
+    '            const lower = String(code).toLowerCase();\n' +
+    '\n' +
+    "            if (lower.startsWith('#x')) {\n" +
+    '                const point = Number.parseInt(lower.slice(2), 16);\n' +
+    '                return Number.isFinite(point) ? String.fromCodePoint(point) : entity;\n' +
+    '            }\n' +
+    '\n' +
+    "            if (lower.startsWith('#')) {\n" +
+    '                const point = Number.parseInt(lower.slice(1), 10);\n' +
+    '                return Number.isFinite(point) ? String.fromCodePoint(point) : entity;\n' +
+    '            }\n' +
+    '\n' +
+    '            return Object.hasOwn(named, lower) ? named[lower] : entity;\n' +
+    '        },\n' +
+    '    );\n' +
+    '}\n' +
+    '\n' +
+    'function htmlToText(value) {\n' +
+    '    return decodeHtmlEntities(\n' +
+    "        String(value ?? '')\n" +
+    "            .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/giu, '')\n" +
+    "            .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/giu, '')\n" +
+    "            .replace(/<br\\s*\\/?>/giu, '\\n')\n" +
+    "            .replace(/<\\/(?:div|p|li|blockquote|h[1-6])\\s*>/giu, '\\n')\n" +
+    "            .replace(/<[^>]+>/gu, ''),\n" +
+    '    )\n' +
+    "        .replace(/\\u00a0/gu, ' ')\n" +
+    "        .replace(/[ \\t]+\\n/gu, '\\n')\n" +
+    "        .replace(/\\n[ \\t]+/gu, '\\n')\n" +
+    "        .replace(/\\n{3,}/gu, '\\n\\n')\n" +
+    '        .trim();\n' +
+    '}\n' +
+    '\n' +
+    "function cleanPublicPostText(value, screenName = '') {\n" +
+    "    const normalizedSource = String(screenName ?? '').trim().toLowerCase();\n" +
+    '    const lines = cleanVkEventText(value)\n' +
+    "        .split('\\n')\n" +
+    "        .map((line) => line.replace(/^действия\\s+(?=\\d)/iu, '').trim())\n" +
+    '        .filter(Boolean);\n' +
+    '\n' +
+    '    while (lines.length) {\n' +
+    '        const first = lines[0];\n' +
+    "        const isDieselHeading = normalizedSource === 'rb_diesel' &&\n" +
+    '            /^rock\\s+bar\\s+diesel(?:\\s*&\\s*diesel\\s+hall)?$/iu.test(first);\n' +
+    "        const isOverlockHeading = normalizedSource === 'overlockbar' &&\n" +
+    '            /^(?:overlock|overlock\\s+bar)$/iu.test(first);\n' +
+    '\n' +
+    '        if (!isDieselHeading && !isOverlockHeading) {\n' +
+    '            break;\n' +
+    '        }\n' +
+    '\n' +
+    '        lines.shift();\n' +
+    '    }\n' +
+    '\n' +
+    "    return lines.join('\\n').trim().slice(0, 12_000);\n" +
+    '}\n' +
+    '\n' +
+    'const VK_SOURCE_VALIDATION_EVIDENCE = new Map([\n' +
+    "    ['rb_diesel', 'Rock Bar DIESEL & DIESEL Hall, Воронеж'],\n" +
+    "    ['overlockbar', 'Overlock Bar, Воронеж'],\n" +
+    "    ['vavilone_rb', 'The Last of Vavilone, Воронеж'],\n" +
+    "    ['liverpool_pub_vrn', 'Liverpool Pub, Воронеж'],\n" +
+    "    ['idmamaanarchy', 'Паб Мама Анархия, Воронеж'],\n" +
+    "    ['meetbowling.club', 'Митбоулинг Клуб, Воронеж'],\n" +
+    ']);\n' +
+    '\n' +
+    'function buildVkValidationSourceText(post) {\n' +
+    "    const source = String(post?.screenName ?? '').trim().toLowerCase();\n" +
+    '    return [\n' +
+    "        String(post?.text ?? '').trim(),\n" +
+    "        VK_SOURCE_VALIDATION_EVIDENCE.get(source) || '',\n" +
+    "    ].filter(Boolean).join('\\n');\n" +
+    '}\n' +
+    '\n' +
+    'function getAttribute(tag, attributeName) {\n' +
+    '    const pattern = new RegExp(\n' +
+    '        `\\\\b${attributeName}\\\\s*=\\\\s*(?:"([^"]*)"|\'([^\']*)\')`,\n' +
+    "        'iu',\n" +
+    '    );\n' +
+    "    const match = String(tag ?? '').match(pattern);\n" +
+    "    return decodeHtmlEntities(match?.[1] ?? match?.[2] ?? '');\n" +
+    '}\n' +
+    '\n' +
+    'async function readResponseBuffer(response, maximumBytes) {\n' +
+    "    const length = Number(response.headers.get('content-length') ?? 0);\n" +
+    '\n' +
+    '    if (length > maximumBytes) {\n' +
+    '        throw new Error(`Ответ слишком большой: ${length} байт`);\n' +
+    '    }\n' +
+    '\n' +
+    '    const buffer = Buffer.from(await response.arrayBuffer());\n' +
+    '\n' +
+    '    if (buffer.length > maximumBytes) {\n' +
+    '        throw new Error(`Ответ превысил ${maximumBytes} байт`);\n' +
+    '    }\n' +
+    '\n' +
+    '    return buffer;\n' +
+    '}\n' +
+    '\n' +
+    'async function fetchWithTimeout(url, {\n' +
+    '    timeoutMs = 35_000,\n' +
+    '    maximumBytes = MAX_HTML_BYTES,\n' +
+    "    accept = 'text/html,application/xhtml+xml',\n" +
+    '} = {}) {\n' +
+    '    const controller = new AbortController();\n' +
+    '    const timer = setTimeout(() => controller.abort(), timeoutMs);\n' +
+    '\n' +
+    '    try {\n' +
+    '        const response = await fetch(url, {\n' +
+    "            redirect: 'follow',\n" +
+    '            signal: controller.signal,\n' +
+    '           '... 259197 more characters
+  
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/.scratch-parser-recovery/tests/scrapers/parserDiagnosticsV18836.test.mjs:104:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/**\n * Скрейпер публичных VK-страниц. Переиспользует общий браузер и строгую проверку событий.\n */\nimport { existsSync, mkdirSync, readFileSync, writeFileSync } from \'node:fs\';\nimport { createHash, randomInt } from \'node:crypto\';\nimport { extname, join } from \'node:path\';\n\nimport {\n    findExistingAnnouncementEvidence,\n    finalizeManualParserSeenItem,\n    getManualParserSeenItem,\n    isManualParserSeenItemFinalStatus,\n    markManualParserSeenItemFailed,\n    markManualParserSeenItemProcessing,\n    upsertManualParserSeenItem,\n    getVkEventsForPostRefresh,\n    getVkPostMeta,\n    isPermanentlyBlockedMonoSource,\n    getVkScraperState,\n    getVkUpcomingEvents,\n    persistVkSourceAndEvents,\n    upsertVkSourcePost,\n    saveStartupPosterRepairVisionFactsV18877,\n    updateStoredEventRecordFromReparse,\n    updateVkScraperState,\n} from \'../../infrastructure/database/index.js\';\n\nimport {\n    browserDownloadBuffer,\n    openScraperPage,\n    settleScraperPage,\n    waitForManualAccess,\n} from \'../../infrastructure/browser/browserGrabber.js\';\n\nimport {\n    explainPublicPostEventCandidate,\n    parsePublicPostLocally,\n    publicPostLooksLikeEventCandidate,\n    selectPublicAiEventsForPersistence,\n    setPublicAiResponseMetadata,\n    validatePublicAiEvents,\n} from \'../../features/events/publicPostLocalParser.js\';\n\nimport {\n    prepareEventImages,\n    assignEventImageIndexesFromFacts,\n    applyPosterDerivedVenueFallback,\n    parseIndexedImageFacts,\n    serializeIndexedImageFacts,\n    filterEventsWithAnnouncementImages,\n} from \'../../features/events/eventAssets.js\';\n\nimport {\n    isScraperTargetClosedError,\n} from \'../../features/scrapers/browserRecoveryPolicy.js\';\n\nimport {\n    getManualParserProcessingConcurrency,\n    parserCandidatePreview,\n    runManualParserPoolUntilSettled,\n} from \'../../features/scrapers/manualProcessingPool.js\';\n\nimport {\n    rankEventImageCandidates,\n} from \'../../features/events/eventImageSelection.js\';\n\nimport {\n    cleanVkEventText,\n} from \'../../features/events/eventText.js\';\nimport {\n    sanitizeEventBodyText,\n} from \'../../features/events/eventTextSanitation.js\';\nimport {\n    attachVkChildSourceProvenance,\n    boundedVkEventSourceLinks,\n    classifyVkEventSourceUrl,\n    resolveVkShortUrlControlled,\n} from \'../../features/events/vkEventLinkEnrichment.js\';\nimport {\n    mergeVkCapturedImageMedia,\n} from \'../../features/events/vkCapturedMediaMerge.js\';\n\nimport {\n    classifyVkSourcePageHealth,\n} from \'./vkSourcePageHealth.js\';\n\n// The staged parser is serialized into page.evaluate() and is the stable\n// structure based fallback for immutable VK DOM snapshots.  Keep the legacy\n// extractor below as the exact contour; the staged parser is only admitted\n// when that contour cannot recover a post, so adaptive/heuristic recovery\n// never changes a healthy exact result.\nimport { extractVkPublicDomStaged } from \'./vkStagedDomParser.js\';\n\nimport {\n    explainStrictEventRecord,\n} from \'../../features/events/eventValidation.js\';\n\nimport {\n    appendEventIngestAudit,\n} from \'../../features/events/eventIngestAudit.js\';\n\nimport {\n    shouldPreserveStoredEventsOnEmptyReparse,\n} from \'../../features/events/sourceEventPersistence.js\';\n\nimport {\n    mergeStoredEventWithFreshSource,\n    selectFreshEventForStoredEvent,\n} from \'../../features/events/eventSourceRefresh.js\';\n\nimport {\n    runEventOperationWithRetries,\n} from \'../../features/events/eventRetry.js\';\n\nimport {\n    storedImageResultIsReusable,\n    pendingVisionImageIndexes,\n    textEventsAreComplete,\n    visionSkipReason,\n} from \'../../features/events/eventVisionPolicy.js\';\n\nimport {\n    extractRawDateMentions,\n    isEventDateConsistentWithSource,\n    parseVkPublishedAtLabel,\n} from \'../../features/events/publicPostDateEvidence.js\';\n\nimport {\n    createSourceTextFingerprint,\n    fingerprintRemoteImages,\n    imageFingerprintSetsEqual,\n    parseImageFingerprints,\n    sourceTextSimilarity,\n    isLikelyVkNonPosterUiImageUrl,\n} from \'../../features/events/sourcePostFingerprint.js\';\n\n\nimport {\n    explainSecondaryPartyTextGate,\n    secondaryJointVisionAccepted,\n} from \'../../features/events/secondaryPartyAdmission.js\';\nimport { createVkPublicCaptureHash } from \'../../features/events/vkPublicContentHash.js\';\nimport { shouldSkipUnchangedCapturedItem } from \'../../features/scrapers/manualParserCleanSkip.js\';\n\nconst VK_PARSER_VERSION = \'vk-public-parser-multi-announcement-poster-repair-v18861\';\nconst ONE_DAY_MS = 24 * 60 * 60 * 1000;\nconst MAX_HTML_BYTES = 8 * 1024 * 1024;\nconst MAX_IMAGE_BYTES = 15 * 1024 * 1024;\nconst MAX_IMAGES_PER_POST = 1000;\nconst DEFAULT_USER_AGENT = [\n    \'Mozilla/5.0 (Windows NT 10.0; Win64; x64)\',\n    \'AppleWebKit/537.36 (KHTML, like Gecko)\',\n    \'Chrome/126.0.0.0 Safari/537.36\',\n].join(\' \');\nconst activeRunPromises = new Map();\nconst keptManualPages = new Map();\nconst manualLiveLoops = new Map();\n\nfunction currentIsoDate(timeZone) {\n    const parts = new Intl.DateTimeFormat(\'en-CA\', {\n        timeZone,\n        year: \'numeric\',\n        month: \'2-digit\',\n        day: \'2-digit\',\n    }).formatToParts(new Date());\n    const map = Object.fromEntries(\n        parts.map((part) => [part.type, part.value]),\n    );\n    return `${map.year}-${map.month}-${map.day}`;\n}\n\nfunction sleep(milliseconds) {\n    return new Promise((resolve) => setTimeout(resolve, milliseconds));\n}\n\nfunction clampInteger(value, minimum, maximum, fallback) {\n    const parsed = Number(value);\n\n    if (!Number.isFinite(parsed)) {\n        return fallback;\n    }\n\n    return Math.min(maximum, Math.max(minimum, Math.trunc(parsed)));\n}\n\nfunction normalizeScreenName(value) {\n    const source = String(value ?? \'\').trim();\n    const match = source.match(\n        /^(?:https?:\\/\\/)?(?:www\\.)?(?:vk\\.com|vk\\.ru|m\\.vk\\.com)\\/([A-Za-z0-9_.-]+)\\/?(?:\\?.*)?$/iu,\n    );\n    const screenName = (match?.[1] ?? source.replace(/^@/u, \'\')).trim();\n\n    if (!/^[A-Za-z0-9_.-]{2,}$/u.test(screenName)) {\n        throw new Error(`Некорректное имя VK-паблика: ${source}`);\n    }\n\n    return screenName;\n}\n\nfunction decodeHtmlEntities(value) {\n    const named = {\n        amp: \'&\', apos: "\'", gt: \'>\', lt: \'<\', nbsp: \' \', quot: \'"\',\n        laquo: \'«\', raquo: \'»\', mdash: \'—\', ndash: \'–\', hellip: \'…\', shy: \'\',\n    };\n\n    return String(value ?? \'\').replace(\n        /&(#x?[0-9a-f]+|[a-z][a-z0-9]+);/giu,\n        (entity, code) => {\n            const lower = String(code).toLowerCase();\n\n            if (lower.startsWith(\'#x\')) {\n                const point = Number.parseInt(lower.slice(2), 16);\n                return Number.isFinite(point) ? String.fromCodePoint(point) : entity;\n            }\n\n            if (lower.startsWith(\'#\')) {\n                const point = Number.parseInt(lower.slice(1), 10);\n                return Number.isFinite(point) ? String.fromCodePoint(point) : entity;\n            }\n\n            return Object.hasOwn(named, lower) ? named[lower] : entity;\n        },\n    );\n}\n\nfunction htmlToText(value) {\n    return decodeHtmlEntities(\n        String(value ?? \'\')\n            .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/giu, \'\')\n            .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/giu, \'\')\n            .replace(/<br\\s*\\/?>/giu, \'\\n\')\n            .replace(/<\\/(?:div|p|li|blockquote|h[1-6])\\s*>/giu, \'\\n\')\n            .replace(/<[^>]+>/gu, \'\'),\n    )\n        .replace(/\\u00a0/gu, \' \')\n        .replace(/[ \\t]+\\n/gu, \'\\n\')\n        .replace(/\\n[ \\t]+/gu, \'\\n\')\n        .replace(/\\n{3,}/gu, \'\\n\\n\')\n        .trim();\n}\n\nfunction cleanPublicPostText(value, screenName = \'\') {\n    const normalizedSource = String(screenName ?? \'\').trim().toLowerCase();\n    const lines = cleanVkEventText(value)\n        .split(\'\\n\')\n        .map((line) => line.replace(/^действия\\s+(?=\\d)/iu, \'\').trim())\n        .filter(Boolean);\n\n    while (lines.length) {\n        const first = lines[0];\n        const isDieselHeading = normalizedSource === \'rb_diesel\' &&\n            /^rock\\s+bar\\s+diesel(?:\\s*&\\s*diesel\\s+hall)?$/iu.test(first);\n        const isOverlockHeading = normalizedSource === \'overlockbar\' &&\n            /^(?:overlock|overlock\\s+bar)$/iu.test(first);\n\n        if (!isDieselHeading && !isOverlockHeading) {\n            break;\n        }\n\n        lines.shift();\n    }\n\n    return lines.join(\'\\n\').trim().slice(0, 12_000);\n}\n\nconst VK_SOURCE_VALIDATION_EVIDENCE = new Map([\n    [\'rb_diesel\', \'Rock Bar DIESEL & DIESEL Hall, Воронеж\'],\n    [\'overlockbar\', \'Overlock Bar, Воронеж\'],\n    [\'vavilone_rb\', \'The Last of Vavilone, Воронеж\'],\n    [\'liverpool_pub_vrn\', \'Liverpool Pub, Воронеж\'],\n    [\'idmamaanarchy\', \'Паб Мама Анархия, Воронеж\'],\n    [\'meetbowling.club\', \'Митбоулинг Клуб, Воронеж\'],\n]);\n\nfunction buildVkValidationSourceText(post) {\n    const source = String(post?.screenName ?? \'\').trim().toLowerCase();\n    return [\n        String(post?.text ?? \'\').trim(),\n        VK_SOURCE_VALIDATION_EVIDENCE.get(source) || \'\',\n    ].filter(Boolean).join(\'\\n\');\n}\n\nfunction getAttribute(tag, attributeName) {\n    const pattern = new RegExp(\n        `\\\\b${attributeName}\\\\s*=\\\\s*(?:"([^"]*)"|\'([^\']*)\')`,\n        \'iu\',\n    );\n    const match = String(tag ?? \'\').match(pattern);\n    return decodeHtmlEntities(match?.[1] ?? match?.[2] ?? \'\');\n}\n\nasync function readResponseBuffer(response, maximumBytes) {\n    const length = Number(response.headers.get(\'content-length\') ?? 0);\n\n    if (length > maximumBytes) {\n        throw new Error(`Ответ слишком большой: ${length} байт`);\n    }\n\n    const buffer = Buffer.from(await response.arrayBuffer());\n\n    if (buffer.length > maximumBytes) {\n        throw new Error(`Ответ превысил ${maximumBytes} байт`);\n    }\n\n    return buffer;\n}\n\nasync function fetchWithTimeout(url, {\n    timeoutMs = 35_000,\n    maximumBytes = MAX_HTML_BYTES,\n    accept = \'text/html,application/xhtml+xml\',\n} = {}) {\n    const controller = new AbortController();\n    const timer = setTimeout(() => controller.abort(), timeoutMs);\n\n    try {\n        const response = await fetch(url, {\n            redirect: \'follow\',\n            signal: controller.signal,\n           '... 259197 more characters,
+    expected: /label: `vk-public-vision:[^`]+`[\s\S]{0,100}maxAttempts: 1/u,
+    operator: 'match',
+    diff: 'simple'
+  }

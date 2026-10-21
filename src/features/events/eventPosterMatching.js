@@ -60,7 +60,7 @@ function imageMatchTokens(value) {
 
 function readFactField(text, names) {
     const escaped = names.map((name) => String(name).replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')).join('|');
-    const match = String(text ?? '').match(new RegExp(`(?:^|[\\n;])[ \\t]*(?:${escaped})[ \\t]*:[ \\t]*([^;\\r\\n]*)`, 'iu'));
+    const match = String(text ?? '').match(new RegExp(`(?:^|[\\n;])[ \\t]*(?:${escaped})[ \\t]*:[ \\t]*([^\\r\\n]*?)(?=;[ \\t]*[\\p{L} -]+:|\\r?\\n|$)`, 'iu'));
     return String(match?.[1] ?? '').trim();
 }
 
@@ -102,15 +102,28 @@ export function parseIndexedImageFacts(imageFacts) {
             readFactField(blockText, ['Место', 'Площадка', 'Venue']),
             readFactField(blockText, ['Участники', 'Исполнители', 'Артисты']),
             readFactField(blockText, ['Цена', 'Стоимость', 'Price']),
-            readFactField(blockText, ['Распознанный текст', 'OCR', 'Текст на изображении'])];
-        const hasMetadata = metadataFields.some((value) => String(value ?? '').trim());
-        const explicitFailure = /(?:ошибк|error|не удалось|failed|timeout|недоступ)/iu.test(blockText);
-        const visionStatus = explicitFailure ? 'error' : (hasMetadata ? 'metadata_found' : 'metadata_not_found');
+            readFactField(blockText, ['Программа', 'Program']),
+            readFactField(blockText, ['Адрес', 'Address']),
+            readFactField(blockText, ['Город', 'City'])];
+        const recognizedText = readFactField(blockText, ['Распознанный текст', 'OCR', 'Текст на изображении']);
+        const genericNoText = /^(?:текст на изображении отсутствует|нет текста|no text)(?:[.;, ]|$)/iu.test(recognizedText);
+        const hasMetadata = metadataFields.some((value) => String(value ?? '').trim()) ||
+            (String(recognizedText || '').trim().length >= 16 && !genericNoText);
+        const structuredFieldCount = [...blockText.matchAll(
+            /(?:^|[\n;])[ \t]*(?:Тип изображения|Тип|Image type|Это афиша события|Афиша|Poster|Уверенность афиши|Уверенность|Poster confidence|Читаемость текста|Читаемость|Text readability|Название|Событие|Дата|Даты|Время|Начало|Время начала|Start|Окончание|Время окончания|End|Место|Площадка|Venue|Город|City|Населенный пункт|Населённый пункт|Locality|Адрес|Address|Участники|Исполнители|Артисты|Цена|Стоимость|Price|Возраст|Возрастное ограничение|Age|Программа|Program|Теги|Жанры|Tags|Распознанный текст|OCR|Текст на изображении|Причина|Почему|Reason)[ \t]*:/giu,
+        )].length;
+        const hasOutcomeField = /(?:^|[\n;])[ \t]*(?:Тип изображения|Тип|Image type|Это афиша события|Афиша|Poster|Распознанный текст|OCR|Текст на изображении|Причина|Почему|Reason)[ \t]*:/iu.test(blockText);
+        const explicitFailure = /(?:vision error|api error|error:|ошибка (?:vision|api|запроса)|request failed|failed to (?:process|fetch|download|analy[sz]e)|timeout|timed out|upstream failure|provider unavailable|не удалось (?:выполнить запрос|обработать изображение|получить ответ|подключиться)|недоступен провайдер)/iu.test(blockText);
+        const hasStructuredOutcome = structuredFieldCount >= 2 && hasOutcomeField;
+        const visionStatus = explicitFailure || !hasStructuredOutcome
+            ? 'error'
+            : (hasMetadata ? 'metadata_found' : 'metadata_not_found');
         return {
             index: Number(match[1]),
             text: blockText,
             visionStatus,
             visionInspected: true,
+            visionError: visionStatus === 'error',
             imageType,
             poster: inferPosterFlag(posterRaw, imageType),
             posterConfidence: readPercentField(blockText, ['Уверенность афиши', 'Уверенность', 'Poster confidence']),
@@ -134,6 +147,26 @@ export function parseIndexedImageFacts(imageFacts) {
             reason: readFactField(blockText, ['Причина', 'Почему', 'Reason']),
         };
     }).filter((item) => Number.isInteger(item.index) && item.index > 0 && item.text);
+}
+
+/**
+ * Re-emit durable fact objects in the wire format consumed by
+ * parseIndexedImageFacts(). The parser stores only the block body in fact.text;
+ * replaying that body without its marker loses the image index.
+ */
+export function serializeIndexedImageFacts(facts) {
+    return (Array.isArray(facts) ? facts : [])
+        .map((fact) => {
+            const index = Number(fact?.index || 0);
+            const rawBody = String(fact?.text || '').trim();
+            if (!Number.isInteger(index) || index <= 0 || !rawBody) return '';
+            // Normalize a legacy body that may already contain a stale marker;
+            // one canonical marker per fact keeps reparsing deterministic.
+            const body = rawBody.replace(/^\s*\[IMAGE\s+\d+\]\s*/iu, '').trim();
+            return body ? '[IMAGE ' + index + ']\n' + body : '';
+        })
+        .filter(Boolean)
+        .join('\n\n');
 }
 
 function dateKey(day, month) {
@@ -214,6 +247,13 @@ export function evaluatePosterFactForEvent(event, block) {
     }
     if (Number.isFinite(block.posterConfidence) && block.posterConfidence < 55) {
         return { accepted: false, score: -200, reason: 'poster-confidence-too-low', dateMatched: false };
+    }
+    // Phase two creates the card from this very poster. Comparing the newly
+    // composed title/date back to OCR or unrelated body text is a second gate
+    // and can discard a valid image. Preserve the extractor's explicit slot.
+    if (block.dateFreeEventBinding?.eventDate === String(event?.eventDate || event?.date || '') &&
+        block.dateFreeEventBinding?.title === String(event?.title || '')) {
+        return { accepted: true, score: 200, reason: 'date-free-extracted-poster', dateMatched: true };
     }
 
     // A post that produced exactly one event and exactly one downloaded source
@@ -330,11 +370,11 @@ export function posterBindingIsMetadataCompatible(event, facts, imageIndex) {
     return Boolean(fact && evaluatePosterFactForEvent(event, fact).accepted);
 }
 
-export function assignEventImageIndexesFromFacts(events, imageFacts, { onAudit = null } = {}) {
-    return assignEventImageIndexesFromParsedFacts(events, parseIndexedImageFacts(imageFacts), { onAudit });
+export function assignEventImageIndexesFromFacts(events, imageFacts, { onAudit = null, dateFreePhase = false } = {}) {
+    return assignEventImageIndexesFromParsedFacts(events, parseIndexedImageFacts(imageFacts), { onAudit, dateFreePhase });
 }
 
-export function assignEventImageIndexesFromParsedFacts(events, parsedFacts, { onAudit = null } = {}) {
+export function assignEventImageIndexesFromParsedFacts(events, parsedFacts, { onAudit = null, dateFreePhase = false } = {}) {
     const sourceEvents = Array.isArray(events) ? events : [];
     const blocks = (Array.isArray(parsedFacts) ? parsedFacts : [])
         .filter((item) => Number.isInteger(Number(item?.index)) && Number(item.index) > 0)
@@ -357,7 +397,13 @@ export function assignEventImageIndexesFromParsedFacts(events, parsedFacts, { on
     return sourceEvents.map((event) => {
         const preferred = (Array.isArray(event?.imageIndexes) ? event.imageIndexes : [])
             .map(Number).find((value) => Number.isInteger(value) && value > 0) || 0;
-        const selection = selectBestCompatiblePosterFact(event, blocks, { preferredIndex: preferred });
+        const acceptedPosters = blocks.filter((fact) => fact.poster === true && !NON_POSTER_TYPES.test(fact.imageType || ''));
+        const phaseTwoPoster = dateFreePhase
+            ? acceptedPosters.find((fact) => fact.index === preferred) || (acceptedPosters.length === 1 ? acceptedPosters[0] : null)
+            : null;
+        const eventBlocks = phaseTwoPoster ? blocks.map((fact) => fact.index === phaseTwoPoster.index
+            ? { ...fact, dateFreeEventBinding: { eventDate: String(event.eventDate || ''), title: String(event.title || '') } } : fact) : blocks;
+        const selection = selectBestCompatiblePosterFact(event, eventBlocks, { preferredIndex: preferred });
         const candidates = selection?.candidates || [];
         for (const item of candidates) {
             onAudit?.({
@@ -406,7 +452,7 @@ export function assignEventImageIndexesFromParsedFacts(events, parsedFacts, { on
             posterMatchStatus: sourceEvents.length > 1 ? 'verified_multi_event_poster' : 'verified_single_event_source_media',
             posterMatchReason: selection.match.reason,
             posterReviewCandidates: [],
-            posterVisionFacts: blocks,
+            posterVisionFacts: eventBlocks,
         };
     });
 }

@@ -10,6 +10,7 @@ function normalizeCommand(value) {
         .replace(/^[/\\]+/u, '')
         .replace(/[?!.,;]+$/gu, '')
         .replace(/\s+/gu, ' ')
+        .replace(/^(?:гигорейв|gigorave)(?:[,:]\s*|\s+)/u, '')
         .trim();
 }
 
@@ -31,6 +32,34 @@ const CLEAN_ALL_COMMANDS = new Set([
     'скрейпер всё чисто',
     'scraper all clean',
     'scrapers all clean',
+    // Explicit name for the incremental mode.  `парсер все` is the full
+    // reparse; `парсер все новые` is the ledger/hash filtered pass.
+    'парсер все новые',
+    'парсер всё новые',
+    'парсеры все новые',
+    'парсеры всё новые',
+    'скрейпер все новые',
+    'скрейпер всё новые',
+    'скрейперы все новые',
+    'скрейперы всё новые',
+    'scraper all new',
+    'scrapers all new',
+]);
+
+// Resume the latest interrupted parser-all run from its durable checkpoint.
+// This is intentionally a separate command so a normal full/incremental run
+// can never accidentally consume an old checkpoint.
+const RECOVER_ALL_COMMANDS = new Set([
+    'парсер все восстановить',
+    'парсер всё восстановить',
+    'парсеры все восстановить',
+    'парсеры всё восстановить',
+    'скрейпер все восстановить',
+    'скрейпер всё восстановить',
+    'тусы парсер все восстановить',
+    'тусы парсер всё восстановить',
+    'scraper all resume',
+    'scrapers all resume',
 ]);
 
 const ALL_COMMANDS = new Set([
@@ -83,10 +112,102 @@ const LEGACY_START_COMMANDS = new Set([
  *   парсер <source-id>
  *   парсер запустить <source-id>
  */
-export function parseScraperStartCommand(input) {
+function parseScraperStartCommandInternal(input) {
     let command = normalizeCommand(input)
         .replace(/^(?:гигорейв|gigorave)\s+/u, '')
         .trim();
+    if (['обработать ошибки парсера', 'обработать ошибку парсера', 'повторить ошибки парсера'].includes(command)) {
+        return { matched: true, parserErrors: true, sourceId: '', legacy: false, all: false, help: false };
+    }
+    // Turbo is an orthogonal modifier; strip it before the established
+    // command grammar so all primary/secondary/clean aliases continue to
+    // resolve exactly as before. The public wrapper restores the mode.
+    // Modifiers are orthogonal to the command grammar.  Strip them wherever
+    // they occur, so ``парсер все быдлячьи новые 2фазы турбо3`` and
+    // ``турбо3 2фазы новые быдлячьи парсер все`` resolve identically.
+    const phaseMatches = [...command.matchAll(/(?:^|\s)(?:(?:фаз(?:а|ы)|phase)\s*[:=]?\s*([12])|([12])\s*фаз(?:а|ы))(?=\s|$)/giu)];
+    const phaseCount = phaseMatches.length ? Number(phaseMatches.at(-1)[1] || phaseMatches.at(-1)[2]) : 2;
+    command = command
+        .replace(/(?:^|\s)(?:турбо(?:[1-4])?|turbo(?:[1-4])?)(?=\s|$)/giu, ' ')
+        .replace(/(?:^|\s)(?:(?:фаз(?:а|ы)|phase)\s*[:=]?\s*[12]|[12]\s*фаз(?:а|ы))(?=\s|$)/giu, ' ')
+        .replace(/\s+/gu, ' ')
+        .trim();
+
+    // The pool, run mode and phase are independent tokens.  Handle the
+    // order-insensitive forms before the legacy positional regexes below.
+    const commandTokens = command.split(/\s+/u).filter(Boolean);
+    const parserToken = /^(?:парсер|парсеры|скрейпер|скрейперы|scraper|scrapers)$/iu;
+    const secondaryToken = /^(?:быдлячьи|второстепенные)$/iu;
+    const allToken = /^(?:все|всё|all)$/iu;
+    const cleanToken = /^(?:новые|new|чисто|clean)$/iu;
+    const recoverToken = /^(?:восстановить|resume)$/iu;
+    const hasParser = commandTokens.some(token => parserToken.test(token));
+    const hasSecondary = commandTokens.some(token => secondaryToken.test(token));
+    if (hasParser && hasSecondary) {
+        const rest = commandTokens.filter(token =>
+            !parserToken.test(token) && !secondaryToken.test(token) && !/^тус(?:а|ы)$/iu.test(token),
+        );
+        const recover = rest.some(token => recoverToken.test(token));
+        const cleanOnly = rest.some(token => cleanToken.test(token));
+        const all = rest.some(token => allToken.test(token)) || cleanOnly || recover || !rest.length;
+        const sourceId = rest.filter(token => !allToken.test(token) && !cleanToken.test(token) && !recoverToken.test(token)).join(' ').trim();
+        return {
+            matched: true,
+            sourceId: all ? '' : sourceId,
+            legacy: false,
+            all,
+            cleanOnly: cleanOnly || recover,
+            recover,
+            help: false,
+            partyPool: 'secondary',
+            phaseCount,
+        };
+    }
+    if (hasParser) {
+        const rest = commandTokens.filter(token =>
+            !parserToken.test(token) && !/^тус(?:а|ы)$/iu.test(token),
+        );
+        const recover = rest.some(token => recoverToken.test(token));
+        const cleanOnly = rest.some(token => cleanToken.test(token));
+        const all = rest.some(token => allToken.test(token)) || cleanOnly || recover;
+        // Only claim a primary run when an explicit run target/mode is
+        // present.  This keeps ``парсер статус`` and source-management
+        // commands available to their established handlers.
+        if (all) {
+            const sourceId = rest
+                .filter(token => !allToken.test(token) && !cleanToken.test(token) && !recoverToken.test(token))
+                .join(' ')
+                .trim();
+            return {
+                matched: true,
+                sourceId: '',
+                legacy: false,
+                all: true,
+                cleanOnly: cleanOnly || recover,
+                recover,
+                help: false,
+                partyPool: 'primary',
+                phaseCount,
+                ...(sourceId ? { requestedSourceHint: sourceId } : {}),
+            };
+        }
+    }
+
+    const sourceListMatch = command.match(/^(?:(?:источник(?:и|ов)?(?:\s+(все|второстепенные|быдлячьи))?)|(?:(второстепенные|быдлячьи)\s+источники))$/u);
+    if (sourceListMatch) {
+        const qualifier = String(sourceListMatch[1] || sourceListMatch[2] || '').trim();
+        return {
+            matched: true, sourceId: '', legacy: false, all: false, help: false,
+            listSources: true,
+            partyPool: qualifier === 'второстепенные' || qualifier === 'быдлячьи'
+                ? 'secondary' : 'primary',
+            includeAllPools: qualifier === 'все',
+        };
+    }
+    const sourceListUpdate = String(input || '').trim().match(/^источник(?:и|ов)?\s+(?:изменить|обновить)[ \t]*(?::|\r?\n)([\s\S]+)$/iu);
+    if (sourceListUpdate) {
+        return { matched: true, sourceId: '', legacy: false, all: false, help: false, listSourcesUpdate: true, sourceListBody: String(sourceListUpdate[1] || '').trim() };
+    }
 
     // V18878: the secondary party pool has its own source registry and parser
     // namespace.  Parse it before the generic `тусы ...` compatibility rules so
@@ -125,16 +246,45 @@ export function parseScraperStartCommand(input) {
     );
     if (secondaryParserMatch) {
         const tail = String(secondaryParserMatch[1] ?? '').trim();
-        const cleanOnly = /^(?:все|всё|all)\s+чисто$/u.test(tail);
-        const all = cleanOnly || /^(?:все|всё|all)$/u.test(tail);
+        const cleanOnly = /^(?:все|всё|all)\s+(?:чисто|новые|new|clean)$/u.test(tail);
+        const recover = /^(?:(?:все|all)\s+)?(?:восстановить|resume)$/u.test(tail);
+        // A bare secondary namespace means «run the whole secondary pool»;
+        // it must not degrade into a help response.
+        const all = !tail || cleanOnly || recover || /^(?:все|всё|all)$/u.test(tail);
         return {
             matched: true,
             sourceId: all ? '' : tail,
             legacy: false,
             all,
-            cleanOnly,
-            help: !tail,
+            cleanOnly: cleanOnly || recover,
+            recover,
+            help: false,
             partyPool: 'secondary',
+            phaseCount,
+        };
+    }
+
+    // Accept the natural reverse order used in chat: «парсер второстепенные» / «парсер быдлячьи».
+    // Keep this before generic primary parser aliases so the pool is never
+    // silently changed to primary.
+    const reverseSecondaryParserMatch = command.match(
+        /^(?:тус[аы]\s+)?(?:парсер|парсеры|скрейпер|скрейперы|scraper|scrapers)\s+(?:быдлячьи|второстепенные)(?:\s+тус[аы])?(?:\s+(.+))?$/u,
+    );
+    if (reverseSecondaryParserMatch) {
+        const tail = String(reverseSecondaryParserMatch[1] ?? '').trim();
+        const cleanOnly = /^(?:все|всё|all)\s+(?:чисто|новые|new|clean)$/u.test(tail);
+        const recover = /^(?:(?:все|all)\s+)?(?:восстановить|resume)$/u.test(tail);
+        const all = !tail || cleanOnly || recover || /^(?:все|всё|all)$/u.test(tail);
+        return {
+            matched: true,
+            sourceId: all ? '' : tail,
+            legacy: false,
+            all,
+            cleanOnly: cleanOnly || recover,
+            recover,
+            help: false,
+            partyPool: 'secondary',
+            phaseCount,
         };
     }
 
@@ -197,6 +347,18 @@ export function parseScraperStartCommand(input) {
         };
     }
 
+    if (RECOVER_ALL_COMMANDS.has(command)) {
+        return {
+            matched: true,
+            sourceId: '',
+            legacy: false,
+            all: true,
+            cleanOnly: true,
+            recover: true,
+            help: false,
+        };
+    }
+
     if (CLEAN_ALL_COMMANDS.has(command)) {
         return {
             matched: true,
@@ -205,6 +367,7 @@ export function parseScraperStartCommand(input) {
             all: true,
             cleanOnly: true,
             help: false,
+            phaseCount,
         };
     }
 
@@ -216,6 +379,7 @@ export function parseScraperStartCommand(input) {
             all: true,
             cleanOnly: false,
             help: false,
+            phaseCount,
         };
     }
 
@@ -261,4 +425,13 @@ export function parseScraperStartCommand(input) {
         all: false,
         help: false,
     };
+}
+
+export function parseScraperStartCommand(input) {
+    const parsed = parseScraperStartCommandInternal(input);
+    const match = normalizeCommand(input).match(/(?:^|\s)(турбо[1-4]|турбо|turbo[1-4]|turbo)(?=\s|$)/iu);
+    if (!match) return parsed;
+    const rawMode = String(match[1]).toLowerCase();
+    const turboMode = rawMode.replace(/^турбо/iu, 'turbo');
+    return { ...parsed, turboMode: turboMode === 'turbo1' ? 'turbo' : turboMode };
 }

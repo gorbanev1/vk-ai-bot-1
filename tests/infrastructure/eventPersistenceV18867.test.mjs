@@ -60,6 +60,28 @@ test('blank venue persists explicitly as место не указано', () => 
     assert.equal(readOne('SELECT venue FROM manual_events WHERE id = ?', id).venue, 'место не указано');
 });
 
+test('mono reparse keeps source image when Vision is negative or not run', () => {
+    const imagePath = 'vk_chat_announcements/vk-chat-2000000777/5001-1.jpg';
+    const id = saveManualEvent({
+        title: 'Mono source', eventDate: '2099-10-02', venue: 'Liverpool Pub',
+        imagePaths: [imagePath], posterMatchStatus: 'no_safe_poster',
+        posterMatchReason: 'vision-not-run', posterVisionFacts: [{
+            index: 1, poster: false, visionInspected: true, visionStatus: 'metadata_not_found',
+        }], status: 'approved',
+    });
+    updateStoredEventRecordFromReparse({
+        sourceType: 'manual', id,
+        event: {
+            title: 'Mono source', eventDate: '2099-10-02', venue: 'Liverpool Pub',
+            isMultiAnnouncement: 0, imagePaths: [imagePath], posterMatchStatus: 'no_safe_poster',
+            posterVisionFacts: [{ index: 1, poster: false, visionInspected: true, visionStatus: 'metadata_not_found' }],
+        },
+    });
+    const row = readOne('SELECT image_paths_json, poster_match_status FROM manual_events WHERE id = ?', id);
+    assert.deepEqual(JSON.parse(row.image_paths_json), [imagePath]);
+    assert.equal(row.poster_match_status, 'no_safe_poster');
+});
+
 test('VK chat event stores chat origin and canonical wall post separately', () => {
     const peerId = 2000000999;
     const cmid = 1234;

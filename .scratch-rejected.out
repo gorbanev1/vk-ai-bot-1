@@ -1,0 +1,4267 @@
+{
+  "candidates": 134,
+  "tables": [
+    {
+      "table": "vk_events",
+      "columns": [
+        "id",
+        "screen_name",
+        "post_id",
+        "event_index",
+        "title",
+        "event_date",
+        "event_time",
+        "venue",
+        "participants",
+        "price",
+        "description",
+        "evidence",
+        "source_url",
+        "image_paths_json",
+        "parse_method",
+        "status",
+        "updated_at",
+        "canonical_post_url",
+        "source_type",
+        "source_chat_id",
+        "source_chat_name",
+        "source_message_id",
+        "source_item_id",
+        "source_original_url",
+        "canonical_origin",
+        "poster_match_status",
+        "poster_match_reason",
+        "poster_image_index",
+        "poster_vision_facts_json",
+        "venue_source",
+        "poster_review_candidates_json",
+        "event_tags_json",
+        "structure_decision",
+        "structure_reason",
+        "source_segment_text",
+        "program_items_json",
+        "is_multi_announcement"
+      ]
+    },
+    {
+      "table": "vk_chat_events",
+      "columns": [
+        "id",
+        "peer_id",
+        "conversation_message_id",
+        "event_index",
+        "title",
+        "event_date",
+        "event_time",
+        "venue",
+        "participants",
+        "price",
+        "description",
+        "evidence",
+        "source_url",
+        "image_paths_json",
+        "parse_method",
+        "status",
+        "updated_at",
+        "canonical_post_url",
+        "source_type",
+        "source_chat_id",
+        "source_chat_name",
+        "source_message_id",
+        "source_item_id",
+        "source_original_url",
+        "canonical_origin",
+        "poster_match_status",
+        "poster_match_reason",
+        "poster_image_index",
+        "poster_vision_facts_json",
+        "venue_source",
+        "poster_review_candidates_json",
+        "event_tags_json",
+        "structure_decision",
+        "structure_reason",
+        "source_segment_text",
+        "program_items_json",
+        "is_multi_announcement"
+      ]
+    },
+    {
+      "table": "telegram_events",
+      "columns": [
+        "id",
+        "channel",
+        "message_id",
+        "event_index",
+        "title",
+        "event_date",
+        "event_time",
+        "venue",
+        "participants",
+        "price",
+        "description",
+        "evidence",
+        "source_url",
+        "image_paths_json",
+        "parse_method",
+        "status",
+        "updated_at",
+        "canonical_post_url",
+        "source_type",
+        "source_chat_id",
+        "source_chat_name",
+        "source_message_id",
+        "source_item_id",
+        "source_original_url",
+        "canonical_origin",
+        "poster_match_status",
+        "poster_match_reason",
+        "poster_image_index",
+        "poster_vision_facts_json",
+        "venue_source",
+        "poster_review_candidates_json",
+        "event_tags_json",
+        "structure_decision",
+        "structure_reason",
+        "source_segment_text",
+        "program_items_json",
+        "is_multi_announcement"
+      ]
+    },
+    {
+      "table": "manual_events",
+      "columns": [
+        "id",
+        "title",
+        "event_date",
+        "event_time",
+        "venue",
+        "participants",
+        "price",
+        "description",
+        "evidence",
+        "source_url",
+        "source_text",
+        "image_paths_json",
+        "status",
+        "created_by_platform",
+        "created_by",
+        "created_at",
+        "updated_at",
+        "canonical_post_url",
+        "source_type",
+        "source_chat_id",
+        "source_chat_name",
+        "source_message_id",
+        "source_item_id",
+        "source_original_url",
+        "canonical_origin",
+        "poster_match_status",
+        "poster_match_reason",
+        "poster_image_index",
+        "poster_vision_facts_json",
+        "venue_source",
+        "owner_manual",
+        "poster_review_candidates_json",
+        "event_tags_json",
+        "structure_decision",
+        "structure_reason",
+        "source_segment_text",
+        "program_items_json",
+        "is_multi_announcement"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "key": "vk:rb_diesel|13764",
+      "existing": [
+        {
+          "id": 263,
+          "date": "2026-09-20",
+          "title": "Placebo & MCR Tribute 19",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13764",
+          "status": "event",
+          "text": "ЗАВТРА - Placebo & MCR Tribute 19.09 - Воронеж / Diesel\nMy Chemical Romance & Placebo tribute by Asleep Or Dead & Picass"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5406",
+      "existing": [
+        {
+          "id": 66,
+          "date": "2026-09-26",
+          "title": "Провожаем лето",
+          "status": "approved"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "status": "event",
+          "text": "ВНИМАНИЕ ПЕРЕНОС МЕРОПРИЯТИЯ НА 26 сентября! 19 сентября в 12:00 открывает двери Экоцентр Собиратор на новой площадке пр"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13755",
+      "existing": [
+        {
+          "id": 269,
+          "date": "2026-09-20",
+          "title": "Метал с берегов Невы, Воронеж",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13755",
+          "status": "event",
+          "text": "ЗАВТРА - Метал с берегов Невы, Воронеж Этой осенью прямиком с берегов Невы на берега Воронежа причалит мощный метал-кора"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13738",
+      "existing": [
+        {
+          "id": 115,
+          "date": "2026-09-12",
+          "title": "ASCENSION OF THE INEFFABLE GIG | 12.09 | Воронеж",
+          "status": "approved"
+        },
+        {
+          "id": 116,
+          "date": "2026-09-12",
+          "title": "DEXDBELL - Воронеж \"Diesel Rock Bar\"",
+          "status": "approved"
+        },
+        {
+          "id": 117,
+          "date": "2026-09-17",
+          "title": "Метал с берегов Невы",
+          "status": "approved"
+        },
+        {
+          "id": 118,
+          "date": "2026-09-18",
+          "title": "SPOOKERS",
+          "status": "ignored"
+        },
+        {
+          "id": 119,
+          "date": "2026-09-19",
+          "title": "Placebo & MCR Tribute 19.09 - Воронеж / Diesel",
+          "status": "approved"
+        },
+        {
+          "id": 120,
+          "date": "2026-09-19",
+          "title": "NO PLACE FOR OLD PADS 19.09 в Diesel Bar",
+          "status": "approved"
+        },
+        {
+          "id": 121,
+          "date": "2026-09-25",
+          "title": "SYSTEM OF A DOWN TRIBUTE",
+          "status": "approved"
+        },
+        {
+          "id": 122,
+          "date": "2026-09-26",
+          "title": "STONEHAND",
+          "status": "approved"
+        },
+        {
+          "id": 123,
+          "date": "2026-09-18",
+          "title": "SPOOKERS — Isolation Tour 2026",
+          "status": "ignored"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-09-12",
+          "time": "18:30",
+          "title": "ASCENSION OF THE INEFFABLE GIG",
+          "venue": "DIESEL HALL, Воронеж",
+          "participants": "",
+          "price": "",
+          "program_items": [],
+          "announcement": "12 сентября в DIESEL HALL в Воронеже состоится ASCENSION OF THE INEFFABLE GIG.",
+          "source_segment": "12.09 HALL: ASCENSION OF THE INEFFABLE GIG | 12.09 | Воронеж",
+          "evidence": "ASCENSION OF THE INEFFABLE GIG; 12.09; 18:30; DIESEL HALL",
+          "tags": [
+            "metal"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны десять самостоятельных мероприятий: отдельные события имеют разные даты или разные названия и блоки при одной дате."
+        },
+        {
+          "date": "2026-09-12",
+          "time": null,
+          "title": "DEXDBELL — ОСЕННИЙ ТУР 2026",
+          "venue": "DIESEL ROCK BAR, Воронеж",
+          "participants": "DEXDBELL",
+          "price": "",
+          "program_items": [],
+          "announcement": "12 сентября в DIESEL ROCK BAR в Воронеже выступит DEXDBELL в рамках осеннего тура 2026.",
+          "source_segment": "BAR: DEXDBELL - Воронеж \"Diesel Rock Bar\"",
+          "evidence": "DEXDBELL; ОСЕННИЙ ТУР; 2026; 12/09; ВОРОНЕЖ; DIESEL ROCK BAR",
+          "tags": [
+            "hip-hop-rap"
+          ],
+          "image_indexes": [
+            2
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны десять самостоятельных мероприятий: отдельные события имеют разные даты или разные названия и блоки при одной дате."
+        },
+        {
+          "date": "2026-09-17",
+          "time": "19:00",
+          "title": "Металл с берегов Невы",
+          "venue": "Rock Bar Diesel, ул. Череповецкая, 4, Воронеж",
+          "participants": "",
+          "price": "",
+          "program_items": [],
+          "announcement": "17 сентября в Rock Bar Diesel в Воронеже состоится концерт «Металл с берегов Невы».",
+          "source_segment": "17.09 BAR: Метал с берегов Невы, Воронеж",
+          "evidence": "ВОРОНЕЖ; 17 СЕНТЯБРЯ 19:00; УЛ. ЧЕРЕПОВЕЦКАЯ, 4; ROCK BAR DIESEL; МЕТАЛЛ С БЕРЕГОВ НЕВЫ",
+          "tags": [
+            "metal"
+          ],
+          "image_indexes": [
+            3
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны десять самостоятельных мероприятий: отдельные события имеют разные даты или разные названия и блоки при одной дате."
+        },
+        {
+          "date": "2026-09-18",
+          "time": "19:00",
+          "title": "ISOLATION TOUR 2026",
+          "venue": "DIESEL BAR, Воронеж",
+          "participants": "SPOOKERS; DOWNBREAKERS; HPRTT",
+          "price": "",
+          "program_items": [],
+          "announcement": "18 сентября в DIESEL BAR в Воронеже состоится концерт в рамках ISOLATION TOUR 2026 при участии SPOOKERS, DOWNBREAKERS и HPRTT.",
+          "source_segment": "18.09 BAR: SPOOKERS | 18.09 Воронеж",
+          "evidence": "ISOLATION TOUR 2026; SPOOKERS; SPECIAL GUESTS; DOWNBREAKERS; HPRTT; DIESEL BAR; ВОРОНЕЖ; 18.09; 19:00",
+          "tags": [
+            "metal"
+          ],
+          "image_indexes": [
+            4
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны десять самостоятельных мероприятий: отдельные события имеют разные даты или разные названия и блоки при одной дате."
+        },
+        {
+          "date": "2026-09-19",
+          "time": "19:00",
+          "title": "My Chemical Romance Tribute / Placebo Tribute",
+          "venue": "Diesel Hall, ул. Генерала Лизюкова, 4, Воронеж",
+          "participants": "Asleep or Dead; Picasso Blue",
+          "price": "",
+          "program_items": [],
+          "announcement": "19 сентября в Diesel Hall в Воронеже состоится двойной концерт трибьют-групп My Chemical Romance Tribute и Placebo Tribute.",
+          "source_segment": "19.09 HALL: Placebo & MCR Tribute 19.09 - Воронеж / Diesel",
+          "evidence": "19.09; 19:00; ВПЕРВЫЕ В ВОРОНЕЖЕ; ДВОЙНОЙ КОНЦЕРТ ТРИБЬЮТ-ГРУПП ИЗ САНКТ-ПЕТЕРБУРГА; MY CHEMICAL ROMANCE TRIBUTE BY ASLEEP OR DEAD; PLACEBO TRIBUTE BY PICASSO BLUE; Diesel Hall; ул. Генерала Лизюкова, 4; Воронеж",
+          "tags": [
+            "cover-tribute",
+            "alternative"
+          ],
+          "image_indexes": [
+            5
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны десять самостоятельных мероприятий: отдельные события имеют разные даты или разные названия и блоки при одной дате."
+        },
+        {
+          "date": "2026-09-19",
+          "time": "18:30",
+          "title": "NO PLACE FOR OLD PADS",
+          "venue": "Diesel Bar",
+          "participants": "Re-Feel; радиоАвгуст; Деконструкт; FUNGALMIND; 3GEAR",
+          "price": "500 р.",
+          "program_items": [],
+          "announcement": "19 сентября в Diesel Bar состоится концерт NO PLACE FOR OLD PADS с участием Re-Feel, радиоАвгуст, Деконструкт, FUNGALMIND и 3GEAR.",
+          "source_segment": "BAR: NO PLACE FOR OLD PADS 19.09 в Diesel Bar",
+          "evidence": "Re-Feel; радиоАвгуст; Деконструкт; FUNGALMIND; 3GEAR; NO PLACE FOR OLD PADS; Diesel Bar; 19.09; начало 18:30; 500 р.",
+          "tags": [
+            "concert"
+          ],
+          "image_indexes": [
+            6
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны десять самостоятельных мероприятий: отдельные события имеют разные даты или разные названия и блоки при одной дате."
+        },
+        {
+          "date": "2026-09-25",
+          "time": "20:00",
+          "title": "SYSTEM OF A DOWN TRIBUTE",
+          "venue": "Rock Bar Diesel, Воронеж",
+          "participants": "CHOPSY",
+          "price": "",
+          "program_items": [],
+          "announcement": "25 сентября в Rock Bar Diesel в Воронеже состоится трибьют System of a Down от CHOPSY.",
+          "source_segment": "25.09BAR: SYSTEM OF A DOWN by CHOPSY Воронеж",
+          "evidence": "25.09.26; ВОРОНЕЖ; ROCK BAR DIESEL; 16+; SYSTEM OF A DOWN; CHOPSY; SYSTEM OF A DOWN TRIBUTE; ДВЕРИ 19:00 | СТАРТ 20:00",
+          "tags": [
+            "nu-metal",
+            "cover-tribute"
+          ],
+          "image_indexes": [
+            7
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны десять самостоятельных мероприятий: отдельные события имеют разные даты или разные названия и блоки при одной дате."
+        },
+        {
+          "date": "2026-09-26",
+          "time": null,
+          "title": "STONEHAND",
+          "venue": "DIESEL HALL",
+          "participants": "STONEHAND",
+          "price": "",
+          "program_items": [],
+          "announcement": "26 сентября в DIESEL HALL состоится большой юбилейный концерт STONEHAND с лучшими песнями за 20 лет.",
+          "source_segment": "26.09 HALL: STONEHAND (ВОРОНЕЖ) DIESEL HALL",
+          "evidence": "26 СЕНТЯБРЯ; STONEHAND; ЛУЧШИЕ ПЕСНИ ЗА 20 ЛЕТ; DIESEL HALL; БОЛЬШОЙ ЮБИЛЕЙНЫЙ КОНЦЕРТ",
+          "tags": [
+            "rock"
+          ],
+          "image_indexes": [
+            8
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны десять самостоятельных мероприятий: отдельные события имеют разные даты или разные названия и блоки при одной дате."
+        },
+        {
+          "date": "2026-09-26",
+          "time": null,
+          "title": "Clockwork Times — презентация альбома",
+          "venue": "Diesel, Воронеж",
+          "participants": "Clockwork Times",
+          "price": "",
+          "program_items": [],
+          "announcement": "26 сентября в Diesel в Воронеже состоится презентация альбома Clockwork Times.",
+          "source_segment": "BAR: 26 сентября | CWT | Воронеж - Презентация альбом",
+          "evidence": "26 СЕНТЯБРЯ; ВОРОНЕЖ; CLOCKWORK TIMES; ПРЕЗЕНТАЦИЯ АЛЬБОМА",
+          "tags": [
+            "rock"
+          ],
+          "image_indexes": [
+            9
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны десять самостоятельных мероприятий: отдельные события имеют разные даты или разные названия и блоки при одной дате."
+        },
+        {
+          "date": "2026-09-27",
+          "time": null,
+          "title": "Ospa 1959",
+          "venue": "Diesel Bar, Воронеж",
+          "participants": "",
+          "price": "",
+          "program_items": [],
+          "announcement": "27 сентября в Diesel Bar в Воронеже состоится выступление Ospa 1959.",
+          "source_segment": "27.09BAR: Ospa 1959 - Воронеж 27.09",
+          "evidence": "Ospa 1959 - Воронеж 27.09 || 27 сентября; Воронеж; Diesel Bar",
+          "tags": [],
+          "image_indexes": [
+            10
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны десять самостоятельных мероприятий: отдельные события имеют разные даты или разные названия и блоки при одной дате."
+        }
+      ],
+      "write": 8,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13738",
+          "status": "event",
+          "text": "Rock Bar DIESEL & DIESEL Hallзапись закрепленаДействияДрузья, мы составили пост-график ваших будущих планов на вечер в э"
+        }
+      ]
+    },
+    {
+      "key": "vk:artartelchaika|2752",
+      "existing": [
+        {
+          "id": 300,
+          "date": "2026-09-26",
+          "title": "Вечер памяти Янки Дягилевой — свободный микрофон с песнями, стихами и историями",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-09-26",
+          "time": "19:00",
+          "title": "Вечер памяти Янки Дягилевой — свободный микрофон с песнями, стихами и историями",
+          "venue": "Чайка",
+          "participants": "",
+          "price": "300₽",
+          "program_items": [],
+          "announcement": "26 сентября в 19:00 в «Чайке» состоится вечер памяти Янки Дягилевой в формате свободного микрофона: песни, стихи, истории и музыка.",
+          "source_segment": "Вечер памяти Янки Дягилевой! В этом году ей бы исполнилось 60. ... Это свободный микрофон, приходите:- Петь её песни или свои, созвучные.- Читать её стихи, свои или любимых авторов.- Рассказывать истории, делиться мыслями, просто слушать из зала и быть собой. Встречаемся в Чайке, 26 сентября (суббота), в 19:00. Вход: 300₽",
+          "evidence": "Вечер памяти Янки Дягилевой! || Встречаемся в Чайке, 26 сентября (суббота), в 19:00. || Вход: 300₽",
+          "tags": [
+            "author-song",
+            "open-mic"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Одно событие с одной датой, временем и площадкой."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-219184584_2752",
+          "status": "event",
+          "text": "Артель «Чайка»ДействияВечер памяти Янки Дягилевой! В этом году ей бы исполнилось 60. Немного разминулись с календарной д"
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|1198",
+      "existing": [
+        {
+          "id": 339,
+          "date": "2026-10-09",
+          "title": "ЦЕНТР ОСЕНИ",
+          "status": "approved"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-09",
+          "time": "19:00",
+          "title": "ЦЕНТР ОСЕНИ",
+          "venue": "Рок-паб «МАМА АНАРХИЯ», ул. Плехановская, 48, Воронеж",
+          "participants": "ИГОРЬ ЛУНЁВ, ЭНТОМОЛОГИЯ, СПАТА, УНКАЙ, ЛАДОНИ ЛЕТА; также заявлен свободный микрофон",
+          "price": "400 руб.",
+          "announcement": "9 октября в рок-пабе «МАМА АНАРХИЯ» состоится рок-акустический фестиваль «ЦЕНТР ОСЕНИ» с участием Игоря Лунёва, «Энтомологии», Спаты, Ункая, «Ладони лета» и других. Начало в 19:00, вход — 400 руб.; после выступлений — свободный микрофон.",
+          "source_segment": "9-го октября в Воронеже состоится Рок-акустический фестиваль \"ЦЕНТР ОСЕНИ\". Выступят: - ИГОРЬ ЛУНЁВ (Санкт-Петербург) - ЭНТОМОЛОГИЯ (Старый Оскол - Воронеж) - СПАТА - УНКАЙ - ЛАДОНИ ЛЕТА и другие ... Без сюрпризов не обойдётся, ведь после выступления заявленных музыкантов начнётся традиционный \"свободный микрофон\")) Где: Рок-паб \"МАМА АНАРХИЯ\". Ул. Плехановская, 48. Начало: 19:00 Вход: 400 руб.",
+          "program_items": [],
+          "evidence": "9-го октября в Воронеже состоится Рок-акустический фестиваль \"ЦЕНТР ОСЕНИ\". || Где: Рок-паб \"МАМА АНАРХИЯ\". Ул. Плехановская, 48. || Начало: 19:00 Вход: 400 руб.",
+          "tags": [
+            "rock",
+            "acoustic",
+            "folk"
+          ],
+          "image_indexes": [],
+          "_structure": "single_event",
+          "_structureReason": "Анонс одного фестиваля с единым названием, площадкой и общей программой выступлений."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-226190294_1198",
+          "status": "failed_retryable",
+          "text": "9-го октября в Воронеже состоится Рок-акустический фестиваль \"ЦЕНТР ОСЕНИ\". Выступят: - ИГОРЬ ЛУНЁВ (Санкт-Петербург) - "
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|4611",
+      "existing": [
+        {
+          "id": 305,
+          "date": "2026-09-25",
+          "title": "DIRTY SOUND — концерт с участниками PEDRO•THE•PIG, Формат А3 и РеализМ",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-09-25",
+          "time": "20:00",
+          "title": "DIRTY SOUND — концерт с участниками PEDRO•THE•PIG, Формат А3 и РеализМ",
+          "venue": "Рок-бар \"The last of Vavilone\", Воронеж, Кирова, 5",
+          "participants": "PEDRO•THE•PIG; Формат А3; РеализМ",
+          "price": "",
+          "program_items": [
+            {
+              "time": "19:30",
+              "text": "двери"
+            },
+            {
+              "time": "20:00",
+              "text": "старт"
+            }
+          ],
+          "announcement": "25 сентября в рок-баре \"The last of Vavilone\" в Воронеже состоится концерт DIRTY SOUND с участниками PEDRO•THE•PIG, Формат А3 и РеализМ.",
+          "source_segment": "25 сентября — три жанра, одна сцена: Nu-metal, Grunge и Hard Rock. PEDRO•THE•PIG - СВИН ПЕДРО -Nu-metal, Москва. В творчестве прослеживается взрывное сочетание мощных качающих рифов и плотного речитатива.Формат А3 - Alternative, Grunge, Воронеж. Музыкальный коллектив, сочетающий в своём творчестве тяжелые риффы и лиричные тексты, наполненные смыслом.РеализМ —Hard Rock. Воронеж. Группа, исполняющая преимущественно Тяжелый Русский Рок вперемешку с задорным Панк-роком Где:Кирова, 5.Когда: 25.09 двери в 19.30Билеты: voronezh.qtickets.events/260602-dir...",
+          "evidence": "25 сентября — три жанра, одна сцена: Nu-metal, Grunge и Hard Rock. || Где:Кирова, 5.Когда: 25.09 двери в 19.30 || PEDRO•THE•PIG - СВИН ПЕДРО -Nu-metal, Москва.",
+          "tags": [
+            "nu-metal",
+            "rock",
+            "grunge",
+            "alternative"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации указаны два самостоятельных мероприятия на разные календарные даты: 25 и 27 сентября."
+        },
+        {
+          "date": "2026-09-27",
+          "time": "19:00",
+          "title": "«Мама, это обман!» — акустическая программа Александра Щербинина",
+          "venue": "Рок-бар «Вавилон», Кирова, 5",
+          "participants": "Александр Щербинин; ЗЕТУРБО",
+          "price": "",
+          "program_items": [],
+          "announcement": "27 сентября в рок-баре «Вавилон» состоится акустическая программа Александра Щербинина «Мама, это обман!» при поддержке ЗЕТУРБО.",
+          "source_segment": "27 сентября — Александр Щербинин свою новую программу «Мама, это обман!». Это акустика, в которой слышно каждое слово, каждую паузу — и в этих паузах столько смысла. Это не про громкие эффекты, а про то, как одна строчка может стать твоей личной правдой. При поддержке ЗЕТУРБО. Тихий вечер с акустикой и энергетикой. Где: Кирова, 5. Начало в 19:00.Билеты:voronezh.qtickets.events/255915-ale...",
+          "evidence": "27 сентября — Александр Щербинин свою новую программу «Мама, это обман!». || При поддержке ЗЕТУРБО. || Где: Кирова, 5. Начало в 19:00.",
+          "tags": [
+            "author-song",
+            "acoustic"
+          ],
+          "image_indexes": [
+            2
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации указаны два самостоятельных мероприятия на разные календарные даты: 25 и 27 сентября."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-42954252_4611",
+          "status": "event",
+          "text": "Рок-бар \"The last of Vavilone\"ДействияНа этой неделе в Вавилоне25 сентября — три жанра, одна сцена: Nu-metal, Grunge и H"
+        }
+      ]
+    },
+    {
+      "key": "vk:artartelchaika|2728",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-09-08",
+          "time": "16:00",
+          "title": "Открытие юбилейной выставки «Мир глазами художника»",
+          "venue": "Воронежский областной художественный музей им. И. Н. Крамского, проспект Революции, 18/1",
+          "participants": "Роман Логунов; «Дать Маху»",
+          "price": "",
+          "program_items": [],
+          "announcement": "8 сентября в 16:00 в Воронежском областном художественном музее им. И. Н. Крамского состоится открытие юбилейной выставки «Мир глазами художника». В программе — работы Романа Логунова и выступление «Дать Маху».",
+          "source_segment": "ЗАВТРА, 8.09 с 16:00 - открытие юбилейной выставки «Мир глазами художника» в Воронежском областном художественном музее им. И. Н. Крамского. Выставка приурочена к 10-летию Воронежского отделения Творческого союза художников России и продлится до 27 сентября. От Чайки: посмотрим на работы Романа Логунова послушаем Дать Маху! Ждём всех завтра в музее им. Крамского — приходите 🫶",
+          "evidence": "8.09 с 16:00 - открытие юбилейной выставки «Мир глазами художника» || в Воронежском областном художественном музее им. И. Н. Крамского || Проспект Революции, 18/1",
+          "tags": [
+            "exhibition"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Подтверждено одно мероприятие: открытие выставки 8 сентября; 27 сентября — дата окончания выставки, а не отдельное мероприятие."
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-219184584_2728",
+          "status": "not_event",
+          "text": "Артель «Чайка» и ещё 1 авторДействияЗАВТРА, 8.09 с 16:00 - открытие юбилейной выставки «Мир глазами художника» в Воронеж"
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|1234",
+      "existing": [
+        {
+          "id": 333,
+          "date": "2026-10-02",
+          "title": "KANZLER Oktoberfest",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-226190294_1234",
+          "status": "event",
+          "text": "Паб Мама Анархия и ещё 2 автораДействияРегги на октоберфест? Только с \"Играючи\" в пабе Мама анархия. А так же играем в д"
+        }
+      ]
+    },
+    {
+      "key": "vk:deadway36|153",
+      "existing": [
+        {
+          "id": 183,
+          "date": "2026-09-18",
+          "title": "Концерт Кости Чумакова",
+          "status": "ignored"
+        },
+        {
+          "id": 184,
+          "date": "2026-09-20",
+          "title": "Винил Маркет",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 2,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-234720249_153",
+          "status": "event",
+          "text": "Бар \"Тупик\"ДействияЧто вообще у вас там происходит?13Отправить реакцию «Лайк»Выбор реакции1111 сенСначала старыеОлег Вор"
+        }
+      ]
+    },
+    {
+      "key": "vk:liverpool_pub_vrn|2705",
+      "existing": [
+        {
+          "id": 203,
+          "date": "2026-09-20",
+          "title": "Игорь Лисов — «Барокко Хой! Новый ренессанс»",
+          "status": "approved"
+        },
+        {
+          "id": 204,
+          "date": "2026-09-20",
+          "title": "Барокко Хой! Новый Ренессанс — концерт Игоря Лисова",
+          "status": "approved"
+        },
+        {
+          "id": 205,
+          "date": "2026-09-26",
+          "title": "Концерт Алексея Панасовского",
+          "status": "approved"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-08-27",
+          "time": "20:00",
+          "title": "Сольный акустический концерт Кошки Сашки",
+          "venue": "Liverpool Pub, Воронеж",
+          "participants": "Кошка Сашка",
+          "price": "",
+          "program_items": [],
+          "announcement": "27 августа в Liverpool Pub в Воронеже состоится сольный акустический концерт Кошки Сашки.",
+          "source_segment": "27 августа, 20.00 - Кошка Сашка, билеты ticketscloud.com/v1/widgets...",
+          "evidence": "27 августа, 20.00 - Кошка Сашка || «СОЛЬНЫЙ АКУСТИЧЕСКИЙ КОНЦЕРТ», «Воронеж», «КЛИВЕРПУЛЬ ПАБ», «20:00», «27.08»",
+          "tags": [
+            "acoustic"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны шесть самостоятельных мероприятий на шесть разных календарных дат; для каждого подтверждены дата, концертная программа и площадка."
+        },
+        {
+          "date": "2026-08-28",
+          "time": "21:00",
+          "title": "Концерт Stout Band",
+          "venue": "паб Liverpool, ул. Куколькина, 33А/2",
+          "participants": "Stout Band",
+          "price": "вход свободный",
+          "program_items": [],
+          "announcement": "28 августа в пабе Liverpool выступит Stout Band. Вход свободный.",
+          "source_segment": "28 августа, 21.00 - Stout Band, вход свободный",
+          "evidence": "28 августа, 21.00 - Stout Band, вход свободный || «28.08; СТАУТ БЭНД; 21:00; Куколькина 33А/2, паб Ливерпуль»",
+          "tags": [],
+          "image_indexes": [
+            2
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны шесть самостоятельных мероприятий на шесть разных календарных дат; для каждого подтверждены дата, концертная программа и площадка."
+        },
+        {
+          "date": "2026-09-11",
+          "time": "21:00",
+          "title": "Концерт Red Fox Tails",
+          "venue": "Liverpool Pub, ул. Куколкина, 33А/2",
+          "participants": "Red Fox Tails",
+          "price": "",
+          "program_items": [],
+          "announcement": "11 сентября в Liverpool Pub состоится концерт Red Fox Tails.",
+          "source_segment": "11 сентября, 21.00 - Red Fox Tails, вход свободный",
+          "evidence": "11 сентября, 21.00 - Red Fox Tails, вход свободный || «Red Fox Tails; 11 СЕНТЯБРЯ; 21:00; +7 (910) 247-17-80; ул. Куколкина 33А/2; Liverpool Pub»",
+          "tags": [],
+          "image_indexes": [
+            7
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны шесть самостоятельных мероприятий на шесть разных календарных дат; для каждого подтверждены дата, концертная программа и площадка."
+        },
+        {
+          "date": "2026-09-19",
+          "time": "20:00",
+          "title": "Концерт Алексея Вдовина",
+          "venue": "Liverpool Pub, Воронеж, ул. Куколкина, 33а/2",
+          "participants": "Алексей Вдовин",
+          "price": "",
+          "program_items": [],
+          "announcement": "19 сентября в Liverpool Pub в Воронеже выступит Алексей Вдовин.",
+          "source_segment": "19 сентября, 20.00 - Алексей Вдовин, билеты vdovinvrn.ticketscloud.org/",
+          "evidence": "19 сентября, 20.00 - Алексей Вдовин, билеты vdovinvrn.ticketscloud.org/ || «19 сентября; Воронеж; ул. Куколкина, 33а/2; Начало в 20:00; +7(910)2471780; билеты; Liverpool Pub; Вдовин»",
+          "tags": [],
+          "image_indexes": [
+            5
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны шесть самостоятельных мероприятий на шесть разных календарных дат; для каждого подтверждены дата, концертная программа и площадка."
+        },
+        {
+          "date": "2026-09-20",
+          "time": "19:00",
+          "title": "«Барокко Хой!» — «Новый Ренессанс»",
+          "venue": "Liverpool Pub",
+          "participants": "Игорь Лисов",
+          "price": "",
+          "program_items": [],
+          "announcement": "20 сентября в Liverpool Pub состоится выступление Игоря Лисова «Барокко Хой!» в рамках программы «Новый Ренессанс».",
+          "source_segment": "20 сентября, 19.00 - Игорь Лисов, билеты voronezh.qtickets.events/246771-igo...",
+          "evidence": "20 сентября, 19.00 - Игорь Лисов, билеты voronezh.qtickets.events/246771-igo... || «20.09; НАЧАЛО В 19:00; ЛИВЕРПУЛЬ ПАБ; ИГОРЬ ЛИСОВ; БАРОККО ХОЙ!; НОВЫЙ РЕНЕССАНС»",
+          "tags": [],
+          "image_indexes": [
+            4
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны шесть самостоятельных мероприятий на шесть разных календарных дат; для каждого подтверждены дата, концертная программа и площадка."
+        },
+        {
+          "date": "2026-09-26",
+          "time": null,
+          "title": "Концерт Алексея Панасовского",
+          "venue": "Liverpool Pub, Воронеж, ул. Куколкина, 33А",
+          "participants": "Алексей Панасовский; группа «Нудыкё?»",
+          "price": "",
+          "program_items": [
+            {
+              "time": "19:00",
+              "text": "сет песен Вени Дркина"
+            }
+          ],
+          "announcement": "26 сентября в Liverpool Pub в Воронеже Алексей Панасовский и группа «Нудыкё?» выступят с сетом песен Вени Дркина.",
+          "source_segment": "26 сентября, 20.00 - Алексей Панасовский, билеты moscow.qtickets.events/252371-a-p...",
+          "evidence": "26 сентября, 20.00 - Алексей Панасовский, билеты moscow.qtickets.events/252371-a-p... || «Алексей Панасовский; группа «Нудыкё?»; + сет песен Вени Дркина; купить билет; 26 СЕНТЯБРЯ; 19:00; ЛИВЕРПУЛЬ ПАБ; г. ВОРОНЕЖ, ул. КУКОЛКИНА, 33А»",
+          "tags": [
+            "author-song"
+          ],
+          "image_indexes": [
+            6
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В публикации последовательно указаны шесть самостоятельных мероприятий на шесть разных календарных дат; для каждого подтверждены дата, концертная программа и площадка."
+        }
+      ],
+      "write": 3,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-95062430_2705",
+          "status": "event",
+          "text": "Liverpool Pubзапись закрепленаДействияРасписание концертов на август и сентябрь: 27 августа, 20.00 - Кошка Сашка, билеты"
+        }
+      ]
+    },
+    {
+      "key": "vk:vinzavodpro|2680",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-09-12",
+          "time": "14:00",
+          "title": "ДЕНЬ ГОРОДА",
+          "venue": "Винзавод, Кольцовская, 24Г",
+          "participants": "",
+          "price": "Вход свободный",
+          "program_items": [
+            {
+              "time": "14:00",
+              "text": "Бесплатная Музыкальная Битва"
+            },
+            {
+              "time": "15:30",
+              "text": "Диджей-сеты"
+            },
+            {
+              "time": "19:30",
+              "text": "Кинопоказ «Тройной форсаж»"
+            }
+          ],
+          "announcement": "День города на Винзаводе с музыкальной битвой, диджей-сетами и кинопоказом. Вход свободный.",
+          "source_segment": "ДЕНЬ ГОРОДА на Винзаводе В эту субботу открываем двери с 14:00 и ждём каждого на нашем дневном мероприятии, которое плавно перейдёт в ночную вечеринку. Программа: 14:00 — Бесплатная Музыкальная Битва Всем знакома игра «Русское лото»? Суть «Музыкальной Битвы» не сильно отличается: вместо бочонков мы собираем и поём любимые песни. Побеждает команда, которая быстрее всех соберёт все треки, названные ведущим. Участие бесплатное! 15:30–19:30 — Диджей-сеты 19:30–22:00 — Кинопоказ «Тройной форсаж» ГЕНЕРАЛЬНЫЙ ПАРТНЁР — СБЕР Вход свободный14:00–22:00Кольцовская, 24Г",
+          "evidence": "ДЕНЬ ГОРОДА || 12.09 || Винзавод",
+          "tags": [
+            "dj",
+            "party"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Одна дата и одна общая программа на одной площадке: музыкальная битва, диджей-сеты и кинопоказ."
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-170377932_2680",
+          "status": "not_event",
+          "text": "ДЕНЬ ГОРОДА на Винзаводе В эту субботу открываем двери с 14:00 и ждём каждого на нашем дневном мероприятии, которое плав"
+        }
+      ]
+    },
+    {
+      "key": "vk:balagan.city|17081",
+      "existing": [
+        {
+          "id": 247,
+          "date": "2026-09-24",
+          "title": "Чёрный вторник: официальный трибьют группы «Сектор Газа»",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-25597588_17081",
+          "status": "event",
+          "text": "Осталась всего неделя до концерта «Чёрный вторник» в Балаган Сити! 24 сентября наша сцена превратится в машину времени —"
+        }
+      ]
+    },
+    {
+      "key": "vk:pinta_haus|7772",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-09-25",
+          "time": "21:00",
+          "title": "",
+          "venue": "Рестобар «Pinta Haus», ул. Кольцовская, 9, Воронеж",
+          "participants": "Группа СГ; Юра Япрынцев",
+          "price": "500 рублей",
+          "program_items": [],
+          "announcement": "Трибьют группе «Сектор Газа» в исполнении группы СГ с солистом Юрой Япрынцевым.",
+          "source_segment": "25 сентября в 21-00 Трибьют любимой группы СЕКТОР ГАЗА в исполнении ГРУППЫ СГ Во главе, солист - племянник Юрия Хоя - Юра Япрынцев. Прозвучат все хиты группы и интересные истории от коллег Хоя. Билеты - 500 рублей.",
+          "evidence": "25 сентября в 21-00 Трибьют любимой группы СЕКТОР ГАЗА в исполнении ГРУППЫ СГ || Билеты - 500 рублей. || Рестобар \"Pinta Haus\" Воронеж ... ул. Кольцовская 9",
+          "tags": [
+            "russian-rock",
+            "punk-rock",
+            "cover-tribute"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Одна дата и одно время указаны для единого трибьют-выступления."
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-98545917_7772",
+          "status": "not_event",
+          "text": "Рестобар \"Pinta Haus\" Воронежзапись закрепленаДействия 25 сентября в 21-00 Трибьют любимой группы СЕКТОР ГАЗА в исполнен"
+        }
+      ]
+    },
+    {
+      "key": "vk:pinta_haus|7755",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-98545917_7755",
+          "status": "not_event",
+          "text": "Сегодня на сцене Pinta Haus в 21:00 кавер-группа «ТИМБУКТУ» Вход 300 рублей. Только хиты и танцевальная музыка от ребят!"
+        }
+      ]
+    },
+    {
+      "key": "vk:literabar|8732",
+      "existing": [
+        {
+          "id": 249,
+          "date": "2026-09-25",
+          "title": "Кавер-группа «Тимбукту»",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-135849070_8732",
+          "status": "event",
+          "text": "Пятница в «Литере» - тот вечер, когда кажется, что весь Воронеж собрался в одном зале. За столами ужинают, встречаются к"
+        }
+      ]
+    },
+    {
+      "key": "vk:literabar|8728",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-09-14",
+          "time": "20:00",
+          "title": "",
+          "venue": "Рестобар «Литера», проспект Революции, 53, Воронеж",
+          "participants": "Константин Зим",
+          "price": "",
+          "program_items": [
+            {
+              "time": "20:00",
+              "text": "Живая инструментальная музыка на саксофоне в стиле джаз, фанк, блюз"
+            }
+          ],
+          "announcement": "14 сентября в рестобаре «Литера» выступит Константин Зим с живой инструментальной музыкой на саксофоне.",
+          "source_segment": "14 сентября на сцене - Константин Зим. Знакомые песни, спокойная программа, ужин в центре города, бокал вина или коктейль после рабочего дня. ... 14 сентября 20:00 проспект Революции 53",
+          "evidence": "14 сентября на сцене - Константин Зим. || 14 сентября 20:00 проспект Революции 53 || РЕСТОБАР ЛИТЕРА; ПРОСПЕКТ РЕВОЛЮЦИИ, 53",
+          "tags": [
+            "blues"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Одна календарная дата и одно самостоятельное событие с указанными временем и площадкой."
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-135849070_8728",
+          "status": "not_event",
+          "text": "Рестобар «Литера» - единственное заведение в Воронеже, где живая музыка звучит по понедельникам. 14 сентября на сцене - "
+        }
+      ]
+    },
+    {
+      "key": "vk:naryadny.rest|203",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-09-06",
+          "time": "20:00",
+          "title": "СТОРИЗ",
+          "venue": "Ресторан Нарядный, проспект Революции 38, 2 этаж, Воронеж",
+          "participants": "Сергей Бабкин, Дмитрий Ратынский",
+          "price": "",
+          "announcement": "Стендап-шоу «СТОРИЗ» — шоу, в котором юмор строится в ходе общения зрителей с ведущими. После общения с ведущим зал выбирает зрителя, о котором будет стендап. Комики рассказывают монолог от лица этого зрителя. Ведущие: Сергей Бабкин и Дмитрий Ратынский.",
+          "source_segment": "6 сентября | 20:00 | ВОСКРЕСЕНЬЕ Стендап-шоу \"СТОРИЗ\" Ресторан Нарядный проспект Революции 38 2 этаж Сториз — шоу, в котором юмор строится в ходе общения зрителей с ведущими. После общения с ведущим зал выбирает зрителя, о котором будет стендап. Комики рассказывают монолог от лица этого зрителя. Ведущие: Сергей Бабкин - \"КВН Высшая лига\" Первый канал Дмитрий Ратынский - стендап комик эфир на ТНТ gostandup.ru/voronej/ev...",
+          "program_items": [],
+          "evidence": [
+            "Стендап-шоу \"СТОРИЗ\"",
+            "06.09 НАЧАЛО 20:00",
+            "УЛ. ПРОСПЕКТ РЕВОЛЮЦИИ, 38"
+          ],
+          "tags": [
+            "russian-standup"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Подтверждено одно событие: стендап-шоу «СТОРИЗ» с точной датой, временем и местом."
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-232455433_203",
+          "status": "failed_retryable",
+          "text": "6 сентября | 20:00 | ВОСКРЕСЕНЬЕ Стендап-шоу \"СТОРИЗ\" Ресторан Нарядный проспект Революции 38 2 этаж Сториз — шоу, в кот"
+        }
+      ]
+    },
+    {
+      "key": "vk:literabar|8734",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-135849070_8734",
+          "status": "not_event",
+          "text": "Любимому городу - в два раза больше праздника. Мы в «Литере» решили отметить его ещё раз. Большой субботний вечер, полны"
+        }
+      ]
+    },
+    {
+      "key": "vk:literabar|8737",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-135849070_8737",
+          "status": "not_event",
+          "text": "Сегодня в «Литере» - воскресенье под живое фортепиано. За атмосферу отвечает Лара Музыка с кавер-версиями мировых хитов."
+        }
+      ]
+    },
+    {
+      "key": "vk:literabar|8738",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-09-21",
+          "time": "20:00",
+          "title": "",
+          "venue": "проспект Революции 53",
+          "participants": "Константин Зим",
+          "price": "",
+          "program_items": [],
+          "announcement": "В «Литере» живая музыка звучит даже по понедельникам... На сцене - Константин Зим. Живая инструментальная музыка на саксофоне в стиле джаз, фанк, блюз для вашего идеального ужина",
+          "source_segment": "понедельник, 21 сентября 20:00 проспект Революции 53 [Факты с афиши]",
+          "evidence": "понедельник, 21 сентября 20:00 проспект Революции 53 || 20:00; 21 СЕНТЯБРЯ; САКСОФОН; «Константин Зим»; ЖИВАЯ ИНСТРУМЕНТАЛЬНАЯ МУЗЫКА НА САКСОФОНЕ В СТИЛЕ ДЖАЗ, ФАНК, БЛЮЗ ДЛЯ ВАШЕГО ИДЕАЛЬНОГО УЖИНА; РЕСТОБАР ЛИТЕРА; ПРОСПЕКТ РЕВОЛЮЦИИ, 53",
+          "tags": [
+            "blues"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "one clear event with confirmed date, essence, venue in sequential block; single_date confirmed by distinct signals"
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-135849070_8738",
+          "status": "not_event",
+          "text": "В «Литере» живая музыка звучит даже по понедельникам. И это одна из наших главных особенностей: в начале недели можно не"
+        }
+      ]
+    },
+    {
+      "key": "vk:poneslosbar_vrn|23316",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-170501354_23316",
+          "status": "not_event",
+          "text": "Атмосферный бар Понеслось - ВоронежДействияВот и пролетел первый месяц осени, но эти выходные созданы, чтобы танцевать, "
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5489",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "27 сентября 16:00, в переходе Цирка будет показ бренд-одежды от 13-летнего пацана (с его присутствием, конечно) (Это буд"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5516",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "event",
+          "text": "23.10 КАЗЁННЫЙ УНИТАЗ - Воронеж - Rock Bar DIESEL ДеньДуркиФест КАЗЁННЫЙ УНИТАЗ объявляет осенний тур, в котором группа "
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5525",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "ПЕРЕГРУЗ — PARTY 2Ты уже был с нами на первом ПЕРЕГРУЗЕ?Если да ты знаешь, что будет дальше.Если нет самое время присоед"
+        }
+      ]
+    },
+    {
+      "key": "vk:overlockbar|191",
+      "existing": [
+        {
+          "id": 421,
+          "date": "2026-10-17",
+          "title": "TRÄUME",
+          "status": "approved"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-17",
+          "time": "18:00",
+          "title": "TRÄUME",
+          "venue": "OVERLOCK, Пушкинская ул., 5",
+          "participants": "Декада 00; мёртвые цветы; алыча",
+          "price": "300/500",
+          "announcement": "17 октября в OVERLOCK состоится TRÄUME с участием Декады 00, «мёртвых цветов» и «алычи». Начало в 18:00.",
+          "source_segment": "OVERLOCKДействияTRÄUME: 17.10 OverlockTRÄUME 17 октября погружаемся в гипнотический сон в середине осени Собираемся в стенах OVERLOCK Давящие низкие частоты тяжелых гитар, надрывный мидвест и плотный альтернативный саунд в один вечер: — Декада 00 — мёртвые цветы — алыча (дебют) билеты: voronezh.qtickets.events/257876-traume (300/500) Пушкинская ул., 518:00",
+          "program_items": [],
+          "evidence": "TRÄUME: 17.10 || Собираемся в стенах OVERLOCK || — Декада 00 — мёртвые цветы — алыча (дебют) билеты: voronezh.qtickets.events/257876-traume (300/500) Пушкинская ул., 518:00",
+          "tags": [
+            "alternative"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Один анонс с явно указанными названием, датой, временем, площадкой, адресом и участниками."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-203311769_191",
+          "status": "event",
+          "text": "OVERLOCKДействияTRÄUME : 17.10 OverlockTRÄUME 17 октября погружаемся в гипнотический сон в середине осени Собираемся в с"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5490",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "Рады анонсировать дату долгожданной премьеры!\"Пока плывёт - пускай плывёт!\" Спектакль в двух действиях. Комедия дель арт"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5578",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "Перед анонсом замечу: вот такие трудовые мероприятия очень способствуют новым знакомствам! Центр экологической политики "
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5577",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "Йога сна под звуки тибетских поющих чаш 3 октября в 17:00 в студии на Олимпийском бульваре,12 Приглашаем вас на практику"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5508",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "обрати внимание, Ник @nick_more 2 октября) (ред.)\n\n[Репост/вложенный пост VK]\nРИСОВАНИЕ ВИНОМ ПОД СЕРИАЛ | 2 ОКТЯБРЯ в 1"
+        }
+      ]
+    },
+    {
+      "key": "vk:divludi|2910",
+      "existing": [
+        {
+          "id": 428,
+          "date": "2026-10-31",
+          "title": "Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall90815_2910",
+          "status": "event",
+          "text": "Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Ба"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5585",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "7 октября открываем новый проект Центра Современного Танца \"ЛЕКТОРИЙ\" просмотром потрясающего танцевального спектакля Кр"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5588",
+      "existing": [
+        {
+          "id": 102,
+          "date": "2026-10-17",
+          "title": "Лаборатория по пьесам воронежских драматургов",
+          "status": "pending"
+        },
+        {
+          "id": 105,
+          "date": "2026-10-18",
+          "title": "Лаборатория по пьесам воронежских драматургов",
+          "status": "pending"
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "status": "event",
+          "text": "17 и 18 октября на сцене Никитинского театра пройдут показы эскизов по пьесам учеников школы Драмкружка. Публикуем подро"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5580",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "Нашей студии исполняется 16 лет, приходите отметить вместе с нами11 октября у нас пройдёт день открытых практик. Пять за"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5589",
+      "existing": [
+        {
+          "id": 86,
+          "date": "2026-10-03",
+          "title": "Уездная ярмарка",
+          "status": "pending"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "status": "event",
+          "text": "Уездная ярмарка в парке «Дельфин»!Гуляния да забавы, песни да пляски, музыка живая и мастерство народное. Уже 3 и 4 октя"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13819",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-04",
+          "time": "20:00",
+          "title": "SELLOUT",
+          "venue": "DIESEL BAR, Воронеж",
+          "participants": "SELLOUT",
+          "price": "",
+          "announcement": "Юбилейный концерт SELLOUT к 10-летию группы.",
+          "source_segment": "НА СЛЕДУЮЩЕЙ НЕДЕЛЕ - 04.10 | SELLOUT - 10 лет | Воронеж С подростковой мечтой наперевес, вопреки всему, а не благодаря, мы с вами подобрались к первой круглой дате. ... пришло время сыграть наш большой концерт. Ты, мы, и наши лучшие песни, ничего лишнего! 20:00",
+          "evidence": "«пришло время сыграть наш большой концерт» || «04.10» || «DIESEL BAR»",
+          "tags": [
+            "concert"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Анонс одного юбилейного концерта SELLOUT с датой и площадкой."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13819",
+          "status": "event",
+          "text": "НА СЛЕДУЮЩЕЙ НЕДЕЛЕ - 04.10 | SELLOUT - 10 лет | Воронеж С подростковой мечтой наперевес, вопреки всему, а не благодаря,"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5586",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "Друзья! Снова едем в прекрасное путешествие в Дивногорье!Вот и наступила осень - золотое время года, когда активность и "
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|4627",
+      "existing": [
+        {
+          "id": 514,
+          "date": "2026-10-23",
+          "title": "Дата: 23 октября",
+          "status": "approved"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-23",
+          "time": "20:00",
+          "title": "",
+          "venue": "Рок-бар «The Last of Vavilone», Воронеж, ул. Кирова, 5",
+          "participants": "Такие Дела",
+          "price": "",
+          "announcement": "Трибьют-группа «Такие Дела» исполнит лучшие песни ЧиЖ & C° в рок-баре «The Last of Vavilone» в Воронеже.",
+          "source_segment": "23 октября в Рок-барe \"The last of Vavilone\" выступит трибьют-группа Такие Дела с программой лучших песен группы ЧИЖиСо. ... 23.10 Двери 19:00 Старт 20:00",
+          "program_items": [
+            {
+              "time": "19:00",
+              "text": "Открытие дверей"
+            },
+            {
+              "time": "20:00",
+              "text": "Начало"
+            }
+          ],
+          "evidence": "23 октября в Рок-барe \"The last of Vavilone\" выступит трибьют-группа Такие Дела с программой лучших песен группы ЧИЖиСо. || 23.10 Двери 19:00 Старт 20:00",
+          "tags": [
+            "rock",
+            "cover-tribute"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Один трибьют-концерт с единым исполнителем, площадкой и последовательными этапами: открытие дверей и начало."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-42954252_4627",
+          "status": "event",
+          "text": "23 октября в Рок-барe \"The last of Vavilone\" выступит трибьют-группа Такие Дела с программой лучших песен группы ЧИЖиСо."
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13798",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13798",
+          "status": "failed_retryable",
+          "text": "В НОЯБРЕ - THEOSOPHY в Воронеже 20 ноября BLACKENED LIFE AGENCY представляет: Оттуда, где кроны сибирских лесов устремля"
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|4626",
+      "existing": [
+        {
+          "id": 513,
+          "date": "2026-10-24",
+          "title": "РОК ЭТО ЖИЗНЬ!",
+          "status": "approved"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-24",
+          "time": "19:00",
+          "title": "Рок - Это Жизнь!",
+          "venue": "Рок-Бар \"The Last of Vavilone\", ул. Кирова, 5, Воронеж",
+          "participants": "Крылья Пути; РОК ГРУППА НЕБО СВОБОДЫ; РоК - ГраНицА; Killbrain",
+          "price": "500 рублей; 400 рублей по предзаказу",
+          "announcement": "24 октября в Воронеже пройдёт концерт «Рок - Это Жизнь!» с участием четырёх рок-команд. Двери в 18:00, начало в 19:00; вход 500 рублей, по предзаказу — 400 рублей.",
+          "source_segment": "Рок это жизнь, он не признаёт рамок —И 24 октября в 18:00 мы сделаем так, чтобы этот пульс стал общим для всего зала! На нашей сцене — четыре команды, каждая из которых живёт роком и делится этой энергией со зрителями: Крылья Пути — смешают жанры так, что ты не сможешь устоять на месте.РОК ГРУППА НЕБО СВОБОДЫ г.Лиски — сыграют рок, который говорит с душой: честно, глубоко, до мурашек.РоК - ГраНицА — зарядят любимыми хитами: будет шанс прокричать каждую строчку вместе с залом.Killbrain - postgrunge band Воронеж — обрушат на тебя волну пост‑гранжа: громко, дерзко, на пределе. Не стой в стороне — стань частью этого вечера! Встреча: Рок - Это Жизнь! Когда: 24.10 двери в 18.00 начало 19.00Где: Кирова 5 (The last of Vavilone) Вход — 500 рублей. Но если хочешь сэкономить и точно попасть — бери билет по предзаказу за 400 рублей!Билеты: voronezh.qtickets.events/261709-rok...",
+          "program_items": [
+            {
+              "time": "18:00",
+              "text": "двери"
+            },
+            {
+              "time": "19:00",
+              "text": "начало концерта"
+            }
+          ],
+          "evidence": "Встреча: Рок - Это Жизнь! || Когда: 24.10 двери в 18.00 начало 19.00 || Рок-Бар \"The Last of Vavilone\", Воронеж, ул. Кирова, 5",
+          "tags": [
+            "rock"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Одна рок-концертная программа с общей площадкой, единым входом и призывом; 18:00 — двери, 19:00 — начало."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-42954252_4626",
+          "status": "event",
+          "text": "Рок это жизнь, он не признаёт рамок —И 24 октября в 18:00 мы сделаем так, чтобы этот пульс стал общим для всего зала! На"
+        }
+      ]
+    },
+    {
+      "key": "vk:literabar|8731",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-135849070_8731",
+          "status": "not_event",
+          "text": "Ужин в центре, бокал вина и живая скрипка - хороший план на четверг. На сцене «Литеры» - Клаудио Антонио. Он играет миро"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13811",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-01",
+          "time": "20:00",
+          "title": "Апекс 29 лет спустя",
+          "venue": "DIESEL HALL",
+          "participants": "Вероника Беляева, Андрей Собко, Вовка Кожекин, Игорь Бычков, Дэн Субботин, Алексей Панасовский, Plotnik82, Сергей Фёдоров",
+          "price": "vk.cc/cZyaOz",
+          "announcement": "Концерт песен Вени Дркина полностью повторяет 1997-й гит в Воронеже",
+          "source_segment": "НА СЛЕДУЮЩЕЙ НЕДЕЛЕ - Дрфест \"Апекс 29 лет спустя\" / Воронеж 1.10.2026 Приглашаем на фестиваль песен Вени Дркина \"Апекс 29 лет спустя\" в ВОРОНЕЖЕ! Концертная программа полностью повторяет двухчасовое выступление легендарного Дрбэнда в воронежском \"Апексе\" в июне 1997. ... Двери: 19:30 Билеты: vk.cc/cZyaOz",
+          "program_items": [
+            {
+              "time": "20:00",
+              "text": "концерт (двухчасовое выступление)"
+            }
+          ],
+          "evidence": "«НА СЛЕДУЮЩЕЙ НЕДЕЛЕ - Дрфест \"Апекс 29 лет спустя\" / Воронеж 1.10.2026» || «Двери: 19:30 Билеты: vk.cc/cZyaOz» || «ДIESEL HALL Генерала Лизюкова 4»",
+          "tags": [
+            "party"
+          ],
+          "_structure": "single_event",
+          "_structureReason": "VK-пост + афиша явно анонсируют одно будущее событие с подтверждённой датой, названием, местом и участниками; нет противоречий или отдельных событий"
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13811",
+          "status": "failed_retryable",
+          "text": "НА СЛЕДУЮЩЕЙ НЕДЕЛЕ - Дрфест \"Апекс 29 лет спустя\" / Воронеж 1.10.2026 Приглашаем на фестиваль песен Вени Дркина \"Апекс "
+        }
+      ]
+    },
+    {
+      "key": "vk:artartelchaika|8841",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall154122999_8841",
+          "status": "not_event",
+          "text": "Артель «Чайка» и Валерия ЛогуноваДействияЖенщины, продолжаем расслабляться и кайфоаать в баньке! Вторник, 6 октября, 18:"
+        }
+      ]
+    },
+    {
+      "key": "vk:liverpool_pub_vrn|2725",
+      "existing": [
+        {
+          "id": 515,
+          "date": "2026-10-17",
+          "title": "Бриолин",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-17",
+          "time": "19:00",
+          "title": "Бриолин",
+          "venue": "Паб Ливерпуль, ул. Куколкина, 33а/2",
+          "participants": "Директор Азовского моря; студия исторического танца «Каменный мост»",
+          "price": "Вход свободный",
+          "announcement": "17 октября в Пабе Ливерпуль пройдёт костюмированная вечеринка «Бриолин» с живым звуком от «Директора Азовского моря», танцевальной программой и дресс-кодом в винтажном стиле.",
+          "source_segment": "А вот и главное событие октября - вечеринка Бриолин: стиляги, настоящий рок-н-ролл, танцы и музыка! На сцене - \"ДИРЕКТОР АЗОВСКОГО МОРЯ\", танцевальная поддержка - Студия исторического танца \"Каменный мост\" Доставайте из сундуков бабушкины платья и дедушкины галстуки - мы отправляемся в эпоху буги и рок-н-ролла! 17 октября, с 19.00 и до упора\nПаб Ливерпуль, Куколкина 33а, +79102471780 Вход свободный, дресскод - винтаж",
+          "program_items": [
+            {
+              "time": "19:00",
+              "text": "Начало вечеринки"
+            },
+            {
+              "time": null,
+              "text": "Живой звук от «Директора Азовского моря»"
+            },
+            {
+              "time": null,
+              "text": "Танцевальная поддержка студии исторического танца «Каменный мост»"
+            }
+          ],
+          "evidence": "вечеринка Бриолин: стиляги, настоящий рок-н-ролл, танцы и музыка! || 17 октября, с 19.00 и до упора || Паб Ливерпуль, Куколкина 33а",
+          "tags": [
+            "rock",
+            "party"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Один анонс костюмированной вечеринки с общей площадкой, единым названием и последовательной музыкально-танцевальной программой"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-95062430_2725",
+          "status": "event",
+          "text": "Liverpool Pub и ещё 2 авторазапись закрепленаДействияА вот и главное событие октября - вечеринка Бриолин: стиляги, насто"
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|581",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-10",
+          "time": "19:00",
+          "title": "ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА",
+          "venue": "The Last of Vavilone, Воронеж",
+          "participants": "Транжиры",
+          "price": "",
+          "announcement": "Транжиры выступят на сцене The Last of Vavilone на большом юбилейном концерте ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА (новый релиз «Мы уже не дети»)",
+          "source_segment": "10 октября услышим её живьём в Воронеже. ★ТРАНЖИРЫ★ выйдут на сцену рок-бара The Last of Vavilone на большом юбилейном концерте ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА. 10 ОКТЯБРЬ ВОРОНЕЖ • The Last of Vavilone Начало — 19:00",
+          "program_items": [
+            {
+              "time": "19:00",
+              "text": "Начало — 19:00"
+            }
+          ],
+          "evidence": "10 октября услышим её живьём в Воронеже. || ★ТРАНЖИРЫ★ выйдут на сцену рок-бара The Last of Vavilone на большом юбилейном концерте ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА. 10 ОКТЯБРЬ ВОРОНЕЖ • The Last of Vavilone Начало — 19:00 || Дата: 10 октября, Время: 19:00, Место: Воронеж, Участники: Транжиры (3 человека), Программа: большой юбилейный концерт Дёрга ты! — 25 лет пан к-рока",
+          "tags": [
+            "russian-rock",
+            "punk-rock",
+            "rock"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Single confirmed event: Транжиры live performance on fixed 2026-10-10 at The Last of Vavilone (no contradictions in source)"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-49472477_581",
+          "status": "event",
+          "text": "НОВЫЙ РЕЛИЗ ★ТРАНЖИРОВ★ УЖЕ В СЕТИ! ★ТРАНЖИРЫ★ выпустили новый трек — «Мы уже не дети». «Всё серьёзнее, ведь мы уже не д"
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|49",
+      "existing": [
+        {
+          "id": 419,
+          "date": "2026-10-17",
+          "title": "OPEN MIKE ФИНАЛ ВОРОНЕЖА",
+          "status": "approved"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-17",
+          "time": "18:00",
+          "title": "ОПЕН МИКЕ ФИНАЛ СЕЗОНА",
+          "venue": "рок-бар \"The last of Vavilone\"",
+          "participants": null,
+          "price": "500 р.",
+          "announcement": "До Open Mike: ФИНАЛ осталось совсем чуть-чуть… концерт состоится 17.10.26 по адресу г. Воронеж, Кирова, 5",
+          "source_segment": "До Open Mike: ФИНАЛ осталось совсем чуть-чуть, а значит пришло время занимать места!Напоминаем, концерт состоится 17.10.26 по адресу г. Воронеж, Кирова, 5. Рок-бар «The last of Vavilone»",
+          "evidence": "концерт состоится 17.10.26 по адресу г. Воронеж, Кирова, 5. Рок-бар «The last of Vavilone»||ОПЕН МИКЕ ФИНАЛ СЕЗОНА, ТРИ МУЗЫКАЛЬНЫХ БЛОКА, КИРОВА, 5 РОК-БАР \"LAST VAVILON\", НАЧАЛО КОНЦЕРТА 17.10.26 В 18:00",
+          "tags": [
+            "rock",
+            "party"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "text explicitly announces one event with confirmed date 17.10.26, venue 'The last of Vavilone' at Кирова 5, and poster name 'ОПЕН МИКЕ ФИНАЛ СЕЗОНА'; a single Open Mike night with three musical blocks, not separate events"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-240866541_49",
+          "status": "event",
+          "text": "Дорогие друзья! До Open Mike: ФИНАЛ осталось совсем чуть-чуть, а значит пришло время занимать места!Напоминаем, концерт "
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|186",
+      "existing": [
+        {
+          "id": 416,
+          "date": "2026-11-14",
+          "title": "Existenter",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 3,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-227219886_186",
+          "status": "event",
+          "text": "Не знаешь, куда идти? Приходи на концерт. Там не нужно знать маршрут, а нужно всего лишь чувствовать нашу энергию.Existe"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13823",
+      "existing": [
+        {
+          "id": 407,
+          "date": "2026-10-04",
+          "title": "БАРДЕЛЬ",
+          "status": "pending"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13823",
+          "status": "event",
+          "text": "Rock Bar DIESEL & DIESEL Hallзапись закрепленаДействияНА ЭТОЙ НЕДЕЛЕ: 1 октября: Diesel Hall: Дрфест \"Апекс 29 лет спуст"
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|1192",
+      "existing": [
+        {
+          "id": 297,
+          "date": "2026-10-02",
+          "title": "И-НОЙ",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-226190294_1192",
+          "status": "event",
+          "text": "Большой акустический концерт И-Ной. Это песни, большинство которых вы никогда не найдете на цифровых площадках. Их нет в"
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|920",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-09",
+          "time": "19:00",
+          "title": "ЦЕНТР ОСЕНИ",
+          "venue": "Рок-паб «МАМА АНАРХИЯ», ул. Платонова, 25, Воронеж",
+          "participants": "УНКАЙ; ИГОРЬ ЛУНЁВ; ЛАДОНИ ЛЕТА; СПАТА; ЭНТОМОЛОГИЯ",
+          "price": "400 руб.",
+          "announcement": "9 октября в 19:00 в рок-пабе «МАМА АНАРХИЯ» пройдет фестиваль «ЦЕНТР ОСЕНИ» с участием УНКАЙ, Игоря Лунёва, «Ладони лета», СПАТА и «Энтомологии». После официальной части — свободный микрофон.",
+          "source_segment": "УНКАЙ в деле: Ловим «ЦЕНТР ОСЕНИ» в Воронеже! Друзья, у нас отличные новости! 9-го октября мы выходим на сцену, чтобы вместе с вами поймать самый эпичный осенний вайб на фестивале «ЦЕНТР ОСЕНИ».",
+          "program_items": [
+            {
+              "time": "19:00",
+              "text": "Начало фестиваля «ЦЕНТР ОСЕНИ»"
+            },
+            {
+              "time": null,
+              "text": "Выступления УНКАЙ, Игоря Лунёва, «Ладони лета», СПАТА и «Энтомологии»"
+            },
+            {
+              "time": null,
+              "text": "После официальной части — традиционный «свободный микрофон»"
+            }
+          ],
+          "evidence": "9-го октября мы выходим на сцену, чтобы вместе с вами поймать самый эпичный осенний вайб на фестивале «ЦЕНТР ОСЕНИ».||Где: Рок-паб «МАМА АНАРХИЯ» (ул. Платонова, 25) Когда: 9 октября, начало в 19:00||Вход: 400 руб.",
+          "tags": [
+            "rock",
+            "festival",
+            "author-song",
+            "open-mic"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Один фестиваль с общей площадкой, единым временем начала, общей ценой входа и последовательной программой выступлений и свободного микрофона."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall675847853_920",
+          "status": "event",
+          "text": "УНКАЙ в деле: Ловим «ЦЕНТР ОСЕНИ» в Воронеже! Друзья, у нас отличные новости! 9-го октября мы выходим на сцену, чтобы вм"
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|4619",
+      "existing": [
+        {
+          "id": 413,
+          "date": "2026-10-06",
+          "title": "РОК #4",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-42954252_4619",
+          "status": "event",
+          "text": "6 октября! Квизанемся?\n[Репост/вложенный пост VK]\nРОК #4 Пора сделать громче. Нас ждёт квиз про рок во всех его проявлен"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13848",
+      "existing": [
+        {
+          "id": 452,
+          "date": "2026-10-25",
+          "title": "HELVEGEN",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-25",
+          "time": "19:00",
+          "title": "",
+          "venue": "Diesel Hall, Воронеж",
+          "participants": "Helvegen",
+          "price": "",
+          "announcement": "Юбилейный концерт Helvegen в честь пятилетия группы состоится 25 октября в клубе Diesel Hall в Воронеже.",
+          "source_segment": "HELVEGEN в твоём городе! Отметить пятилетие группы под любимые песни вы сможете 25 октября в клубе Diesel Hall Главные хиты, новые песни, уютная атмосфера праздника ждут вас в этот день! 19:00",
+          "program_items": [],
+          "evidence": "HELVEGEN в твоём городе! Отметить пятилетие группы под любимые песни вы сможете || 25 октября в клубе Diesel Hall || 19:00",
+          "tags": [
+            "metal"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Анонсирует одно концертное событие: выступление Helvegen 25 октября в клубе Diesel Hall в Воронеже."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13848",
+          "status": "event",
+          "text": "В ЭТОМ МЕСЯЦЕ - HELVEGEN l Воронеж 25.10 I Diesel Hall HELVEGEN в твоём городе! Отметить пятилетие группы под любимые пе"
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|5",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-10",
+          "time": "19:00",
+          "title": "",
+          "venue": "Мама Анархия Рок-Паб, Воронеж, Платонова, 25",
+          "participants": "Олег \"Манагер\" Судаков; группа Допуска",
+          "price": "1000 ₽ на входе",
+          "announcement": "10 октября в пабе «Мама Анархия» в Воронеже состоится акустический концерт Олега «Манагера» Судакова при участии группы Допуска. Начало в 19:00.",
+          "source_segment": "10 октября (суббота) в пабе Мама анархия (Воронеж, Платонова 25) выступит с акустическим концертом Олег \"Манагер\" Судаков, Олег \"Манагер\" Судаков - яркий музыкант сибпанка и участник проектов: Гражданская Оборона, Коммунизм, Цыганята ияс Ильича, Анархия, Родина, Манагер & Grenade Surround. Метафизика текстов и драйв. Издано 30 CD-альбомов с проектами Манагера. Старые и новые песни... Концерт состоится при участии группы ГРУППА ДОПУСКАМанагер и Родина - vk.ru/club2219554 Начало 19:00 Билеты: voronezh.qtickets.events/257982-ole... На входе-1000₽",
+          "program_items": [],
+          "evidence": "10 октября (суббота) в пабе Мама анархия (Воронеж, Платонова 25) выступит с акустическим концертом Олег \"Манагер\" Судаков || Концерт состоится при участии группы ГРУППА ДОПУСКА || Начало 19:00",
+          "tags": [
+            "acoustic"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Один анонс акустического концерта с подтверждёнными датой и площадкой."
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-241363728_5",
+          "status": "failed_retryable",
+          "text": "Олег \"Манагер\" Судаков, \"Мама Анархия\", 10.10.26 и ещё 2 авторазапись закрепленаДействия10 октября (суббота) в пабе Мама"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13846",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13846",
+          "status": "not_event",
+          "text": "Rock Bar DIESEL & DIESEL HallДействияИСХОД 09/10 Затянули мы с осенними анонсами, и первый на очереди у нас Исход в DIES"
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|4634",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-42954252_4634",
+          "status": "failed_retryable",
+          "text": "Рок-бар \"The last of Vavilone\"ДействияДёргать! — 25 лет панк‑рока! Обнинская панк‑рок группа ДЁРГАТЬ! — 25 ЛЕТ НА СЦЕНЕ "
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13835",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-10",
+          "time": "19:00",
+          "title": "",
+          "venue": "Rock Bar DIESEL, ул. Генерала Лизюкова, 4, Воронеж",
+          "participants": "УХУ.ЕЛИ, Третий СортЪ, МИ_стерика",
+          "price": "300 руб.",
+          "announcement": "10 октября в Rock Bar DIESEL в Воронеже выступят УХУ.ЕЛИ, Третий СортЪ и МИ_стерика. Начало в 19:00, билеты на входе — 300 руб.",
+          "source_segment": "10 октября | УХУ.ЕЛИ | 3 Сорт | Мистерика РОК-ВЕЧЕР В ВОРОНЕЖЕ: ТРИ ГРУППЫ, ОДИН ВЗРЫВНОЙ ЗАЛ ... 10 октября в Rock Bar DIESEL соберутся те, кто чувствует ритм громче слов. На сцене: МИ_стерика ... Третий СортЪ ... УХУ.ЕЛИ ... Начало: 19:00 Билеты на входе: 300р.",
+          "program_items": [],
+          "evidence": "10 октября в Rock Bar DIESEL соберутся те, кто чувствует ритм громче слов. || На сцене: МИ_стерика ... Третий СортЪ ... УХУ.ЕЛИ || Начало: 19:00 Билеты на входе: 300р.",
+          "tags": [
+            "rock",
+            "punk-rock"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Один рок-концерт с тремя выступающими группами, общей площадкой, общей ценой и единым временем начала."
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13835",
+          "status": "failed_retryable",
+          "text": "Rock Bar DIESEL & DIESEL HallДействия10 октября | УХУ.ЕЛИ | 3 Сорт | Мистерика РОК-ВЕЧЕР В ВОРОНЕЖЕ: ТРИ ГРУППЫ, ОДИН ВЗ"
+        }
+      ]
+    },
+    {
+      "key": "vk:deadway36|176",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-03",
+          "time": null,
+          "title": "Медовый Рейд",
+          "venue": "Тупик, 1917, Сосисочная, Аут, Келлер, Митбоулинг Клуб",
+          "participants": "",
+          "price": "",
+          "announcement": "Барный поход по шести барам с медовухой и маршрутными печатями; завершившим маршрут вручат медаль истинного викинга.",
+          "source_segment": "Медовый Рейд, 3 октября. Хороший способ оказаться в Вальгалле побыстрее! Завершаем сезон бархопингов сладким походом. Механика неизменна: в каждом из 6 баров-участников, на немного обновленном в этот раз маршруте, вам предстоит выпить бокал медовухи и получить за него печать в ваш маршрутный лист. Завершив весь путь мы торжественно вручим вам медаль истинного викинга 🪓 Генеральный партнер: Традиции Предков, торговая марка Mjolnir. В походе участвуют:Тупик - 1917 - Сосисочная - Аут- Келлер - Митбоулинг Клуб.",
+          "program_items": [],
+          "evidence": "Медовый Рейд, 3 октября || в каждом из 6 баров-участников || В походе участвуют:Тупик - 1917 - Сосисочная - Аут- Келлер - Митбоулинг Клуб",
+          "tags": [
+            "party"
+          ],
+          "image_indexes": [],
+          "_structure": "single_event",
+          "_structureReason": "Анонсирован один бархопинг «Медовый Рейд» на одну дату; перечисленные бары — участники единого маршрута."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-234720249_176",
+          "status": "event",
+          "text": "Бар \"Тупик\"ДействияМедовый Рейд, 3 октября. Хороший способ оказаться в Вальгалле побыстрее! Завершаем сезон бархопингов "
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|921",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-03",
+          "time": "19:00",
+          "title": "ДЕЗДЕМОН СИДОРОВ АКУСТИЧЕСКИЙ КОНЦЕРТ",
+          "venue": "Паб Мама Анархия",
+          "participants": "Максим Долина, Артём Фатеев, ДЕЗДЕМОН СИДОРОВ",
+          "price": "",
+          "announcement": "ВПЕРВЫЕ В ВОРОНЕЖЕ 3.10 2026 19:00 СИДОРОВ АКУСТИЧЕСКИЙ КОНЦЕРТ ПРИ УЧАСТИИ Максима Долина и Артёма Фатеева",
+          "source_segment": "Воронеж! Друзья! 3 октября! Паб Мама Анархия До встречи! Забронировать столик: voronezh.qtickets.events/256336-dez...",
+          "program_items": [],
+          "evidence": "3 октября! Паб Мама Анархия || Платонова 25 || ДЕЗДЕМОН СИДОРОВ",
+          "tags": [
+            "rave"
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Single confirmed event with one date, one venue, one title and one announcement; no multiple events or contradictions detected"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall675847853_921",
+          "status": "event",
+          "text": "Мама АнархияДействияДездемон СидоровВерифицировано и Дездемон СидоровВерифицированоВоронеж! Друзья! 3 октября! Паб Мама "
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|1294",
+      "existing": [
+        {
+          "id": 396,
+          "date": "2026-10-17",
+          "title": "Паб Мама Анархия и Мама АнархияДействияДрузья!",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-226190294_1294",
+          "status": "event",
+          "text": "Паб Мама Анархия и Мама АнархияДействияДрузья! 17 октября будет прекрасный повод похандрить вместе в это удивительное вр"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13824",
+      "existing": [
+        {
+          "id": 525,
+          "date": "2026-10-17",
+          "title": "Первый ХВГ-Фест",
+          "status": "pending"
+        }
+      ],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13824",
+          "status": "event",
+          "text": "Rock Bar DIESEL & DIESEL HallДействияПервый ХВГ-Фест! Фестиваль участников проекта Хочу В Группу разных лет!Что может бы"
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|4635",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-03",
+          "time": "20:00",
+          "title": "DANSE MACABRE PARTY VOL. 1",
+          "venue": "The Last of Vavilone",
+          "participants": "Totten Mechanismus, The Witch Said No, HOLOCODER",
+          "price": null,
+          "announcement": "В «Вавилоне состоится DANSE MACABRE v.1 | 03.10.26 | LAST OF VAVILONE Dark-Electro акт, где каждый сможет выразить свою тёмную сторону — без масок и полумер. На сцене: Totten Mechanismus — уральский кибер-гот. Dark-Electro / Aggrotech… The Witch Said No — нашаумевшая Dark-Electro банда. HOLOCODER — EBM / Industrial коллектив из Москвы.",
+          "source_segment": "На этой неделе, в субботу 3 октября, Воронеж погружается во мрак. В «Вавилоне состоится DANSE MACABRE v.1 | 03.10.26 | LAST OF VAVILONE Dark-Electro акт, где каждый сможет выразить свою тёмную сторону — без масок и полумер.На сцене:Totten Mechanismus — уральский кибер-гот. Dark-Electro / Aggrotech, в котором неумолимый ритм агрессии обрушивается на танцпол волнами. HOLOCODER — старейший, знатный и суровый EBM / Industrial коллектив из Москвы. Эталон жанра, проверенный временем. The Witch Said No — нашумевшая Dark-Electro банда. Порция эстетики мрака и первобытного ужаса, под которую невозможно стоять на месте. Купить билет: vk.cc/d0Tu7v Воронеж, ул. Кирова, 5 — рок-бар «Last of Vavilone» Двери открыты с 19:30 Начало в 20:00",
+          "program_items": [
+            {
+              "time": "19:30",
+              "text": "Двери открыты"
+            },
+            {
+              "time": "20:00",
+              "text": "Начало события"
+            }
+          ],
+          "evidence": "В «Вавилоне состоится DANSE MACABRE v.1 | 03.10.26 | LAST OF VAVILONE Dark-Electro акт, где каждый сможет выразить свою тёмную сторону — без масок и полумер.На сцене:Totten Mechanismus — уральский кибер-гот. Dark-Electro / Aggrotech, в котором неумолимый ритм агрессии обрушивается на танцпол волнами. HOLOCODER — старейший, знатный и суровый EBM / Industrial коллектив из Москвы. Эталон жанра, проверенный временем. The Witch Said No — нашумевшая Dark-Electro банда. Порция эстетики мрака и первобытного ужаса, под которую невозможно стоять на месте. Купить билет: vk.cc/d0Tu7v Воронеж, ул. Кирова, 5 — рок-бар «Last of Vavilone» Двери открыты с 19:30 Начало в 20:00||Двери открыты с 19:30 Начало в 20:00",
+          "tags": [
+            "electronics",
+            "industrial",
+            "party"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Одно явное мероприятие с подтверждённой датой 03.10.26 (воскресенье, но в афише указано суббота — не влияет), названием DANSE MACABRE PARTY VOL. 1, местом рок-бар The Last of Vavilone (ул. Кирова, 5, Воронеж), временем начала 20:00 и подтверждённым составом артистов. Текст поста полностью соответствует афише, без противоречий и без указания нескольких самостоятельных событий."
+        }
+      ],
+      "write": 2,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-42954252_4635",
+          "status": "event",
+          "text": "Рок-бар \"The last of Vavilone\" и ещё 1 авторДействияНа этой неделе, в субботу 3 октября, Воронеж погружается во мрак. В "
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13820",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13820",
+          "status": "not_event",
+          "text": "Rock Bar DIESEL & DIESEL HallДействияНА СЛЕДУЮЩЕЙ НЕДЕЛЕ - Блёв МС Kunteynir и LuckyProduction! ВОРОНЕЖ Блёв МС — россий"
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|1287",
+      "existing": [
+        {
+          "id": 427,
+          "date": "2026-10-07",
+          "title": "Иван да Варя",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-07",
+          "time": "20:00",
+          "title": "Иван да Варя",
+          "venue": "Паб Мама Анархия, Платонова 25",
+          "participants": "Иван да Варя",
+          "price": "Вход свободный",
+          "announcement": "Иван да Варя приглашают на акустический квартирник 7 октября в 20:00 в пабе «Мама Анархия». Вход свободный.",
+          "source_segment": "Иван и Варвара приглашают всех на душевный, рок акустический квартирник",
+          "program_items": [],
+          "evidence": "7 ОКТЯБРЯ 20:00 || ПАБ МАМА АНАРХИЯ ПЛАТОНОВА 25 || АКУСТИЧЕСКИЙ КВАРТИРНИК",
+          "tags": [
+            "acoustic",
+            "rock",
+            "apartment-concert"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Анонсирован один акустический квартирник 7 октября в пабе Мама Анархия; дата однозначна относительно текущей даты 2026-10-04."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-226190294_1287",
+          "status": "event",
+          "text": "Паб Мама Анархия и ещё 2 авторазапись закрепленаДействияИван и Варвара приглашают всех на душевный, рок акустический ква"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13856",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-09",
+          "time": null,
+          "title": "Исход",
+          "venue": "DIESEL Hall",
+          "participants": "Данька Дубасов; .ничего; Рома Слякоть; Троих надо убрать; между нами июль",
+          "price": "донат от 500 ₽",
+          "announcement": "«Исход» в DIESEL Hall: Данька Дубасов отмечает день рождения и выступает со своими группами; в программе — .ничего, Рома Слякоть, «Троих надо убрать» и дебют «между нами июль». Двери с 19:00.",
+          "source_segment": "НА СЛЕДУЮЩЕЙ НЕДЕЛЕ - ИСХОД 09/10 Затянули мы с осенними анонсами, и первый на очереди у нас Исход в DIESEL Hall Данька Дубасов решил отметить день рождения и сыграть со всеми своими группами. В меню неистовый мета-панк в виде.ничего, восьмибитный рэп про бывшую - Рома Слякоть, порождение больного сознания - нинтендочучело троих надо убрать и дебютное выступление инди-поп-пост-панк проекта \"между нами июль\" Приходите отдохнуть, поддержать, поздравить в этот миленький осенний вечер Двери: 19:00 Донат от 500р.",
+          "program_items": [
+            {
+              "time": "19:00",
+              "text": "Открытие дверей"
+            }
+          ],
+          "evidence": "первый на очереди у нас Исход в DIESEL Hall || Данька Дубасов решил отметить день рождения и сыграть со всеми своими группами || ИСХОД / 09/10/26 / 19:00 / DIESEL HALL",
+          "tags": [
+            "punk-rock",
+            "hip-hop-rap",
+            "indie",
+            "post-punk"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Одна афиша с единым названием, площадкой, донатом и общим призывом; несколько выступлений входят в программу одного события."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13856",
+          "status": "event",
+          "text": "НА СЛЕДУЮЩЕЙ НЕДЕЛЕ - ИСХОД 09/10 Затянули мы с осенними анонсами, и первый на очереди у нас Исход в DIESEL Hall Данька "
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|1247",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-03",
+          "time": "19:00",
+          "title": "ЗАЕЗЖАЕМ",
+          "venue": "Паб «Мама Анархия», Платонова 25, Воронеж",
+          "participants": "Дездемон Сидоров, Артём Фатеев, Максим Долин",
+          "price": "1200 ₽ в день концерта и на входе",
+          "announcement": "Акустический концерт Дездемона Сидорова при участии Артёма Фатеева и Максима Долина в пабе «Мама Анархия».",
+          "source_segment": "В пабе Мама Анархия впервые в Воронеже Дездемон Сидоров с акустическим концертом. Так же в этот вечер планируется выступление воронежских музыкантов Артема Фатеева и Максима Долина",
+          "program_items": [],
+          "evidence": "«Дездемон Сидоров с акустическим концертом» || «3.10; 2026; 19:00» || «ПАБ МАМА АНАРХИЯ; Платонова 25»",
+          "tags": [
+            "acoustic",
+            "author-song"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Анонсирует один акустический концерт с участием нескольких музыкантов; дата, время и площадка подтверждены афишей."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-226190294_1247",
+          "status": "event",
+          "text": "Паб Мама Анархия и ещё 4 автораДействияВ пабе Мама Анархия впервые в Воронеже Дездемон Сидоров с акустическим концертом."
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|16",
+      "existing": [
+        {
+          "id": 399,
+          "date": "2026-10-03",
+          "title": "Danse Macabre",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-03",
+          "time": "20:00",
+          "title": "DANSE MACABRE PARTY VOL. 1",
+          "venue": "Рок-бар \"LAST OF VAVILONE\", Воронеж, ул. Кирова, 5",
+          "participants": "TOTTEN MECHANISMUS, HOLOCODER, THE WITCH SAID NO",
+          "price": "600 рублей",
+          "announcement": "3 октября в рок-баре \"LAST OF VAVILONE\" в Воронеже состоится DANSE MACABRE PARTY VOL. 1 с участием TOTTEN MECHANISMUS, HOLOCODER и THE WITCH SAID NO. Двери с 19:00, начало в 20:00. Билет — 600 рублей.",
+          "source_segment": "Товарищи! ДВА дня до подорожания билетов! Ещё есть время купить билет за смешные 600 рублей. А мы напомним, что на сцене DANSE MACABRE 3 октября вас будут ждать: агрессивный уральский кибер-гот, Dark-Electro / Aggrotech проект TOTTEN MECHANISMUS; старейший, и суровый EBM / Industrial коллектив из Москвы HOLOCODER; нашумевшая Dark-Electro банда THE WITCH SAID NO. Купить билет vk.cc/d0Tu7v Адрес: Воронеж, ул. Кирова, 5. Рок-бар \"LAST OF VAVILONE\" Двери открыты с 19.00Начало в 20.00",
+          "program_items": [],
+          "evidence": "на сцене DANSE MACABRE 3 октября вас будут ждать: агрессивный уральский кибер-гот, Dark-Electro / Aggrotech проект TOTTEN MECHANISMUS; старейший, и суровый EBM / Industrial коллектив из Москвы HOLOCODER; нашумевшая Dark-Electro банда THE WITCH SAID NO || Адрес: Воронеж, ул. Кирова, 5. Рок-бар \"LAST OF VAVILONE\" || Двери открыты с 19.00Начало в 20.00",
+          "tags": [
+            "electronics",
+            "industrial",
+            "party"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Анонс описывает одно мероприятие DANSE MACABRE с общей площадкой, датой, временем начала и единым составом участников."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-240869396_16",
+          "status": "event",
+          "text": "Рок-бар \"The last of Vavilone\" и ещё 3 автораДействия Товарищи! ДВА дня до подорожания билетов! Ещё есть время купить би"
+        }
+      ]
+    },
+    {
+      "key": "vk:literabar|8743",
+      "existing": [
+        {
+          "id": 549,
+          "date": "2026-10-15",
+          "title": "Саксофон: Илья Алексин",
+          "status": "approved"
+        },
+        {
+          "id": 550,
+          "date": "2026-10-15",
+          "title": "Винное казино",
+          "status": "approved"
+        },
+        {
+          "id": 551,
+          "date": "2026-10-16",
+          "title": "Кавер-группа «Литера»",
+          "status": "approved"
+        },
+        {
+          "id": 552,
+          "date": "2026-10-17",
+          "title": "ДискоКаверС",
+          "status": "approved"
+        },
+        {
+          "id": 553,
+          "date": "2026-10-18",
+          "title": "Лара Музыка",
+          "status": "approved"
+        },
+        {
+          "id": 554,
+          "date": "2026-10-19",
+          "title": "Саксофон: Константин Зим",
+          "status": "approved"
+        },
+        {
+          "id": 555,
+          "date": "2026-10-22",
+          "title": "Дари",
+          "status": "approved"
+        },
+        {
+          "id": 556,
+          "date": "2026-10-23",
+          "title": "Ва-Бэна",
+          "status": "approved"
+        },
+        {
+          "id": 557,
+          "date": "2026-10-24",
+          "title": "Тимбукту",
+          "status": "approved"
+        },
+        {
+          "id": 558,
+          "date": "2026-10-25",
+          "title": "Скрипка: Клаудио Антонио",
+          "status": "approved"
+        },
+        {
+          "id": 559,
+          "date": "2026-10-26",
+          "title": "Саксофон: Константин Зим",
+          "status": "approved"
+        },
+        {
+          "id": 560,
+          "date": "2026-10-29",
+          "title": "Скрипка: Клаудио Антонио",
+          "status": "approved"
+        },
+        {
+          "id": 561,
+          "date": "2026-10-30",
+          "title": "JUST",
+          "status": "approved"
+        },
+        {
+          "id": 562,
+          "date": "2026-10-31",
+          "title": "Хэллоуинская ночь",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 3,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-135849070_8743",
+          "status": "event",
+          "text": "Рестобар Литеразапись закрепленаДействияСентябрь ещё не закончился, а «Литера» уже открывает октябрь. Новая афиша готова"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13854",
+      "existing": [
+        {
+          "id": 526,
+          "date": "2026-10-16",
+          "title": "Операция Пластилин",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-16",
+          "time": "20:00",
+          "title": "Операция Пластилин",
+          "venue": "DIESEL Hall, Воронеж",
+          "participants": "Операция Пластилин",
+          "price": "",
+          "announcement": "Концерт «Операции Пластилин» в Воронеже с новой программой «Радости» и презентацией песен с нового EP.",
+          "source_segment": "В ОКТЯБРЕ - Операция Пластилин | 16 октября пт | Воронеж 16 октября Операция Пластилин вновь ворвётся в Воронеж и выступит в клубе DIESEL Hall с новой программой «Радости». Впервые вживую сыграем песни с нового EP и не забудем главные треки, без которых уже нельзя представить выступления группы. 20:00",
+          "program_items": [],
+          "evidence": "16 октября Операция Пластилин вновь ворвётся в Воронеж и выступит в клубе DIESEL Hall с новой программой «Радости». || Впервые вживую сыграем песни с нового EP || 20:00",
+          "tags": [
+            "alternative",
+            "rock"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Анонсировано одно концертное событие с ясной сутью, датой 16 октября 2026 года и местом проведения DIESEL Hall в Воронеже."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13854",
+          "status": "event",
+          "text": "В ОКТЯБРЕ - Операция Пластилин | 16 октября пт | Воронеж 16 октября Операция Пластилин вновь ворвётся в Воронеж и выступ"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13865",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-04",
+          "time": "20:00",
+          "title": "SELLOUT",
+          "venue": "DIESEL BAR, Воронеж",
+          "participants": "",
+          "price": "",
+          "announcement": "Большой концерт SELLOUT к 10-летию группы в DIESEL BAR.",
+          "source_segment": "СЕГОДНЯ - 04.10 | SELLOUT - 10 лет | Воронеж\n...пришло время сыграть наш большой концерт.\n20:00",
+          "program_items": [],
+          "evidence": "СЕГОДНЯ - 04.10 | SELLOUT - 10 лет | Воронеж || пришло время сыграть наш большой концерт || 20:00",
+          "tags": [],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Анонсирует одно событие с названием SELLOUT, датой 04.10, временем 20:00 и площадкой DIESEL BAR в Воронеже."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13865",
+          "status": "event",
+          "text": "Rock Bar DIESEL & DIESEL HallДействияСЕГОДНЯ - 04.10 | SELLOUT - 10 лет | Воронеж С подростковой мечтой наперевес, вопре"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13862",
+      "existing": [
+        {
+          "id": 504,
+          "date": "2026-10-10",
+          "title": "МИ_стерика; Третий СортЪ; УХУ.ЕЛИ",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-10",
+          "time": "19:00",
+          "title": "",
+          "venue": "Rock Bar DIESEL, Воронеж, ул. Генерала Лизюкова, 4",
+          "participants": "МИ_стерика; Третий СортЪ; УХУ.ЕЛИ",
+          "price": "300 ₽, оплата при входе",
+          "announcement": "10 октября в Rock Bar DIESEL в Воронеже выступят МИ_стерика, Третий СортЪ и УХУ.ЕЛИ. Начало в 19:00, билет на входе — 300 ₽.",
+          "source_segment": "НА СЛЕДУЮЩЕЙ НЕДЕЛЕ - 10 октября | УХУ.ЕЛИ | 3 Сорт | Мистерика РОК-ВЕЧЕР В ВОРОНЕЖЕ: ТРИ ГРУППЫ, ОДИН ВЗРЫВНОЙ ЗАЛ Середина осени — не повод кутаться в плед. Пора встряхнуться и зарядиться настоящим роком! 10 октября в Rock Bar DIESEL соберутся те, кто чувствует ритм громче слов. На сцене: МИ_стерика - загадочный звук и мощные риффы, от которых мурашки бегут по коже. Третий СортЪ - честный, дерзкий панк-рок без компромиссов: только драйв, только правда. УХУ.ЕЛИ - тот самый фирменный вайб, за который вы их любите: громко, живо, по-своему, с историей. Начало: 19:00 Билеты на входе: 300р.",
+          "program_items": [],
+          "evidence": "10 октября в Rock Bar DIESEL соберутся те, кто чувствует ритм громче слов. || На сцене: МИ_стерика - загадочный звук и мощные риффы, от которых мурашки бегут по коже. Третий СортЪ - честный, дерзкий панк-рок без компромиссов: только драйв, только правда. УХУ.ЕЛИ - тот самый фирменный вайб, за который вы их любите: громко, живо, по-своему, с историей. || Начало: 19:00 Билеты на входе: 300р.",
+          "tags": [
+            "rock",
+            "punk-rock"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Один общий рок-концерт с тремя группами, общей площадкой и единым временем начала"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13862",
+          "status": "event",
+          "text": "НА СЛЕДУЮЩЕЙ НЕДЕЛЕ - 10 октября | УХУ.ЕЛИ | 3 Сорт | Мистерика РОК-ВЕЧЕР В ВОРОНЕЖЕ: ТРИ ГРУППЫ, ОДИН ВЗРЫВНОЙ ЗАЛ Сере"
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|4641",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-07",
+          "time": "19:00",
+          "title": "",
+          "venue": "Рок-бар «The last of Vavilone», Кирова 522",
+          "participants": "The Beatles; Pink Floyd",
+          "price": "Вход бесплатный",
+          "announcement": "7 октября в рок-баре «The last of Vavilone» состоится бесплатный кинопоказ фильмов «Yellow Submarine» и «The Wall».",
+          "source_segment": "7 октября большой кинопоказ в Вавилоне от двух великих групп!19:00 The Beatles - Yellow Submarine20:39 Pink Floyd - The Wall Вход бесплатный! Кирова 522",
+          "program_items": [
+            {
+              "time": "19:00",
+              "text": "The Beatles — Yellow Submarine"
+            },
+            {
+              "time": "20:39",
+              "text": "Pink Floyd — The Wall"
+            }
+          ],
+          "evidence": "7 октября большой кинопоказ в Вавилоне от двух великих групп!||Вход бесплатный! Кирова 522",
+          "tags": [
+            "rock"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Один кинопоказ с общей площадкой, единым входом и последовательной программой из двух фильмов."
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-42954252_4641",
+          "status": "failed_retryable",
+          "text": "Рок-бар \"The last of Vavilone\" и ещё 2 автораДействия7 октября большой кинопоказ в Вавилоне от двух великих групп!19:00 "
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|19",
+      "existing": [
+        {
+          "id": 425,
+          "date": "2026-11-13",
+          "title": "ЧУРЧ",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-11-13",
+          "time": "20:00",
+          "title": "ЧУРЧ",
+          "venue": "The last of Vavilone, Воронеж",
+          "participants": "ЧУРЧ, Даген, VETA",
+          "price": "",
+          "announcement": "13 ноября в Воронеже в рок-баре The last of Vavilone выступят ЧУРЧ, Даген и VETA. Начало в 20:00.",
+          "source_segment": "13 ноября в Воронеже в рок-баре The last of Vavilone к нам присоединятся группы Даген и VETA, с которыми вас чуть позже познакомим. Приходите заценить их лично! || ЧУРЧ; 13 ноября; 20:00; + друзья; при поддержке: ДАГЕН; VETA; the last of VAVILONE; ВОРОНЕЖ",
+          "program_items": [],
+          "evidence": "13 ноября в Воронеже в рок-баре The last of Vavilone || ЧУРЧ; 13 ноября; 20:00; + друзья; при поддержке: ДАГЕН; VETA",
+          "tags": [
+            "rock"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Анонсировано одно музыкальное событие: указаны название, дата, время, площадка, город и участники."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-241002257_19",
+          "status": "event",
+          "text": "13 ноября в Воронеже в рок-баре The last of Vavilone к нам присоединятся группы Даген и VETA, с которыми вас чуть позже "
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13864",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13864",
+          "status": "not_event",
+          "text": "Rock Bar DIESEL & DIESEL HallДействия️ПЕРЕНОС️ Блёв МС Kunteynir и LuckyProduction! ВОРОНЕЖ Концерт Блёв МС (Kunteynir) "
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000014|70876",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "это будет незабываемо! 8 августа 2026 14:00 Вечеринка Место:Overlock Bar, Воронеж Стоимость:10 000 рублей — отличный пов"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000014|70882",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "Инсайт Дэнс — спонтанный танец на Петровской набережной 9 августа 2026 18:00 Фестиваль Место:Петровская набережная, пирс"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5710",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "Айрин вот сегодня будет очень Мощная Техно Вечеринка в Воронеже приходи\n\n[Репост/вложенный пост VK]\nПЕРЕГРУЗ — PARTY 2Ты"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5648",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "ПЕРЕГРУЗ — PARTY 2Ты уже был с нами на первом ПЕРЕГРУЗЕ?Если да ты знаешь, что будет дальше.Если нет самое время присоед"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000014|70891",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "NO PLACE FOR OLD PADSАвторская ритмичная электронная музыка в тяжелых стилях с музыкантами, проверенными временемГДЕ: DI"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5685",
+      "existing": [
+        {
+          "id": 103,
+          "date": "2026-10-16",
+          "title": "Трансмиссия: Портал",
+          "status": "pending"
+        },
+        {
+          "id": 104,
+          "date": "2026-11-07",
+          "title": "Трансмиссия: Портал",
+          "status": "pending"
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "status": "event",
+          "text": "Трансмиссия возвращается в столицы с новой постановкой \"Портал\" В Москве фестиваль пройдет 16 октября в любимом VK Stadi"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5683",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "Приглашаем вас на открытый урок традиционной китайской суставной гимнастики «САМСУМАЙ» с тренером Кристофером Хоссейном "
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13875",
+      "existing": [
+        {
+          "id": 488,
+          "date": "2026-11-05",
+          "title": "Lead Horizon",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-11-05",
+          "time": "20:00",
+          "title": "",
+          "venue": "Rock Bar DIESEL & DIESEL Hall, Воронеж",
+          "participants": "Lead Horizon",
+          "price": "",
+          "announcement": "Концерт Lead Horizon 5 ноября в Rock Bar DIESEL & DIESEL Hall в Воронеже. Начало в 20:00.",
+          "source_segment": "В НОЯБРЕ - Lead Horizon | 5.11 Воронеж LEAD HORIZON - самое яркое, дерзкое и живое явление на российской альтернативной сцене! Те самые девушки, которые плюнули на рамки, смешали языки, жанры, эмоции, а потом подожгли этот коктейль. Их музыка - бескомпромиссный замес пост-хардкора, грув-метала и электроники: гитарный разнос, биты, от которых плывёт пол, и рефрены, застревающие в черепе намертво. Этой осенью Lead Horizon едут в тур, чтобы напомнить, как выглядит настоящий альтернативный угар. Приходи сам, приводи друзей! Живой звук, полный разнос и сет, после которого ты выйдешь из зала мокрым и абсолютно счастливым. 20:00",
+          "program_items": [],
+          "evidence": "В НОЯБРЕ - Lead Horizon | 5.11 Воронеж || 20:00 || Rock Bar DIESEL & DIESEL Hall",
+          "tags": [
+            "alternative",
+            "electronics",
+            "metal"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Один концерт с одной датой, временем и площадкой"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13875",
+          "status": "event",
+          "text": "Rock Bar DIESEL & DIESEL HallДействияВ НОЯБРЕ - Lead Horizon | 5.11 Воронеж LEAD HORIZON - самое яркое, дерзкое и живое "
+        }
+      ]
+    },
+    {
+      "key": "vk:deadway36|8355",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-11",
+          "time": "12:00",
+          "title": "",
+          "venue": "бар «Тупик», пр-т Революции, 31А",
+          "participants": "",
+          "price": "",
+          "announcement": "Книжная гаражка с книжным маркетом, встречами и частными продавцами.",
+          "source_segment": "11 октября с 12:00 до 18:00 приглашаем вас на книжную гаражку в самом центре города – на открытую площадку бара «Тупик»! Вас ждет книжный маркет с участием воронежского магазина комиксов «Книжки с Картинками» и частных продавцов",
+          "program_items": [],
+          "evidence": "книжную гаражку || 11 октября с 12:00 до 18:00 || бар «Тупик» пр-т Революции, 31А",
+          "tags": [
+            "book-market"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Описано одно книжное мероприятие с одной датой, общим форматом и одной площадкой."
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall3328461_8355",
+          "status": "failed_retryable",
+          "text": "Бар \"Тупик\" и ещё 2 автораДействия11 октября с 12:00 до 18:00 приглашаем вас на книжную гаражку в самом центре города – "
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|595",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-10",
+          "time": null,
+          "title": "",
+          "venue": "The Last of Vavilone, Воронеж",
+          "participants": "ДЁРГАТЬ!, ТРАНЖИРЫ, DizbadiX",
+          "price": "1 человек — 1000 ₽; 2 человека — 1600 ₽; 3 человека — 2000 ₽",
+          "announcement": "10 октября в The Last of Vavilone в Воронеже состоится концерт к 25-летию группы ДЁРГАТЬ! при поддержке ТРАНЖИРЫ и DizbadiX.",
+          "source_segment": "10 октября отмечаем 25 лет группы ДЁРГАТЬ! в The Last of Vavilone. На сцене: ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА При поддержке: ТРАНЖИРЫ и DizbadiX",
+          "program_items": [],
+          "evidence": "«10 октября отмечаем 25 лет группы ДЁРГАТЬ! в The Last of Vavilone» || «На сцене: ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА» || «При поддержке: ТРАНЖИРЫ и DizbadiX»",
+          "tags": [
+            "punk-rock"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Анонсирует один концерт в Воронеже: юбилей группы с поддерживающими выступлениями на одной площадке в одну дату."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-49472477_595",
+          "status": "failed_retryable",
+          "text": "В ВОРОНЕЖ — ПО-ПАНКОВСКИ ВЫГОДНЕЕ ВМЕСТЕ!10 октября отмечаем 25 лет группы ДЁРГАТЬ! в The Last of Vavilone. И с билетами"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5754",
+      "existing": [],
+      "write": 1,
+      "source": [
+        {
+          "status": "event",
+          "text": "Александра Кулакова20чвчера в 18:51Воронеж! У нас для вас что-то дерзкое и интригующее.\"Открывашка\" - провокационное шоу"
+        }
+      ]
+    },
+    {
+      "key": "vk:liverpool_pub_vrn|2732",
+      "existing": [
+        {
+          "id": 457,
+          "date": "2026-10-18",
+          "title": "Выдыхай",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-18",
+          "time": "20:00",
+          "title": "Выдыхай",
+          "venue": "Liverpool Pub, ул. Куколкина 33а/2, Воронеж",
+          "participants": "Дима Вагин; местные воронежские музыканты",
+          "price": "",
+          "announcement": "18 октября в Liverpool Pub состоится большой джем-концерт Димы Вагина с местными воронежскими музыкантами.",
+          "source_segment": "18 октября у нас снова выступит Дима Вагин. Но в этот раз будет нечто совершенно особенное: это будет не просто сольник, а настоящий большой джем-концерт. || Где: Liverpool pub ул. Куколкина 33а/2 || Когда: 18 октября, 20.00",
+          "program_items": [
+            {
+              "time": "20:00",
+              "text": "Начало джем-концерта"
+            }
+          ],
+          "evidence": "18 октября у нас снова выступит Дима Вагин. Но в этот раз будет нечто совершенно особенное: это будет не просто сольник, а настоящий большой джем-концерт. || Где: Liverpool pub ул. Куколкина 33а/2 || Когда: 18 октября, 20.00",
+          "tags": [
+            "author-song",
+            "jam"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Один джем-концерт с последовательными временными этапами программы и одной площадкой"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-95062430_2732",
+          "status": "failed_retryable",
+          "text": "Liverpool PubДействия18 октября у нас снова выступит Дима Вагин. Но в этот раз будет нечто совершенно особенное: это буд"
+        }
+      ]
+    },
+    {
+      "key": "vk:vavilone_rb|4645",
+      "existing": [
+        {
+          "id": 434,
+          "date": "2026-10-09",
+          "title": "THE LAST OF VAVILONE",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-09",
+          "time": "20:00",
+          "title": "",
+          "venue": "The last of Vavilone, Воронеж",
+          "participants": "Ростислав Чебыкин; 4π-бэнд",
+          "price": "",
+          "announcement": "Концерт Ростислава Чебыкина и 4π-бэнда в рок-баре The last of Vavilone. Двери в 19:00, старт в 20:00.",
+          "source_segment": "9.10 Ростислав Чебыкин и 4П-БэндСтихи и музыка Чебыкина, помноженные на 4𝜋, наполнят ваши психоэнергетические закромы позитивными вибрациями, которых хватит, чтобы согревать и бодрить вас и ваших друзей в студёную зимнюю пору и до следующего концерта «4𝜋-бэнда».Двери 19:00 Старт 20:00",
+          "program_items": [],
+          "evidence": "9.10 Ростислав Чебыкин и 4П-Бэнд || Старт 20:00 || Рок-бар \"The last of Vavilone\"",
+          "tags": [
+            "rock"
+          ],
+          "image_indexes": [
+            3
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "Публикация отдельно анонсирует три самостоятельных концерта 9, 10 и 11 октября в одной площадке: с разными датами, названиями и составами участников."
+        },
+        {
+          "date": "2026-10-10",
+          "time": "19:00",
+          "title": "ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА",
+          "venue": "The last of Vavilone, Воронеж",
+          "participants": "ДЁРГАТЬ!; ТРАНЖИРЫ; diZbadiX",
+          "price": "",
+          "announcement": "Юбилейный концерт группы ДЁРГАТЬ! с программой «ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА» при поддержке ТРАНЖИРЫ и diZbadiX. Двери в 18:30, старт в 19:00.",
+          "source_segment": "10.10 Обнинская панк-рок группа ДЁРГАТЬ! возвращаются в Воронеж!В этом году группе Дёргать! — 25 лет, и этой осенью мы везём большую юбилейную программу: «ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА» На этот раз сет-лист выбирали ВЫ! При поддержке: ★ТРАНЖИРЫ★ diZbadiX Двери 18:30 Старт 19:00",
+          "program_items": [],
+          "evidence": "10.10 Обнинская панк-рок группа ДЁРГАТЬ! возвращаются в Воронеж! || «ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА» || Рок-бар \"The last of Vavilone\"",
+          "tags": [
+            "punk-rock"
+          ],
+          "image_indexes": [
+            2
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "Публикация отдельно анонсирует три самостоятельных концерта 9, 10 и 11 октября в одной площадке: с разными датами, названиями и составами участников."
+        },
+        {
+          "date": "2026-10-11",
+          "time": "20:00",
+          "title": "ТЯЖЕЛАЯ КУЛЬТУРА!",
+          "venue": "The last of Vavilone, Воронеж",
+          "participants": "SENAMIRHA; Crocodile Spears",
+          "price": "",
+          "announcement": "Концерт SENAMIRHA с программой «ТЯЖЕЛАЯ КУЛЬТУРА!» при поддержке Crocodile Spears. Двери в 19:00, старт в 20:00.",
+          "source_segment": "11.10 SENAMIRHA впервые посетят Воронеж!Самарцы едут с обновленной концертной программой ТЯЖЕЛАЯ КУЛЬТУРА!На концерте прозвучат как проверенные временем хиты, так и треки с будущего альбома. При поддержке Crocodile Spears!Двери 19:00 Старт 20:00",
+          "program_items": [],
+          "evidence": "11.10 SENAMIRHA впервые посетят Воронеж! || обновленной концертной программой ТЯЖЕЛАЯ КУЛЬТУРА! || Рок-бар \"The last of Vavilone\"",
+          "tags": [
+            "metal"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "Публикация отдельно анонсирует три самостоятельных концерта 9, 10 и 11 октября в одной площадке: с разными датами, названиями и составами участников."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-42954252_4645",
+          "status": "event",
+          "text": "Рок-бар \"The last of Vavilone\" и Антон ИнфаунДействияНа этой неделе в Вавилоне будет огненно! 9.10 Ростислав Чебыкин и 4"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5751",
+      "existing": [
+        {
+          "id": 87,
+          "date": "2026-10-08",
+          "title": "Открывашка",
+          "status": "pending"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "status": "vision_processing",
+          "text": "Воронеж! У нас для вас что-то дерзкое и интригующее.\"Открывашка\" - провокационное шоу про быстрые открытия.Эксперименты,"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13876",
+      "existing": [
+        {
+          "id": 492,
+          "date": "2026-12-06",
+          "title": "Berenika",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-12-06",
+          "time": "20:00",
+          "title": "",
+          "venue": "Rock Bar DIESEL, Воронеж",
+          "participants": "Berenika",
+          "price": "",
+          "announcement": "6 декабря 2026 года в Rock Bar DIESEL в Воронеже состоится концерт Berenika с презентацией альбома «Apocalypse! Applause!» и исполнением старых песен.",
+          "source_segment": "6 декабря 2026 - концерт группы Berenika (нью-вейв, синти-поп, дарк-вейв, электроник-рок)! Мрачные тени тянутся от шатров нашего декадентского варьете. Всевидящий Глаз замечает знаки грядущего, дети ночи и разбитые сердца. Будущее видится мрачным. Но человек в маске черепа на сцене займет свое место, и мы поднимем занавес. Мы готовы отправиться в путь. Вас ждет презентация нового альбома \"Apocalypse! Applause!\" и старые песни. Вампирская дискотека и декадентское варьете! Мрак, меланхолия и танцы! Добро пожаловать, дети ночи и разбитые сердца! ДРЕСС-КОД (рекомендуемый, но не обязательный): вампирско-готический, цирково-карнавальный или мерч Береники (будет в продаже на концерте). Meet&Greet*: с 18:30 Прочие категории билетов: с 19:10 Начало в 20:00",
+          "program_items": [
+            {
+              "time": "18:30",
+              "text": "Meet&Greet"
+            },
+            {
+              "time": "19:10",
+              "text": "Прочие категории билетов"
+            },
+            {
+              "time": "20:00",
+              "text": "Начало концерта"
+            }
+          ],
+          "evidence": "6 декабря 2026 - концерт группы Berenika (нью-вейв, синти-поп, дарк-вейв, электроник-рок)! || Rock Bar DIESEL || Начало в 20:00",
+          "tags": [
+            "electronics",
+            "alternative"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Один концерт с общей площадкой и последовательными временными этапами входа и начала"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13876",
+          "status": "event",
+          "text": "Rock Bar DIESEL & DIESEL HallДействия06.12 | Berenika в Воронеже Rock Bar DIESEL КОНЦЕРТ BERENIKA В ВОРОНЕЖЕ6 декабря 20"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5750",
+      "existing": [
+        {
+          "id": 90,
+          "date": "2026-10-07",
+          "title": "Квартирник у Миры",
+          "status": "pending"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "status": "event",
+          "text": "САМЫЙ ВЕСЕЛЫЙ БЕСШАБАШНЫЙ И ОЧАРОВАТЕЛЬНЫЙ КВАРТИРНИК Здесь есть все, чтобы ощутить счастье! Теплота и непринужденность,"
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|1298",
+      "existing": [
+        {
+          "id": 523,
+          "date": "2026-10-24",
+          "title": "Презентация нового казачьего альбома Родиона Правдухина",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-24",
+          "time": "19:00",
+          "title": "",
+          "venue": "Паб «Мама Анархия», Воронеж, Платонова, 25",
+          "participants": "Родион Правдухин",
+          "price": "1000₽",
+          "announcement": "Презентация нового казачьего альбома Родиона Правдухина: авторские стихи и песни, включая исполнение под гусли.",
+          "source_segment": "Презентация нового Казачьего альбома Родиона Правдухина! Авторские стихи и песни, которые расскажут о жизни казака, оставившего родимый край ради воинской доли. Неповторимый самобытный материал, в том числе песни под гусли в исполнении автора! Билеты: voronezh.qtickets.events/262648-rod... На входе 1000₽ || 24 октября 19:00; Родион Правдухин; презентация казачьего авторского альбома; Воронеж, Платонова 25; паб «Мама Анархия»",
+          "program_items": [],
+          "evidence": "Презентация нового Казачьего альбома Родиона Правдухина! || 24 октября 19:00 || Воронеж, Платонова 25; паб «Мама Анархия»",
+          "tags": [
+            "author-song",
+            "folk"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Описано одно музыкальное событие: презентация альбома с одной датой и площадкой."
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-226190294_1298",
+          "status": "event",
+          "text": "Паб Мама Анархия и ещё 3 автораДействияПрезентация нового Казачьего альбома Родиона Правдухина! Авторские стихи и песни,"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5756",
+      "existing": [
+        {
+          "id": 88,
+          "date": "2026-10-17",
+          "title": "Глубокое погружение",
+          "status": "pending"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "status": "event",
+          "text": "Мы уже в самой активной фазе осени. Дни стали короче, город ускорился, и мы все отчаянно нуждаемся в том, чтобы сбросить"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5740",
+      "existing": [
+        {
+          "id": 91,
+          "date": "2026-11-21",
+          "title": "Побег из Города",
+          "status": "pending"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "status": "event",
+          "text": "Побег из Города на 2 дня. 5 стихий. Приглашаем тебя не просто отдохнуть, а встретиться с собой. В круге тишины, движения"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5739",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "РАСПИСАНИЕ ПРАКТИКИ ОМ-ЧАНТИНГ В ВОРОНЕЖЕ 5.10 − 11.10 Четверг, 8.10 19:00–20:00 — Ом-чантинг в БЦ Атриум Ведущая: Марин"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5764",
+      "existing": [
+        {
+          "id": 92,
+          "date": "2026-10-10",
+          "title": "ЭХО",
+          "status": "pending"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "status": "event",
+          "text": "10/10 — ЭХО в новолуние Вечер, чтобы отпустить лишний шум,вернуться вниманием к себеи из тишины почувствовать: что я хоч"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5763",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "status": "not_event",
+          "text": "10 октября (суббота) 14:45-16:15КОНТАКТНАЯ ИМПРОВИЗАЦИЯ: основы техниКИ Урок+Джем Контактная импровизация - форма спонта"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13863",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-23",
+          "time": "19:45",
+          "title": "MANHUNT TOUR",
+          "venue": "Diesel Hall, улица Генерала Лизюкова, 4, Воронеж",
+          "participants": "Ocean In My Bath; SIGIL; OVERHAND; НРРТР",
+          "price": "",
+          "announcement": "MANHUNT TOUR пройдёт 23 октября в Diesel Hall в Воронеже. Выступят Ocean In My Bath, SIGIL, OVERHAND и НРРТР. Двери в 19:00, начало в 19:45.",
+          "source_segment": "EMIVA представляет: MANHUNT TOUR | 23.10.2026 | ВОРОНЕЖ Охота объявлена. Ты думал, что спрячешься в толпе? Нет. Manhunt Tour настигнет тебя везде. Никаких провокаций, только самые тяжелые Deathcore банды России в твоём городе! Ocean In My Bath (Пермь) SIGIL (Иркутск) Локальная поддержка: OVERHAND НРРТР Двери: 19:00, начало: 19:45",
+          "program_items": [
+            {
+              "time": "19:00",
+              "text": "Двери"
+            },
+            {
+              "time": "19:45",
+              "text": "Начало"
+            }
+          ],
+          "evidence": "MANHUNT TOUR | 23.10.2026 | ВОРОНЕЖ || Ocean In My Bath (Пермь) SIGIL (Иркутск) Локальная поддержка: OVERHAND НРРТР || Diesel Hall, улица Генерала Лизюкова, 4",
+          "tags": [
+            "deathcore"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Один концертный анонс с общей площадкой и последовательными этапами программы: двери и начало."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13863",
+          "status": "event",
+          "text": "В ЭТОМ МЕСЯЦЕ - MANHUNT TOUR | 23.10.2026 | ВОРОНЕЖ EMIVA представляет: MANHUNT TOUR | 23.10.2026 | ВОРОНЕЖ Охота объявл"
+        }
+      ]
+    },
+    {
+      "key": "vk:artartelchaika|2805",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-219184584_2805",
+          "status": "not_event",
+          "text": "Артель «Чайка»ДействияТаро + парфюм = твой личный аромат11 октября в воскресенье с 18:00 Выберите одну карту Таро — и он"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13871",
+      "existing": [
+        {
+          "id": 518,
+          "date": "2026-10-18",
+          "title": "MARTA PRELL",
+          "status": "approved"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-18",
+          "time": "19:00",
+          "title": "Marta Prell",
+          "venue": "Бар Diesel, Генерала Лизюкова, 4, Воронеж",
+          "participants": "Marta Prell",
+          "price": "",
+          "announcement": "Marta Prell выступит 18 октября в баре Diesel в Воронеже.",
+          "source_segment": "В ОКТЯБРЕ - Marta Prell | 18 октября | Воронеж Главная маткор команда страны Marta Prell врывается в твой город с презентацией нового альбома! Большая программа, мощный звук и киллотонны драйва! 19.00 Билеты: vk.cc/d0xhhV",
+          "program_items": [],
+          "evidence": "Главная маткор команда страны Marta Prell врывается в твой город с презентацией нового альбома! || 18 октября || БАР DIESEL; ГЕНЕРАЛА ЛИЗЮКОВА, 4",
+          "tags": [
+            "metalcore"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Один анонс выступления с подтверждёнными датой, местом и программой"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13871",
+          "status": "event",
+          "text": "В ОКТЯБРЕ - Marta Prell | 18 октября | Воронеж Главная маткор команда страны Marta Prell врывается в твой город с презен"
+        }
+      ]
+    },
+    {
+      "key": "vk:balagan.city|17111",
+      "existing": [
+        {
+          "id": 471,
+          "date": "2026-10-09",
+          "title": "Оберт Кавер Шоу; Диджей Брок",
+          "status": "pending"
+        },
+        {
+          "id": 472,
+          "date": "2026-10-10",
+          "title": "Бумажный Змей; Диджей Арч",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-09",
+          "time": "21:00",
+          "title": "",
+          "venue": "Балаган Сити, арт-шоу-ресторан, Воронеж",
+          "participants": "Оберт Кавер Шоу; Диджей Брок",
+          "price": "",
+          "announcement": "9 октября в арт-шоу-ресторане «Балаган Сити» в Воронеже выступят Оберт Кавер Шоу и Диджей Брок.",
+          "source_segment": "9 октября 21:00 Оберт кавер шоу 23:00 Диджей Брок",
+          "program_items": [
+            {
+              "time": "21:00",
+              "text": "Оберт кавер шоу"
+            },
+            {
+              "time": "23:00",
+              "text": "Диджей Брок"
+            }
+          ],
+          "evidence": "9 октября 21:00 Оберт кавер шоу 23:00 Диджей Брок || Балаган Сити | Арт-шоу-ресторан | Воронеж",
+          "tags": [
+            "cover-tribute",
+            "dj"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В посте указаны две самостоятельные даты с разными составами программы; это два отдельных вечерних анонса."
+        },
+        {
+          "date": "2026-10-10",
+          "time": "21:00",
+          "title": "",
+          "venue": "Балаган Сити, арт-шоу-ресторан, Воронеж",
+          "participants": "Бумажный Змей; Диджей Арч",
+          "price": "",
+          "announcement": "10 октября в арт-шоу-ресторане «Балаган Сити» в Воронеже выступят «Бумажный Змей» и Диджей Арч.",
+          "source_segment": "10 октября 21:00 Бумажный змей 23:00 Диджей Арч",
+          "program_items": [
+            {
+              "time": "21:00",
+              "text": "Бумажный змей"
+            },
+            {
+              "time": "23:00",
+              "text": "Диджей Арч"
+            }
+          ],
+          "evidence": "10 октября 21:00 Бумажный змей 23:00 Диджей Арч || Балаган Сити | Арт-шоу-ресторан | Воронеж",
+          "tags": [
+            "dj"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "В посте указаны две самостоятельные даты с разными составами программы; это два отдельных вечерних анонса."
+        }
+      ],
+      "write": 2,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-25597588_17111",
+          "status": "event",
+          "text": "Балаган Сити | Арт-шоу-ресторан | ВоронежДействияАфиша на выходные 9 октября 21:00 Оберт кавер шоу 23:00 Диджей Брок 10 "
+        }
+      ]
+    },
+    {
+      "key": "vk:vinzavodpro|2711",
+      "existing": [
+        {
+          "id": 474,
+          "date": "2026-10-10",
+          "title": "Дата: 10 октября",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-10",
+          "time": "22:00",
+          "title": "",
+          "venue": "ВИНЗАВОД, Кольцовская, 24/3",
+          "participants": "HANTU, BARNI, XWILL",
+          "price": "до 00:00 — бесплатно с репостом афиши до 22:00 10.10; 300 рублей без репоста; после 00:00 — 300 рублей с репостом, 500 рублей без репоста",
+          "announcement": "Вечеринка в субботу на закрытой площадке ВИНЗАВОД с сетами HANTU, BARNI и XWILL.",
+          "source_segment": "ВЕЧЕРИНКА В СУББОТУ Снова собираем всех своих петь и танцевать под любимые треки на нашей закрытой площадке За пультом HANTU BARNI XWILL",
+          "program_items": [
+            {
+              "time": "22:00",
+              "text": "Начало вечеринки"
+            },
+            {
+              "time": "23:00",
+              "text": "HANTU"
+            },
+            {
+              "time": "01:00",
+              "text": "BARNI"
+            },
+            {
+              "time": "03:00",
+              "text": "XWILL"
+            }
+          ],
+          "evidence": "ВЕЧЕРИНКА В СУББОТУ || СБ 10 ОКТЯБРЯ 22:00–05:00 || КОЛЬЦОВСКАЯ, 24/3",
+          "tags": [
+            "party",
+            "dj"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Одна вечеринка с общей площадкой, единым входом и последовательными DJ-сетами HANTU, BARNI и XWILL."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-170377932_2711",
+          "status": "event",
+          "text": "ВИНЗАВОДДействияВЕЧЕРИНКА В СУББОТУ Снова собираем всех своих петь и танцевать под любимые треки на нашей закрытой площа"
+        }
+      ]
+    },
+    {
+      "key": "vk:pinta_haus|7766",
+      "existing": [
+        {
+          "id": 527,
+          "date": "2026-12-18",
+          "title": "Хочу круто отметить новогодний корпоратив в Воронеже! Где? Конечно в Рестобаре “Pinta Haus” Не просто корпоратив — вечеринка, которая зарядит вашу команду на весь 2027 год. Успей забронировать дату для своей компании. У",
+          "status": "approved"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-98545917_7766",
+          "status": "event",
+          "text": "Хочу круто отметить новогодний корпоратив в Воронеже! Где? Конечно в Рестобаре “Pinta Haus” Не просто корпоратив — вечер"
+        }
+      ]
+    },
+    {
+      "key": "vk:balagan.city|17114",
+      "existing": [
+        {
+          "id": 480,
+          "date": "2026-12-18",
+          "title": "Новогодние корпоративы",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-12-18",
+          "time": "20:30",
+          "title": "Новогодние корпоративы",
+          "venue": "Balagan City, Центр Галереи Чижова, 4 этаж, Воронеж",
+          "participants": "Дед Мороз и Снегурочка, кавер-группы, диджей",
+          "price": "от 4 350 ₽ с гостя с воскресенья по четверг; от 5 450 ₽ с гостя в пятницу и субботу",
+          "announcement": "Новогодние корпоративы в Balagan City с праздничной программой, кавер-группами и диджеем проходят каждый вечер с 18 по 30 декабря 2026 года.",
+          "source_segment": "С 18 по 30 декабря ресторан Балаган Сити превращается в место для новогодних корпоративов: красивый вечер, праздничное меню, Дед Мороз и Снегурочка, кавер-группы и танцы с диджеем. Каждый день гуляем до 01:00! ... Balagan City, Центр Галереи Чижова, 4 этаж",
+          "program_items": [
+            {
+              "time": "20:30",
+              "text": "Дед Мороз и Снегурочка, до 21:00"
+            },
+            {
+              "time": "21:00",
+              "text": "Кавер-группа, до 23:00"
+            },
+            {
+              "time": "23:00",
+              "text": "Диджей, до 01:00"
+            }
+          ],
+          "evidence": "«С 18 по 30 декабря ресторан Балаган Сити превращается в место для новогодних корпоративов» || «Программа каждый вечер; 20:30 — Дед Мороз и Снегурочка, до 21:00; 21:00 — Кавер-группа, до 23:00; 23:00 — Диджей, до 01:00» || «Balagan City; арт-ресторан; НОВОГОДНИЕ корпоративы; 18–30 декабря 2026; Каждый день вечером — работаем до 01:00; Воронеж, Центр Галереи Чижова, 4 этаж»",
+          "tags": [
+            "party",
+            "dj",
+            "cover-tribute"
+          ],
+          "image_indexes": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            11
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Публикация анонсирует единые новогодние корпоративы в одной площадке с общей программой, повторяющейся каждый вечер с 18 по 30 декабря; отдельные временные блоки являются частью одной программы."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-25597588_17114",
+          "status": "event",
+          "text": "Балаган Сити | Арт-шоу-ресторан | ВоронежДействияГод был насыщенным, а значит, и провожать его нужно так, чтобы было что"
+        }
+      ]
+    },
+    {
+      "key": "vk:pinta_haus|7787",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-98545917_7787",
+          "status": "not_event",
+          "text": "Рестобар \"Pinta Haus\" ВоронежДействияСентябрь сгорел, октябрь только начинается! На сцене Пинты Кавер-группа | НА ВОЛНЕ "
+        }
+      ]
+    },
+    {
+      "key": "vk:koptilnyarest|928",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-174969923_928",
+          "status": "not_event",
+          "text": "КОПТИЛЬНЯ еда и музыкаДействияВоспроизвести Включить звук2Отправить реакцию «Лайк»Выбор реакции525 сен"
+        }
+      ]
+    },
+    {
+      "key": "vk:onibar|1088",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-219377788_1088",
+          "status": "not_event",
+          "text": "ОНИ в баре | караокеДействияЧУЙКА НЕ ПРОСТО ТАК ДАЕТСЯ! Смотришь футбол лучше, чем судьи ВАР? Докажи делом! Ждем тебя в "
+        }
+      ]
+    },
+    {
+      "key": "vk:poneslosbar_vrn|23325",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-170501354_23325",
+          "status": "not_event",
+          "text": "Атмосферный бар Понеслось - ВоронежДействияВоспроизвести Включить звук8Отправить реакцию «Лайк»Выбор реакции21 д назад"
+        }
+      ]
+    },
+    {
+      "key": "vk:poneslosbar_vrn|23319",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-170501354_23319",
+          "status": "not_event",
+          "text": "Атмосферный бар Понеслось - ВоронежДействияВоспроизвести Включить звук5Отправить реакцию «Лайк»Выбор реакции26 д назад"
+        }
+      ]
+    },
+    {
+      "key": "vk:poneslosbar_vrn|23321",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-170501354_23321",
+          "status": "not_event",
+          "text": "Атмосферный бар Понеслось - ВоронежДействияГотовь сани летом, а новогодний корпоратив осенью! Всего от 3500 ₽ с человека"
+        }
+      ]
+    },
+    {
+      "key": "vk:naryadny.rest|214",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-232455433_214",
+          "status": "not_event",
+          "text": "НарядныйДействияВоспроизвести Включить звук11Отправить реакцию «Лайк»Выбор реакции318 сен"
+        }
+      ]
+    },
+    {
+      "key": "vk:naryadny.rest|216",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-232455433_216",
+          "status": "not_event",
+          "text": "НарядныйДействияВоспроизвести Включить звук31Отправить реакцию «Лайк»Выбор реакции2922 сен"
+        }
+      ]
+    },
+    {
+      "key": "vk:naryadny.rest|204",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-232455433_204",
+          "status": "not_event",
+          "text": "НарядныйДействияВоспроизвести Включить звук20Отправить реакцию «Лайк»Выбор реакции72 сен"
+        }
+      ]
+    },
+    {
+      "key": "vk:naryadny.rest|226",
+      "existing": [
+        {
+          "id": 486,
+          "date": "2026-10-09",
+          "title": "CIRCUS NIGHT",
+          "status": "approved"
+        },
+        {
+          "id": 487,
+          "date": "2026-10-10",
+          "title": "CIRCUS NIGHT",
+          "status": "approved"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-09",
+          "time": null,
+          "title": "CIRCUS NIGHT",
+          "venue": "Нарядный",
+          "participants": "Showballet Magnifique; TwinCi; Arch; DAR.; Babyboy; Dana; Кирилл Клян; Анастасия Грузда; Go-Go",
+          "price": "",
+          "announcement": "CIRCUS NIGHT пройдет 9–10 октября в «Нарядном»: цирковое шоу, DJ-сеты, live vocal, Go-Go и MC.",
+          "source_segment": "CIRCUS NIGHT; 9–10 ОКТЯБРЯ; Эксклюзивное цирковое шоу от SHOWBALLET MAGNIFIQUE; DJ-SET TWINCI / ARCH; DJ-SET DAR. / BABYBOY; LIVE VOCAL DANA; GO-GO; MC Кирилл Клян и Анастасия Грузда; Нарядный",
+          "program_items": [
+            {
+              "time": null,
+              "text": "Эксклюзивное цирковое шоу от SHOWBALLET MAGNIFIQUE"
+            },
+            {
+              "time": null,
+              "text": "DJ-set TwinCi / Arch"
+            },
+            {
+              "time": null,
+              "text": "DJ-set DAR. / Babyboy"
+            },
+            {
+              "time": null,
+              "text": "Live vocal Dana"
+            },
+            {
+              "time": null,
+              "text": "Go-Go"
+            },
+            {
+              "time": null,
+              "text": "MC Кирилл Клян и Анастасия Грузда"
+            }
+          ],
+          "evidence": "CIRCUS NIGHT; 9–10 ОКТЯБРЯ || Эксклюзивное цирковое шоу от SHOWBALLET MAGNIFIQUE; DJ-SET TWINCI / ARCH; DJ-SET DAR. / BABYBOY; LIVE VOCAL DANA; GO-GO; MC Кирилл Клян и Анастасия Грузда || Нарядный",
+          "tags": [
+            "party",
+            "dj"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Один анонс с единым названием и площадкой; 9–10 октября — диапазон дат одного события, а перечисленные выступления составляют общую программу."
+        }
+      ],
+      "write": 2,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-232455433_226",
+          "status": "event",
+          "text": "НарядныйДействияВоспроизвести Включить звук35Отправить реакцию «Лайк»Выбор реакции196 д назад"
+        }
+      ]
+    },
+    {
+      "key": "vk:balagan.city|17108",
+      "existing": [
+        {
+          "id": 485,
+          "date": "2026-10-29",
+          "title": "Дата: 29 октября",
+          "status": "approved"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-29",
+          "time": "20:00",
+          "title": "Запахло весной. Новое и лучшее",
+          "venue": "Арт-шоу-ресторан «Балаган Сити», Центр Галереи Чижова, 4 этаж",
+          "participants": "группа «Бутырка»",
+          "price": "",
+          "announcement": "Живое выступление группы «Бутырка» «Запахло весной. Новое и лучшее» 29 октября в 20:00 в арт-шоу-ресторане «Балаган Сити». Сбор гостей в 18:00.",
+          "source_segment": "Название: Запахло весной. Новое и лучшее; Дата: 29 октября; Время: начало в 20:00, сбор гостей в 18:00; Место: Арт-шоу-ресторан «Балаган Сити», Центр Галереи Чижова, 4 этаж; Участники: группа «Бутырка»",
+          "program_items": [
+            {
+              "time": "18:00",
+              "text": "Сбор гостей"
+            },
+            {
+              "time": "20:00",
+              "text": "Начало живого выступления группы «Бутырка»"
+            }
+          ],
+          "evidence": "слышать «Бутырку» вживую || 29 октября || Балаган Сити, Центр Галереи Чижова, 4 этаж",
+          "tags": [
+            "шансон"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Один анонс живого выступления с общей площадкой и единой программой; 18:00 — сбор гостей, 20:00 — начало."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-25597588_17108",
+          "status": "event",
+          "text": "Тот самый вечер, когда весь зал поёт в один голос. Вы знаете эти песни, знаете каждое слово. Вы напевали их в машине, на"
+        }
+      ]
+    },
+    {
+      "key": "vk:rest1900|39",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-216713402_39",
+          "status": "not_event",
+          "text": "Мы начинаем новую главу БАНКЕТНАЯ ПЛОЩАДКА 19 00"
+        }
+      ]
+    },
+    {
+      "key": "vk:literabar|8800",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-08",
+          "time": "19:00",
+          "title": "Джем",
+          "venue": "Рестобар «Литера», проспект Революции 53",
+          "participants": "Профессиональные музыканты",
+          "price": "",
+          "announcement": "8 октября в 19:00 в рестобаре «Литера» состоится импровизационный концерт «Джем».",
+          "source_segment": "В «Литере» - «Джем». Профессиональные музыканты собираются на одной сцене и играют без заранее подготовленной программы. || четверг, 8 октября 19:00 проспект Революции 53",
+          "program_items": [],
+          "evidence": "В «Литере» - «Джем». || четверг, 8 октября 19:00 || проспект Революции 53",
+          "tags": [
+            "jam"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Один концерт «Джем» с одной датой, временем и конкретным адресом; описана единая импровизационная программа."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-135849070_8800",
+          "status": "event",
+          "text": "Рестобар ЛитераДействияТакой концерт невозможно повторить дважды. В «Литере» - «Джем». Профессиональные музыканты собира"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5779",
+      "existing": [
+        {
+          "id": 98,
+          "date": "2026-10-21",
+          "title": "СИЛА ДУХА",
+          "status": "pending"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "status": "event",
+          "text": "Есть вещи в которых мы нуждаемся каждый день: такие как человеческое тепло, участие и место, где нас любят и ждут Встреч"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13877",
+      "existing": [
+        {
+          "id": 461,
+          "date": "2027-03-07",
+          "title": "Килогерцы",
+          "status": "pending"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13877",
+          "status": "failed_retryable",
+          "text": "Rock Bar DIESEL & DIESEL HallДействия7 марта | Килогерцы фест | Воронеж Music Soul Promotion обещает, что март в Воронеж"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13879",
+      "existing": [
+        {
+          "id": 499,
+          "date": "2026-10-09",
+          "title": "Rock Bar DIESEL & DIESEL Hallзапись закрепленаДействияНА ЭТОЙ НЕДЕЛЕ",
+          "status": "approved"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-09",
+          "time": "19:00",
+          "title": "ИСХОД",
+          "venue": "DIESEL HALL",
+          "participants": "",
+          "price": "донат от 500 рублей",
+          "announcement": "9 октября в DIESEL HALL пройдет «ИСХОД». Двери в 19:00, билеты на входе, донат от 500 рублей.",
+          "source_segment": "9 октября: Diesel Hall: ИСХОД 09/10 / Двери: 19:00 Билеты: На входе, донат от 500 рублей",
+          "program_items": [],
+          "evidence": "9 октября: Diesel Hall: ИСХОД 09/10 || Двери: 19:00 Билеты: На входе, донат от 500 рублей",
+          "tags": [],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "Два самостоятельных анонса: разные даты, площадки и условия входа."
+        },
+        {
+          "date": "2026-10-10",
+          "time": "19:00",
+          "title": "",
+          "venue": "Rock Bar Diesel, ул. Генерала Лизюкова, 4, Воронеж",
+          "participants": "УХУ.ЕЛИ; 3 Сорт; Мистерика",
+          "price": "300 рублей",
+          "announcement": "10 октября в Rock Bar Diesel выступят УХУ.ЕЛИ, 3 Сорт и Мистерика. Начало в 19:00, вход 300 рублей, 18+.",
+          "source_segment": "10 октября: Diesel Bar: 10 октября | УХУ.ЕЛИ | 3 Сорт | Мистерика / Начало: 19:00 Билеты: На входе, 300 рублей Возрастное ограничение 18+",
+          "program_items": [],
+          "evidence": "10 октября: Diesel Bar: 10 октября | УХУ.ЕЛИ | 3 Сорт | Мистерика || Начало: 19:00 Билеты: На входе, 300 рублей Возрастное ограничение 18+ || г. Воронеж, ул. Генерала Лизюкова, 4",
+          "tags": [
+            "rock"
+          ],
+          "image_indexes": [
+            2
+          ],
+          "_structure": "multiple_events",
+          "_structureReason": "Два самостоятельных анонса: разные даты, площадки и условия входа."
+        }
+      ],
+      "write": 5,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13879",
+          "status": "event",
+          "text": "Rock Bar DIESEL & DIESEL Hallзапись закрепленаДействияНА ЭТОЙ НЕДЕЛЕ: 9 октября: Diesel Hall: ИСХОД 09/10 / Двери: 19:00"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13861",
+      "existing": [
+        {
+          "id": 512,
+          "date": "2026-10-24",
+          "title": "RammPage",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-24",
+          "time": "19:00",
+          "title": "RammPage",
+          "venue": "DIESEL HALL, ул. Генерала Лизюкова, 8, Воронеж",
+          "participants": "RammPage",
+          "price": "",
+          "announcement": "24 октября в DIESEL HALL состоится концерт кавер-трибьют проекта RammPage с Rammstein-шоу и полностью живым звуком.",
+          "source_segment": "«КАВЕР ШОУ», «RAMMPAGE», «24 ОКТЯБРЯ», «Сбор в 18:00 | Начало в 19:00», «DIESEL HALL», «ВОРОНЕЖ, ул. Генерала Лизюкова, 8»",
+          "program_items": [
+            {
+              "time": "18:00",
+              "text": "Сбор"
+            },
+            {
+              "time": "19:00",
+              "text": "Начало концерта"
+            }
+          ],
+          "evidence": "«Кавер-трибьют проект «RammPage» Команда музыкантов из соседнего г.Курска приглашает на свое уникальное Rammstein-шоу» || «24 ОКТЯБРЯ» || «DIESEL HALL», «ВОРОНЕЖ, ул. Генерала Лизюкова, 8»",
+          "tags": [
+            "metal",
+            "industrial",
+            "cover-tribute"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event_program",
+          "_structureReason": "Один концерт-трибьют с общей площадкой и единым анонсом; указаны сбор и начало программы."
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13861",
+          "status": "event",
+          "text": "В ОКТЯБРЕ - Концерт трибьют кавер-группы «RammPage»г.ВОРОНЕЖ Впервые в Воронеже! Кавер-трибьют проект «RammPage» Команда"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13895",
+      "existing": [
+        {
+          "id": 520,
+          "date": "2026-11-01",
+          "title": "7000$",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-11-01",
+          "time": "19:00",
+          "title": "",
+          "venue": "Diesel Hall, ул. Генерала Лизюкова, 4, Воронеж",
+          "participants": "7000$",
+          "price": "",
+          "announcement": "Концерт 7000$ с презентацией нового альбома «Корпорация монстров» в Diesel Hall.",
+          "source_segment": "1 ноября — 7000$ — Воронеж Старожилы альтернативной сцены 7000$ с презентацией нового альбома \"Корпорация монстров\" в твоем городе! ... Двери: 19:00",
+          "program_items": [
+            {
+              "time": "19:00",
+              "text": "Открытие дверей"
+            }
+          ],
+          "evidence": "7000$ с презентацией нового альбома \"Корпорация монстров\" || 1 ноября || DIESEL HALL; ... УЛ. ГЕНЕРАЛА ЛИЗЮКОВА, 4",
+          "tags": [
+            "hardcore",
+            "alternative"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Один концерт с презентацией альбома"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13895",
+          "status": "event",
+          "text": "Rock Bar DIESEL & DIESEL HallДействия1 ноября — 7000$ — Воронеж Старожилы альтернативной сцены 7000$ с презентацией ново"
+        }
+      ]
+    },
+    {
+      "key": "chat:2000000022|5829",
+      "existing": [
+        {
+          "id": 99,
+          "date": "2026-10-17",
+          "title": "Йога-нидра с Алишей Светлинской",
+          "status": "pending"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "status": "event",
+          "text": "Открытое занятие: Йога-нидра с Алишей Светлинской 17 октября в 14:00 приглашаем вас на бесплатное занятие, где вы познак"
+        }
+      ]
+    },
+    {
+      "key": "vk:rb_diesel|13894",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-10-18",
+          "time": "19:00",
+          "title": "MARTA PRELL TOUR 2026",
+          "venue": "Бар Diesel, Генерала Лизюкова, 4, Воронеж",
+          "participants": "Marta Prell",
+          "price": "",
+          "announcement": "Marta Prell выступит в Воронеже с презентацией нового альбома.",
+          "source_segment": "НА СЛЕДУЮЩЕЙ НЕДЕЛЕ - Marta Prell | 18 октября | Воронеж Главная маткор команда страны Marta Prell врывается в твой город с презентацией нового альбома! Большая программа, мощный звук и киллотонны драйва! 19.00 Билеты: vk.cc/d0xhhV",
+          "program_items": [],
+          "evidence": "Marta Prell | 18 октября | Воронеж || Marta Prell врывается в твой город с презентацией нового альбома || БАР DIESEL; ГЕНЕРАЛА ЛИЗЮКОВА, 4; ВРЕМЯ 19:00",
+          "tags": [
+            "metalcore"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Один анонс концерта с подтверждёнными датой, местом и программой"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-117292629_13894",
+          "status": "event",
+          "text": "Rock Bar DIESEL & DIESEL HallДействияНА СЛЕДУЮЩЕЙ НЕДЕЛЕ - Marta Prell | 18 октября | Воронеж Главная маткор команда стр"
+        }
+      ]
+    },
+    {
+      "key": "vk:idmamaanarchy|942",
+      "existing": [],
+      "events": [
+        {
+          "date": "2026-11-07",
+          "time": "19:00",
+          "title": "Живи",
+          "venue": "паб «Мама Анархия», Платонова, 25, Воронеж",
+          "participants": "Космодемьянский",
+          "price": "",
+          "announcement": "7 ноября в 19:00 в пабе «Мама Анархия» в Воронеже состоится творческий вечер Космодемьянского «Живи».",
+          "source_segment": "7 НОЯБРЯ 2026; 19:00; ПАБ МАМА АНАРХИЯ; Живи; ТВОРЧЕСКИЙ ВЕЧЕР КОСМОДЕМЬЯНСКОГО; Платонова 25; ВОРОНЕЖ",
+          "program_items": [],
+          "evidence": "Живи || 7 НОЯБРЯ 2026; 19:00 || ПАБ МАМА АНАРХИЯ; Платонова 25; ВОРОНЕЖ",
+          "tags": [
+            "acoustic",
+            "author-song"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Одна афиша с датой, названием и площадкой"
+        }
+      ],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall675847853_942",
+          "status": "event",
+          "text": "Мама АнархияДействияБилеты: voronezh.qtickets.events/258468-yur...0:419Отправить реакцию «Лайк»Выбор реакции53 д назад"
+        }
+      ]
+    },
+    {
+      "key": "vk:balagan.city|17134",
+      "existing": [
+        {
+          "id": 528,
+          "date": "2026-10-16",
+          "title": "Диджей Мару",
+          "status": "pending"
+        },
+        {
+          "id": 529,
+          "date": "2026-10-17",
+          "title": "36 Пятниц, Диджей Брок",
+          "status": "pending"
+        }
+      ],
+      "events": [],
+      "write": 2,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-25597588_17134",
+          "status": "event",
+          "text": "Балаган Сити | Арт-шоу-ресторан | ВоронежДействияАфиша на выходные 16 октября21:00 Квартирник23:00 Диджей Мару 17 октябр"
+        }
+      ]
+    },
+    {
+      "key": "vk:vinzavodpro|2715",
+      "existing": [
+        {
+          "id": 534,
+          "date": "2026-10-25",
+          "title": "STAFF PARTY",
+          "status": "pending"
+        }
+      ],
+      "events": [
+        {
+          "date": "2026-10-25",
+          "time": "22:00",
+          "title": "STAFF PARTY",
+          "venue": "ВИНЗАВОД, Кольцовская, 24",
+          "participants": "LESHKAAA",
+          "price": "вход бесплатный",
+          "announcement": "STAFF PARTY 25 октября в 22:00 на площадке «ВИНЗАВОД». За пультом LESHKAAA, вход бесплатный, скидка на баре 50%, FC/DC 18+.",
+          "source_segment": "ВИНЗАВОДДействияSTAFF PARTY КАЖДЫЕ 2 НЕДЕЛИ 11 И 25 ОКТЯБРЯ Это не просто вечеринка. Это вечеринка для тех, кто работает, пока другие отдыхают. И для тех, кому не хватило выходных полноценно отдохнуть За пультомLESHKAAA Скидка на баре 50% на специальное меню Ждём тебя🪩Старт в 22:00Вход бесплатный для всехFC/DC 18+Кольцовская, 24",
+          "program_items": [],
+          "evidence": "STAFF PARTY КАЖДЫЕ 2 НЕДЕЛИ 11 И 25 ОКТЯБРЯ || За пультомLESHKAAA || Старт в 22:00Вход бесплатный для всехFC/DC 18+Кольцовская, 24",
+          "tags": [
+            "party",
+            "dj"
+          ],
+          "image_indexes": [
+            1
+          ],
+          "_structure": "single_event",
+          "_structureReason": "Анонсирована одна повторяющаяся вечеринка; из указанных дат будущей является 25 октября 2026 года"
+        }
+      ],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-170377932_2715",
+          "status": "event",
+          "text": "ВИНЗАВОДДействияSTAFF PARTY КАЖДЫЕ 2 НЕДЕЛИ 11 И 25 ОКТЯБРЯ Это не просто вечеринка. Это вечеринка для тех, кто работает"
+        }
+      ]
+    },
+    {
+      "key": "vk:vinzavodpro|2718",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-170377932_2718",
+          "status": "not_event",
+          "text": "ВИНЗАВОДДействияИнформация по входу на площадку Работаем через главный вход «CHAT” Для вашего удобства и комфорта гардер"
+        }
+      ]
+    },
+    {
+      "key": "vk:pinta_haus|7762",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-98545917_7762",
+          "status": "not_event",
+          "text": "Канье Уест на День города точно не выступит! Зато выступит Кавер-группа «Мята» Масштаб Канье не обещаем, но задор и весе"
+        }
+      ]
+    },
+    {
+      "key": "vk:12bpg|12707",
+      "existing": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-154408818_12707",
+          "status": "not_event",
+          "text": "Впервые в Воронеже! Билеты на входе"
+        }
+      ]
+    },
+    {
+      "key": "vk:onibar|1081",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-219377788_1081",
+          "status": "not_event",
+          "text": "Планируешь, где отметить свой день так, чтобы и попеть, и потанцевать, и вкусно поесть? Мы в караоке-баре уже всё подгот"
+        }
+      ]
+    },
+    {
+      "key": "vk:xlambar|16114",
+      "existing": [
+        {
+          "id": 481,
+          "date": "2026-10-10",
+          "title": "Сумерки в Хлам",
+          "status": "pending"
+        }
+      ],
+      "events": [],
+      "write": 1,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-58342302_16114",
+          "status": "event",
+          "text": "Уже в эту субботуВечеринка «сумерки в хлам»Твои любимые герои, в твоем любимом бареБудет ️Внимание️У нас добавился новый"
+        }
+      ]
+    },
+    {
+      "key": "vk:onibar|1076",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-219377788_1076",
+          "status": "not_event",
+          "text": "Впереди выходные, а это значит, что с 18:00 для Вас будет работать зал караоке, а с 23:00 зал DJ, где можно потанцевать "
+        }
+      ]
+    },
+    {
+      "key": "vk:xlambar|16110",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-58342302_16110",
+          "status": "not_event",
+          "text": "Дмитрий Позов Дима, мы тебя ждём Прочитали историю про воронежский фейс-контроль и подумали: а вдруг ты просто не там ис"
+        }
+      ]
+    },
+    {
+      "key": "vk:xlambar|16121",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-58342302_16121",
+          "status": "failed_retryable",
+          "text": "party bar & jigger house \"ХЛАМ\"ДействияСегодня продолжаем Вечеринка «сумерки в хлам»Твои любимые герои, в твоем любимом "
+        }
+      ]
+    },
+    {
+      "key": "vk:arena_voronez|76430",
+      "existing": [],
+      "events": [],
+      "write": 0,
+      "source": [
+        {
+          "url": "https://vk.ru/wall-183883839_76430",
+          "status": "not_event",
+          "text": "Билеты на концерт тринадцать карат поступили в продажу! Посмотреть стоимость: vk.cc/cOJodh"
+        }
+      ]
+    }
+  ]
+}

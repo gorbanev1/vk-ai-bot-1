@@ -1,0 +1,7 @@
+import { DatabaseSync } from "node:sqlite";
+const db=new DatabaseSync("data/bot.sqlite",{readOnly:true});
+const configs=[ ["vk_source_posts","vk_events","screen_name","post_id"],["telegram_source_posts","telegram_events","channel","message_id"],["vk_chat_source_messages","vk_chat_events","peer_id","conversation_message_id"] ];
+for (const [st,et,k,i] of configs) {
+ const rows=db.prepare(`SELECT p.${k} source,p.${i} item,p.source_url,p.raw_text,p.published_at,p.image_vision_facts_json FROM ${st} p WHERE EXISTS(SELECT 1 FROM ${st} q WHERE q.${k}=p.${k} AND q.${i}=p.${i})`).all();
+ for(const r of rows){let facts=[];try{facts=JSON.parse(r.image_vision_facts_json||"[]")}catch{};facts=facts.filter(f=>f&&f.poster===true);if(!facts.length)continue;let ev=db.prepare(`SELECT title,event_date,venue,participants,description,status FROM ${et} WHERE ${k}=? AND ${i}=?`).all(r.source,r.item);let dates=[...new Set(facts.flatMap(f=>String(f.dates||"").match(/(?:19|20)\d{2}[-/.]\d{1,2}[-/.]\d{1,2}|\b\d{1,2}[.]\d{1,2}(?:[.]\d{2,4})?\b/g)||[]))]; if(!ev.length || facts.some(f=>f.title&&f.dates&&f.venue&&(!ev.length||!ev.some(e=>String(e.event_date).includes(String(f.dates).slice(-2)))))){console.log(JSON.stringify({type:st,source:r.source,item:r.item,url:r.source_url,body:String(r.raw_text||"").slice(0,180),events:ev,facts:facts.map(f=>({index:f.index,title:f.title,dates:f.dates,time:f.time,venue:f.venue,city:f.city,address:f.address,participants:f.participants,recognizedText:String(f.recognizedText||"").slice(0,220),imagePath:f.imagePath}))}));}}}
+db.close();

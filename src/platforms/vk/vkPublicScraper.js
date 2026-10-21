@@ -1,3 +1,4 @@
+import { applyPosterGateResult } from '../../features/scrapers/posterGateResult.js';
 /**
  * Скрейпер публичных VK-страниц. Переиспользует общий браузер и строгую проверку событий.
  */
@@ -15,9 +16,12 @@ import {
     upsertManualParserSeenItem,
     getVkEventsForPostRefresh,
     getVkPostMeta,
+    isPermanentlyBlockedMonoSource,
     getVkScraperState,
     getVkUpcomingEvents,
     persistVkSourceAndEvents,
+    upsertVkSourcePost,
+    saveStartupPosterRepairVisionFactsV18877,
     updateStoredEventRecordFromReparse,
     updateVkScraperState,
 } from '../../infrastructure/database/index.js';
@@ -33,6 +37,8 @@ import {
     explainPublicPostEventCandidate,
     parsePublicPostLocally,
     publicPostLooksLikeEventCandidate,
+    selectPublicAiEventsForPersistence,
+    setPublicAiResponseMetadata,
     validatePublicAiEvents,
 } from '../../features/events/publicPostLocalParser.js';
 
@@ -41,6 +47,7 @@ import {
     assignEventImageIndexesFromFacts,
     applyPosterDerivedVenueFallback,
     parseIndexedImageFacts,
+    serializeIndexedImageFacts,
     filterEventsWithAnnouncementImages,
 } from '../../features/events/eventAssets.js';
 
@@ -95,6 +102,9 @@ import {
 
 import {
     shouldPreserveStoredEventsOnEmptyReparse,
+    shouldRetryEntireEventBatchAfterValidation,
+    shouldPreserveStoredEventsOnPartialReparse,
+    getSourceEventLedgerStatus,
 } from '../../features/events/sourceEventPersistence.js';
 
 import {
@@ -108,6 +118,7 @@ import {
 
 import {
     storedImageResultIsReusable,
+    pendingVisionImageIndexes,
     textEventsAreComplete,
     visionSkipReason,
 } from '../../features/events/eventVisionPolicy.js';
@@ -134,12 +145,13 @@ import {
 } from '../../features/events/secondaryPartyAdmission.js';
 import { createVkPublicCaptureHash } from '../../features/events/vkPublicContentHash.js';
 import { shouldSkipUnchangedCapturedItem } from '../../features/scrapers/manualParserCleanSkip.js';
+import { explainRecentOrFuturePost } from '../../features/scrapers/recentEventPassPolicy.js';
 
 const VK_PARSER_VERSION = 'vk-public-parser-multi-announcement-poster-repair-v18861';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_HTML_BYTES = 8 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
-const MAX_IMAGES_PER_POST = 12;
+const MAX_IMAGES_PER_POST = 1000;
 const DEFAULT_USER_AGENT = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
     'AppleWebKit/537.36 (KHTML, like Gecko)',
@@ -164,6 +176,17 @@ function currentIsoDate(timeZone) {
 
 function sleep(milliseconds) {
     return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+function hasUsableLocalSourceImage(event, dataDirectory) {
+    const paths = Array.isArray(event?.imagePaths) ? event.imagePaths : [];
+    return paths.some((value) => {
+        const clean = String(value ?? '').replace(/\\/gu, '/').trim();
+        if (!clean || /(?:^|\/)event_message_cards\//iu.test(clean) ||
+            /(?:^|\/)event_generated_fallbacks\//iu.test(clean) ||
+            /-event-\d+\.png$/iu.test(clean)) return false;
+        return existsSync(join(dataDirectory, value));
+    });
 }
 
 function clampInteger(value, minimum, maximum, fallback) {
@@ -585,8 +608,12 @@ export function parseVkPublicHtml(html, screenName) {
 
     const unique = new Map();
 
+    // VK post ids are only unique within an owner wall. A serialized DOM can
+    // contain an embedded/reposted wall with the same numeric post id as a
+    // post on the current page; keying by postId alone silently overwrites
+    // one record and can mix its text/media into the wrong ledger row.
     for (const post of posts) {
-        unique.set(post.postId, post);
+        unique.set(`${Number(post.ownerId || 0)}:${Number(post.postId || 0)}`, post);
     }
 
     return [...unique.values()].sort((left, right) => right.postId - left.postId);
@@ -822,7 +849,7 @@ export async function extractExactVkPostsFromDomSnapshot(page, html, screenName,
                     addImage(imageUrls, image, entry.trim().split(/\s+/u)[0]);
                 }
             }
-            return imageUrls.slice(0, 12);
+            return imageUrls.slice(0, 1000);
         };
 
         const result = [];
@@ -840,6 +867,7 @@ export async function extractExactVkPostsFromDomSnapshot(page, html, screenName,
             const contentText = readContentText(post, post, { nested: false });
             const nested = deepestRepost(post);
             const repostText = nested ? readContentText(nested, post, { nested: true }) : '';
+            const nestedIdentity = nested ? parseIdentity(nested.getAttribute('data-post-id')) : null;
             const text = [
                 contentText,
                 repostText && !contentText.includes(repostText)
@@ -861,7 +889,7 @@ export async function extractExactVkPostsFromDomSnapshot(page, html, screenName,
                 item.attachmentKey
                     ? other.attachmentKey === item.attachmentKey
                     : (!other.attachmentKey && other.url === item.url)
-            )) === index).slice(0, 12);
+            )) === index).slice(0, 1000);
             const imageUrls = imageMedia.map((item) => item.url);
             const imageOrigin = nestedImages.length
                 ? (outerImages.length ? 'nested-repost+outer' : 'nested-repost')
@@ -904,6 +932,9 @@ export async function extractExactVkPostsFromDomSnapshot(page, html, screenName,
                 publishedLabel,
                 contentText,
                 repostText,
+                rootPostText: repostText || (!nested ? contentText : ''),
+                rootPostTextResolved: Boolean(repostText || (!nested && contentText)),
+                rootPostSourceUrl: nestedIdentity?.url || '',
                 text,
                 links,
                 eventLinks,
@@ -971,6 +1002,14 @@ export async function extractExactVkPostsFromDomSnapshot(page, html, screenName,
                 : parseVkPublishedAtLabel(post.publishedLabel),
             contentText: cleanPublicPostText(post.contentText, screenName),
             repostText: cleanPublicPostText(post.repostText, screenName),
+            // The exact DOM parser may expose a repost as one flattened wall
+            // container. In that shape `rawWallText` is still the captured
+            // root body, even though no nested node was selected. Keep it as
+            // same-container evidence instead of incorrectly blocking the
+            // item as an unresolved repost.
+            rootPostText: cleanPublicPostText(post.rootPostText || post.repostText || post.rawWallText || (!post.repostDepth ? post.contentText : ''), screenName),
+            rootPostTextResolved: Boolean(post.rootPostTextResolved || post.rootPostText || post.repostText || post.rawWallText || (!post.repostDepth && post.contentText)),
+            rootPostSourceUrl: String(post.rootPostSourceUrl || post.originalSourceUrl || '').trim(),
             text: cleanPublicPostText(post.text, screenName),
             links: [...new Set((Array.isArray(post.links) ? post.links : []).map(String).filter(Boolean))],
             eventLinks: (Array.isArray(post.eventLinks) ? post.eventLinks : []).filter((item) => item?.url),
@@ -995,6 +1034,9 @@ export async function extractExactVkPostsFromDomSnapshot(page, html, screenName,
 }
 
 async function extractRenderedVkPosts(page, screenName, { snapshotHtml = '' } = {}) {
+    // The post identity validator below also checks the captured HTML. Keep it
+    // tied to this immutable DOM snapshot rather than an undeclared live value.
+    const html = String(snapshotHtml || '');
     const rawPosts = await page.evaluate(({ currentScreenName, immutableSnapshotHtml, baseUrl }) => {
         const snapshotMode = Boolean(String(immutableSnapshotHtml || '').trim());
         const rootDocument = snapshotMode
@@ -1538,10 +1580,10 @@ async function extractRenderedVkPosts(page, screenName, { snapshotHtml = '' } = 
             }
             const rankedImageCandidates = [...byUrl.values()]
                 .sort((left, right) => right.score - left.score || left.order - right.order);
-            const rankedMedia = rankedImageCandidates.slice(0, 12);
+            const rankedMedia = rankedImageCandidates.slice(0, 1000);
             const imageCandidateAudit = rankedImageCandidates.slice(0, 40).map((candidate, rank) => ({
                 rank: rank + 1,
-                selectedForVision: rank < 12,
+                selectedForVision: rank < 1000,
                 url: candidate.url,
                 attachmentKey: candidate.attachmentKey || '',
                 vkPhotoId: candidate.attachmentKey || '',
@@ -1645,6 +1687,7 @@ async function extractRenderedVkPosts(page, screenName, { snapshotHtml = '' } = 
         baseUrl: `https://vk.ru/${screenName}`,
     });
 
+    const expectedOwnerId = inferExpectedVkWallOwnerId(html, screenName);
     return rawPosts
         .map((post) => ({
             ...post,
@@ -1653,6 +1696,7 @@ async function extractRenderedVkPosts(page, screenName, { snapshotHtml = '' } = 
                 : parseVkPublishedAtLabel(post.publishedLabel),
             text: cleanPublicPostText(post.text, screenName),
         }))
+        .filter((post) => !expectedOwnerId || Number(post.ownerId || 0) === expectedOwnerId)
         .filter((post) => post.text.length >= 3);
 }
 
@@ -2336,7 +2380,13 @@ async function collectVkPostsWithBrowser({
                     },
                 }) || '';
             }
-            const currentDomExactPosts = await extractExactVkPostsFromDomSnapshot(
+            // Exact extraction can see nested wall containers from reposts.
+            // They are useful as evidence inside the outer post, but they are
+            // not independent records of the public source. Keep only the
+            // owner reported by the captured page when that identity is
+            // available; otherwise preserve the old conservative behaviour.
+            const expectedOwnerId = inferExpectedVkWallOwnerId(fullDomHtml, screenName);
+            const currentDomExactPostsRaw = await extractExactVkPostsFromDomSnapshot(
                 page,
                 fullDomHtml,
                 screenName,
@@ -2354,12 +2404,18 @@ async function collectVkPostsWithBrowser({
                 });
                 return [];
             });
-            const snapshotExactPosts = currentDomExactPosts.length
-                ? currentDomExactPosts
-                : parseVkPublicHtml(fullDomHtml, screenName).map((post) => ({
+            const currentDomExactPosts = expectedOwnerId
+                ? currentDomExactPostsRaw.filter((post) => Number(post?.ownerId || 0) === expectedOwnerId)
+                : currentDomExactPostsRaw;
+            const legacySnapshotPosts = parseVkPublicHtml(fullDomHtml, screenName).map((post) => ({
                     ...post,
                     parserPass: 'snapshot-exact-legacy-regex',
                 }));
+            const snapshotExactPosts = currentDomExactPosts.length
+                ? currentDomExactPosts
+                : (expectedOwnerId
+                    ? legacySnapshotPosts.filter((post) => Number(post?.ownerId || 0) === expectedOwnerId)
+                    : legacySnapshotPosts);
             snapshotExactCount = snapshotExactPosts.length;
 
             // Re-run the adaptive/heuristic extractor against the same immutable
@@ -2369,7 +2425,10 @@ async function collectVkPostsWithBrowser({
             // persisted and handed to Stage 1. This keeps adaptive/heuristic
             // recovery reproducible and prevents live lazy-DOM drift from
             // changing identity or media membership after the snapshot barrier.
-            const finalPosts = await extractRenderedVkPosts(page, screenName, { snapshotHtml: fullDomHtml });
+            const finalPostsRaw = await extractRenderedVkPosts(page, screenName, { snapshotHtml: fullDomHtml });
+            const finalPosts = expectedOwnerId
+                ? finalPostsRaw.filter((post) => Number(post?.ownerId || 0) === expectedOwnerId)
+                : finalPostsRaw;
             parserReport.immutableSnapshot = {
                 path: captureDomPath,
                 chars: fullDomHtml.length,
@@ -2393,8 +2452,10 @@ async function collectVkPostsWithBrowser({
             const parserComparison = {
                 sourceId: `vk:${screenName}`,
                 exactCurrentDomCount: currentDomExactPosts.length,
+                exactCurrentDomRawCount: currentDomExactPostsRaw.length,
+                expectedOwnerId,
                 exactDiagnostics: currentDomExactPosts?.snapshotDiagnostics || {},
-                exactLegacyRegexUsed: currentDomExactPosts.length === 0 && snapshotExactPosts.length > 0,
+                exactLegacyRegexUsed: currentDomExactPostsRaw.length === 0 && snapshotExactPosts.length > 0,
                 exactCount: snapshotExactPosts.length,
                 adaptiveCount: finalPosts.length,
                 adaptivePasses: [...new Set(finalPosts.map((post) => String(post?.parserPass || 'unknown')))].slice(0, 12),
@@ -2429,7 +2490,10 @@ async function collectVkPostsWithBrowser({
             ]));
             for (const renderedPost of finalPosts) {
                 const key = `${Number(renderedPost.ownerId || 0)}_${Number(renderedPost.postId || 0)}`;
-                const exact = exactById.get(key) || snapshotExactPosts.find((post) => Number(post.postId) === Number(renderedPost.postId));
+                // Identity is owner-scoped. Falling back to a numeric postId
+                // search can merge an embedded wall's post into the current
+                // source when two VK walls both use id=5.
+                const exact = exactById.get(key);
                 const mergedMedia = exact
                     ? mergeVkCapturedImageMedia(exact?.imageMedia, renderedPost?.imageMedia, { strictIdentity: true })
                     : mergeVkCapturedImageMedia([], renderedPost?.imageMedia);
@@ -2548,11 +2612,23 @@ async function collectVkPostsWithBrowser({
                     error.manualCaptureDomPath = captureDomPath;
                     error.manualParserReport = parserReport;
                 }
-                // Finite parser-all keeps successful tabs alive until raw cache
-                // persistence, but a failed capture must not leave the broken
-                // page around. Close it so the retry opens a genuinely fresh tab
-                // in the same persistent Chromium context.
+                // Preventive dwell on failed captures: keep this source tab open
+                // until the source's minimum lifetime expires, so a person can
+                // manually reload VK or scroll the page and let a larger DOM
+                // render before the failed attempt is closed. The next retry
+                // still opens a fresh tab after this inspection window.
                 if (!keepPageOpen && page && !page.isClosed()) {
+                    const minimumLifetimeMs = Math.max(0, Number(minimumPageLifetimeMs) || 0);
+                    const remainingLifetimeMs = minimumLifetimeMs - (Date.now() - openedAtMs);
+                    if (remainingLifetimeMs > 0) {
+                        console.warn(
+                            '[VK PUBLIC FAILED CAPTURE HOLD]',
+                            `source=vk.ru/${screenName}`,
+                            `remainingMs=${remainingLifetimeMs}`,
+                            'manualReloadOrScrollAvailable=true',
+                        );
+                        await page.waitForTimeout(remainingLifetimeMs).catch(() => new Promise((resolve) => setTimeout(resolve, remainingLifetimeMs)));
+                    }
                     await page.close().catch(() => {});
                     page = null;
                 }
@@ -3075,12 +3151,59 @@ function parseStoredStringArray(value) {
     }
 }
 
-function sanitizeVkPosterImageUrls(values) {
+function sanitizeVkPosterImageUrls(values, { includeUiImages = false } = {}) {
     return [...new Set((Array.isArray(values) ? values : [])
         .map((value) => String(value ?? '').trim())
         .filter((url) => /^https?:\/\//iu.test(url))
-        .filter((url) => !isLikelyVkNonPosterUiImageUrl(url)))]
+        .filter((url) => includeUiImages || !isLikelyVkNonPosterUiImageUrl(url)))]
         .slice(0, MAX_IMAGES_PER_POST);
+}
+
+function visionFactWithImageIdentity(fact, index, imageUrls = [], imageFingerprints = []) {
+    const safe = fact && typeof fact === 'object' ? { ...fact } : {};
+    const position = Number(index || safe.index || 0);
+    const fingerprint = (Array.isArray(imageFingerprints) ? imageFingerprints : [])
+        .find((item) => Number(item?.index || 0) === position || String(item?.url || '') === String(imageUrls?.[position - 1] || ''));
+    const imageUrl = String(fingerprint?.url || imageUrls?.[position - 1] || '').trim();
+    if (position > 0) safe.index = position;
+    if (imageUrl) safe.imageUrl = imageUrl;
+    if (fingerprint?.sha256) safe.imageSha256 = String(fingerprint.sha256);
+    if (fingerprint?.visualHash) safe.imageVisualHash = String(fingerprint.visualHash);
+    return safe;
+}
+
+function remapStoredVisionFactsToCurrentImages(facts, imageUrls = [], imageFingerprints = []) {
+    const source = Array.isArray(facts) ? facts : [];
+    const byIdentity = new Map();
+    for (const fact of source) {
+        for (const key of [fact?.imageUrl, fact?.imageSha256, fact?.imageVisualHash]) {
+            const normalized = String(key || '').trim();
+            if (normalized) byIdentity.set(normalized, fact);
+        }
+    }
+    const currentByIdentity = new Map();
+    (Array.isArray(imageUrls) ? imageUrls : []).forEach((url, offset) => {
+        const fp = (Array.isArray(imageFingerprints) ? imageFingerprints : [])
+            .find((item) => String(item?.url || '') === String(url || ''));
+        for (const key of [url, fp?.sha256, fp?.visualHash]) {
+            const normalized = String(key || '').trim();
+            if (normalized && !currentByIdentity.has(normalized)) currentByIdentity.set(normalized, offset + 1);
+        }
+    });
+    const result = [];
+    const used = new Set();
+    for (const fact of source) {
+        const identityKeys = [fact?.imageUrl, fact?.imageSha256, fact?.imageVisualHash]
+            .map((value) => String(value || '').trim()).filter(Boolean);
+        // An indexed legacy fact without URL/hash identity may belong to a
+        // different image after VK reorders a gallery. Do not remap it by slot.
+        if (!identityKeys.length) continue;
+        const targetIndex = identityKeys.map((key) => currentByIdentity.get(key)).find((value) => Number(value) > 0);
+        if (!targetIndex || targetIndex > imageUrls.length || used.has(targetIndex)) continue;
+        used.add(targetIndex);
+        result.push(visionFactWithImageIdentity(fact, targetIndex, imageUrls, imageFingerprints));
+    }
+    return result;
 }
 
 function knownUiImageHashes(fingerprints) {
@@ -3202,7 +3325,10 @@ async function fingerprintVkPostImages(post, {
     return fingerprintRemoteImages({
         imageUrls: post.imageUrls,
         maximum: MAX_IMAGES_PER_POST,
-        posterOnly: true,
+        includeUiImages: true,
+        // The source inventory is lossless for event posts. UI/avatar assets
+        // are still filtered by the shared URL classifier, while ordinary
+        // photographs stay available for Vision classification and audit.
         fetchBuffer: browserFallback
             ? (url) => browserDownloadBuffer({
                 url,
@@ -3491,13 +3617,32 @@ async function processPost(post, {
     manualRun = false,
     forceKnownMediaRefresh = false,
     forceReprocess = false,
+    incrementalOnly = false,
     ledgerContext = null,
     traceAi = null,
+    onMissingImageEvent = null,
 }) {
     post = { ...post, text: sanitizeEventBodyText(cleanPublicPostText(post.text, post.screenName)) };
     traceAi?.('provenance', { canonicalOrigin: 'direct-wall', canonicalPostUrl: String(post.sourceUrl || '') });
     console.log('[EVENT PROVENANCE]', `source=vk:${post.screenName}/${post.postId}`, 'origin=direct-wall', `url=${String(post.sourceUrl || '')}`);
     const previous = getVkPostMeta({ screenName: post.screenName, postId: post.postId });
+    if (isPermanentlyBlockedMonoSource({
+        sourceType: 'vk',
+        sourceItemId: `vk:${post.screenName}:${post.postId}`,
+        sourceUrl: post.sourceUrl,
+        canonicalPostUrl: post.sourceUrl,
+    })) {
+        traceAi?.('database.skip', { reason: 'permanent-mono-source-block' });
+        console.log('[PERMANENT EVENT SOURCE SKIP]', `source=vk:${post.screenName}/${post.postId}`);
+        return { changed: false, eventCount: 0, skippedPermanentSource: true };
+    }
+    let storedImageVisionFacts = [];
+    try {
+        const parsed = JSON.parse(String(previous?.imageVisionFactsJson || '[]'));
+        storedImageVisionFacts = Array.isArray(parsed) ? parsed : [];
+    } catch {
+        storedImageVisionFacts = [];
+    }
     let storedEventsBefore = forceKnownMediaRefresh
         ? getVkEventsForPostRefresh({ screenName: post.screenName, postId: post.postId })
         : [];
@@ -3505,7 +3650,7 @@ async function processPost(post, {
     traceAi?.('forensics.before', { post, previous, previousEvents: originalStoredEvents,
         decision: { forceKnownMediaRefresh, downloadImages, manualRun } });
     const existingAnnouncement = findExistingAnnouncementEvidence({ rawText: post.text, sourceUrl: post.sourceUrl });
-    if (existingAnnouncement && !(existingAnnouncement.sourceType === 'vk-public' && existingAnnouncement.sourceKey === String(post.screenName) && existingAnnouncement.itemId === String(post.postId))) {
+    if (incrementalOnly && existingAnnouncement && !(existingAnnouncement.sourceType === 'vk-public' && existingAnnouncement.sourceKey === String(post.screenName) && existingAnnouncement.itemId === String(post.postId))) {
         traceAi?.('database.skip', { reason: 'existing-announcement', match: existingAnnouncement });
         return { changed: false, eventCount: 0, skippedKnownAnnouncement: true };
     }
@@ -3543,8 +3688,8 @@ async function processPost(post, {
             };
         });
     }
-    const currentPosterUrls = sanitizeVkPosterImageUrls(post.imageUrls);
-    const storedPosterUrls = sanitizeVkPosterImageUrls(parseStoredStringArray(previous?.imageUrlsJson));
+    const currentPosterUrls = sanitizeVkPosterImageUrls(post.imageUrls, { includeUiImages: true });
+    const storedPosterUrls = sanitizeVkPosterImageUrls(parseStoredStringArray(previous?.imageUrlsJson), { includeUiImages: true });
     const cleanPosterUrls = forceKnownMediaRefresh
         ? [...new Set([...currentPosterUrls, ...storedPosterUrls])].slice(0, MAX_IMAGES_PER_POST)
         : currentPosterUrls;
@@ -3569,16 +3714,31 @@ async function processPost(post, {
     // source hash must be reprocessed once, never interpreted as proof that
     // all current media was analyzed.
     const unchangedPost = String(previous?.contentHash || '') === contentHash;
-    if (unchangedPost && fingerprintsBackfilled && !forceReprocess) {
+    if (incrementalOnly && unchangedPost && fingerprintsBackfilled && !forceReprocess) {
         const previousImagePaths = removeKnownUiImagePaths(
             parseStoredStringArray(previous.imagePathsJson),
             { dataDirectory, rejectedHashes: rejectedStoredUiHashes },
         );
         const onlyGeneratedFallbacks = previousImagePaths.length > 0 && previousImagePaths.every((path) => /-event-\d+\.png$/iu.test(path));
         const hasMissingLocalImage = previousImagePaths.some((path) => !existsSync(join(dataDirectory, path)));
+        const expectedImageCount = Math.max(
+            Array.isArray(previousImageFingerprints) ? previousImageFingerprints.length : 0,
+            Array.isArray(post?.imageUrls) ? post.imageUrls.length : 0,
+        );
+        let hasPendingVisionImage = false;
+        try {
+            const priorFacts = JSON.parse(String(previous?.imageVisionFactsJson || '[]'));
+            hasPendingVisionImage = pendingVisionImageIndexes(expectedImageCount, priorFacts).length > 0;
+            if (!hasPendingVisionImage) hasPendingVisionImage = Array.isArray(priorFacts) && priorFacts.some((fact) => {
+                const status = String(fact?.visionStatus || '').trim().toLowerCase();
+                return !status || ['not_run', 'error'].includes(status);
+            });
+        } catch {
+            hasPendingVisionImage = expectedImageCount > 0;
+        }
         const needsImageRecovery = Number(previous.eventCount ?? 0) > 0 &&
             (Number(previous?.eventsWithoutImages ?? 0) > 0 ||
-                !previousImagePaths.length || onlyGeneratedFallbacks || hasMissingLocalImage);
+                !previousImagePaths.length || onlyGeneratedFallbacks || hasMissingLocalImage || hasPendingVisionImage);
         if (!forceKnownMediaRefresh && !needsImageRecovery && Number(previous?.eventCount ?? 0) > 0) {
             return { changed: false, eventCount: Number(previous.eventCount ?? 0) };
         }
@@ -3693,14 +3853,25 @@ async function processPost(post, {
         });
 
     const imageChanged = !imageFingerprintSetsEqual(previousImageFingerprints, imageFingerprints);
+    // A Vision batch can be interrupted before eventCount is written. Durable
+    // per-image facts are still safe to remap when the source fingerprints
+    // match; only indexes without a structured terminal outcome are retried.
     const storedImageReusable = storedImageResultIsReusable({
-        previousEventCount: previous?.eventCount,
+        previousEventCount: Math.max(
+            Number(previous?.eventCount) || 0,
+            storedImageVisionFacts.length ? 1 : 0,
+        ),
         previousFingerprints: previousImageFingerprints,
         currentFingerprints: imageFingerprints,
     });
     const visionImageUrls = [...new Set(imageFingerprints
         .map((item) => String(item?.url ?? '').trim())
         .filter((url) => /^https?:\/\//iu.test(url)))];
+    const reusableVisionFacts = storedImageReusable && !forceKnownMediaRefresh
+        ? remapStoredVisionFactsToCurrentImages(storedImageVisionFacts, visionImageUrls, imageFingerprints)
+        : [];
+    let durableVisionFacts = reusableVisionFacts;
+    post = { ...post, __storedImageVisionFacts: serializeIndexedImageFacts(reusableVisionFacts) };
     const skipVisionReason = forceKnownMediaRefresh &&
         visionImageUrls.length > 0 &&
         typeof extractImageFactsWithAi === 'function'
@@ -3713,7 +3884,23 @@ async function processPost(post, {
         });
 
     let enrichedPost = post;
-    let imageFacts = String(post?.__posterGateFacts || '').trim();
+    // Poster-gate output is only an admission hint. It must never suppress the
+    // complete per-image Vision pass for a new/partially processed source.
+    const posterGateFacts = String(post?.__posterGateFacts || '').trim();
+    // The date-free phase may already have inspected this exact image in its
+    // narrow poster gate. Carry those structured facts into the ordinary
+    // source processing contour so phase 1/phase 2 never pay for Vision twice.
+    const gateVisionFacts = parseIndexedImageFacts(post?.__dateFreeVisionPhase ? posterGateFacts : '')
+        .map((fact) => {
+            const imageUrl = post.imageUrls?.[Number(fact.index) - 1];
+            const index = visionImageUrls.indexOf(imageUrl) + 1;
+            return index > 0 ? visionFactWithImageIdentity(fact, index, visionImageUrls, imageFingerprints) : null;
+        })
+        .filter((fact) => Number(fact?.index || 0) > 0);
+    let imageFacts = [
+        serializeIndexedImageFacts(gateVisionFacts),
+        String(post?.__storedImageVisionFacts || '').trim(),
+    ].filter(Boolean).join('\n\n');
     const needsMultiEventPosterMapping = Boolean(
         textOnlyLocalEvents.length > 1 &&
         visionImageUrls.length > 0 &&
@@ -3726,12 +3913,23 @@ async function processPost(post, {
         visionImageUrls.length > 0 &&
         typeof extractImageFactsWithAi === 'function'
     );
+    const gateIndexes = new Set(gateVisionFacts
+        .filter((fact) => fact?.visionStatus !== 'error' && fact?.visionInspected === true)
+        .map((fact) => Number(fact?.index || 0))
+        .filter((index) => index > 0));
+    const pendingVisionIndexes = pendingVisionImageIndexes(visionImageUrls.length, [
+        ...reusableVisionFacts,
+        ...gateVisionFacts,
+    ]).filter((index) => !gateIndexes.has(index));
+    const allVisionImagesTerminal = visionImageUrls.length > 0 && pendingVisionIndexes.length === 0;
     const shouldRunVision = Boolean(
-        !imageFacts && (
-            needsEventPosterVerification ||
+        visionImageUrls.length > 0 &&
+        typeof extractImageFactsWithAi === 'function' &&
+        !allVisionImagesTerminal &&
+        (needsEventPosterVerification ||
             needsMultiEventPosterMapping ||
-            (!skipVisionReason && (forceKnownMediaRefresh || !exactKnownAnnouncementText || imageChanged))
-        )
+            (originalStoredEvents.length > 0 && pendingVisionIndexes.length > 0) ||
+            (!skipVisionReason && (forceKnownMediaRefresh || !exactKnownAnnouncementText || imageChanged)))
     );
     traceAi?.('media.inventory', {
         sourceUrl: post.sourceUrl,
@@ -3756,6 +3954,35 @@ async function processPost(post, {
         );
     }
     if (shouldRunVision) {
+        const visionFactsByIndex = new Map(reusableVisionFacts
+            .map((fact) => [Number(fact?.index || 0), fact])
+            .filter(([index]) => index > 0));
+        const sourceImagePaths = parseStoredStringArray(previous?.imagePathsJson);
+        // Ensure the durable source row exists before the first request. Each
+        // completed image is committed below, so a process interruption halfway
+        // through a gallery resumes from the first non-terminal image only.
+        upsertVkSourcePost({
+            screenName: post.screenName, ownerId: post.ownerId, postId: post.postId,
+            sourceUrl: post.sourceUrl, publishedAt: post.publishedAt, rawText: post.text,
+            imageUrls: post.imageUrls, imagePaths: sourceImagePaths, imageMedia: post.imageMedia || [],
+            contentHash, textFingerprint, imageFingerprints,
+            imageVisionFacts: [...visionFactsByIndex.values()],
+            parseStatus: 'vision_processing', fetchedAt: Math.floor(Date.now() / 1000),
+        });
+        post.__onImageVisionResult = ({ imageNumber, factText, retryable = false } = {}) => {
+            const fact = parseIndexedImageFacts(String(factText || ''))
+                .find((item) => Number(item?.index || 0) === Number(imageNumber || 0));
+            if (!fact) return;
+            visionFactsByIndex.set(Number(imageNumber), visionFactWithImageIdentity(
+                { ...fact, ...(retryable ? { visionInspected: false, visionStatus: 'error' } : {}) },
+                Number(imageNumber), visionImageUrls, imageFingerprints,
+            ));
+            durableVisionFacts = [...visionFactsByIndex.values()];
+            saveStartupPosterRepairVisionFactsV18877({
+                sourceType: 'vk', screenName: post.screenName, postId: post.postId,
+                imageUrls: post.imageUrls,
+            }, [...visionFactsByIndex.values()]);
+        };
         try {
             imageFacts = String(await runEventOperationWithRetries(
                 () => extractImageFactsWithAi({
@@ -3766,6 +3993,8 @@ async function processPost(post, {
                 }),
                 {
                     label: `vk-public-vision:${post.screenName}/${post.postId}`,
+                    // The adapter owns each model's configured retry budget.
+                    // Do not repeat the entire ladder in this wrapper.
                     maxAttempts: 1,
                     onAttemptError: ({ round, maxRounds, willRetry, delayMs, errorMessage }) => {
                         const row = { stage: 'vision', round, maxRounds, willRetry, delayMs, error: errorMessage };
@@ -3789,12 +4018,13 @@ async function processPost(post, {
                     },
                 },
             ) ?? '').trim();
+            durableVisionFacts = [...visionFactsByIndex.values()];
         } catch (error) {
             console.error('[VK PUBLIC VISION ERROR]', `post=${post.screenName}/${post.postId}`, String(error?.message ?? error));
         }
     }
-    if (!imageFacts && String(post?.__posterGateFacts || '').trim()) {
-        imageFacts = String(post.__posterGateFacts).trim();
+    if (!imageFacts && posterGateFacts) {
+        imageFacts = posterGateFacts;
     }
     traceAi?.('vision.response', {
         sourceUrl: post.sourceUrl,
@@ -3803,7 +4033,11 @@ async function processPost(post, {
         parsedFacts: parseIndexedImageFacts(imageFacts),
     });
     if (imageFacts) {
-        enrichedPost = { ...post, text: [post.text, '[Факты с афиши]', imageFacts].filter(Boolean).join('\n\n') };
+        enrichedPost = {
+            ...post,
+            text: [post.text, '[Факты с афиши]', imageFacts].filter(Boolean).join('\n\n'),
+            ...(post.__dateFreeVisionPhase ? { __sourceAnnouncementText: String(post.text || '') } : {}),
+        };
     }
 
     let parsedEvents = imageFacts
@@ -3816,17 +4050,26 @@ async function processPost(post, {
     const localParsedCount = parsedEvents.length;
 
     const canCallAi = typeof extractEventsWithAi === 'function' &&
-        (forceKnownMediaRefresh || !exactKnownAnnouncementText) &&
+        (acceptedDateFreePoster(post) || forceKnownMediaRefresh || !exactKnownAnnouncementText) &&
         (publicPostLooksLikeEventCandidate(enrichedPost) || Boolean(imageFacts));
     let aiRawCount = 0;
     let aiValidatedCount = 0;
     let aiError = '';
+    let aiEvents = null;
+    let validatedAiEvents = null;
+    const aiDecisionRequired = Boolean(
+        (acceptedDateFreePoster(post) || forceKnownMediaRefresh || !exactKnownAnnouncementText) &&
+        (publicPostLooksLikeEventCandidate(enrichedPost) || imageFacts)
+    );
     if (canCallAi) {
         try {
-            const aiEvents = await runEventOperationWithRetries(
+            aiEvents = await runEventOperationWithRetries(
                 () => extractEventsWithAi({ ...enrichedPost, __aiTrace: traceAi }),
                 {
                     label: `vk-public-ai:${post.screenName}/${post.postId}`,
+                    // Do not abandon a whole source item on the first 503.
+                    // The durable source row/checkpoint is written after the
+                    // operation, so a final failure remains retryable.
                     maxAttempts: 1,
                     onAttemptError: ({ round, maxRounds, willRetry, delayMs, errorMessage }) => {
                         const row = { stage: 'ai-extraction', round, maxRounds, willRetry, delayMs, error: errorMessage };
@@ -3850,28 +4093,53 @@ async function processPost(post, {
                     },
                 },
             );
-            aiRawCount = Array.isArray(aiEvents) ? aiEvents.length : 0;
-            const validated = validatePublicAiEvents(aiEvents, enrichedPost)
-                .map((event) => ({ ...event, parseMethod: `vk_html_${event.parseMethod || 'ai_validated'}` }));
-            aiValidatedCount = validated.length;
-            if (validated.length) {
-                const localParsedCountBeforeAi = parsedEvents.length;
-                // A valid AI response is authoritative for event cardinality.
-                // The local parser is only a fallback when AI fails or returns
-                // no valid events; keeping a richer local split here could
-                // create extra cards that AI explicitly merged into one programme.
-                parsedEvents = validated;
-                traceAi?.('text.selection', {
-                    reason: 'ai-authoritative-cardinality',
-                    localParsedCount: localParsedCountBeforeAi,
-                    aiValidatedCount: validated.length,
+            if (Array.isArray(aiEvents) && typeof aiEvents.aiResponseValid !== 'boolean') {
+                setPublicAiResponseMetadata(aiEvents, {
+                    structure: aiEvents.aiStructureDecision ?? aiEvents[0]?._structure ?? aiEvents[0]?.structure ?? '',
+                    reason: aiEvents.aiStructureReason ?? aiEvents[0]?._structureReason ?? '',
+                    valid: false,
+                    error: 'extractor-did-not-provide-response-validation',
                 });
             }
+            aiRawCount = Array.isArray(aiEvents) ? aiEvents.length : 0;
+            const validatedRaw = validatePublicAiEvents(aiEvents, enrichedPost);
+            validatedAiEvents = validatedRaw.map((event) => ({
+                ...event,
+                parseMethod: 'vk_html_' + String(event.parseMethod || 'ai_validated'),
+            }));
+            setPublicAiResponseMetadata(validatedAiEvents, {
+                structure: validatedRaw.aiStructureDecision,
+                reason: validatedRaw.aiStructureReason,
+                valid: validatedRaw.aiResponseValid,
+                error: validatedRaw.aiResponseError,
+            });
+            aiValidatedCount = validatedAiEvents.length;
         } catch (error) {
             aiError = String(error?.message ?? error);
             console.error('[VK PUBLIC AI ERROR]', `post=${post.screenName}/${post.postId}`, aiError);
         }
     }
+
+    const aiOutcome = selectPublicAiEventsForPersistence({
+        localEvents: parsedEvents,
+        aiEvents,
+        validatedEvents: validatedAiEvents,
+        aiRequired: aiDecisionRequired,
+        aiCalled: canCallAi && Boolean(aiEvents),
+        aiError,
+        post: enrichedPost,
+        timeZone,
+    });
+    parsedEvents = aiOutcome.events;
+    traceAi?.('text.selection', {
+        reason: aiOutcome.reason,
+        structure: aiOutcome.structure || '',
+        structureReason: aiOutcome.structureReason || '',
+        unresolved: aiOutcome.unresolved,
+        localParsedCount,
+        aiRawCount,
+        aiValidatedCount,
+    });
 
     const finalValidationSourceText = buildVkValidationSourceText({ ...post, text: enrichedPost.text });
     const rejectedEvents = [];
@@ -3881,7 +4149,7 @@ async function processPost(post, {
             rejectedEvents.push({ event, reason: 'event-date-before-today' });
             return false;
         }
-        if (!isEventDateConsistentWithSource({
+        if (!acceptedDateFreePoster(post) && !isEventDateConsistentWithSource({
             eventDate: event?.eventDate,
             sourceText: enrichedPost.text,
             publishedAt: post.publishedAt,
@@ -3890,13 +4158,33 @@ async function processPost(post, {
             rejectedEvents.push({ event, reason: 'event-date-not-supported-by-source' });
             return false;
         }
-        const strict = explainStrictEventRecord(event, { sourceText: finalValidationSourceText });
+        const strict = explainStrictEventRecord(event, { sourceText: finalValidationSourceText, trustedPosterEvent: acceptedDateFreePoster(post) });
         if (!strict.ok) {
             rejectedEvents.push({ event, reason: `strict:${strict.reason}` });
             return false;
         }
         return true;
     });
+
+    // Phase 2 is poster-led: a confirmed announcement image is independent
+    // evidence.  Keep every structurally valid event from the AI response and
+    // retain per-event validation rejects for diagnostics.  The old all-or-
+    // nothing rule erased the whole batch when one date/title failed strict
+    // validation, making valid poster events disappear from the feed.
+    if (shouldRetryEntireEventBatchAfterValidation({
+        aiRequired: aiDecisionRequired, notEvent: aiOutcome.notEvent,
+        confirmedPoster: acceptedDateFreePoster(post),
+        parsedCount: aiOutcome.events.length, acceptedCount: events.length,
+        rejectedReasons: rejectedEvents.map((row) => row.reason),
+    })) {
+        aiOutcome.events = [];
+        aiOutcome.resolved = false;
+        aiOutcome.unresolved = true;
+        aiOutcome.reason = 'ai-event-failed-final-validation';
+        parsedEvents = [];
+        events = [];
+    }
+    const aiUnresolvedAfterValidation = Boolean(aiOutcome.unresolved && aiDecisionRequired);
 
     if (events.length) {
         events = attachVkChildSourceProvenance(events, post.eventLinks || post.links, {
@@ -3905,6 +4193,7 @@ async function processPost(post, {
             maximum: 12,
         });
         events = assignEventImageIndexesFromFacts(events, imageFacts, {
+            dateFreePhase: acceptedDateFreePoster(post),
             onAudit: ({ event, imageIndex, accepted, reason, score, imageType, poster, posterConfidence, textReadability, facts }) => {
                 const eventLabel = `${event?.eventDate || '?'} ${String(event?.title || '').slice(0, 80)}`;
                 const row = {
@@ -3986,9 +4275,27 @@ async function processPost(post, {
             ? event._sourceImagePaths
             : event?.imagePaths ?? []
     )))];
-    const preserveStoredEvents = shouldPreserveStoredEventsOnEmptyReparse({
+    // A mono-announcement keeps its already persisted source media when a
+    // transient CDN/download failure leaves the fresh pass without paths.
+    // Vision status remains retryable; media retention is independent.
+    if (events.length === 1 && originalStoredEvents.length === 1 &&
+        !Boolean(events[0]?.isMultiAnnouncement ?? events[0]?.is_multi_announcement) &&
+        !(Array.isArray(events[0]?.imagePaths) && events[0].imagePaths.length) &&
+        Array.isArray(originalStoredEvents[0]?.imagePaths) && originalStoredEvents[0].imagePaths.length) {
+        events = [{
+            ...events[0],
+            imagePaths: [...originalStoredEvents[0].imagePaths],
+            _sourceImagePaths: [...originalStoredEvents[0].imagePaths],
+            posterMatchReason: String(events[0]?.posterMatchReason || '') || 'preserved-previous-source-media-after-download-error',
+        }];
+    }
+    const preserveStoredEvents = aiUnresolvedAfterValidation || shouldPreserveStoredEventsOnEmptyReparse({
         previousEventCount: previous?.eventCount,
         acceptedEventCount: events.length,
+    }) || shouldPreserveStoredEventsOnPartialReparse({
+        previousEventCount: previous?.eventCount,
+        acceptedEventCount: events.length,
+        phaseTwo: acceptedDateFreePoster(post),
     });
     /*
      * Parser-all is also a repair pass. If an old post already produced N
@@ -4007,7 +4314,9 @@ async function processPost(post, {
         events.length < storedEventsBefore.length
     );
     const imagePaths = preserveStoredEvents ? previousImagePaths : newImagePaths;
-    const effectiveEventCount = preserveStoredEvents
+    const effectiveEventCount = aiUnresolvedAfterValidation
+        ? Number(previous?.eventCount || 0)
+        : preserveStoredEvents
         ? Number(previous.eventCount)
         : protectPartialKnownRefresh
             ? storedEventsBefore.length
@@ -4042,8 +4351,10 @@ async function processPost(post, {
     });
     const candidate = publicPostLooksLikeEventCandidate(enrichedPost) || Boolean(imageFacts);
     const ledgerToCommit = ledgerContext &&
-        !(candidate && canCallAi && aiError && !effectiveEventCount)
-        ? { ...ledgerContext, parseStatus: effectiveEventCount > 0 ? 'processed_event' : 'processed_not_event' }
+        !aiUnresolvedAfterValidation
+        ? { ...ledgerContext, parseStatus: getSourceEventLedgerStatus({
+            events: parsedEvents, rejectedEvents, acceptedEventCount: effectiveEventCount,
+        }) }
         : null;
     let databaseWriteMode = preserveStoredEvents ? 'preserve-empty-reparse' : 'replace';
     let mediaRefreshMatched = 0;
@@ -4063,21 +4374,22 @@ async function processPost(post, {
             contentHash,
             textFingerprint,
             imageFingerprints,
-            imageVisionFacts: parseIndexedImageFacts(imageFacts),
-            parseStatus: effectiveEventCount ? 'event' : 'not_event',
+            imageVisionFacts: durableVisionFacts.length ? durableVisionFacts : parseIndexedImageFacts(imageFacts),
+            parseStatus: aiUnresolvedAfterValidation ? 'failed_retryable' : effectiveEventCount ? 'event' : 'not_event',
             fetchedAt,
         },
         ledger: ledgerToCommit,
-        replacement: !preserveStoredEvents && !protectPartialKnownRefresh ? {
+        replacement: !aiUnresolvedAfterValidation && events.length ? {
             screenName: post.screenName,
             postId: post.postId,
             sourceUrl: post.sourceUrl,
             imagePaths,
             events,
             updatedAt: fetchedAt,
+            preserveUnmatchedStoredEvents: preserveStoredEvents || protectPartialKnownRefresh,
         } : null,
         updateEvents: () => {
-            if (forceKnownMediaRefresh && (preserveStoredEvents || protectPartialKnownRefresh)) {
+            if (!aiUnresolvedAfterValidation && forceKnownMediaRefresh && (preserveStoredEvents || protectPartialKnownRefresh)) {
                 for (const stored of storedEventsBefore) {
                     const repair = selectFreshEventForStoredEvent(stored, storedMediaRepairCandidates);
                     if (repair?.imagePaths?.length) {
@@ -4101,7 +4413,7 @@ async function processPost(post, {
                     }
                 }
             }
-            if (!preserveStoredEvents && protectPartialKnownRefresh) {
+            if (!aiUnresolvedAfterValidation && !preserveStoredEvents && protectPartialKnownRefresh) {
                 databaseWriteMode = 'merge-partial-media-refresh';
                 for (const stored of storedEventsBefore) {
                     const selected = selectFreshEventForStoredEvent(stored, events);
@@ -4148,11 +4460,13 @@ async function processPost(post, {
         sourceKey: post.screenName,
         itemId: post.postId,
         sourceUrl: post.sourceUrl,
-        status: effectiveEventCount ? 'stored-event' : 'rejected-or-not-event',
+        status: aiUnresolvedAfterValidation ? 'retryable-unresolved' : effectiveEventCount ? 'stored-event' : 'rejected-or-not-event',
         reason: preserveStoredEvents
             ? 'preserved-existing-events-after-empty-reparse'
             : effectiveEventCount
                 ? 'stored-in-vk_events'
+            : aiUnresolvedAfterValidation
+                ? 'ai-structure-unresolved'
                 : parsedEvents.length
                     ? 'parsed-events-rejected-by-final-validation'
                     : candidate
@@ -4184,6 +4498,10 @@ async function processPost(post, {
             aiRawCount,
             aiValidatedCount,
             aiError,
+            aiUnresolved: aiUnresolvedAfterValidation,
+            aiStructureDecision: aiOutcome.structure || '',
+            aiStructureReason: aiOutcome.structureReason || '',
+            aiOutcomeReason: aiOutcome.reason || '',
             localParsedCount,
             parsedCount: parsedEvents.length,
             acceptedCount: effectiveEventCount,
@@ -4198,9 +4516,37 @@ async function processPost(post, {
         },
     });
 
+    const imageCheckEvents = getVkEventsForPostRefresh({
+        screenName: post.screenName,
+        postId: post.postId,
+    });
+    const missingImageEventCount = imageCheckEvents.filter((event) => !hasUsableLocalSourceImage(event, dataDirectory)).length;
+    if (effectiveEventCount > 0 && missingImageEventCount > 0 &&
+        typeof onMissingImageEvent === 'function' && !manualRun) {
+        try {
+            await onMissingImageEvent({
+                sourceUrl: String(post.sourceUrl || ''),
+                screenName: String(post.screenName || ''),
+                postId: String(post.postId || ''),
+                eventCount: effectiveEventCount,
+                missingImageEventCount,
+            });
+        } catch (error) {
+            console.warn('[VK MISSING IMAGE RECOVERY SCHEDULE ERROR]', String(post.sourceUrl || ''), String(error?.message ?? error));
+        }
+    }
     return {
         changed: true,
         eventCount: effectiveEventCount,
+        nonEventLabel: !effectiveEventCount
+            ? aiOutcome.pastOnly
+                ? aiOutcome.reason
+                : aiOutcome.notEvent
+                    ? (aiOutcome.reason === 'booking-window-offer-not-a-dated-event'
+                        ? aiOutcome.reason
+                        : String(aiOutcome.structureReason || '').trim())
+                    : ''
+            : '',
         ledgerFinalized: Boolean(ledgerToCommit),
         eventsCreatedCount: storedEventsBefore.length > 0 ? 0 : effectiveEventCount,
         eventsUpdatedCount: storedEventsBefore.length > 0 ? effectiveEventCount : 0,
@@ -4209,7 +4555,9 @@ async function processPost(post, {
         posterMatchAcceptedCount: posterBindingAudit.filter((item) => item?.accepted).length,
         posterMatchRejectedCount: posterBindingAudit.filter((item) => !item?.accepted).length,
         aiError,
-        unresolved: Boolean(candidate && canCallAi && aiError && !effectiveEventCount),
+        unresolved: aiUnresolvedAfterValidation,
+        missingImageEventCount,
+        missingImageRecoveryEligible: Boolean(effectiveEventCount > 0 && missingImageEventCount > 0 && String(post?.sourceUrl || '').trim()),
     };
 }
 
@@ -4222,6 +4570,7 @@ function startVkManualLiveParser({
     notifyAttention,
     timeZone,
     hydratePostsWithApi,
+    onMissingImageEvent = null,
 }) {
     const page = keptManualPages.get(screenName);
     if (!page || page.isClosed()) return;
@@ -4256,6 +4605,7 @@ function startVkManualLiveParser({
                     notifyAttention,
                     timeZone,
                     manualRun: true,
+                    onMissingImageEvent,
                 });
                 if (result.changed) {
                     changedPosts += 1;
@@ -4321,6 +4671,7 @@ export function createVkPublicScraper({
     snapshotEveryScroll = false,
     minimumPageLifetimeMs = 0,
     partyPool = 'primary',
+    onMissingImageEvent = null,
 } = {}) {
     const screenName = normalizeScreenName(screenNameInput || 'rb_diesel');
     const safeInitialPosts = clampInteger(initialPosts, 1, 20, 20);
@@ -4353,6 +4704,11 @@ export function createVkPublicScraper({
         processingLimiter = null,
         incrementalOnly = false,
         singleOpenPerRun = false,
+        cachedItems = null,
+        resumeCompletedSince = 0,
+        recentDays = 0,
+        phaseCount = 2,
+        itemIds = null,
     } = {}) {
         if (activeRunPromises.has(screenName)) {
             return activeRunPromises.get(screenName);
@@ -4366,8 +4722,16 @@ export function createVkPublicScraper({
             const state = getVkScraperState(screenName);
             const databaseLooksEmpty = Number(state?.storedPosts ?? 0) === 0;
             const initialMode = forceInitial || !state?.initialCompleted || databaseLooksEmpty;
-            let posts;
+            let posts = Array.isArray(cachedItems)
+                ? cachedItems.map((item) => ({ ...item }))
+                : null;
             try {
+                if (posts) {
+                    diagnostics?.log?.('source.cache.replay', {
+                        sourceId: `vk:${screenName}`,
+                        itemCount: posts.length,
+                    });
+                }
                 const maxCaptureAttempts = (keepPageOpen || singleOpenPerRun)
                     ? 1
                     : clampInteger(process.env.VK_PUBLIC_CAPTURE_ATTEMPTS, 1, 3, 2);
@@ -4385,7 +4749,7 @@ export function createVkPublicScraper({
                 );
                 let lastCaptureError = null;
 
-                for (let captureAttempt = 1; captureAttempt <= maxCaptureAttempts; captureAttempt += 1) {
+                for (let captureAttempt = 1; !posts && captureAttempt <= maxCaptureAttempts; captureAttempt += 1) {
                     try {
                         posts = initialMode
                             ? await collectInitialPosts({
@@ -4487,7 +4851,7 @@ export function createVkPublicScraper({
             const capturedSnapshotExactCount = Number(posts?.snapshotExactCount || 0);
             const stoppedByOwner = Boolean(posts?.stoppedByOwner);
 
-            if (!posts.length) {
+            if (!posts.length && !Array.isArray(cachedItems)) {
                 if (stoppedByOwner) {
                     const sourceId = `vk:${screenName}`;
                     const now = Math.floor(Date.now() / 1000);
@@ -4568,11 +4932,21 @@ export function createVkPublicScraper({
                     phase: 'browser-dom-before-optional-api-hydration',
                 });
             }
-            if (typeof hydratePostsWithApi === 'function') {
+            if (!Array.isArray(cachedItems) && typeof hydratePostsWithApi === 'function') {
                 try {
                     const hydrated = await hydratePostsWithApi(posts.slice(0, 20));
                     if (Array.isArray(hydrated) && hydrated.length) posts = hydrated.slice(0, 20);
+                    diagnostics?.log?.('source.api-enrichment.complete', {
+                        sourceId,
+                        mode: 'dom-first-optional-api',
+                        api: Array.isArray(hydrated?.__vkApiAudit) ? hydrated.__vkApiAudit : [],
+                    });
                 } catch (error) {
+                    diagnostics?.log?.('source.api-enrichment.failed', {
+                        sourceId,
+                        mode: 'dom-first-optional-api',
+                        error,
+                    });
                     console.warn(
                         '[VK PUBLIC API MEDIA HYDRATION ERROR]',
                         `source=vk.ru/${screenName}`,
@@ -4599,14 +4973,27 @@ export function createVkPublicScraper({
             let trashCount = 0;
             let incrementalKnownSkippedCount = 0;
             let incrementalNewCount = 0;
+            let staleFilteredCount = 0;
             for (const post of orderedPosts) {
                 const itemId = String(post?.postId ?? '');
                 const ledgerBefore = getManualParserSeenItem({ sourceId, itemId });
                 const rawContentHash = hashPost(post);
+                const recency = explainRecentOrFuturePost({
+                    publishedAt: Number(post?.publishedAt || 0),
+                    updatedAt: Number(post?.updatedAt || 0),
+                    text: String(post?.contentText || post?.repostText
+                        ? [post?.contentText, post?.repostText].filter((value) => String(value || '').trim()).join('\n\n')
+                        : post?.text || ''),
+                    referenceNow: post?.referenceNow,
+                    recentDays,
+                    contentChanged: Boolean(ledgerBefore?.contentHash && ledgerBefore.contentHash !== rawContentHash),
+                });
+                if (!recency.allowed) staleFilteredCount += 1;
                 // Same source+post ID, completed status and identical captured
                 // content. Never skip an edited date or a newly observed poster.
                 const incrementalKnown = shouldSkipUnchangedCapturedItem({
                     incrementalOnly,
+                    resumeCompletedSince,
                     previous: ledgerBefore,
                     contentHash: rawContentHash,
                     isFinalStatus: isManualParserSeenItemFinalStatus,
@@ -4628,13 +5015,17 @@ export function createVkPublicScraper({
                         publishedAt: Number(post?.publishedAt || 0),
                         referenceNow: post?.referenceNow,
                         timeZone,
+                        allowDateFreeImage: Number(phaseCount) !== 1,
+                        hasImage: Array.isArray(post?.imageUrls) && post.imageUrls.length > 0,
                     })
                     : null;
-                const decision = incrementalKnown
+                const decision = !recency.allowed
+                    ? { candidate: false, aiEligible: false, score: -1000, reasons: [recency.reason], evidence: { recency }, aiAdmission: { rejectionReason: recency.reason, dateSource: 'recent-pass-policy' } }
+                    : incrementalKnown
                     ? { candidate: false, aiEligible: false, score: -1000, reasons: ['clean-mode-content-hash-known'], evidence: { contentHashMatched: true }, aiAdmission: { rejectionReason: 'clean-mode-content-hash-known', dateSource: 'not-evaluated', contentHashMatched: true } }
                     : secondaryMode
                         ? {
-                            candidate: Boolean(secondaryTextGate?.visionEligible),
+                            candidate: Boolean(secondaryTextGate?.visionEligible || (post.__dateFreeVisionPhase && acceptedDateFreePoster(post))),
                             aiEligible: false,
                             score: Number(secondaryTextGate?.eventIntentConfidence || 0) + Number(secondaryTextGate?.titleConfidence || 0),
                             reasons: [secondaryTextGate?.route || 'blocked', ...(secondaryTextGate?.eventIntentReasons || [])],
@@ -4654,8 +5045,9 @@ export function createVkPublicScraper({
                     : null;
                 // Full secondary reparse is intentionally exhaustive: retain the
                 // previous DB match for audit, but never let it suppress processing.
-                const existing = (secondaryMode || (incrementalOnly && !incrementalKnown))
-                    ? null : existingEvidence;
+                // Full parser runs always process eligible captures; matches remain diagnostic.
+                const existing = (incrementalOnly && !incrementalKnown)
+                    ? null : (incrementalOnly ? existingEvidence : null);
                 const sourceOwnedExisting = Boolean(
                     existingEvidence &&
                     existingEvidence.sourceType === 'vk-public' &&
@@ -4686,20 +5078,30 @@ export function createVkPublicScraper({
                     ? false
                     : Boolean(
                         refreshKnownMediaCandidate ||
-                        (decision.aiEligible && !existing)
+                        (decision.aiEligible && (!incrementalOnly || !existing))
                     );
                 const priority = (aiCandidate || (secondaryMode && secondaryTextGate?.visionEligible)) ? decision.score : -1000;
                 const posterGateImageUrls = [...new Set((Array.isArray(post?.imageUrls) ? post.imageUrls : [])
                     .map((value) => String(value ?? '').trim())
                     .filter((url) => /^https?:\/\//iu.test(url) && !isLikelyVkNonPosterUiImageUrl(url)))]
-                    .slice(0, 12);
-                const posterGatePending = secondaryMode
-                    ? Boolean(!incrementalKnown && secondaryTextGate?.visionEligible && !existing && posterGateImageUrls.length)
+                    .slice(0, 1000);
+                // Keep dated-text admission and its poster checks in phase one.
+                // Only the additional date-free workload waits for phase two.
+                const dateDecision = !recency.allowed && !secondaryMode ? explainPublicPostEventCandidate(post) : decision;
+                const visionPhase = (secondaryMode ? secondaryTextGate?.hasCalendarDateInBody : (dateDecision?.evidence?.hasDate || dateDecision?.aiAdmission?.hasCalendarDate)) ? 'phase1' : 'phase2-date-free-image';
+                const repostRootTextReady = !Boolean(post?.repostText || String(post?.imageOrigin || '') === 'nested-repost') ||
+                    post?.rootPostTextResolved === true ||
+                    (secondaryMode && Number(phaseCount) !== 1 && visionPhase === 'phase2-date-free-image');
+                const posterGatePending = (Number(phaseCount) === 1 && visionPhase !== 'phase1') ? false : secondaryMode
+                    ? Boolean(repostRootTextReady && recency.allowed && !incrementalKnown && secondaryTextGate?.visionEligible && !existing && posterGateImageUrls.length)
                     : Boolean(
+                        repostRootTextReady &&
+                        recency.allowed &&
                         !incrementalKnown &&
                         !decision.aiEligible &&
+                        !decision.aiAdmission?.pastOnly &&
                         posterGateImageUrls.length &&
-                        (!existing || (refreshKnownMedia && sourceOwnedExisting))
+                        (!incrementalOnly || !existing || (refreshKnownMedia && sourceOwnedExisting))
                     );
                 candidateDecisions.set(itemId, {
                     ...decision,
@@ -4712,9 +5114,11 @@ export function createVkPublicScraper({
                     bodyAiEligible: Boolean(decision.aiEligible),
                     posterGatePending,
                     posterGateImageUrls,
+                    visionPhase,
                     incrementalKnown,
                     ledgerBefore,
                     secondaryTextGate,
+                    recency,
                 });
                 if (posterGatePending) {
                     posterGateRequests.push({
@@ -4722,12 +5126,14 @@ export function createVkPublicScraper({
                         source: `vk.ru/${screenName}`,
                         sourceUrl: String(post?.sourceUrl || ''),
                         imageUrls: posterGateImageUrls,
+                        originalImageUrls: post.imageUrls,
                         priority: Number(decision.score || 0),
                         score: Number(decision.score || 0),
                         preview: parserCandidatePreview(post?.text),
                         sourceText: String(post?.text || ''),
                         secondaryJointGate: secondaryMode,
                         secondaryTextGate,
+                        visionPhase,
                     });
                 }
                 if (aiCandidate) candidateIds.add(itemId);
@@ -4752,6 +5158,7 @@ export function createVkPublicScraper({
                     databaseMatch: existingEvidence,
                     incrementalOnly: Boolean(incrementalOnly),
                     incrementalKnown,
+                    recency,
                     incrementalHashMatched: incrementalKnown,
                     secondaryTextGate,
                     semanticBodyText: String(post?.text || ''),
@@ -4853,8 +5260,10 @@ export function createVkPublicScraper({
                     posterGatePendingCount: posterGateRequests.length,
                     incrementalKnownSkippedCount,
                     incrementalNewCount,
+                    staleFilteredCount,
                     linkEnrichmentOpened: Number(linkEnrichment?.opened || 0),
                     linkEnrichmentVisited: Number(linkEnrichment?.visited || 0),
+                    apiAudit: Array.isArray(posts?.__vkApiAudit) ? posts.__vkApiAudit : [],
                 },
                 posterGateRequests,
                 candidatePreviews: orderedPosts
@@ -4888,6 +5297,8 @@ export function createVkPublicScraper({
                         refreshKnownMediaCandidate: Boolean(decision.refreshKnownMediaCandidate),
                         reasons: Array.isArray(decision.reasons) ? decision.reasons : [],
                         aiAdmission: decision.aiAdmission || null,
+                        visionPhase: String(decision.visionPhase || ''),
+                        imageUrls: Array.isArray(post?.imageUrls) ? post.imageUrls.slice(0, 1000) : [],
                         databaseMatch: decision.existing || null,
                         incrementalKnown: Boolean(decision.incrementalKnown),
                     };
@@ -4922,24 +5333,30 @@ export function createVkPublicScraper({
                     : null;
                 if (gate?.attempted) {
                     posterGateCheckedCount += 1;
-                    post.__posterGateVisionAttempted = true;
-                    post.__posterGateFacts = String(gate?.facts || '');
-                    post.__posterGateError = String(gate?.error || '');
+                    applyPosterGateResult(post, gate);
                 }
                 const secondaryTextGate = before.secondaryTextGate || null;
+                const dateFreeVisionAccepted = acceptedDateFreePoster(post);
                 const jointVisionAccepted = Boolean(
                     secondaryMode &&
-                    secondaryTextGate?.visionEligible &&
                     gate?.attempted &&
-                    secondaryJointVisionAccepted(gate?.facts)
+                    (post.__dateFreeVisionPhase ? dateFreeVisionAccepted : secondaryTextGate?.visionEligible && secondaryJointVisionAccepted(gate?.facts))
                 );
+                // Phase 2 is poster-first: a confirmed event poster is an
+                // independent admission source. Text only enriches the
+                // extraction and must never veto a confirmed poster. Keep
+                // jointVisionAccepted as diagnostics for the old text/image
+                // comparison, but do not use it as the AI queue gate.
+                const phaseTwoPosterAccepted = Boolean(secondaryMode && dateFreeVisionAccepted);
                 if (secondaryMode) post.__secondaryJointVisionAccepted = jointVisionAccepted;
-                const decision = before.incrementalKnown
+                const decision = !before.recency?.allowed
+                    ? { candidate: false, aiEligible: false, score: -1000, reasons: [before.recency.reason], evidence: { recency: before.recency }, aiAdmission: { rejectionReason: before.recency.reason, dateSource: 'recent-pass-policy' } }
+                    : before.incrementalKnown
                     ? { candidate: false, aiEligible: false, score: -1000, reasons: ['clean-mode-content-hash-known'], evidence: { contentHashMatched: true }, aiAdmission: { rejectionReason: 'clean-mode-content-hash-known', dateSource: 'not-evaluated', contentHashMatched: true } }
                     : secondaryMode
                         ? {
-                            candidate: Boolean(secondaryTextGate?.visionEligible),
-                            aiEligible: jointVisionAccepted,
+                            candidate: Boolean(secondaryTextGate?.visionEligible || dateFreeVisionAccepted),
+                            aiEligible: phaseTwoPosterAccepted || jointVisionAccepted,
                             score: Number(before.score || 0),
                             reasons: [
                                 ...(Array.isArray(before.reasons) ? before.reasons : []),
@@ -4951,9 +5368,11 @@ export function createVkPublicScraper({
                                 posterGateAttempted: Boolean(gate?.attempted),
                             },
                             aiAdmission: {
-                                eligible: jointVisionAccepted,
+                                eligible: phaseTwoPosterAccepted || jointVisionAccepted,
                                 admissionPath: 'secondary-joint-text-image',
-                                rejectionReason: jointVisionAccepted
+                                rejectionReason: phaseTwoPosterAccepted
+                                    ? ''
+                                    : jointVisionAccepted
                                     ? ''
                                     : !secondaryTextGate?.visionEligible
                                         ? secondaryTextGate?.rejectionReason || 'secondary-pre-ai-gate-rejected'
@@ -4965,15 +5384,30 @@ export function createVkPublicScraper({
                                 dateSource: 'semantic-post-text-only',
                                 secondaryTextGate,
                                 jointVisionAccepted,
+                                posterFirstAccepted: phaseTwoPosterAccepted,
                                 posterVisionAttempted: Boolean(gate?.attempted),
                                 posterVisionError: String(gate?.error || ''),
                                 posterFacts: String(gate?.facts || ''),
                             },
                         }
                         : explainPublicPostEventCandidate(post);
+                // A confirmed phase-two poster is complete visual evidence.
+                // Do not block it on optional repost-root text hydration; the
+                // body only enriches the card in this phase.
+                const repostRootTextReady = phaseTwoPosterAccepted ||
+                    !Boolean(post?.repostText || String(post?.imageOrigin || '') === 'nested-repost') ||
+                    post?.rootPostTextResolved === true;
+                if (!repostRootTextReady) {
+                    decision.candidate = false;
+                    decision.aiEligible = false;
+                    decision.score = -1000;
+                    decision.reasons = [...(Array.isArray(decision.reasons) ? decision.reasons : []), 'repost-root-text-unresolved'];
+                    decision.aiAdmission = { ...(decision.aiAdmission || {}), eligible: false, rejectionReason: 'repost-root-text-unresolved', dateSource: 'repost-root-text-required' };
+                    decision.rootTextUnresolved = true;
+                }
                 if (decision.candidate) structuralCandidateCount += 1;
                 const existing = (incrementalOnly && !before.incrementalKnown)
-                    ? null : (before.existing || null);
+                    ? null : (incrementalOnly ? (before.existing || null) : null);
                 const sourceOwnedExisting = Boolean(before.sourceOwnedExisting);
                 const refreshKnownMediaCandidate = secondaryMode ? false : Boolean(
                     refreshKnownMedia && sourceOwnedExisting && decision.aiEligible
@@ -4982,9 +5416,9 @@ export function createVkPublicScraper({
                 if (refreshKnownMediaCandidate) databaseRefreshCount += 1;
                 if (decision.candidate && !decision.aiEligible) aiRejectedCount += 1;
                 if (!decision.candidate && !before.incrementalKnown) trashCount += 1;
-                const aiCandidate = Boolean(refreshKnownMediaCandidate || (decision.aiEligible && !existing));
+                const aiCandidate = Boolean(refreshKnownMediaCandidate || (decision.aiEligible && (!incrementalOnly || !existing)));
                 const priority = aiCandidate ? Number(decision.score || 0) : -1000;
-                if (secondaryMode && jointVisionAccepted) {
+                if (secondaryMode && (phaseTwoPosterAccepted || jointVisionAccepted)) {
                     posterGateRescuedCount += 1;
                 } else if (!secondaryMode && !before.bodyAiEligible && decision.aiEligible && decision?.aiAdmission?.dateSource === 'poster-vision') {
                     posterGateRescuedCount += 1;
@@ -4998,7 +5432,13 @@ export function createVkPublicScraper({
                     aiCandidate,
                     priority,
                     jointVisionAccepted,
+                    phaseTwoPosterAccepted,
                 });
+                // A missing repost root is a recovery/DOM-hydration item, not
+                // an AI candidate. Keep it in the capture diagnostics so the
+                // owner can resume hydration, but never add it to the worker
+                // queue: the public scraper has no fresh root-hydration worker
+                // and would leave the item permanently `pending`.
                 if (aiCandidate) candidateIds.add(itemId);
                 diagnostics?.log?.('item.admission', {
                     sourceId,
@@ -5036,6 +5476,7 @@ export function createVkPublicScraper({
                 const itemId = String(post?.postId ?? '');
                 const decision = candidateDecisions.get(itemId) || {};
                 return {
+                    visionPhase: decision.visionPhase, imageUrls: decision.posterGateImageUrls || [],
                     itemId, source: `vk.ru/${screenName}`, sourceUrl: String(post?.sourceUrl || ''),
                     preview: parserCandidatePreview(post?.text), candidate: Boolean(decision.candidate),
                     aiEligible: Boolean(decision.aiEligible), aiCandidate: Boolean(decision.aiCandidate),
@@ -5077,9 +5518,13 @@ export function createVkPublicScraper({
             let visionCheckedImageCount = 0;
             let posterMatchAcceptedCount = 0;
             let posterMatchRejectedCount = 0;
+            const nonEventLabels = new Map();
             let processedPosts = 0;
             let processedLastPostId = Number(state?.lastPostId ?? 0);
+            const selectedItemIds = Array.isArray(itemIds) ? new Set(itemIds.map(String)) : null;
             const processingPosts = orderedPosts
+                .filter((post) => !selectedItemIds || selectedItemIds.has(String(post?.postId ?? '')))
+                .filter((post) => Number(phaseCount) !== 1 || candidateDecisions.get(String(post?.postId ?? ''))?.visionPhase !== 'phase2-date-free-image' || !candidateDecisions.get(String(post?.postId ?? ''))?.posterGateImageUrls?.length)
                 .filter((post) => !incrementalOnly || !candidateDecisions.get(String(post?.postId ?? ''))?.incrementalKnown)
                 .sort((left, right) => {
                 const leftDecision = candidateDecisions.get(String(left?.postId ?? '')) || {};
@@ -5113,6 +5558,19 @@ export function createVkPublicScraper({
                                 ? 'database-known'
                                 : String(decision?.aiAdmission?.rejectionReason || (decision.candidate ? 'strict-ai-gate-rejected' : 'prefilter-trash'));
                         result = { changed: false, eventCount: 0, candidate: false, skipped: skippedReason };
+                        if (typeof onMissingImageEvent === 'function' && !keepPageOpen) {
+                            const stored = getVkEventsForPostRefresh({ screenName, postId: post.postId });
+                            const missing = stored.filter((event) => !hasUsableLocalSourceImage(event, safeDataDirectory));
+                            if (missing.length) {
+                                await onMissingImageEvent({
+                                    sourceUrl: String(post.sourceUrl || ''),
+                                    screenName: String(screenName || ''),
+                                    postId: String(post.postId || ''),
+                                    eventCount: stored.length,
+                                    missingImageEventCount: missing.length,
+                                });
+                            }
+                        }
                         diagnostics?.recordPosterPost?.('vk.post-skipped', { sourceId, itemId, post,
                             previous: getVkPostMeta({ screenName, postId: post.postId }),
                             previousEvents: getVkEventsForPostRefresh({ screenName, postId: post.postId }),
@@ -5146,7 +5604,8 @@ export function createVkPublicScraper({
                             timeZone,
                             manualRun: keepPageOpen,
                             forceKnownMediaRefresh: Boolean(decision.refreshKnownMediaCandidate),
-                            forceReprocess: recoveringLedger,
+                            forceReprocess: recoveringLedger || resumeCompletedSince > 0,
+                            incrementalOnly: Boolean(incrementalOnly && !resumeCompletedSince),
                             ledgerContext: { sourceId, itemId, runId: ledgerRunId },
                             traceAi: (stage, data = {}) => {
                                 if (stage.startsWith('forensics.')) {
@@ -5157,6 +5616,7 @@ export function createVkPublicScraper({
                                     });
                                 }
                             },
+                            onMissingImageEvent,
                         });
                         if (!result?.unresolved) {
                             if (!result?.ledgerFinalized) finalizeManualParserSeenItem({
@@ -5170,7 +5630,9 @@ export function createVkPublicScraper({
                                 itemId,
                                 accepted: Number(result?.eventCount || 0) > 0,
                                 parseStatus: Number(result?.eventCount || 0) > 0 ? 'processed_event' : 'processed_not_event',
-                                reason: Number(result?.eventCount || 0) > 0 ? 'event-written' : 'main-ai-not-event',
+                                reason: Number(result?.eventCount || 0) > 0
+                                    ? 'event-written'
+                                    : result?.nonEventLabel || 'main-ai-not-event',
                                 eventCount: Number(result?.eventCount || 0),
                                 semanticBodyText: String(post?.text || ''),
                                 secondaryTextGate: decision?.secondaryTextGate || null,
@@ -5189,6 +5651,8 @@ export function createVkPublicScraper({
                     visionCheckedImageCount += Number(result?.visionCheckedImageCount || 0);
                     posterMatchAcceptedCount += Number(result?.posterMatchAcceptedCount || 0);
                     posterMatchRejectedCount += Number(result?.posterMatchRejectedCount || 0);
+                    const nonEventLabel = String(result?.nonEventLabel || '').trim();
+                    if (nonEventLabel) nonEventLabels.set(nonEventLabel, Number(nonEventLabels.get(nonEventLabel) || 0) + 1);
                     eventsCreatedCount += Number(result?.eventsCreatedCount || 0);
                     eventsUpdatedCount += Number(result?.eventsUpdatedCount || 0);
                     processedLastPostId = Math.max(processedLastPostId, Number(post.postId ?? 0));
@@ -5240,8 +5704,15 @@ export function createVkPublicScraper({
                     ),
                     isRetryableFailure: (error, post) => (
                         candidateIds.has(String(post?.postId ?? '')) &&
+                        error?.code !== 'ROOT_POST_TEXT_UNRESOLVED' &&
+                        error?.code !== 'POSTER_GATE_UNRESOLVED' &&
                         /(?:gpt|ai|429|5\d\d|timeout|network|fetch|socket|abort)/iu.test(String(error?.message ?? error ?? ''))
                     ),
+                    // One pool pass already runs the configured model ladder
+                    // for this post. A second pass is only for a transient
+                    // transport failure; restarting the ladder six times
+                    // multiplies Luna/vision latency per card.
+                    maxRetryCycles: 2,
                     retryDelayMs: clampInteger(
                         process.env.MANUAL_PARSER_BACKGROUND_RETRY_MS,
                         5_000,
@@ -5265,16 +5736,31 @@ export function createVkPublicScraper({
                     }),
                 },
             );
-            processingResults.forEach((entry, index) => {
-                if (entry?.status !== 'rejected') return;
+            for (const [index, entry] of processingResults.entries()) {
+                if (entry?.status !== 'rejected') continue;
                 const post = processingPosts[index];
+                const exhausted = entry?.reason?.code === 'MANUAL_PARSER_RETRY_EXHAUSTED';
+                    if (exhausted) {
+                    finalizeManualParserSeenItem({
+                        sourceId,
+                        itemId: String(post?.postId ?? ''),
+                        runId: ledgerRunId,
+                        parseStatus: 'failed_retryable',
+                        error: String(entry?.reason?.message ?? entry?.reason ?? ''),
+                    });
+                    const unresolvedError = entry?.reason || new Error('Parser exhausted recovery for unresolved item');
+                    unresolvedError.code = unresolvedError.code || 'MANUAL_PARSER_RETRY_EXHAUSTED';
+                    await diagnostics?.onParserItemError?.({ sourceId, itemId: String(post?.postId ?? ''), sourceKind: 'vk-public', item: post, error: unresolvedError, stage: 'processing-unresolved', sourceLabel: `VK vk.ru/${screenName}`, sourceUrl: `https://vk.ru/wall${post?.ownerId || ''}_${post?.postId || ''}`, partyPool });
+                    continue;
+                }
                 markManualParserSeenItemFailed({
                     sourceId,
                     itemId: String(post?.postId ?? ''),
                     runId: ledgerRunId,
                     error: String(entry?.reason?.message ?? entry?.reason ?? ''),
                 });
-            });
+                await diagnostics?.onParserItemError?.({ sourceId, itemId: String(post?.postId ?? ''), sourceKind: 'vk-public', item: post, error: entry?.reason, stage: 'processing-error', sourceLabel: `VK vk.ru/${screenName}`, sourceUrl: `https://vk.ru/wall${post?.ownerId || ''}_${post?.postId || ''}`, partyPool });
+            }
             const failedProcessingItems = processingResults.filter((item) => item?.status === 'rejected').length;
             const timedOut = false;
             diagnostics?.log?.('source.processing.finish', {
@@ -5342,13 +5828,16 @@ export function createVkPublicScraper({
                 visionCheckedImageCount,
                 posterMatchAcceptedCount,
                 posterMatchRejectedCount,
+                nonEventLabels: Object.fromEntries(nonEventLabels),
                 databaseRefreshCount,
                 incrementalKnownSkippedCount,
                 incrementalNewCount,
+                staleFilteredCount,
                 timedOut,
                 lastPostId,
                 stoppedByOwner,
                 failedProcessingItems,
+                apiAudit: Array.isArray(posts?.__vkApiAudit) ? posts.__vkApiAudit : [],
             };
         })();
 
@@ -5434,3 +5923,4 @@ export function createVkPublicScraper({
         start,
     };
 }
+import { acceptedDateFreePoster } from '../../features/events/dateFreeEventEvidence.js';

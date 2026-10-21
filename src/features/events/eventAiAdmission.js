@@ -228,6 +228,7 @@ export function explainEventAiAdmission({
         hasCalendarDate,
         hasEventDateCandidate,
         hasNonPastDate,
+        pastOnly: hasEventDateCandidate && !hasNonPastDate,
         hasTitle: title.hasTitle,
         retrospectiveRejected,
         operationalStatusRejected,
@@ -280,6 +281,7 @@ export function explainEventAiAdmissionWithPosterFacts({
     text = '',
     posterFacts = '',
     posterVisionAttempted = false,
+    dateFreePhase = false,
     publishedAt = 0,
     referenceNow = new Date(),
     timeZone = 'Europe/Moscow',
@@ -290,6 +292,20 @@ export function explainEventAiAdmissionWithPosterFacts({
         referenceNow,
         timeZone,
     });
+    if (dateFreePhase && splitPosterVisionFactBlocks(posterFacts).some(posterVisionExplicitlyAcceptsEvent)) {
+        return { ...bodyAdmission, eligible: true, pastOnly: false, rejectionReason: '',
+            dateSource: 'poster-vision', admissionPath: 'date-free-confirmed-poster',
+            posterVisionAttempted: true, posterVisionChecked: true };
+    }
+    // Text is authoritative. An old dated announcement cannot be resurrected
+    // by a misread year/date on its attached poster. Unknown dates can still
+    // use OCR to establish the date for the first time.
+    if (bodyAdmission.pastOnly) return {
+        ...bodyAdmission, eligible: false, admissionPath: 'blocked-past',
+        rejectionReason: 'all-body-event-dates-are-past',
+        posterVisionAttempted: Boolean(posterVisionAttempted),
+        posterVisionChecked: false,
+    };
 
     if (bodyAdmission.eligible) {
         return {

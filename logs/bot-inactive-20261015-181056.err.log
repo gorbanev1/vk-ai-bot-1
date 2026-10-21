@@ -1,0 +1,2358 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=294504 scanned=5000 skipped=289504
+[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS] [{"id":"mv9nnuk3-151ab4d0","name":"startup-telegram-connect","phase":"","tracePath":""}]
+(node:21248) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:49998:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144430 cutoff=1791990667 max=3500 reason=startup
+[AI KEY ATTEMPT FAILED] requestId=mv9ofstq-9b47ee59 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151514457290909628268d9d6C8ZHJGKA)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ofstq-9b47ee59 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ofstq-9b47ee59 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151514465672507978268d9d6PMy1aqQX)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ofstq-9b47ee59 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ofstq-9b47ee59 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151514471601485238268d9d6K3xgjMdf)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ofstq-9b47ee59 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ofstq-9b47ee59 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151514478000284048268d9d6gDdHuHUg)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ofstq-9b47ee59 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ofstq-9b47ee59 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151514483866148548268d9d6mgJPEbRl)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ofstq-9b47ee59 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[INACTIVE VK MEMBERS DATABASE FALLBACK] peer=2000000006 {
+  name: 'APIError',
+  message: "Code №917 - You don't have access to this chat",
+  code: 917,
+  status: null
+}
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=2d57e1c8-d280-423f-91b1-1dc28b56770b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[GPT UNKNOWN TERMS ERROR] {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  stack: 'Error: GPT network error: fetch failed\n' +
+    '    at generateOpenAITextCoreAttempt (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45586:30)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:43884:26)\n' +
+    '    at async executeRuntimeModelFailover (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/modelProviderFailover.js:341:35)\n' +
+    '    at async generateOpenAIText (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:43858:20)\n' +
+    '    at async detectUnknownTermsForMemoryLookup (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:15624:22)\n' +
+    '    at async prepareUnknownTermMemoryGrounding (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:15662:23)\n' +
+    '    at async handleGptCommand (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:34887:15)\n' +
+    '    at async handleRequest (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:33946:9)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:19458:13',
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:15845:13
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async generateOpenAITextCoreAttempt (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45549:20)
+      at async request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:43884:26)
+      at async executeRuntimeModelFailover (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/modelProviderFailover.js:341:35)
+      at async generateOpenAIText (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:43858:20)
+      at async detectUnknownTermsForMemoryLookup (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:15624:22)
+      at async prepareUnknownTermMemoryGrounding (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:15662:23)
+      at async handleGptCommand (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:34887:15)
+      at async handleRequest (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:33946:9) {
+    [cause]: Error: getaddrinfo ENOTFOUND router.cheap
+        at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:122:26) {
+      errno: -3008,
+      code: 'ENOTFOUND',
+      syscall: 'getaddrinfo',
+      hostname: 'router.cheap'
+    }
+  }
+}
+[EVENT RETRY ERROR] stage=image-fingerprint:cdn4.telesco.pe attempt=1/5 retry=no apiRequestContext.get: 500 Internal Server Error
+Response text:
+<html>
+<head><title>500 Internal Server Error</title></head>
+<body bgcolor="white">
+<center><h1>500 Internal Server Error</h1></center>
+<hr><center>nginx/1.0.11</center>
+<pre></pre>
+
+</body>
+</html>
+Call log:
+[2m  - → GET https://cdn4.telesco.pe/file/MYblarGw-Mk6VZsOiTuPKFVGGYRSoGz-FKZc6RChP1VhbPH6MIjLxQcKSNGcPr-4E16woH87Kb4CtuTBv0NOEMn6kRYi55z82afAJCgy507d710uu6RXMR7cmH8gsehku_b6Wvci5zximVXP6Zb8xJ38aw5iAx8w0zkShvytlz5JdCgFcSSxtemy0dKsf-vlGyaavlm-j1976OIweIdoTvMcPgPAGhBwMcvLn7vl8QdBnUsRKxWOA3EifBk81vMllHsHeFgd5SMNWf5XzNqMEAWeU3KsV7Y5YvK0QiC_tuXaofNIS-N7hmw19pn6-UNIEeN0yuBxwXFAhvrnmXQBTg.jpg[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+[2m  - ← 500 Internal Server Error[22m
+[2m    - server: nginx/1.30.1[22m
+[2m    - date: Thu, 15 Oct 2026 15:21:59 GMT[22m
+[2m    - content-type: text/html; charset=UTF-8[22m
+[2m    - content-length: 198[22m
+[2m    - connection: keep-alive[22m
+[2m    - access-control-allow-origin: *[22m
+[2m    - x-content-type-options: nosniff[22m
+[2m    - content-security-policy: default-src 'none'; sandbox[22m
+[2m    - x-frame-options: DENY[22m
+[2m    - x-xss-protection: 1; mode=block[22m
+[2m    - access-control-expose-headers: Accept-Ranges, Content-Range, Content-Length[22m
+[2m    - x-debug:[22m
+[2m    - x-client-ip: 195.189.96.219[22m
+[2m    - strict-transport-security: max-age=31536000; includeSubDomains; preload[22m
+
+[EVENT IMAGE FINGERPRINT ERROR] https://cdn4.telesco.pe/file/MYblarGw-Mk6VZsOiTuPKFVGGYRSoGz-FKZc6RChP1VhbPH6MIjLxQcKSNGcPr-4E16woH87Kb4CtuTBv0NOEMn6kRYi55z82afAJCgy507d710uu6RXMR7cmH8gsehku_b6Wvci5zximVXP6Zb8xJ38aw5iAx8w0zkShvytlz5JdCgFcSSxtemy0dKsf-vlGyaavlm-j1976OIweIdoTvMcPgPAGhBwMcvLn7vl8QdBnUsRKxWOA3EifBk81vMllHsHeFgd5SMNWf5XzNqMEAWeU3KsV7Y5YvK0QiC_tuXaofNIS-N7hmw19pn6-UNIEeN0yuBxwXFAhvrnmXQBTg.jpg attempts=1 apiRequestContext.get: 500 Internal Server Error
+Response text:
+<html>
+<head><title>500 Internal Server Error</title></head>
+<body bgcolor="white">
+<center><h1>500 Internal Server Error</h1></center>
+<hr><center>nginx/1.0.11</center>
+<pre></pre>
+
+</body>
+</html>
+Call log:
+[2m  - → GET https://cdn4.telesco.pe/file/MYblarGw-Mk6VZsOiTuPKFVGGYRSoGz-FKZc6RChP1VhbPH6MIjLxQcKSNGcPr-4E16woH87Kb4CtuTBv0NOEMn6kRYi55z82afAJCgy507d710uu6RXMR7cmH8gsehku_b6Wvci5zximVXP6Zb8xJ38aw5iAx8w0zkShvytlz5JdCgFcSSxtemy0dKsf-vlGyaavlm-j1976OIweIdoTvMcPgPAGhBwMcvLn7vl8QdBnUsRKxWOA3EifBk81vMllHsHeFgd5SMNWf5XzNqMEAWeU3KsV7Y5YvK0QiC_tuXaofNIS-N7hmw19pn6-UNIEeN0yuBxwXFAhvrnmXQBTg.jpg[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+[2m  - ← 500 Internal Server Error[22m
+[2m    - server: nginx/1.30.1[22m
+[2m    - date: Thu, 15 Oct 2026 15:21:59 GMT[22m
+[2m    - content-type: text/html; charset=UTF-8[22m
+[2m    - content-length: 198[22m
+[2m    - connection: keep-alive[22m
+[2m    - access-control-allow-origin: *[22m
+[2m    - x-content-type-options: nosniff[22m
+[2m    - content-security-policy: default-src 'none'; sandbox[22m
+[2m    - x-frame-options: DENY[22m
+[2m    - x-xss-protection: 1; mode=block[22m
+[2m    - access-control-expose-headers: Accept-Ranges, Content-Range, Content-Length[22m
+[2m    - x-debug:[22m
+[2m    - x-client-ip: 195.189.96.219[22m
+[2m    - strict-transport-security: max-age=31536000; includeSubDomains; preload[22m
+
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13922 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13914 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13913 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13896 source=missing-source-date-v185 publishedAt=0
+[EVENT RETRY ERROR] stage=image-fingerprint:sun9-80.vkuserphoto.ru attempt=1/5 retry=no apiRequestContext.get: Request context disposed.
+Call log:
+[2m  - → GET https://sun9-80.vkuserphoto.ru/s/v1/ig2/Wtpf2MtnSBN7X8Wfuz7beSg6PXHkiwYYFRgh63R40rcFuI9GqEDPbMOsUPg73Fka9seX-CJ_GNtPY5jtD0_Azmwl.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x854,720x960,1080x1441,1280x1708,1440x1921,1919x2560&from=bu&u=ot9LQF175xsjovT5F1XKsQQdWBcXzAASXuYDLR8U7EQ&cs=640x0[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+
+[EVENT IMAGE FINGERPRINT ERROR] https://sun9-80.vkuserphoto.ru/s/v1/ig2/Wtpf2MtnSBN7X8Wfuz7beSg6PXHkiwYYFRgh63R40rcFuI9GqEDPbMOsUPg73Fka9seX-CJ_GNtPY5jtD0_Azmwl.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x854,720x960,1080x1441,1280x1708,1440x1921,1919x2560&from=bu&u=ot9LQF175xsjovT5F1XKsQQdWBcXzAASXuYDLR8U7EQ&cs=640x0 attempts=1 apiRequestContext.get: Request context disposed.
+Call log:
+[2m  - → GET https://sun9-80.vkuserphoto.ru/s/v1/ig2/Wtpf2MtnSBN7X8Wfuz7beSg6PXHkiwYYFRgh63R40rcFuI9GqEDPbMOsUPg73Fka9seX-CJ_GNtPY5jtD0_Azmwl.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x854,720x960,1080x1441,1280x1708,1440x1921,1919x2560&from=bu&u=ot9LQF175xsjovT5F1XKsQQdWBcXzAASXuYDLR8U7EQ&cs=640x0[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=artartelchaika/2812 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13921 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=41d5d33e-edfc-4537-b672-30434ab774df provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 504). Попробуйте позже. (request id: 202610151521599371340158268d9d6vgeLBlVI)',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=41d5d33e-edfc-4537-b672-30434ab774df provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13916 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13915 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=41d5d33e-edfc-4537-b672-30434ab774df provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 504). Попробуйте позже. (request id: 202610151522428709070848268d9d6qLixH1kf)',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=41d5d33e-edfc-4537-b672-30434ab774df provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13914 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=mv9oy4jq-ef5af31c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151528438891816228268d9d6vFCUPQNZ)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9oy4jq-ef5af31c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9oy4jq-ef5af31c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151528450627519368268d9d6iLFIC4NY)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9oy4jq-ef5af31c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9oy4jq-ef5af31c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151528456978868698268d9d6IIpmOTwi)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9oy4jq-ef5af31c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9oy4jq-ef5af31c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151528463985362188268d9d60yDnnb76)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9oy4jq-ef5af31c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9oy4jq-ef5af31c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151528477947681998268d9d6OzcrdJwO)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9oy4jq-ef5af31c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vavilone_rb/4676 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vavilone_rb/4664 source=missing-source-date-v185 publishedAt=0
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=idmamaanarchy/944 source=missing-source-date-v185 publishedAt=0
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9pjtew-08a12259 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151545319647453588268d9d6fSaYVK01)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9pjtew-08a12259 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144472 cutoff=1791992715 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9pjtew-08a12259 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151545329450034108268d9d6ZAyUvokY)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9pjtew-08a12259 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9pjtew-08a12259 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151545340104091888268d9d6Z8jgwrgI)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9pjtew-08a12259 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9pjtew-08a12259 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151545346733876278268d9d6BuYQACFS)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9pjtew-08a12259 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9pjtew-08a12259 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151545353159131028268d9d6UdTjSKTT)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9pjtew-08a12259 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9q33uw-5dac27b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151600329534955218268d9d6C6yn0GVw)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9q33uw-5dac27b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9q33uw-5dac27b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151600339309269428268d9d66X6pAilR)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9q33uw-5dac27b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9q33uw-5dac27b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151600346771039438268d9d6PSp45Auw)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9q33uw-5dac27b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9q33uw-5dac27b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151600352571755988268d9d6vVnHNdAO)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9q33uw-5dac27b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9q33uw-5dac27b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151600358370740598268d9d67ZyTsay1)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9q33uw-5dac27b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="ВАРКА ЧАЯ НА ОГНЕ" date=2026-10-15 source=https://vk.ru/wall-67647763_17622
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="❗️Срок подачи заявки — до" date=2026-10-15 source=https://t.me/kurazhcity/4091
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Уютный вечер с тыквами, свечами и волшебной музыкой" date=2026-10-30 source=https://vk.ru/wall-10482390_8749
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter" date=2026-11-14 source=https://vk.ru/wall-227219886_186
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144550 cutoff=1791994521 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9qmeay-0eb8d5b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151615369769004898268d9d6k4AkxMuR)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9qmeay-0eb8d5b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9qmeay-0eb8d5b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151615382634224188268d9d6DqJcnRbv)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9qmeay-0eb8d5b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9qmeay-0eb8d5b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151615388321018658268d9d65FxpLblk)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9qmeay-0eb8d5b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9qmeay-0eb8d5b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151615394531921808268d9d6owKIAyMR)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9qmeay-0eb8d5b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9qmeay-0eb8d5b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151615400572569048268d9d6RSnBreWh)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9qmeay-0eb8d5b8 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="ВАРКА ЧАЯ НА ОГНЕ" date=2026-10-15 source=https://vk.ru/wall-67647763_17622
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="❗️Срок подачи заявки — до" date=2026-10-15 source=https://t.me/kurazhcity/4091
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=4109-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":842430,"photo":"","hash":"c563e9bde29bb832fb76170fcca26d24"}',
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=event-poster.jpg {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9r5or8-130a6b4a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151630379868499718268d9d6fAe1Mbh4)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9r5or8-130a6b4a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9r5or8-130a6b4a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151630387542437018268d9d63R2nQ5CK)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9r5or8-130a6b4a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9r5or8-130a6b4a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151630393913723668268d9d6OMGqt2Fp)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9r5or8-130a6b4a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9r5or8-130a6b4a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151630399880632968268d9d6wWREThjw)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9r5or8-130a6b4a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9r5or8-130a6b4a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151630406128479198268d9d6uZxPAggI)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9r5or8-130a6b4a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9roz7b-f8bbe503 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151645229199809648268d9d6vz4f7iMt)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9roz7b-f8bbe503 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9roz7b-f8bbe503 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151645235284006898268d9d6TqYIlryJ)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9roz7b-f8bbe503 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144572 cutoff=1791996321 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9roz7b-f8bbe503 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151645378014457288268d9d6koYYhKoA)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9roz7b-f8bbe503 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9roz7b-f8bbe503 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151645384819009888268d9d60cIr3jRG)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9roz7b-f8bbe503 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9roz7b-f8bbe503 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151645390804346478268d9d6AVtcmyxl)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9roz7b-f8bbe503 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9s89nh-e18ef666 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151700387571437348268d9d64Ifsad8R)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9s89nh-e18ef666 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9s89nh-e18ef666 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151700395830532318268d9d6ZeIWvAUC)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9s89nh-e18ef666 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9s89nh-e18ef666 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151700402347588158268d9d6eylOYTkM)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9s89nh-e18ef666 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9s89nh-e18ef666 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151700408872774898268d9d6neu92Lgt)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9s89nh-e18ef666 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9s89nh-e18ef666 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151700415400231088268d9d66RiAfGzq)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9s89nh-e18ef666 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9srk3j-ecf5e9a0 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151715201432294908268d9d6PKMUFrCN)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9srk3j-ecf5e9a0 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151715213200153968268d9d6i6w0xu10)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9srk3j-ecf5e9a0 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144603 cutoff=1791998121 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9srk3j-ecf5e9a0 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151715229487234138268d9d6qVEkcFvz)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9srk3j-ecf5e9a0 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151715242041650898268d9d6D37SMfyb)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9srk3j-ecf5e9a0 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151715384906138258268d9d6G392iB6J)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[INACTIVE VK MEMBERS DATABASE FALLBACK] peer=2000000006 {
+  name: 'APIError',
+  message: "Code №917 - You don't have access to this chat",
+  code: 917,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9taujk-b0a34760 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151730198933228038268d9d6Wzu6T8k5)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9taujk-b0a34760 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9taujk-b0a34760 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151730211997415868268d9d6Ay1UgqGP)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9taujk-b0a34760 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9taujk-b0a34760 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151730228137950088268d9d6SXtAH66y)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9taujk-b0a34760 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151730238403811788268d9d6RFDo9xk9)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9taujk-b0a34760 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151730384957183948268d9d61QQt3Cn4)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9tu4zw-6bbb1ce6 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151745205546382148268d9d6K1pMzKeG)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9tu4zw-6bbb1ce6 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144685 cutoff=1791999921 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9tu4zw-6bbb1ce6 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151745229604466548268d9d683bz3DFH)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9tu4zw-6bbb1ce6 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610151745397752677028268d9d6Qt2u8c9g)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9tu4zw-6bbb1ce6 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9tu4zw-6bbb1ce6 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610151745469918892098268d9d6Mbx1S5nd)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9tu4zw-6bbb1ce6 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9tu4zw-6bbb1ce6 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151745523977062078268d9d6YuaSW1Q9)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=6bb5181d1a82370f currentRevision=8cc23daedaa9544c snapshotRaw=109 currentRaw=100 fallback=sqlite
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="❗️Срок подачи заявки — до" date=2026-10-15 source=https://t.me/kurazhcity/4091
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=4105-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":907428,"photo":"","hash":"3407d663fe11be01c8e2dfcbbc0f65cb"}',
+  code: null,
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=13824-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":908419,"photo":"","hash":"abba384f53991cc1558526609fedd034"}',
+  code: null,
+  status: null
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=2732-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":907428,"photo":"","hash":"3407d663fe11be01c8e2dfcbbc0f65cb"}',
+  code: null,
+  status: null
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=4627-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":847212,"photo":"","hash":"d4d779066562581ef971178ace7d01ac"}',
+  code: null,
+  status: null
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=1298-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":844529,"photo":"","hash":"341734b80cc1286715246d5b12df338f"}',
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=event-poster.jpg {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=13914-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":855116,"photo":"","hash":"f50a678169b3fcf14c63987c2de8b4f5"}',
+  code: null,
+  status: null
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=244-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK ответил HTTP 504.',
+  code: 'VK_UPLOAD_HTTP_ERROR',
+  status: 504
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=13875-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":857312,"photo":"","hash":"af4816b6348a9e9c73ce6b9ffc453248"}',
+  code: null,
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter" date=2026-11-14 source=https://vk.ru/wall-227219886_186
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=4654-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":908419,"photo":"","hash":"abba384f53991cc1558526609fedd034"}',
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=event-poster.jpg {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=13877-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":519336,"photo":"","hash":"bc9696bdac3cc063137bda37c8e256e0"}',
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=event-poster.jpg {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=13892-1.jpg {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="ВАРКА ЧАЯ НА ОГНЕ" date=2026-10-15 source=https://vk.ru/wall-67647763_17622
+[AI KEY ATTEMPT FAILED] requestId=mv9udfg7-3f4da064 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151800201775500508268d9d6fh3WnwqD)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9udfg7-3f4da064 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9udfg7-3f4da064 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151800223875519178268d9d6oPUxJpzS)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9udfg7-3f4da064 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151800240957134078268d9d63uG9FEha)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9udfg7-3f4da064 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9udfg7-3f4da064 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151800389448618498268d9d67DVc5AM1)',
+  code: null,
+  status: null
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=5588-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":903029,"photo":"","hash":"2a234020db9f6b90009399435bdabfa6"}',
+  code: null,
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=5779-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":847212,"photo":"","hash":"d4d779066562581ef971178ace7d01ac"}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9udfg7-3f4da064 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151800407648005798268d9d6Thf63RVB)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9udfg7-3f4da064 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=event-poster.jpg {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=5850-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":906218,"photo":"","hash":"cffeb4c43c0a32f1fc3595dbcfe3a418"}',
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=event-poster.jpg {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=5843-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":531536,"photo":"","hash":"a0fc15cf539471e8dfb370fa446a5275"}',
+  code: null,
+  status: null
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=5759-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":843528,"photo":"","hash":"0477a6522436d4175d668374b1f7a6db"}',
+  code: null,
+  status: null
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=5848-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":902529,"photo":"","hash":"bb9e83b07a1a372a598239b810b001ba"}',
+  code: null,
+  status: null
+}
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=vk-event-241222845-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":537436,"photo":"","hash":"760f88dfc001fbcf58753757292f8d00"}',
+  code: null,
+  status: null
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=vk-event-232424449-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":922328,"photo":"","hash":"e3d50a1a9eb372b68117c4e356196bd4"}',
+  code: null,
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Уютный вечер с тыквами, свечами и волшебной музыкой" date=2026-10-30 source=https://vk.ru/wall-10482390_8749
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=wall-185052087_1275-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":844430,"photo":"","hash":"a301d68dde5b9d5c3565930b8584efd8"}',
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=event-poster.jpg {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\event-poster-1792087299121-a8822b6aaf04f.jpg bytes=2970610 mime=image/jpeg {
+  vkIo: {
+    name: 'APIError',
+    message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+    code: 100,
+    status: null
+  },
+  direct: {
+    name: 'Error',
+    message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":923228,"photo":"","hash":"83394c04aa818e2e66c2d6d1fd6c8471"}',
+    code: null,
+    status: null
+  }
+}
+[VK EVENT POSTER UPLOAD RETRY] method=vk-io-buffer-fallback file=wall-185052087_1275-1.jpg {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\event-poster-1792087299121-a8822b6aaf04f.jpg. vk-io: Code №100 - One of the parameters specified was missing or invalid: photo is undefined; direct: Сервер загрузки VK не вернул server/photo/hash: {"server":923228,"photo":"","hash":"83394c04aa818e2e66c2d6d1fd6c8471"}',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=2/3 file=wall-185052087_1275-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":520636,"photo":"","hash":"a603a5f5b600eba02a3e57255b93dc3b"}',
+  code: null,
+  status: null
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=vk-event-242275190-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":909828,"photo":"","hash":"027c7c75184cb3d61fa093f8b4181658"}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9uwpwf-5017dbcc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151812569595779058268d9d60Sf2bUHl)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9uwpwf-5017dbcc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151812581701920428268d9d6Dw73O3CU)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9uwpwf-5017dbcc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151812593255001018268d9d6JOp4wqTa)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9uwpwf-5017dbcc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151813005834779058268d9d6025scnbn)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9uwpwf-5017dbcc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9uwpwf-5017dbcc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151813028577586168268d9d6tm4791k8)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9uwpwf-5017dbcc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144793 cutoff=1792001721 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9vg0cj-b6bcd3b5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151827537477278548268d9d6rBoUHTPZ)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9vg0cj-b6bcd3b5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9vg0cj-b6bcd3b5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151827550311280328268d9d6Yoh4AmHn)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9vg0cj-b6bcd3b5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151827564505315038268d9d6p6g0Ueel)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9vg0cj-b6bcd3b5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9vg0cj-b6bcd3b5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151827577046238338268d9d6Pji2hm4L)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9vg0cj-b6bcd3b5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9vg0cj-b6bcd3b5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151827589364472858268d9d6JrDu3m4a)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9vg0cj-b6bcd3b5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144953 cutoff=1792003597 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9vzast-3510a24d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610151847028389528588268d9d6SKMQxIhO)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9vzast-3510a24d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610151847142032056098268d9d60sZrqVaj)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9vzast-3510a24d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610151847501520504328268d9d6PmdkwRDw)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9vzast-3510a24d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 404: Запрошенная модель временно недоступна (request id: 202610151849459752495168268d9d6zepgjllJ)',
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9vzast-3510a24d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610151853475474802078268d9d6khd6Kc7r)',
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792090695296-4fdcdd84f7fcb.png bytes=2474758 mime=image/png {
+  vkIo: {
+    name: 'APIError',
+    message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+    code: 100,
+    status: null
+  },
+  direct: {
+    name: 'Error',
+    message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":516436,"photo":"","hash":"a45ad6a148fe627670ca530f1d7b9b99"}',
+    code: null,
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792090695296-4fdcdd84f7fcb.png. vk-io: Code №100 - One of the parameters specified was missing or invalid: photo is undefined; direct: Сервер загрузки VK не вернул server/photo/hash: {"server":516436,"photo":"","hash":"a45ad6a148fe627670ca530f1d7b9b99"}',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792090695296-4fdcdd84f7fcb.png. vk-io: Code №100 - One of the parameters specified was missing or invalid: photo is undefined; direct: Сервер загрузки VK не вернул server/photo/hash: {"server":516436,"photo":"","hash":"a45ad6a148fe627670ca530f1d7b9b99"}',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream { name: 'Error', message: 'GPT API 503:', code: null, status: 503 }
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream { name: 'Error', message: 'GPT API 503:', code: null, status: 503 }
+[AI KEY ATTEMPT FAILED] requestId=9b94ea9c-e32f-4e28-81c2-91a844e97329 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 { name: 'Error', message: 'GPT API 503:', code: null, status: 503 }
+[AI KEY ROTATE] requestId=9b94ea9c-e32f-4e28-81c2-91a844e97329 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=7ae9b824-dcde-42ef-ae83-90425e17443a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 { name: 'Error', message: 'GPT API 503:', code: null, status: 503 }
+[AI KEY ROTATE] requestId=7ae9b824-dcde-42ef-ae83-90425e17443a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145007 cutoff=1792005397 max=3500 reason=periodic
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145035 cutoff=1792007197 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145052 cutoff=1792008997 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145071 cutoff=1792010797 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145077 cutoff=1792012597 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145119 cutoff=1792014397 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145119 cutoff=1792016197 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145132 cutoff=1792017997 max=3500 reason=periodic
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=balagan.city/17146 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=balagan.city/17146 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=mva56g1d-4fa8635e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT vision API 503:',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mva56g1d-4fa8635e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145277 cutoff=1792019797 max=3500 reason=periodic
+[EVENT RETRY ERROR] stage=image-fingerprint:cdn4.telesco.pe attempt=1/5 retry=no apiRequestContext.get: 500 Internal Server Error
+Response text:
+<html>
+<head><title>500 Internal Server Error</title></head>
+<body bgcolor="white">
+<center><h1>500 Internal Server Error</h1></center>
+<hr><center>nginx/1.0.11</center>
+<pre></pre>
+
+</body>
+</html>
+Call log:
+[2m  - → GET https://cdn4.telesco.pe/file/GhebxB8UUkdrxlfWQVb1mMavN_CT6K-scNRNJk1PGXiz92kuT3iV-hEVmtTDktkW4o1fyw7gFuClH7k1oIBKLFw6WvWjJt2d9zpk5CQoQezNT_6wrbzZawPfFhx0f5_GvFuhi9UNGA0a8649NJ7vy9sw3Wm9SwNDuZhja1hvURLsueQeHUs15lNEkbrszu4jCJ-95UTdZ7yzb7iEuhZH7r31TfUTklKreYYJnkNqOg0gWUq0TBmpbcaIXkXaHtlRtX2olxc0bpZQBdbVa14aERTDJrKYXwtPQJi9JZtOKDYZNG-Wt_oMJQYPKDVe333Bwss8MlhMRlOrgLOoFxcuDg.jpg[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+[2m  - ← 500 Internal Server Error[22m
+[2m    - server: nginx/1.30.1[22m
+[2m    - date: Thu, 15 Oct 2026 23:18:04 GMT[22m
+[2m    - content-type: text/html; charset=UTF-8[22m
+[2m    - content-length: 198[22m
+[2m    - connection: keep-alive[22m
+[2m    - access-control-allow-origin: *[22m
+[2m    - x-content-type-options: nosniff[22m
+[2m    - content-security-policy: default-src 'none'; sandbox[22m
+[2m    - x-frame-options: DENY[22m
+[2m    - x-xss-protection: 1; mode=block[22m
+[2m    - access-control-expose-headers: Accept-Ranges, Content-Range, Content-Length[22m
+[2m    - x-debug:[22m
+[2m    - x-client-ip: 195.189.96.219[22m
+[2m    - strict-transport-security: max-age=31536000; includeSubDomains; preload[22m
+
+[EVENT IMAGE FINGERPRINT ERROR] https://cdn4.telesco.pe/file/GhebxB8UUkdrxlfWQVb1mMavN_CT6K-scNRNJk1PGXiz92kuT3iV-hEVmtTDktkW4o1fyw7gFuClH7k1oIBKLFw6WvWjJt2d9zpk5CQoQezNT_6wrbzZawPfFhx0f5_GvFuhi9UNGA0a8649NJ7vy9sw3Wm9SwNDuZhja1hvURLsueQeHUs15lNEkbrszu4jCJ-95UTdZ7yzb7iEuhZH7r31TfUTklKreYYJnkNqOg0gWUq0TBmpbcaIXkXaHtlRtX2olxc0bpZQBdbVa14aERTDJrKYXwtPQJi9JZtOKDYZNG-Wt_oMJQYPKDVe333Bwss8MlhMRlOrgLOoFxcuDg.jpg attempts=1 apiRequestContext.get: 500 Internal Server Error
+Response text:
+<html>
+<head><title>500 Internal Server Error</title></head>
+<body bgcolor="white">
+<center><h1>500 Internal Server Error</h1></center>
+<hr><center>nginx/1.0.11</center>
+<pre></pre>
+
+</body>
+</html>
+Call log:
+[2m  - → GET https://cdn4.telesco.pe/file/GhebxB8UUkdrxlfWQVb1mMavN_CT6K-scNRNJk1PGXiz92kuT3iV-hEVmtTDktkW4o1fyw7gFuClH7k1oIBKLFw6WvWjJt2d9zpk5CQoQezNT_6wrbzZawPfFhx0f5_GvFuhi9UNGA0a8649NJ7vy9sw3Wm9SwNDuZhja1hvURLsueQeHUs15lNEkbrszu4jCJ-95UTdZ7yzb7iEuhZH7r31TfUTklKreYYJnkNqOg0gWUq0TBmpbcaIXkXaHtlRtX2olxc0bpZQBdbVa14aERTDJrKYXwtPQJi9JZtOKDYZNG-Wt_oMJQYPKDVe333Bwss8MlhMRlOrgLOoFxcuDg.jpg[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+[2m  - ← 500 Internal Server Error[22m
+[2m    - server: nginx/1.30.1[22m
+[2m    - date: Thu, 15 Oct 2026 23:18:04 GMT[22m
+[2m    - content-type: text/html; charset=UTF-8[22m
+[2m    - content-length: 198[22m
+[2m    - connection: keep-alive[22m
+[2m    - access-control-allow-origin: *[22m
+[2m    - x-content-type-options: nosniff[22m
+[2m    - content-security-policy: default-src 'none'; sandbox[22m
+[2m    - x-frame-options: DENY[22m
+[2m    - x-xss-protection: 1; mode=block[22m
+[2m    - access-control-expose-headers: Accept-Ranges, Content-Range, Content-Length[22m
+[2m    - x-debug:[22m
+[2m    - x-client-ip: 195.189.96.219[22m
+[2m    - strict-transport-security: max-age=31536000; includeSubDomains; preload[22m
+
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=arena_voronez/76473 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=arena_voronez/76473 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=12bpg/12709 source=missing-source-date-v185 publishedAt=0
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[PARSER RECOVERY NOTICE FAILED] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=arena_voronez/76473 source=missing-source-date-v185 publishedAt=0
+[SECONDARY PARTY AUTO PARSER ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145432 cutoff=1792022625 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=arena_voronez/76473 source=missing-source-date-v185 publishedAt=0
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145761 cutoff=1792024559 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=145910 cutoff=1792026359 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TelegramBotApiError',
+  message: 'Telegram Bot API getUpdates: Too Many Requests: retry after 5',
+  code: 429
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TelegramBotApiError',
+  message: 'Telegram Bot API getUpdates: Too Many Requests: retry after 5',
+  code: 429
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TelegramBotApiError',
+  message: 'Telegram Bot API getUpdates: Bad Gateway',
+  code: 502
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TelegramBotApiError',
+  message: 'Telegram Bot API getUpdates: Bad Gateway',
+  code: 502
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146010 cutoff=1792028159 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146019 cutoff=1792029959 max=3500 reason=periodic
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146045 cutoff=1792031764 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146095 cutoff=1792033564 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146118 cutoff=1792035383 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146153 cutoff=1792037183 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146298 cutoff=1792038983 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146375 cutoff=1792040783 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146401 cutoff=1792042583 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146407 cutoff=1792044383 max=3500 reason=periodic
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=arena_voronez/76473 source=missing-source-date-v185 publishedAt=0
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=8cc23daedaa9544c currentRevision=7c32896c7d4df26c snapshotRaw=100 currentRaw=110 fallback=sqlite
+[PARSER NOTICE FAILED] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter" date=2026-11-14 source=https://vk.ru/wall-227219886_186
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Уютный вечер с тыквами, свечами и волшебной музыкой" date=2026-10-30 source=https://vk.ru/wall-10482390_8749
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=arena_voronez/76473 source=missing-source-date-v185 publishedAt=0
+[MANUAL SCRAPER ALL BACKGROUND ERROR] {
+  name: 'Error',
+  message: "ENOENT: no such file or directory, open 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\parser-forensic-archives\\2026-10-15T23-00-23-094Z_parser-all-secondary-clean_259506\\tg-xlam_bar.raw-cache.json'",
+  code: 'ENOENT',
+  status: null
+}
+[SUPERVISED DETACHED OPERATION ERROR] name=parser-all-recovery:secondary {
+  name: 'Error',
+  message: "ENOENT: no such file or directory, open 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\parser-forensic-archives\\2026-10-15T23-00-23-094Z_parser-all-secondary-clean_259506\\tg-xlam_bar.raw-cache.json'",
+  code: 'ENOENT',
+  status: null
+}
+[MANUAL SCRAPER ALL BACKGROUND ERROR] {
+  name: 'Error',
+  message: "ENOENT: no such file or directory, open 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\parser-forensic-archives\\2026-10-15T23-00-23-094Z_parser-all-secondary-clean_259506\\tg-xlam_bar.raw-cache.json'",
+  code: 'ENOENT',
+  status: null
+}
+[PARSER START NOTICE FAILED] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[SUPERVISED DETACHED OPERATION ERROR] name=parser-all-recovery:secondary {
+  name: 'Error',
+  message: "ENOENT: no such file or directory, open 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\parser-forensic-archives\\2026-10-15T23-00-23-094Z_parser-all-secondary-clean_259506\\tg-xlam_bar.raw-cache.json'",
+  code: 'ENOENT',
+  status: null
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146419 cutoff=1792046187 max=3500 reason=periodic
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13922 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13921 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13896 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=artartelchaika/2812 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13892 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=liverpool_pub_vrn/2743 source=missing-source-date-v185 publishedAt=0
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT STREAM ERROR upstream_stream_incomplete: Поток ответа от внешнего провайдера неожиданно завершился раньше времени. Повторите запрос; если ошибки возникают только в этой сессии, начните новую. (request id: 202610160641203901903148268d9d6UQL1jSjh) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR upstream_stream_incomplete: Поток ответа от внешнего провайдера неожиданно завершился раньше времени. Повторите запрос; если ошибки возникают только в этой сессии, начните новую. (request id: 202610160641203901903148268d9d6UQL1jSjh) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13886 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vavilone_rb/4676 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=5636489f-2089-42c5-bf83-15564a8bd39b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=idmamaanarchy/944 source=missing-source-date-v185 publishedAt=0
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[PARSER RECOVERY NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'ECONNABORTED',
+  status: null
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146423 cutoff=1792048688 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146475 cutoff=1792050488 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Уютный вечер с тыквами, свечами и волшебной музыкой" date=2026-10-30 source=https://vk.ru/wall-10482390_8749
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter" date=2026-11-14 source=https://vk.ru/wall-227219886_186
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=4bb445e3f7c29c75 currentRevision=85e6bc7178b779b4 snapshotRaw=112 currentRaw=112 fallback=sqlite
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=4bb445e3f7c29c75 currentRevision=85e6bc7178b779b4 snapshotRaw=112 currentRaw=112 fallback=sqlite
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146572 cutoff=1792052296 max=3500 reason=periodic
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146625 cutoff=1792054102 max=3500 reason=periodic
+[INACTIVE VK MEMBERS DATABASE FALLBACK] peer=2000000006 {
+  name: 'APIError',
+  message: "Code №917 - You don't have access to this chat",
+  code: 917,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[AI KEY ATTEMPT FAILED] requestId=mvaqlkvb-e70e67bb provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 504). Попробуйте позже. (request id: 202610160905298946426508268d9d6rDBY4ozw)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 504). Попробуйте позже. (request id: 202610160905298946426508268d9d6rDBY4ozw)',
+  code: null,
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[AI KEY ATTEMPT FAILED] requestId=e5704cf7-93e7-4ed8-9bc7-3103096b314f provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 504). Попробуйте позже. (request id: 202610160908296259273848268d9d6nJ4h7No1)',
+  code: null,
+  status: null
+}
+[GPT UNKNOWN TERMS ERROR] {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 504). Попробуйте позже. (request id: 202610160908296259273848268d9d6nJ4h7No1)',
+  stack: 'Error: GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 504). Попробуйте позже. (request id: 202610160908296259273848268d9d6nJ4h7No1)\n' +
+    '    at onPayload (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45807:27)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async consume (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/openAIStream.js:69:9)\n' +
+    '    at async consumeOpenAIStream (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/openAIStream.js:110:21)\n' +
+    '    at async generateOpenAITextCoreAttempt (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45792:9)\n' +
+    '    at async request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:43884:26)\n' +
+    '    at async executeRuntimeModelFailover (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/modelProviderFailover.js:341:35)\n' +
+    '    at async generateOpenAIText (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:43858:20)\n' +
+    '    at async detectUnknownTermsForMemoryLookup (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:15624:22)\n' +
+    '    at async prepareUnknownTermMemoryGrounding (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:15662:23)',
+  cause: undefined
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[AI KEY ATTEMPT FAILED] requestId=e5704cf7-93e7-4ed8-9bc7-3103096b314f provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 504). Попробуйте позже. (request id: 202610160912376280867308268d9d6yF6UrvWz)',
+  code: null,
+  status: null
+}
+[MESSAGE HANDLER ERROR] {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 504). Попробуйте позже. (request id: 202610160912376280867308268d9d6yF6UrvWz)',
+  stack: 'Error: GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 504). Попробуйте позже. (request id: 202610160912376280867308268d9d6yF6UrvWz)\n' +
+    '    at onPayload (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45807:27)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async consume (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/openAIStream.js:69:9)\n' +
+    '    at async consumeOpenAIStream (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/openAIStream.js:110:21)\n' +
+    '    at async generateOpenAITextCoreAttempt (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45792:9)\n' +
+    '    at async request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:43884:26)\n' +
+    '    at async executeRuntimeModelFailover (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/modelProviderFailover.js:341:35)\n' +
+    '    at async generateOpenAIText (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:43858:20)\n' +
+    '    at async answerGptQuestion (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:36005:18)\n' +
+    '    at async handleGptCommand (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:35009:9)',
+  cause: undefined
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=146698 cutoff=1792055902 max=3500 reason=periodic
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792142372942-6fe04b61e4bb28.png bytes=2670880 mime=image/png {
+  vkIo: {
+    name: 'APIError',
+    message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+    code: 100,
+    status: null
+  },
+  direct: {
+    name: 'Error',
+    message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":531128,"photo":"","hash":"7ec806706eaf0dda8483187dcf0b03a5"}',
+    code: null,
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792142372942-6fe04b61e4bb28.png. vk-io: Code №100 - One of the parameters specified was missing or invalid: photo is undefined; direct: Сервер загрузки VK не вернул server/photo/hash: {"server":531128,"photo":"","hash":"7ec806706eaf0dda8483187dcf0b03a5"}',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792142372942-6fe04b61e4bb28.png. vk-io: Code №100 - One of the parameters specified was missing or invalid: photo is undefined; direct: Сервер загрузки VK не вернул server/photo/hash: {"server":531128,"photo":"","hash":"7ec806706eaf0dda8483187dcf0b03a5"}',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}

@@ -176,6 +176,46 @@ assert.equal(
     'разные даты никогда не объединяются',
 );
 
+const sourceMaterialOne = {
+    ...insightOne,
+    id: 501,
+    sourceUrl: 'https://vk.com/wall-1_501',
+    sourceItemId: 'vk:source:501',
+    sourceText: 'Полный моноанонс: Инсайт Дэнс на Петровской набережной.',
+    sourceSegment: 'Фрагмент моноанонса про это событие.',
+    sourceImagePaths: ['source/mono-one.jpg', 'source/mono-two.jpg'],
+    imageUrls: ['https://cdn.test/mono-one.jpg', 'https://cdn.test/mono-two.jpg'],
+    posterVisionFacts: [{ index: 1, poster: true, text: 'INSIGHT DANCE' }],
+};
+const sourceMaterialTwo = {
+    ...insightTwo,
+    id: 502,
+    sourceUrl: 'https://vk.com/im?sel=22&msg=502',
+    sourceItemId: 'vk_chat:22:502',
+    sourceText: 'Полный мультианонс: дополнительная информация о событии.',
+    sourceSegment: 'Выделенный фрагмент мультианонса.',
+    sourceImagePaths: ['source/multi.jpg'],
+    imageUrls: ['https://cdn.test/multi.jpg'],
+    posterVisionFacts: [{ index: 1, poster: false, visionStatus: 'error' }],
+};
+const sourceMaterialResult = deduplicateUpcomingEvents([sourceMaterialOne, sourceMaterialTwo]);
+assert.equal(sourceMaterialResult.outputCount, 1);
+const mergedSourceMaterialEvent = sourceMaterialResult.events[0];
+assert.equal(mergedSourceMaterialEvent.mergedSources.length, 2);
+assert.ok(mergedSourceMaterialEvent.mergedSources.some((source) => (
+    source.sourceText.includes('Полный моноанонс') &&
+    source.sourceSegment.includes('моноанонса') &&
+    source.sourceImagePaths.includes('source/mono-two.jpg') &&
+    source.imageUrls.includes('https://cdn.test/mono-two.jpg') &&
+    source.posterVisionFacts.some((fact) => fact.poster === true)
+)));
+assert.ok(mergedSourceMaterialEvent.mergedSources.some((source) => (
+    source.sourceText.includes('Полный мультианонс') &&
+    source.sourceSegment.includes('мультианонса') &&
+    source.sourceImagePaths.includes('source/multi.jpg') &&
+    source.posterVisionFacts.some((fact) => fact.visionStatus === 'error')
+)));
+
 console.log('eventDeduplication tests: OK');
 
 const actualMausoleumPublic = {

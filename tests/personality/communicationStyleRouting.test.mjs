@@ -47,6 +47,10 @@ assert.equal(
     'loshara',
 );
 assert.equal(
+    parseCommunicationStyleCommand('будь лохом').persona,
+    'loshara',
+);
+assert.equal(
     parseCommunicationStyleCommand('будь дурачиной').persona,
     'durachila',
 );

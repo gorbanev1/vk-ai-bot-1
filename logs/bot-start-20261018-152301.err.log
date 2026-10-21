@@ -1,0 +1,452 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=330923 scanned=5000 skipped=325923
+[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS] [{"id":"mvdli1sx-02b7e786","name":"summary-hierarchy:period-tick","phase":"","tracePath":""}]
+(node:12724) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:50678:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY LOCAL SQLITE RESCAN] peer=2000000006 reason=source-inventory-changed currentRows=143987 checkpointRows=143846 sourceFiles=42
+[AI KEY ATTEMPT FAILED] requestId=mvdsscgn-975ac19b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: system memory overloaded (current: 91.4%, threshold: 90%) (request id: 202610181227115017804348268d9d6GNztQqRw)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mvdsscgn-975ac19b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mvdsscgn-975ac19b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: system memory overloaded (current: 91.4%, threshold: 90%) (request id: 202610181227116954960688268d9d6sOSdug4U)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mvdsscgn-975ac19b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mvdsscgn-975ac19b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: system memory overloaded (current: 91.4%, threshold: 90%) (request id: 202610181227117780673128268d9d6C8kasGiy)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mvdsscgn-975ac19b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mvdsscgn-975ac19b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: system memory overloaded (current: 91.4%, threshold: 90%) (request id: 202610181227118689645548268d9d6VAimmule)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mvdsscgn-975ac19b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout._onTimeout (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.5%, threshold: 90%) (request id: 202610181229039105854198268d9d66JwAuReM)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=fac291c4-89dc-4da0-9933-926f2acab62d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.5%, threshold: 90%) (request id: 202610181229041252739688268d9d6Ii4Tf6mI)',
+  code: null,
+  status: 503
+}
+[AI KEY ROTATE] requestId=fac291c4-89dc-4da0-9933-926f2acab62d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.5%, threshold: 90%) (request id: 202610181229042318241788268d9d6hOCoJ7M3)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=fac291c4-89dc-4da0-9933-926f2acab62d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.5%, threshold: 90%) (request id: 202610181229043584681508268d9d6ZM1xMwJ1)',
+  code: null,
+  status: 503
+}
+[AI KEY ROTATE] requestId=fac291c4-89dc-4da0-9933-926f2acab62d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-luna reason=1-attempts
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6.1-sol reasoning=low from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.5%, threshold: 90%) (request id: 202610181229044548516508268d9d6WErWlEL3)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=fac291c4-89dc-4da0-9933-926f2acab62d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=1/3 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.5%, threshold: 90%) (request id: 202610181229045902734458268d9d6hOPLpUwG)',
+  code: null,
+  status: 503
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6.1-sol reasoning=low from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229061996647518268d9d6KwZtmCFA)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=fac291c4-89dc-4da0-9933-926f2acab62d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=2/3 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229063129573888268d9d67QKmH5AV)',
+  code: null,
+  status: 503
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6.1-sol reasoning=low from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229094125841728268d9d6iV4CGi0Q)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=fac291c4-89dc-4da0-9933-926f2acab62d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=3/3 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229095239953718268d9d6Dz4otgXL)',
+  code: null,
+  status: 503
+}
+[AI KEY ROTATE] requestId=fac291c4-89dc-4da0-9933-926f2acab62d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol reason=3-attempts
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6-astra reasoning=low from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229096355112668268d9d64YtUJeM5)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=fac291c4-89dc-4da0-9933-926f2acab62d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra attempt=1/2 {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229097778391948268d9d6yDwVorpR)',
+  code: null,
+  status: 503
+}
+[GPT UNKNOWN TERMS ERROR] {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229097778391948268d9d6yDwVorpR)',
+  stack: 'Error: GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229097778391948268d9d6yDwVorpR)\n' +
+    '    at generateOpenAITextWithFilesAttempt (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45690:26)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44564:26)\n' +
+    '    at async executeRuntimeModelFailover (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/modelProviderFailover.js:341:35)\n' +
+    '    at async generateOpenAIText (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44538:20)\n' +
+    '    at async detectUnknownTermsForMemoryLookup (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:15973:22)\n' +
+    '    at async prepareUnknownTermMemoryGrounding (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:16011:23)\n' +
+    '    at async handleGptCommand (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:35567:15)\n' +
+    '    at async handleRequest (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:34623:9)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:19839:13',
+  cause: undefined
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6-astra reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229105826401498268d9d6HN1D2sip)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=fac291c4-89dc-4da0-9933-926f2acab62d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra attempt=1/2 {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229107187143848268d9d6IHKdpW9h)',
+  code: null,
+  status: 503
+}
+[MESSAGE HANDLER ERROR] {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229107187143848268d9d6IHKdpW9h)',
+  stack: 'Error: GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181229107187143848268d9d6IHKdpW9h)\n' +
+    '    at generateOpenAITextWithFilesAttempt (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45690:26)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44564:26)\n' +
+    '    at async executeRuntimeModelFailover (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/modelProviderFailover.js:341:35)\n' +
+    '    at async generateOpenAIText (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44538:20)\n' +
+    '    at async answerGptQuestion (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:36685:18)\n' +
+    '    at async handleGptCommand (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:35689:9)\n' +
+    '    at async handleRequest (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:34623:9)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:19839:13',
+  cause: undefined
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792326505003-5b7e532d0e3968.png',
+  attempt: 1,
+  delayMs: 5000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792326505003-5b7e532d0e3968.png',
+  attempt: 2,
+  delayMs: 15000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6-astra reasoning=low from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181229461079330448268d9d62xsgL4cj)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=56f257b4-e44b-4f14-a7fa-81d80da4d941 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra attempt=1/2 {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181229463560226978268d9d6b5ZHUK5g)',
+  code: null,
+  status: 503
+}
+[PRASHNA LOCATION GPT ERROR] {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181229463560226978268d9d6b5ZHUK5g)',
+  stack: 'Error: GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181229463560226978268d9d6b5ZHUK5g)\n' +
+    '    at generateOpenAITextWithFilesAttempt (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45690:26)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44564:26)\n' +
+    '    at async executeRuntimeModelFailover (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/modelProviderFailover.js:341:35)\n' +
+    '    at async generateOpenAIText (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44538:20)\n' +
+    '    at async extractPrashnaPlaceWithGpt (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:47005:22)\n' +
+    '    at async resolvePrashnaLocation (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:46916:21)\n' +
+    '    at async answerGptQuestion (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:36211:28)\n' +
+    '    at async handleGptCommand (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:35689:9)\n' +
+    '    at async handleRequest (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:34506:9)',
+  cause: undefined
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6-astra reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181229468764071748268d9d6nCsrFpg6)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=56f257b4-e44b-4f14-a7fa-81d80da4d941 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra attempt=1/2 {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181229471628116498268d9d62SHPOAxN)',
+  code: null,
+  status: 503
+}
+[MESSAGE HANDLER ERROR] {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181229471628116498268d9d62SHPOAxN)',
+  stack: 'Error: GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181229471628116498268d9d62SHPOAxN)\n' +
+    '    at generateOpenAITextWithFilesAttempt (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45690:26)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44564:26)\n' +
+    '    at async executeRuntimeModelFailover (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/modelProviderFailover.js:341:35)\n' +
+    '    at async generateOpenAIText (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44538:20)\n' +
+    '    at async answerGptQuestion (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:36685:18)\n' +
+    '    at async handleGptCommand (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:35689:9)\n' +
+    '    at async handleRequest (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:34506:9)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:19884:9',
+  cause: undefined
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792326505003-5b7e532d0e3968.png bytes=2685043 mime=image/png {
+  vkIo: {
+    name: 'AbortError',
+    message: 'The operation was aborted.',
+    code: null,
+    status: null
+  },
+  direct: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792326505003-5b7e532d0e3968.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792326505003-5b7e532d0e3968.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6-astra reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181231371262570948268d9d6A1NO0YKR)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=578b0255-27df-40d5-be7b-5ec5c8392886 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra attempt=1/2 {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181231373300235308268d9d6dPq0cQqW)',
+  code: null,
+  status: 503
+}
+[MESSAGE HANDLER ERROR] {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181231373300235308268d9d6dPq0cQqW)',
+  stack: 'Error: GPT RESPONSES API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181231373300235308268d9d6dPq0cQqW)\n' +
+    '    at generateOpenAITextWithFilesAttempt (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:45690:26)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44564:26)\n' +
+    '    at async executeRuntimeModelFailover (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/features/ai/modelProviderFailover.js:341:35)\n' +
+    '    at async generateOpenAIText (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44538:20)\n' +
+    '    at async answerGptQuestion (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:36685:18)\n' +
+    '    at async handleGptCommand (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:35689:9)\n' +
+    '    at async handleRequest (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:34623:9)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:19839:13',
+  cause: undefined
+}
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T10-43-50-921Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-09T16-34-21-740Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-09T16-05-50-176Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-06T10-52-18-531Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=150942 cutoff=1792240382 max=3500 reason=startup
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181241492457771678268d9d6n6j5L8iW)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181241494154569168268d9d6vy9nrGZu)',
+  code: null,
+  status: 503
+}
+[AI KEY ROTATE] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-terra reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181241495122046968268d9d6KD92WylX)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181241496026110308268d9d6RUZT0rng)',
+  code: null,
+  status: 503
+}
+[AI KEY ROTATE] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-sol reasoning=low from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181241496979662568268d9d6imqh8wor)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-sol attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181241497937863518268d9d6QEoI6n0Q)',
+  code: null,
+  status: 503
+}
+[AI KEY ROTATE] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-sol reason=1-attempts
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6.1-sol reasoning=low from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181241498873164158268d9d6pGAzFeY4)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=1/3 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181241499841334958268d9d6NEkvbFSa)',
+  code: null,
+  status: 503
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6.1-sol reasoning=low from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181241515754140338268d9d6zriRySOK)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=2/3 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.3%, threshold: 90%) (request id: 202610181241516823925338268d9d6CEurSkFA)',
+  code: null,
+  status: 503
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6.1-sol reasoning=low from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181241547907995548268d9d6YyKKYagy)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=3/3 {
+  name: 'Error',
+  message: 'GPT API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181241548986351068268d9d6PKp59jdf)',
+  code: null,
+  status: 503
+}
+[AI KEY ROTATE] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol reason=3-attempts
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-6-astra reasoning=low from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181241549773975378268d9d64DBsrjrE)',
+  code: null,
+  status: 503
+}
+[AI KEY ATTEMPT FAILED] requestId=mvdtao6f-d347231d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra attempt=1/2 {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181241550724975278268d9d6oYsicvz6)',
+  code: null,
+  status: 503
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'GPT RESPONSES API 503: system memory overloaded (current: 91.2%, threshold: 90%) (request id: 202610181241550724975278268d9d6oYsicvz6)',
+  code: null,
+  status: 503
+}

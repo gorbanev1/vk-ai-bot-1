@@ -1,0 +1,1453 @@
+[DB PREFLIGHT] healthy backup current=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-14T09-35-59-876Z.sqlite
+[DB HEALTHY BACKUP SCHEDULER] intervalHours=6 retained=15
+[LIVE MESSAGE JOURNAL REPLAY] parsed=166 replayed=166 invalid=0
+[VK MESSAGE ARCHIVE JOURNAL REPLAY] parsed=166 replayed=166 invalid=0
+[PROJECT AUDIT CONFIG] mode=multipass inputMode=text transport=stream concurrency=1
+[BOT BUILD] V188.146
+[BOT PATCH] V188.146
+[STRICT EVENT AUDIT NON-DESTRUCTIVE] telegram=0 vk=0 vkChat=0 manual=0 orphanSources=53
+Проверяю необязательное подключение к GigaChat…
+[EVENT DEDUPE PERSISTENT FAST REBUILD] reason=startup-v147-db-repair raw=96 canonical=96 groups=0 duplicates=0
+Имя бота: гигорейв
+ID основного VK-сообщества: 233007447
+Часовой пояс: Europe/Moscow
+Сессия участника в каждой конфе: 2 часа.
+ЛС включены без обязательного обращения; содержимое ЛС не сохраняется и не логируется.
+Запускаю VK Long Poll: 1 сообществ(а)…
+[VK LONG POLL STARTED] role=primary groupId=233007447
+Бот запущен: оба VK-сообщества и настроенные дополнительные платформы активны.
+[BOT READY] historyRecoveryDelayedMs=5000 commands=available-now
+[LEGACY EVENT STARTUP REPAIRS] disabled=v18892 mode=explicit-owner-command-only
+[SCRAPER MODE] Основной пул: новые раз в 3 дня, в пятницу после 2 дней. Второстепенный: раз в неделю и в пятницу. Только ночью 02:00–06:00 без пересечения операций. timeZone=Europe/Moscow nextSecondaryAutoAt=1791594000 manualFull=«тусы быдлячьи парсер все» manualClean=«тусы быдлячьи парсер все чисто»
+[PERSONALIZATION V187] database=C:\Users\Adm\AppData\Local\Gigorave\state\personalization-v187.sqlite dossier=command-only styleBatch=500 startupBackfill=disabled
+[SUMMARY V188 CACHE] database=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite contextTokens=128000 rawInputBudget~=24000 pruned=0
+[HIERARCHY V188] database=C:\Users\Adm\AppData\Local\Gigorave\state\hierarchical-summary-v188.sqlite peers=2000000001,2000000004,2000000006,8138353801,8138961901,8141076491,8196547900,8196547901,8196547902,8196547903,8202627500,8202627501,8202627502,8202627503,8223773400,8223773401,8223773402,8223773403,2000000022 daily=23:59-local+tail-22:30-23:59 weekly=Sunday-24:00/Monday-00:00-local monthly=last-day-20:00-local slices=03:00,09:00,12:00,15:00,18:00,21:00,22:30,23:59 pipeline=raw-once>intraday-batch>daily>week-segment>month rawLeafBudget~=32000 late=immutable-delta auto=default-on
+[AUTO SUMMARY LEGACY SCHEDULER DISABLED] calendar rollup owns scheduled summaries; set LEGACY_AUTO_SUMMARY_SCHEDULER_ENABLED=1 only for rollback compatibility
+[CHAT LEAVERS AUTO STATE] enabled=1 repaired=0
+[COMMUNICATION STATE RESTORED FROM SQLITE] restart-safe=true legacyOutburstsCleared=0 legacyBanterCleared=0
+[TELEGRAM CONNECT ATTEMPT] reason=startup attempt=1/3
+GPT router подключён. Текстовые GPT-модели: grok-4.6, gpt-6-sol, grok-4.5, gpt-5.6-terra, gpt-5.6-luna, gpt-6-astra, gpt-6-luna, gpt-5.5, gpt-6.1-sol, grok-4.7, gpt-5.6-sol
+GPT image-модели: grok-imagine-image-2.0, gpt-image-2.5-flare-4k, gpt-image-2.5-sunburst-4k, gpt-image-2, gpt-image-2.5, gpt-image-2.5-flare-2k, gpt-image-2.5-sunburst, gpt-image-2.5-sunburst-2k, gpt-image-2.5-flare
+[TELEGRAM BOT STARTED] id=8965960830 username=@Gigorave_bot offset=813863303
+[TELEGRAM CONNECTED] reason=startup username=@Gigorave_bot
+[VK LONG POLL ACTIVE] role=primary groupId=233007447
+[VK HISTORY LOCAL SQLITE SKIP DURABLE] peer=2000000006 database=C:\Users\Adm\AppData\Local\Gigorave\state\history-recovery-v1872.sqlite currentRows=136571 checkpointRows=136265 lastScanRows=3299336 coverageMaxCmid=210111 coverageRows=136265 sourceFiles=40 checkpoint=v2
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791900557 max=3500 reason=startup
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142950-143049
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=0 existing=83 cmid=142950-143049
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142850-142949
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142894 type=left member=7024719 actor=7024719
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142750-142849
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142650-142749
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142705 type=joined member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142550-142649
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142450-142549
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142538 type=left member=1126872974 actor=1126872974
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142350-142449
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142250-142349
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142150-142249
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142050-142149
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142079 type=joined member=1126872974 actor=307892110
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=998 new=0 existing=924 cmid=142050-142149
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141950-142049
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142020 type=left member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141850-141949
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=141872 type=left member=146841623 actor=146841623
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141750-141849
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141650-141749
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141550-141649
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141450-141549
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141350-141449
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141250-141349
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141150-141249
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=19 requested=1900 received=1898 new=0 existing=1714 cmid=141150-141249
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1900 received=1898 new=0 existing=1714 cutoff=1791900557 limit=3500
+[VK MESSAGE] peerId=2000000001 senderId=755496806 isChat=true text="гигорейв тусы сегодня"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000001 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000001 senderId=755496806 mention=true replyOrQuote=false request="тусы сегодня" expiresAt=2026-10-14T16:12:22.612Z
+[COMMAND ROUTE] selected=public-events-direct reason=deterministic-public-event-range candidates=public-events-direct>public-events-semantic explicitMode=none modelKeyPolicy=absent suppressed=public-events-semantic context=group
+[PUBLIC EVENTS ROUTE] method=local kind=today from=2026-10-14 to=2026-10-14 events=1 partyPool=primary snapshot=verified verifiedAt=1791982300 aiOnRequest=false scraperAutoRun=false
+[EVENT POSTER ACCEPTED] event="Megadeth" date=2026-10-14 images=1 reason=single-event-source-metadata-confirmed
+[VK IMAGE UPLOAD] method=vk-io-buffer file=event-poster.jpg bytes=438415 mime=image/jpeg attachment=photo-233007447_457239659_49d003f214c8d2a943
+[VK EVENT POSTER UPLOAD] method=vk-io-buffer-fallback file=4670-1.jpg attachment=photo-233007447_457239659_49d003f214c8d2a943
+[QTICKETS COMMAND ABSOLUTE FASTPATH] platform=vk
+[QTICKETS EVENTS ROUTE] method=qtickets-command from=2026-10-14 to=2026-10-14 weekendsOnly=0 maxPrice=none events=3 compact=0
+[EVENT POSTER ACCEPTED] event="Билеты в Пролетарий в парк скалодромов \"1000 Узлов\" (Воронеж, Пр-т Революции, 56)" date=2026-10-14 images=1 reason=qtickets-detail-image
+[VK IMAGE UPLOAD] method=vk-io-buffer file=event-poster.jpg bytes=43111 mime=image/jpeg attachment=photo-233007447_457239660_1c50ac492cba816811
+[VK EVENT POSTER UPLOAD] method=vk-io-buffer-fallback file=36632-1.jpg attachment=photo-233007447_457239660_1c50ac492cba816811
+[EVENT POSTER ACCEPTED] event="С любовью, Эрнест (Врн)" date=2026-10-14 images=1 reason=qtickets-detail-image
+[VK EVENT POSTER UPLOAD] method=direct-multipart attempt=1/3 file=221337-1.jpg attachment=photo-233007447_457239661_a93dd968304007d8e9
+[EVENT POSTER ACCEPTED] event="Кинопоказ в Рассвете/«Коралина в Стране Кошмаров»" date=2026-10-14 images=1 reason=qtickets-detail-image
+[VK EVENT POSTER UPLOAD] method=direct-multipart attempt=1/3 file=266061-1.jpg attachment=photo-233007447_457239662_e6d2210ea4d0b302c2
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ЭТО ТЫ С  ИРИНОЙ МОТОР"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=105/150 target=66
+[QTICKETS COMMAND ABSOLUTE FASTPATH] platform=vk
+[QTICKETS EVENTS ROUTE] method=qtickets-command from=2026-10-14 to=2026-10-14 weekendsOnly=0 maxPrice=none events=3 compact=1
+[AI RUNTIME TRANSPORT] requestId=ccc40463-9696-4493-984f-bd9c05af05b1 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 1404,
+  completion_tokens: 154,
+  total_tokens: 1617,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    cache_write_tokens: 1460,
+    cached_creation_tokens: 1460,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=ccc40463-9696-4493-984f-bd9c05af05b1 operationId=mv86x3t7-d1c2b688 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=1404 output=154 total=1617 cached=0 reasoning=0 estimatedText=0 durationMs=4881
+[AI TOKEN TOTAL] requestId=ccc40463-9696-4493-984f-bd9c05af05b1 operationId=mv86x3t7-d1c2b688 operation=event-analysis provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=1404 output=154 total=1617 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=1-3 returned=3
+[PUBLIC EVENTS COMPACT SEND] events=3 sent=3 images=false layout=single-list summaries=false participants=false description=true sources=false aiOnRequest=false
+[QTICKETS COMMAND ABSOLUTE FASTPATH] platform=vk
+[QTICKETS EVENTS ROUTE] method=qtickets-command from=2026-10-14 to=2026-10-18 weekendsOnly=0 maxPrice=none events=30 compact=1
+[AI RUNTIME TRANSPORT] requestId=96f1e3c0-79df-40d5-a370-0c2cb63e6699 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5262,
+  completion_tokens: 422,
+  total_tokens: 5684,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=96f1e3c0-79df-40d5-a370-0c2cb63e6699 operationId=mv873nze-e00bdd5f operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=5262 output=422 total=5684 cached=0 reasoning=0 estimatedText=0 durationMs=6907
+[AI TOKEN TOTAL] requestId=96f1e3c0-79df-40d5-a370-0c2cb63e6699 operationId=mv873nze-e00bdd5f operation=event-analysis provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=6666 output=576 total=7301 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=1-12 returned=12
+[AI RUNTIME TRANSPORT] requestId=96f1e3c0-79df-40d5-a370-0c2cb63e6699 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4871,
+  completion_tokens: 421,
+  total_tokens: 5292,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=96f1e3c0-79df-40d5-a370-0c2cb63e6699 operationId=mv873nze-e00bdd5f operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4871 output=421 total=5292 cached=0 reasoning=0 estimatedText=0 durationMs=7051
+[AI TOKEN TOTAL] requestId=96f1e3c0-79df-40d5-a370-0c2cb63e6699 operationId=mv873nze-e00bdd5f operation=event-analysis provider=compat model=gpt-5.6-luna requests=3 providerRequests=3 input=11537 output=997 total=12593 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=13-24 returned=12
+[AI RUNTIME TRANSPORT] requestId=96f1e3c0-79df-40d5-a370-0c2cb63e6699 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 2383,
+  completion_tokens: 182,
+  total_tokens: 2565,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=96f1e3c0-79df-40d5-a370-0c2cb63e6699 operationId=mv873nze-e00bdd5f operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=2383 output=182 total=2565 cached=0 reasoning=0 estimatedText=0 durationMs=5211
+[AI TOKEN TOTAL] requestId=96f1e3c0-79df-40d5-a370-0c2cb63e6699 operationId=mv873nze-e00bdd5f operation=event-analysis provider=compat model=gpt-5.6-luna requests=4 providerRequests=4 input=13920 output=1179 total=15158 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=25-30 returned=6
+[PUBLIC EVENTS COMPACT SEND] events=30 sent=30 images=false layout=single-list summaries=false participants=false description=true sources=false aiOnRequest=false
+[QTICKETS COMMAND ABSOLUTE FASTPATH] platform=vk
+[QTICKETS EVENTS ROUTE] method=qtickets-command from=2026-10-15 to=2026-10-15 weekendsOnly=0 maxPrice=none events=3 compact=1
+[AI RUNTIME TRANSPORT] requestId=8ad2d477-49de-4f06-aae0-7c543e6214bf model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 2268,
+  completion_tokens: 131,
+  total_tokens: 2399,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=8ad2d477-49de-4f06-aae0-7c543e6214bf operationId=mv875xi5-f0b8a226 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=2268 output=131 total=2399 cached=0 reasoning=0 estimatedText=0 durationMs=5612
+[AI TOKEN TOTAL] requestId=8ad2d477-49de-4f06-aae0-7c543e6214bf operationId=mv875xi5-f0b8a226 operation=event-analysis provider=compat model=gpt-5.6-luna requests=5 providerRequests=5 input=16188 output=1310 total=17557 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=1-3 returned=3
+[PUBLIC EVENTS COMPACT SEND] events=3 sent=3 images=false layout=single-list summaries=false participants=false description=true sources=false aiOnRequest=false
+[VK MESSAGE] peerId=2000000001 senderId=755496806 isChat=true text="гигорейв вообще все тусы кратко эта неделя"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000001 reason=direct-bot-interaction
+[ACTIVE REQUEST] peerId=2000000001 senderId=755496806 mention=true reply=false replyOrQuote=false request="вообще все тусы кратко эта неделя"
+[COMMAND ROUTE] selected=all-parties reason=explicit-all-parties-command candidates=all-parties>public-events-direct>public-events-semantic explicitMode=none modelKeyPolicy=absent suppressed=public-events-direct|public-events-semantic context=group
+[ALL PARTIES METADATA REFRESH] reason=realtime:all-parties-command events=231 stored=231
+[ALL PARTIES REALTIME DEDUPE] method=all-parties-command from=2026-10-14 to=2026-10-18 input=65 output=49 groups=9 pairMatches=16 qticketsPriority=true venueAffectsMatch=false
+[AI RUNTIME TRANSPORT] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=17657837 isChat=true text="Даже в десятые года все кринж ловили с такого)\nНу как все, как минимум моя компашка)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=106/150 target=66
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4138,
+  completion_tokens: 424,
+  total_tokens: 4562,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 operationId=mv87amdq-54167460 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4138 output=424 total=4562 cached=0 reasoning=0 estimatedText=0 durationMs=167628
+[AI TOKEN TOTAL] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 operationId=mv87amdq-54167460 operation=event-analysis provider=compat model=gpt-5.6-luna requests=6 providerRequests=6 input=20326 output=1734 total=22119 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=1-12 returned=12
+[AI RUNTIME TRANSPORT] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4174,
+  completion_tokens: 406,
+  total_tokens: 4580,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 operationId=mv87amdq-54167460 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4174 output=406 total=4580 cached=0 reasoning=0 estimatedText=0 durationMs=6690
+[AI TOKEN TOTAL] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 operationId=mv87amdq-54167460 operation=event-analysis provider=compat model=gpt-5.6-luna requests=7 providerRequests=7 input=24500 output=2140 total=26699 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=13-24 returned=12
+[AI RUNTIME TRANSPORT] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4176,
+  completion_tokens: 458,
+  total_tokens: 4634,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 operationId=mv87amdq-54167460 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4176 output=458 total=4634 cached=0 reasoning=0 estimatedText=0 durationMs=8742
+[AI TOKEN TOTAL] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 operationId=mv87amdq-54167460 operation=event-analysis provider=compat model=gpt-5.6-luna requests=8 providerRequests=8 input=28676 output=2598 total=31333 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=25-36 returned=12
+[AI RUNTIME TRANSPORT] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 3902,
+  completion_tokens: 369,
+  total_tokens: 4271,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 operationId=mv87amdq-54167460 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=3902 output=369 total=4271 cached=0 reasoning=0 estimatedText=0 durationMs=6709
+[AI TOKEN TOTAL] requestId=1efe9f38-93aa-4033-89c3-e26b98249b99 operationId=mv87amdq-54167460 operation=event-analysis provider=compat model=gpt-5.6-luna requests=9 providerRequests=9 input=32578 output=2967 total=35604 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=37-46 returned=10
+[PUBLIC EVENTS COMPACT SEND] events=46 sent=46 images=false layout=single-list summaries=false participants=false description=true sources=false aiOnRequest=false
+[VK MESSAGE] peerId=2000000006 senderId=755496806 isChat=true text="гигорейв вообще все тусы эта неделя кратко"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=755496806 mention=true replyOrQuote=false request="вообще все тусы эта неделя кратко" expiresAt=2026-10-14T16:27:46.034Z
+[COMMAND ROUTE] selected=all-parties reason=explicit-all-parties-command candidates=all-parties>public-events-direct>public-events-semantic explicitMode=none modelKeyPolicy=absent suppressed=public-events-direct|public-events-semantic context=group
+[ALL PARTIES METADATA REFRESH] reason=realtime:all-parties-command events=231 stored=231
+[ALL PARTIES REALTIME DEDUPE] method=all-parties-command from=2026-10-14 to=2026-10-18 input=65 output=49 groups=9 pairMatches=16 qticketsPriority=true venueAffectsMatch=false
+[AI RUNTIME TRANSPORT] requestId=ea897053-3986-4c72-9df4-be49caab5811 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4138,
+  completion_tokens: 383,
+  total_tokens: 4521,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=ea897053-3986-4c72-9df4-be49caab5811 operationId=mv87fd2g-b85da05a operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4138 output=383 total=4521 cached=0 reasoning=0 estimatedText=0 durationMs=9326
+[AI TOKEN TOTAL] requestId=ea897053-3986-4c72-9df4-be49caab5811 operationId=mv87fd2g-b85da05a operation=event-analysis provider=compat model=gpt-5.6-luna requests=10 providerRequests=10 input=36716 output=3350 total=40125 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=1-12 returned=12
+[AI RUNTIME TRANSPORT] requestId=ea897053-3986-4c72-9df4-be49caab5811 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4174,
+  completion_tokens: 386,
+  total_tokens: 4560,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=ea897053-3986-4c72-9df4-be49caab5811 operationId=mv87fd2g-b85da05a operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4174 output=386 total=4560 cached=0 reasoning=0 estimatedText=0 durationMs=7031
+[AI TOKEN TOTAL] requestId=ea897053-3986-4c72-9df4-be49caab5811 operationId=mv87fd2g-b85da05a operation=event-analysis provider=compat model=gpt-5.6-luna requests=11 providerRequests=11 input=40890 output=3736 total=44685 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=13-24 returned=12
+[AI RUNTIME TRANSPORT] requestId=ea897053-3986-4c72-9df4-be49caab5811 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4176,
+  completion_tokens: 480,
+  total_tokens: 4656,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=ea897053-3986-4c72-9df4-be49caab5811 operationId=mv87fd2g-b85da05a operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4176 output=480 total=4656 cached=0 reasoning=0 estimatedText=0 durationMs=7378
+[AI TOKEN TOTAL] requestId=ea897053-3986-4c72-9df4-be49caab5811 operationId=mv87fd2g-b85da05a operation=event-analysis provider=compat model=gpt-5.6-luna requests=12 providerRequests=12 input=45066 output=4216 total=49341 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=25-36 returned=12
+[AI RUNTIME TRANSPORT] requestId=ea897053-3986-4c72-9df4-be49caab5811 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 3902,
+  completion_tokens: 343,
+  total_tokens: 4245,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=ea897053-3986-4c72-9df4-be49caab5811 operationId=mv87fd2g-b85da05a operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=3902 output=343 total=4245 cached=0 reasoning=0 estimatedText=0 durationMs=8540
+[AI TOKEN TOTAL] requestId=ea897053-3986-4c72-9df4-be49caab5811 operationId=mv87fd2g-b85da05a operation=event-analysis provider=compat model=gpt-5.6-luna requests=13 providerRequests=13 input=48968 output=4559 total=53586 cached=0 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=37-46 returned=10
+[PUBLIC EVENTS COMPACT SEND] events=46 sent=46 images=false layout=single-list summaries=false participants=false description=true sources=false aiOnRequest=false
+Telegram подключён: @Gigorave_bot
+[TEXT RECOVERY STARTUP] method=GET-only legacyJobId=d0e42598-b6f5-4c34-8e8b-c7e51877b144
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=107/150 target=66
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791902350 max=3500 reason=periodic
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142959-143058
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=0 existing=80 cmid=142959-143058
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142859-142958
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142894 type=left member=7024719 actor=7024719
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142759-142858
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142659-142758
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142705 type=joined member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142559-142658
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142459-142558
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142538 type=left member=1126872974 actor=1126872974
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142359-142458
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142259-142358
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142159-142258
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142059-142158
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142079 type=joined member=1126872974 actor=307892110
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=998 new=0 existing=922 cmid=142059-142158
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141959-142058
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142020 type=left member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141859-141958
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=141872 type=left member=146841623 actor=146841623
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141759-141858
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141659-141758
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141559-141658
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141459-141558
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141359-141458
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141259-141358
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=18 requested=1800 received=1798 new=0 existing=1627 cmid=141259-141358
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1800 received=1798 new=0 existing=1627 cutoff=1791902350 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Так в кринже и суть)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=108/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=17657837 isChat=true text="Кто-то это на абсолютных серъезничах ставил..."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=109/150 target=66
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Что нового у вас"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=110/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Да это в основном девки были)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=111/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Деффки"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=112/150 target=66
+[BOT REQUEST STATS AUTO SENT] slot=2026-10-14@18:00 destination=vk users=0 requests=0
+[BOT REQUEST STATS AUTO SENT] slot=2026-10-14@18:00 destination=telegram users=0 requests=0
+[SUMMARY V188 PLAN] messages=6 batches=1 batchMaxMessages=3000 inputTokenBudget~=32000 context=128000 ratio=0.9 cache=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite
+[AI RUNTIME TRANSPORT] requestId=mv88lk4o-bc3d400c model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5057,
+  completion_tokens: 117,
+  total_tokens: 5174,
+  prompt_tokens_details: {
+    cached_tokens: 3225,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=mv88lk4o-bc3d400c operationId=mv88lk4o-bc3d400c operation=calendar-batch-summary:leaf provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=5057 output=117 total=5174 cached=3225 reasoning=0 estimatedText=0 durationMs=16420
+[AI TOKEN TOTAL] requestId=mv88lk4o-bc3d400c operationId=mv88lk4o-bc3d400c operation=calendar-batch-summary:leaf provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=5057 output=117 total=5174 cached=3225 reasoning=0 estimatedText=0
+[SUMMARY CACHE STORE] stage=leaf inputs=6 key=0be7f4a7faea
+[SUMMARY V188 LEAF] batch=1/1 messages=6 outputs=1
+[SUMMARY V188 COMPLETE] messages=6 gptCalls=1 cacheHits=0
+[CALENDAR BATCH STORE] peer=2000000001 slice=2026-10-14@18:00 revision=1 messages=6 rawHardLimitPerLeaf=3000
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=791 quality=high
+[GPT IMAGE USAGE] {
+  input_tokens: 228,
+  input_tokens_details: { image_tokens: 0, text_tokens: 228 },
+  output_tokens: 1887,
+  output_tokens_details: { image_tokens: 1887, text_tokens: 0 },
+  total_tokens: 2115
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=228 output=1887 total=2115 cached=0 reasoning=0 estimatedText=0 durationMs=34034
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=1 providerRequests=1 input=228 output=1887 total=2115 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=success durationMs=34036 
+[VK IMAGE UPLOAD] method=direct-multipart file=auto-summary.png bytes=2102578 mime=image/png attachment=photo-233007447_457239663_432119bab9fd6194cd
+[AUTO SUMMARY IMAGE SENT] peer=2000000001 model=gpt-image-2.5 textChars=484
+[CALENDAR SUMMARY MAINTENANCE] reason=calendar-slice-boundary peer=2000000001 batches=1 daily=0 weekly=0 monthly=0 aliases=0
+[SUMMARY V188 PLAN] messages=345 batches=1 batchMaxMessages=3000 inputTokenBudget~=32000 context=128000 ratio=0.9 cache=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite
+[AI RUNTIME TRANSPORT] requestId=mv88lk4o-bc3d400c model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="жестб"
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="из меня все выливается с потом"
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="стою в одной футболке и мастерске на улице"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=113/150 target=66
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=114/150 target=66
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=115/150 target=66
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 27816,
+  completion_tokens: 521,
+  total_tokens: 28337,
+  prompt_tokens_details: {
+    cached_tokens: 3302,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=mv88lk4o-bc3d400c operationId=mv88lk4o-bc3d400c operation=calendar-batch-summary:leaf provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=27816 output=521 total=28337 cached=3302 reasoning=0 estimatedText=0 durationMs=20080
+[AI TOKEN TOTAL] requestId=mv88lk4o-bc3d400c operationId=mv88lk4o-bc3d400c operation=calendar-batch-summary:leaf provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=32873 output=638 total=33511 cached=6527 reasoning=0 estimatedText=0
+[SUMMARY CACHE STORE] stage=leaf inputs=345 key=381f1a02f0eb
+[SUMMARY V188 LEAF] batch=1/1 messages=345 outputs=1
+[SUMMARY V188 COMPLETE] messages=345 gptCalls=1 cacheHits=0
+[CALENDAR BATCH STORE] peer=2000000006 slice=2026-10-14@18:00 revision=1 messages=345 rawHardLimitPerLeaf=3000
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2065 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=71855 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610141504221514504468268d9d6Ggf5OclE)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2065 quality=high
+[GPT IMAGE USAGE] {
+  input_tokens: 632,
+  input_tokens_details: { image_tokens: 0, text_tokens: 632 },
+  output_tokens: 2058,
+  output_tokens_details: { image_tokens: 2058, text_tokens: 0 },
+  total_tokens: 2690
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=632 output=2058 total=2690 cached=0 reasoning=0 estimatedText=0 durationMs=57724
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=2 providerRequests=2 input=860 output=3945 total=4805 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=success durationMs=57726 
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=116/150 target=66
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791904150 max=3500 reason=periodic
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text="https://utorrentgames.ru/185539-polnaya-kollekciya-igr-alawar-za-2003-2013-god-download-torrent.html?utm_referrer=https%3A%2F%2Fl.chatplace.io%2F"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=117/150 target=66
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142976-143075
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=1 existing=72 cmid=142976-143075
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=2588969 mime=image/png attachment=photo-233007447_457239664_78f8214104410caae1
+[AUTO SUMMARY IMAGE SENT] peer=2000000006 model=gpt-image-2.5 textChars=1758
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142876-142975
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142894 type=left member=7024719 actor=7024719
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142776-142875
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142676-142775
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142705 type=joined member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142576-142675
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142476-142575
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142538 type=left member=1126872974 actor=1126872974
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142376-142475
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142276-142375
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142176-142275
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142076-142175
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142079 type=joined member=1126872974 actor=307892110
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=998 new=1 existing=914 cmid=142076-142175
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141976-142075
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142020 type=left member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141876-141975
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141776-141875
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=141872 type=left member=146841623 actor=146841623
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141676-141775
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141576-141675
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141476-141575
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141376-141475
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141276-141375
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=18 requested=1800 received=1798 new=1 existing=1594 cmid=141276-141375
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1800 received=1798 new=1 existing=1594 cutoff=1791904150 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=151030251 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Тварь \nМы против планокуров"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=118/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="!!!!!"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=1095773519 mention=false replyOrQuote=true request="!!!!!" expiresAt=2026-10-14T17:20:00.919Z
+[COMMAND ROUTE] selected=default reason=no-explicit-command candidates=default explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=implicit astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=no packet=none
+[AI RUNTIME TRANSPORT] requestId=e75b0752-382b-452a-9849-ce7fe5bd6308 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 371,
+  completion_tokens: 27,
+  total_tokens: 398,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 17
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=e75b0752-382b-452a-9849-ce7fe5bd6308 operationId=mv89ajyl-e6bacc26 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=371 output=27 total=398 cached=0 reasoning=17 estimatedText=0 durationMs=2645
+[AI TOKEN TOTAL] requestId=e75b0752-382b-452a-9849-ce7fe5bd6308 operationId=mv89ajyl-e6bacc26 operation=manual-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=371 output=27 total=398 cached=0 reasoning=17 estimatedText=0
+[GPT UNKNOWN TERMS] terms=0
+[GPT ROUTE RESOLVED] requestedMode=default effectiveMode=default model=gpt-6-luna packet=none
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="УФФФФФФФФ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=119/150 target=66
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=0 matches=0
+[DIRECT GPT CHAT CONTEXT] peer=2000000006 sender=1095773519 name="Микки Хилтон" messages=34 chars=4340
+[AI RUNTIME TRANSPORT] requestId=e75b0752-382b-452a-9849-ce7fe5bd6308 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Мы за кристаллы"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=120/150 target=66
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 10262,
+  completion_tokens: 31,
+  total_tokens: 10293,
+  prompt_tokens_details: {
+    cached_tokens: 3341,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=e75b0752-382b-452a-9849-ce7fe5bd6308 operationId=mv89ajyl-e6bacc26 operation=chat-reply provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=10262 output=31 total=10293 cached=3341 reasoning=0 estimatedText=0 durationMs=8546
+[AI TOKEN TOTAL] requestId=e75b0752-382b-452a-9849-ce7fe5bd6308 operationId=mv89ajyl-e6bacc26 operation=chat-reply provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=10262 output=31 total=10293 cached=3341 reasoning=0 estimatedText=0
+[GPT ANSWER] mode=default model=gpt-5.6-luna length=standard paragraphs=1 chars=103  
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="я чат удалил"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=121/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="где эта ебань"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=122/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="которая в ночь рвалась к каждому на хату?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=123/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="за покурить"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=124/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="ссылку на страницу дайте пж"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=125/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=536084155 isChat=true text="🤣🤣🤣"
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE PERSONALIZATION BATCH] peerId=2000000006 userId=1095773519 messages=500 pending=501 gptCalls=1
+[AI RUNTIME TRANSPORT] requestId=mv89j4f4-29382a20 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="такая хуйня"
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="надо там спросить"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ы)"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Над за пивом"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="[id1126872974|@id1126872974]"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Спорим ты придёшь \nТам или дядя майор \nИли пару чеченцев"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А вы тоже считаете \nЭто развлечение \nДля задротов \nКоторые женщину ни разу не целовали"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="(Максим Крылов не считается )"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=126/150 target=66
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=127/150 target=66
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=128/150 target=66
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=129/150 target=66
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=130/150 target=66
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=131/150 target=66
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=132/150 target=66
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=133/150 target=66
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 24406,
+  completion_tokens: 294,
+  total_tokens: 24700,
+  prompt_tokens_details: {
+    cached_tokens: 3303,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=mv89j4f4-29382a20 operationId=mv89j4f4-29382a20 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=24406 output=294 total=24700 cached=3303 reasoning=0 estimatedText=0 durationMs=28016
+[AI TOKEN TOTAL] requestId=mv89j4f4-29382a20 operationId=mv89j4f4-29382a20 operation=event-analysis provider=compat model=gpt-5.6-luna requests=14 providerRequests=14 input=73374 output=4853 total=78286 cached=3303 reasoning=0 estimatedText=0
+[STYLE EXAMPLES SAVED] peerId=2000000006 userId=1095773519 examples=16
+[STYLE PERSONALIZATION CHECKPOINT] peerId=2000000006 userId=1095773519 messages=500 cursor=1791991201:143082 gptCalls=1
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Как это не считается"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=134/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="На днях еще древний ужас распакую"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=135/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Это не Эрик если что"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=136/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="Ну шо сказать... ахуенна)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=137/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Там Павел Иванов"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=138/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Ебать я за вечер наверно килограмма 3 настал точно"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=139/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="Надо это делать в термокороб так то. Иначе не считается"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=140/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=141/150 target=66
+[DB HEALTHY BACKUP] created=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-14T15-35-59-890Z.sqlite retained=15 intervalHours=6
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="но но! я новенький ужас ещё"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=142/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="свежачком"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=143/150 target=66
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791905950 max=3500 reason=periodic
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ну да, тут больше про Диму Барадина, когда-нибудь я и до его распаковки доберусь ))"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=144/150 target=66
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143011-143110
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=1 existing=81 cmid=143011-143110
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142911-143010
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142811-142910
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142894 type=left member=7024719 actor=7024719
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142711-142810
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142611-142710
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142705 type=joined member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142511-142610
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142538 type=left member=1126872974 actor=1126872974
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142411-142510
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142311-142410
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142211-142310
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142111-142210
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=998 new=1 existing=912 cmid=142111-142210
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142011-142110
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142020 type=left member=202165894 actor=202165894
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142079 type=joined member=1126872974 actor=307892110
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141911-142010
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141811-141910
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=141872 type=left member=146841623 actor=146841623
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141711-141810
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141611-141710
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141511-141610
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141411-141510
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=17 requested=1700 received=1698 new=1 existing=1561 cmid=141411-141510
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1700 received=1698 new=1 existing=1561 cutoff=1791905950 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="Наивный сельский парень)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=145/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="[id673887791|@timasin228]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=146/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text="Аэаэаэ"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=250200838 mention=false replyOrQuote=true request="Аэаэаэ" expiresAt=2026-10-14T17:46:07.464Z
+[COMMAND ROUTE] selected=default reason=no-explicit-command candidates=default explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=implicit astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=no packet=none
+[AI RUNTIME TRANSPORT] requestId=877cb08e-4c58-4fe4-bf97-c16447c2eed9 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4756,
+  completion_tokens: 15,
+  total_tokens: 4771,
+  prompt_tokens_details: {
+    cached_tokens: 3225,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=877cb08e-4c58-4fe4-bf97-c16447c2eed9 operationId=mv8a84po-d6ca0e77 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4756 output=15 total=4771 cached=3225 reasoning=0 estimatedText=0 durationMs=2417
+[AI TOKEN TOTAL] requestId=877cb08e-4c58-4fe4-bf97-c16447c2eed9 operationId=mv8a84po-d6ca0e77 operation=manual-summary provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=5127 output=42 total=5169 cached=3225 reasoning=17 estimatedText=0
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=1 matches=0
+[GPT UNKNOWN TERMS] terms=1 resolved=0 unresolved=1 values=Аэаэаэ
+[GPT ROUTE RESOLVED] requestedMode=default effectiveMode=default model=gpt-6-luna packet=none
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=1 matches=0
+[DIRECT GPT CHAT CONTEXT] peer=2000000006 sender=250200838 name="Андрей Аполло" messages=38 chars=5555
+[AI RUNTIME TRANSPORT] requestId=877cb08e-4c58-4fe4-bf97-c16447c2eed9 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 11749,
+  completion_tokens: 28,
+  total_tokens: 11777,
+  prompt_tokens_details: {
+    cached_tokens: 3264,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=877cb08e-4c58-4fe4-bf97-c16447c2eed9 operationId=mv8a84po-d6ca0e77 operation=chat-reply provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=11749 output=28 total=11777 cached=3264 reasoning=0 estimatedText=0 durationMs=3717
+[AI TOKEN TOTAL] requestId=877cb08e-4c58-4fe4-bf97-c16447c2eed9 operationId=mv8a84po-d6ca0e77 operation=chat-reply provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=22011 output=59 total=22070 cached=6605 reasoning=0 estimatedText=0
+[GPT ANSWER] mode=default model=gpt-5.6-luna length=standard paragraphs=1 chars=64  
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text="Яна ваще позитивчик вчера видел, добрая душа блин)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=147/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Минусов не вижу"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=148/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Настолки супер"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=149/150 target=66
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Го в настолки поиграем как-нибудь"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=0/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=151030251 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=151030251 isChat=true text="Подстолки"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=1/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=746894229 isChat=true text=""
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Как ты такую тяжесть в себе таскал?🤣"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=2/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text="Норм тема"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=3/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=151030251 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54840394 isChat=true text="Да что ж такое то!?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=4/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="помнит кто?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=5/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=151030251 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54840394 isChat=true text="Гришаня приплыл, похоже"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=6/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text="Ого скока спиздил"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=7/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text="Приняли, наверно)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=8/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=151030251 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text="[id196514685|@jeffthekiller_17]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=9/150 target=133
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791907750 max=3500 reason=periodic
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[COMMAND ROUTE] selected=manual-event reason=explicit-manual-event candidates=manual-event explicitMode=none modelKeyPolicy=absent suppressed=none context=dm
+[EVENT PARSER TRACE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\logs\event-parser\2026-10-14T16-12-01-556Z_owner-add_0fa7c9.jsonl
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=165 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=165 messageId=13821 sent=-
+[SCRAPER INITIAL RENDER DELAY] source=MANUAL EVENT delayMs=4387
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143034-143133
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=0 existing=87 cmid=143034-143133
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142934-143033
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142834-142933
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142894 type=left member=7024719 actor=7024719
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142734-142833
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142634-142733
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142705 type=joined member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142534-142633
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142538 type=left member=1126872974 actor=1126872974
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142434-142533
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142334-142433
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142234-142333
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142134-142233
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=998 new=0 existing=912 cmid=142134-142233
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142034-142133
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142079 type=joined member=1126872974 actor=307892110
+[MANUAL EVENT VK RAW HTML WALL SNAPSHOT] posts=1 publishedAt=1791962000 images=1
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141934-142033
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142020 type=left member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141834-141933
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=141872 type=left member=146841623 actor=146841623
+[MANUAL EVENT AUTO SCAN] limit=20 direction=down vkStructured=none vkExactWall=early remaining=finite-pass autoClose=true
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141734-141833
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141634-141733
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141534-141633
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141434-141533
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=17 requested=1700 received=1698 new=0 existing=1523 cmid=141434-141533
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1700 received=1698 new=0 existing=1523 cutoff=1791907750 limit=3500
+[SCRAPER PAGE SETTLED] source=EVENT LINK REVIEW https://vk.ru/wall-10482390_8749 images=24/24 pending=0 backgrounds=0 scroll=down holdMs=0
+[EVENT LINK MINIMUM DWELL] minimumMs=45000 elapsedMs=6672 remainingMs=38328 url=https://vk.ru/wall-10482390_8749
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[SCRAPER OWNER STOP] generation=1 persistent browser context was closed outside scraper cleanup
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5194,
+  completion_tokens: 9,
+  total_tokens: 5203,
+  prompt_tokens_details: { audio_tokens: 0, cached_tokens: 3264 },
+  completion_tokens_details: {
+    audio_tokens: 0,
+    reasoning_tokens: 0,
+    accepted_prediction_tokens: 0,
+    rejected_prediction_tokens: 0
+  }
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b5fui-2599b424 operation=event-parser:primary-post-selection provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-stream source=provider input=5194 output=9 total=5203 cached=3264 reasoning=0 estimatedText=0 durationMs=3135
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b5fui-2599b424 operation=event-parser:primary-post-selection provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=5194 output=9 total=5203 cached=3264 reasoning=0 estimatedText=0
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna capability=vision transport=chat-completions-vision-stream source=provider input=5927 output=189 total=6116 cached=3264 reasoning=0 estimatedText=0 durationMs=11172
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=5927 output=189 total=6116 cached=3264 reasoning=0 estimatedText=0
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna capability=vision transport=chat-completions-vision-stream source=provider input=6637 output=160 total=6797 cached=3225 reasoning=0 estimatedText=0 durationMs=7574
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=12564 output=349 total=12913 cached=6489 reasoning=0 estimatedText=0
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna capability=vision transport=chat-completions-vision-stream source=provider input=5927 output=186 total=6113 cached=3187 reasoning=0 estimatedText=0 durationMs=12985
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna requests=3 providerRequests=3 input=18491 output=535 total=19026 cached=9676 reasoning=0 estimatedText=0
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna capability=vision transport=chat-completions-vision-stream source=provider input=5918 output=185 total=6103 cached=3341 reasoning=0 estimatedText=0 durationMs=9912
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna requests=4 providerRequests=4 input=24409 output=720 total=25129 cached=13017 reasoning=0 estimatedText=0
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna capability=vision transport=chat-completions-vision-stream source=provider input=5927 output=192 total=6119 cached=3188 reasoning=0 estimatedText=0 durationMs=6338
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna requests=5 providerRequests=5 input=30336 output=912 total=31248 cached=16205 reasoning=0 estimatedText=0
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna capability=vision transport=chat-completions-vision-stream source=provider input=5918 output=167 total=6085 cached=3302 reasoning=0 estimatedText=0 durationMs=4454
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna requests=6 providerRequests=6 input=36254 output=1079 total=37333 cached=19507 reasoning=0 estimatedText=0
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna capability=vision transport=chat-completions-vision-stream source=provider input=5993 output=9 total=6002 cached=4037 reasoning=0 estimatedText=0 durationMs=13912
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-parser:final-poster-extraction provider=compat model=gpt-5.6-luna requests=7 providerRequests=7 input=42247 output=1088 total=43335 cached=23544 reasoning=0 estimatedText=0
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-parser:poster-vision provider=compat model=gpt-5.6-luna capability=vision transport=chat-completions-vision-stream source=provider input=5811 output=124 total=5935 cached=3264 reasoning=0 estimatedText=0 durationMs=4173
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-parser:poster-vision provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=5811 output=124 total=5935 cached=3264 reasoning=0 estimatedText=0
+[MANUAL EVENT IMAGE VISION] images=1 completed=1 failed=0 facts=1 factsChars=386
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5994,
+  completion_tokens: 144,
+  total_tokens: 6138,
+  prompt_tokens_details: { audio_tokens: 0, cached_tokens: 3187 },
+  completion_tokens_details: {
+    audio_tokens: 0,
+    reasoning_tokens: 0,
+    accepted_prediction_tokens: 0,
+    rejected_prediction_tokens: 0
+  }
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b5fui-2599b424 operation=event-parser:structured-extraction provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-stream source=provider input=5994 output=144 total=6138 cached=3187 reasoning=0 estimatedText=0 durationMs=5373
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b5fui-2599b424 operation=event-parser:structured-extraction provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=5994 output=144 total=6138 cached=3187 reasoning=0 estimatedText=0
+[EVENT POSTER BINDING] event=manual_events:31 image=none rejected:no-safe-poster
+[EVENT PROVENANCE STORED] event=manual_events:31 origin=manual-linked-post url=https://vk.ru/wall-10482390_8749
+[EVENT VERIFIED SNAPSHOT MARKED STALE] reason=trusted-owner-event-saved-v18819
+[EVENT DEDUPE AI CANDIDATE GATE] ambiguous=2 aiReview=1 skipped=1 rule=same-date+shared-participant-or-title
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=130 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=130 messageId=13822 sent=-
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6377,
+  completion_tokens: 97,
+  total_tokens: 6474,
+  prompt_tokens_details: {
+    cached_tokens: 3264,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b5fui-2599b424 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=6377 output=97 total=6474 cached=3264 reasoning=0 estimatedText=0 durationMs=4354
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b5fui-2599b424 operation=event-analysis provider=compat model=gpt-5.6-luna requests=15 providerRequests=15 input=79751 output=4950 total=84760 cached=6567 reasoning=0 estimatedText=0
+[EVENT DISPLAY NORMALIZATION] requested=1 returned=1 model=default
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 10323,
+  completion_tokens: 88,
+  total_tokens: 10411,
+  prompt_tokens_details: { audio_tokens: 0, cached_tokens: 8586 },
+  completion_tokens_details: {
+    audio_tokens: 0,
+    reasoning_tokens: 0,
+    accepted_prediction_tokens: 0,
+    rejected_prediction_tokens: 0
+  }
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-dedupe-arbitration provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-stream source=provider input=10323 output=88 total=10411 cached=8586 reasoning=0 estimatedText=0 durationMs=7665
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-dedupe-arbitration provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=10323 output=88 total=10411 cached=8586 reasoning=0 estimatedText=0
+[EVENT DEDUPE AI SECOND CONTOUR] batch=1-1 returned=1 model=gpt-6-luna
+[EVENT DEDUPE AI CANDIDATE GATE] ambiguous=1 aiReview=0 skipped=1 rule=same-date+shared-participant-or-title
+[EVENT DEDUPE AI CANDIDATE GATE] ambiguous=1 aiReview=1 skipped=0 rule=same-date+shared-participant-or-title
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 25807,
+  completion_tokens: 67,
+  total_tokens: 25874,
+  prompt_tokens_details: { audio_tokens: 0, cached_tokens: 4887 },
+  completion_tokens_details: {
+    audio_tokens: 0,
+    reasoning_tokens: 0,
+    accepted_prediction_tokens: 0,
+    rejected_prediction_tokens: 0
+  }
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-dedupe-arbitration provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-stream source=provider input=25807 output=67 total=25874 cached=4887 reasoning=0 estimatedText=0 durationMs=5088
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-dedupe-arbitration provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=36130 output=155 total=36285 cached=13473 reasoning=0 estimatedText=0
+[EVENT DEDUPE AI SECOND CONTOUR] batch=1-1 returned=1 model=gpt-6-luna
+[EVENT DEDUPE REGISTRY] scope=configured groups=0 members=0 duplicates=0
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 7723,
+  completion_tokens: 496,
+  total_tokens: 8219,
+  prompt_tokens_details: {
+    cached_tokens: 3226,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=7723 output=496 total=8219 cached=3226 reasoning=0 estimatedText=0 durationMs=26101
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna requests=16 providerRequests=16 input=87474 output=5446 total=92979 cached=9793 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=1-12 returned=12
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 7339,
+  completion_tokens: 524,
+  total_tokens: 7863,
+  prompt_tokens_details: {
+    cached_tokens: 3341,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=7339 output=524 total=7863 cached=3341 reasoning=0 estimatedText=0 durationMs=26922
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna requests=17 providerRequests=17 input=94813 output=5970 total=100842 cached=13134 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=13-24 returned=12
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 7649,
+  completion_tokens: 551,
+  total_tokens: 8200,
+  prompt_tokens_details: {
+    cached_tokens: 3340,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=7649 output=551 total=8200 cached=3340 reasoning=0 estimatedText=0 durationMs=12737
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna requests=18 providerRequests=18 input=102462 output=6521 total=109042 cached=16474 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=25-36 returned=12
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 7152,
+  completion_tokens: 593,
+  total_tokens: 7745,
+  prompt_tokens_details: {
+    cached_tokens: 3341,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=7152 output=593 total=7745 cached=3341 reasoning=0 estimatedText=0 durationMs=19223
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna requests=19 providerRequests=19 input=109614 output=7114 total=116787 cached=19815 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=37-48 returned=12
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text="Солью?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=10/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text=""
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 7439,
+  completion_tokens: 613,
+  total_tokens: 8052,
+  prompt_tokens_details: {
+    cached_tokens: 3302,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=7439 output=613 total=8052 cached=3302 reasoning=0 estimatedText=0 durationMs=15803
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna requests=20 providerRequests=20 input=117053 output=7727 total=124839 cached=23117 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=49-60 returned=12
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6517,
+  completion_tokens: 437,
+  total_tokens: 6954,
+  prompt_tokens_details: {
+    cached_tokens: 3264,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=6517 output=437 total=6954 cached=3264 reasoning=0 estimatedText=0 durationMs=9525
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna requests=21 providerRequests=21 input=123570 output=8164 total=131793 cached=26381 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=61-72 returned=12
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text="Только солью могу накурить"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=11/150 target=133
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6437,
+  completion_tokens: 278,
+  total_tokens: 6715,
+  prompt_tokens_details: {
+    cached_tokens: 3187,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=6437 output=278 total=6715 cached=3187 reasoning=0 estimatedText=0 durationMs=6943
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna requests=22 providerRequests=22 input=130007 output=8442 total=138508 cached=29568 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=73-84 returned=12
+[AI RUNTIME TRANSPORT] requestId=b3c31720-0571-4682-8c98-746219b61e7e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6770,
+  completion_tokens: 352,
+  total_tokens: 7122,
+  prompt_tokens_details: { audio_tokens: 0, cached_tokens: 3187 },
+  completion_tokens_details: {
+    audio_tokens: 0,
+    reasoning_tokens: 0,
+    accepted_prediction_tokens: 0,
+    rejected_prediction_tokens: 0
+  }
+}
+[AI TOKEN USAGE] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-stream source=provider input=6770 output=352 total=7122 cached=3187 reasoning=0 estimatedText=0 durationMs=10553
+[AI TOKEN TOTAL] requestId=b3c31720-0571-4682-8c98-746219b61e7e operationId=mv8b7xqv-4ccd3a38 operation=event-analysis provider=compat model=gpt-5.6-luna requests=23 providerRequests=23 input=136777 output=8794 total=145630 cached=32755 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=85-95 returned=11
+[EVENT SNAPSHOT QUALITY AUDIT] cards=95 safePosters=70 imagesWithoutMetadata=39 unverifiedPosters=25 remainingDuplicates=0 file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\event-verified-snapshot.json.quality-audit.json
+[EVENT VERIFIED SNAPSHOT] reason=trusted-owner-event-saved-v18819 raw=95 normalized=95 canonical=95 merges=0 ambiguous=3 orphansPreserved=0 candidatePairs=66/2419 finalSweepPairs=150 finalSweepMerges=0 remainingDuplicatePairs=0 algorithm=event-dedupe-v18899-title-identity-ai-retry-1 registryGroups=0 registryDuplicates=0 elapsedMs=267694 file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\event-verified-snapshot.json
+[ALL PARTIES METADATA REFRESH] reason=background:trusted-owner-event-saved-v18819 events=232 stored=232
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text=""
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=145174883 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=90087925 isChat=true text="https://www.youtube.com/shorts/96PcXgKtJqk"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=12/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=13/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Тимасин и кто?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=14/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ахахахах"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=15/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Легендарный видос"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=16/150 target=133
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791909550 max=3500 reason=periodic
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143047-143146
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=0 existing=87 cmid=143047-143146
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142947-143046
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142847-142946
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142894 type=left member=7024719 actor=7024719
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE PERSONALIZATION SEED] peerId=2000000006 userId=145174883 cursor=1791995100:143138 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142747-142846
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142647-142746
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142705 type=joined member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142547-142646
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142447-142546
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142538 type=left member=1126872974 actor=1126872974
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142347-142446
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142247-142346
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142147-142246
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=998 new=0 existing=913 cmid=142147-142246
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142047-142146
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142079 type=joined member=1126872974 actor=307892110
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141947-142046
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142020 type=left member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141847-141946
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=141872 type=left member=146841623 actor=146841623
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141747-141846
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141647-141746
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141547-141646
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141447-141546
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=17 requested=1700 received=1698 new=0 existing=1530 cmid=141447-141546
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1700 received=1698 new=0 existing=1530 cutoff=1791909550 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="Надо пересмотреть вспомнить.. подзабыл"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=17/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="Там еще актеры с псковского играли в какой-то части"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=18/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text=""
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=19/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="[id673887791|@timasin228]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=20/150 target=133
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791911350 max=3500 reason=periodic
+[VK MESSAGE] peerId=2000000006 senderId=90087925 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text="Жень че лучше гемини или гпт?"
+[VK MESSAGE] peerId=2000000006 senderId=90087925 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=21/150 target=133
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=22/150 target=133
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=23/150 target=133
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143055-143154
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=0 existing=88 cmid=143055-143154
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142955-143054
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142855-142954
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142894 type=left member=7024719 actor=7024719
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142755-142854
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142655-142754
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142705 type=joined member=202165894 actor=202165894
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142555-142654
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142455-142554
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142538 type=left member=1126872974 actor=1126872974
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142355-142454
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142255-142354
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142155-142254
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=998 new=0 existing=913 cmid=142155-142254
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142055-142154
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142079 type=joined member=1126872974 actor=307892110
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141955-142054
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142020 type=left member=202165894 actor=202165894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141855-141954
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=141872 type=left member=146841623 actor=146841623
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141755-141854
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141655-141754
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=141555-141654
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=16 requested=1600 received=1598 new=0 existing=1446 cmid=141555-141654
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1600 received=1598 new=0 existing=1446 cutoff=1791911350 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="НА ГАЗЕЛИ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=24/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Ды ХЗ и то и то норм"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=25/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text="У меня gemini 4"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=26/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text="В телефоне"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=27/150 target=133
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text="🤷"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Вот бы Максим Крылов так же одевался"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=28/150 target=133

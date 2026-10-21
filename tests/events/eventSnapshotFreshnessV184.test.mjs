@@ -24,6 +24,7 @@ test('V184 stale snapshot falls back to SQLite instead of returning false empty 
     assert.match(block, /\[EVENT VERIFIED SNAPSHOT STALE\]/u);
     assert.match(block, /fallback=sqlite/u);
     assert.match(block, /snapshot: null/u);
+    assert.match(block, /verificationPending: true/u);
 });
 
 test('V184 stale snapshot schedules a single background cache repair', () => {

@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFile, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { OPERATION_LOG_DIRECTORY } from '../../src/runtime/operationSupervisor.js';
 
 import {
     DEFAULT_OPERATION_TIMEOUT_MS,
@@ -8,6 +11,7 @@ import {
     listActiveOperations,
     requestOperationStop,
     runSupervisedOperation,
+    OPERATION_CHECKPOINT_DIRECTORY,
 } from '../../src/runtime/operationSupervisor.js';
 import { parseProcessControlCommand } from '../../src/features/runtime/processControlRouting.js';
 
@@ -136,4 +140,32 @@ test('V188.48: process control commands discover/details/stop unfinished work', 
     assert.deepEqual(parseProcessControlCommand('процесс abc-123'), { action: 'details', id: 'abc-123' });
     assert.deepEqual(parseProcessControlCommand('прервать процесс abc-123'), { action: 'stop-one', id: 'abc-123' });
     assert.deepEqual(parseProcessControlCommand('остановить все процессы'), { action: 'stop-all' });
+});
+
+test('deferred checkpoint is durably flushed with the final operation state', async () => {
+    let operationId = '';
+    const operation = await runSupervisedOperation({
+        name: 'v18848-test-deferred-checkpoint',
+        category: 'test',
+        timeoutMs: 5_000,
+    }, async ({ id, saveCheckpoint }) => {
+        operationId = id;
+        saveCheckpoint({ phase: 'progress', rows: Array.from({ length: 30 }, (_, index) => ({ index })) }, {
+            event: 'operation.progress', deferPersist: true,
+        });
+        return 'complete';
+    });
+    assert.equal(operation, 'complete');
+    const path = join(OPERATION_CHECKPOINT_DIRECTORY, operationId + '.json');
+    try {
+        const saved = JSON.parse(await readFile(path, 'utf8'));
+        assert.equal(saved.operation.status, 'completed');
+        assert.equal(saved.operation.checkpoint.phase, 'progress');
+        assert.equal(saved.operation.checkpoint.rows.length, 30);
+        const auditText = await readFile(join(OPERATION_LOG_DIRECTORY, new Date().toISOString().slice(0, 10) + '.jsonl'), 'utf8');
+        assert.ok(auditText.split(/\r?\n/u).some((line) =>
+            line.includes('"operationId":"' + operationId + '"') && line.includes('"type":"operation.complete"')));
+    } finally {
+        await rm(path, { force: true });
+    }
 });

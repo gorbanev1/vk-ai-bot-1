@@ -1,0 +1,858 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=217136 scanned=5000 skipped=212136
+[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS] [{"id":"muz9pzrt-c7a7eb06","name":"summary-hierarchy:maintenance","phase":"","tracePath":""}]
+(node:43776) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:49533:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY LOCAL SQLITE RESCAN] peer=2000000006 reason=source-inventory-changed currentRows=124334 checkpointRows=124247 sourceFiles=36
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T10-43-50-921Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-09T16-34-21-740Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-09T16-05-50-176Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-06T10-52-18-531Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130387 cutoff=1791361836 max=3500 reason=startup
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130394 cutoff=1791363252 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[AI KEY ATTEMPT FAILED] requestId=muzb3by3-80dfe56b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610080904533149070308268d9d6tztT1b9w)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610080904533149070308268d9d6tztT1b9w)',
+  code: null,
+  status: null
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbel9n-4a9883c5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610080913498018613568268d9d6ShBXWtCf)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610080913498018613568268d9d6ShBXWtCf)',
+  code: null,
+  status: null
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vinzavodpro/2711 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=balagan.city/17111 source=missing-source-date-v185 publishedAt=0
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-terra reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-sol reasoning=none transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-sol attempt=1/1 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-sol reason=1-attempts
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[PARSER NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'UND_ERR_CONNECT_TIMEOUT',
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-6.1-sol reasoning=low transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=1/3 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-6.1-sol reasoning=low transport=stream {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=2/3 {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130425 cutoff=1791365052 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[PARSER NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'UND_ERR_CONNECT_TIMEOUT',
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-6.1-sol reasoning=low transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=3/3 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol reason=3-attempts
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-6-astra reasoning=low transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra attempt=1/2 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-6-astra reasoning=low transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra attempt=2/2 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra reason=2-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[EVENT RETRY ERROR] stage=vk-public-ai:balagan.city/17111 attempt=1/1 retry=no terminated
+[VK PUBLIC AI ERROR] post=balagan.city/17111 terminated
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=balagan.city/17111 source=missing-source-date-v185 publishedAt=0
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[PARSER NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'UND_ERR_CONNECT_TIMEOUT',
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-terra reasoning=none transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[PARSER NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'UND_ERR_CONNECT_TIMEOUT',
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-sol reasoning=none transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-sol attempt=1/1 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-sol reason=1-attempts
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-6.1-sol reasoning=low transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=1/3 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[PARSER NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'UND_ERR_CONNECT_TIMEOUT',
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-6.1-sol reasoning=low transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=2/3 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-6.1-sol reasoning=low transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol attempt=3/3 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6.1-sol reason=3-attempts
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-6-astra reasoning=low transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra attempt=1/2 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[PARSER NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'UND_ERR_CONNECT_TIMEOUT',
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-6-astra reasoning=low transport=stream {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra attempt=2/2 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=muzbo1jt-05eae56c provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-6-astra reason=2-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[EVENT RETRY ERROR] stage=vk-public-ai:balagan.city/17111 attempt=1/1 retry=no terminated
+[VK PUBLIC AI ERROR] post=balagan.city/17111 terminated
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[PARSER NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'UND_ERR_CONNECT_TIMEOUT',
+  status: null
+}
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[PARSER NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'UND_ERR_CONNECT_TIMEOUT',
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[PARSER NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'UND_ERR_CONNECT_TIMEOUT',
+  status: null
+}
+[PARSER RECOVERY NOTICE FAILED] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130529 cutoff=1791366852 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130695 cutoff=1791368652 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI KEY ATTEMPT FAILED] requestId=3b50e152-22de-414a-81ae-1a9743f161de provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[ACTIVE COMMUNICATION MODEL FALLBACK] mode=default {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationTimeoutError',
+  message: 'Operation muzaaj5f-69bd3bdf exceeded 7200000 ms',
+  code: 'OPERATION_TIMEOUT',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130388 Operation muzaaj5f-69bd3bdf exceeded 7200000 ms
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationTimeoutError',
+  message: 'Operation muzaf8ik-c2f2dd69 exceeded 7200000 ms',
+  code: 'OPERATION_TIMEOUT',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130389 Operation muzaf8ik-c2f2dd69 exceeded 7200000 ms
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationTimeoutError',
+  message: 'Operation muzaonc9-2328a7d9 exceeded 7200000 ms',
+  code: 'OPERATION_TIMEOUT',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130391 Operation muzaonc9-2328a7d9 exceeded 7200000 ms
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130739 cutoff=1791370452 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationTimeoutError',
+  message: 'Operation muzbagmf-ea45b2fd exceeded 7200000 ms',
+  code: 'OPERATION_TIMEOUT',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130413 Operation muzbagmf-ea45b2fd exceeded 7200000 ms
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationTimeoutError',
+  message: 'Operation muzbbl68-d805b2e1 exceeded 7200000 ms',
+  code: 'OPERATION_TIMEOUT',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130416 Operation muzbbl68-d805b2e1 exceeded 7200000 ms
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationTimeoutError',
+  message: 'Operation muzbbuhw-534ffb79 exceeded 7200000 ms',
+  code: 'OPERATION_TIMEOUT',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130418 Operation muzbbuhw-534ffb79 exceeded 7200000 ms
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationTimeoutError',
+  message: 'Operation muzbsdzx-fd19465b exceeded 7200000 ms',
+  code: 'OPERATION_TIMEOUT',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130424 Operation muzbsdzx-fd19465b exceeded 7200000 ms
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130424 Operation muzbsdzx-fd19465b exceeded 7200000 ms

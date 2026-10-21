@@ -1,0 +1,176 @@
+[DB PREFLIGHT] healthy backup current=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-20T13-33-22-217Z.sqlite
+[DB HEALTHY BACKUP SCHEDULER] intervalHours=6 retained=15
+[LIVE MESSAGE JOURNAL REPLAY] parsed=18 replayed=18 invalid=0
+[VK MESSAGE ARCHIVE JOURNAL REPLAY] parsed=18 replayed=18 invalid=0
+[PROJECT AUDIT CONFIG] mode=multipass inputMode=text transport=stream concurrency=1
+[BOT BUILD] V188.146
+[BEAUTIFUL TIME SCHEDULER READY]
+[BOT PATCH] V188.146
+[STRICT EVENT AUDIT NON-DESTRUCTIVE] telegram=0 vk=0 vkChat=0 manual=0 orphanSources=88
+Проверяю необязательное подключение к GigaChat…
+[EVENT DEDUPE PERSISTENT FAST REBUILD] reason=startup-v147-db-repair raw=101 canonical=101 groups=0 duplicates=0
+Имя бота: гигорейв
+ID основного VK-сообщества: 233007447
+Часовой пояс: Europe/Moscow
+Сессия участника в каждой конфе: 2 часа.
+ЛС включены без обязательного обращения; содержимое ЛС не сохраняется и не логируется.
+Запускаю VK Long Poll: 1 сообществ(а)…
+[VK LONG POLL STARTED] role=primary groupId=233007447
+Бот запущен: оба VK-сообщества и настроенные дополнительные платформы активны.
+[BOT READY] historyRecoveryDelayedMs=5000 commands=available-now
+[LEGACY EVENT STARTUP REPAIRS] disabled=v18892 mode=explicit-owner-command-only
+[SCRAPER MODE] Основной пул: новые раз в 3 дня, в пятницу после 2 дней. Второстепенный: раз в неделю и в пятницу. Только ночью 02:00–06:00 без пересечения операций. timeZone=Europe/Moscow nextSecondaryAutoAt=1792198800 manualFull=«тусы быдлячьи парсер все» manualClean=«тусы быдлячьи парсер все чисто»
+[PERSONALIZATION V187] database=C:\Users\Adm\AppData\Local\Gigorave\state\personalization-v187.sqlite dossier=command-only styleBatch=500 startupBackfill=disabled
+[SUMMARY V188 CACHE] database=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite contextTokens=128000 rawInputBudget~=24000 pruned=0
+[HIERARCHY V188] database=C:\Users\Adm\AppData\Local\Gigorave\state\hierarchical-summary-v188.sqlite peers=2000000001,2000000004,2000000006,2000000007,8138353801,8138961901,8141076491,8196547900,8196547901,8196547902,8196547903,8202627500,8202627501,8202627502,8202627503,8223773400,8223773401,8223773402,8223773403,2000000022 daily=23:59-local+tail-22:30-23:59 weekly=Sunday-24:00/Monday-00:00-local monthly=first-day-11:00-local seasonal=first-day-new-season-11:00-local yearly=January-1-12:00-local slices=03:00,09:00,12:00,15:00,18:00,21:00,22:30,23:59 pipeline=raw-once>intraday-batch>daily>week-segment>month rawLeafBudget~=32000 late=immutable-delta auto=default-on
+[AUTO SUMMARY LEGACY SCHEDULER DISABLED] calendar rollup owns scheduled summaries; set LEGACY_AUTO_SUMMARY_SCHEDULER_ENABLED=1 only for rollback compatibility
+[CHAT LEAVERS AUTO STATE] enabled=1 repaired=0
+[COMMUNICATION STATE RESTORED FROM SQLITE] restart-safe=true legacyOutburstsCleared=0 legacyBanterCleared=0
+[TELEGRAM CONNECT ATTEMPT] reason=startup attempt=1/3
+GPT router подключён. Текстовые GPT-модели: grok-4.6, gpt-6-sol, grok-4.5, gpt-5.6-terra, gpt-5.6-luna, gpt-6-astra, gpt-6-luna, gpt-5.5, gpt-6.1-sol, grok-4.7, gpt-5.6-sol
+GPT image-модели: grok-imagine-image-2.0, gpt-image-2.5-flare-4k, gpt-image-2.5-sunburst-4k, gpt-image-2, gpt-image-2.5, gpt-image-2.5-flare-2k, gpt-image-2.5-sunburst, gpt-image-2.5-sunburst-2k, gpt-image-2.5-flare
+[VK LONG POLL ACTIVE] role=primary groupId=233007447
+[TELEGRAM BOT STARTED] id=8965960830 username=@Gigorave_bot offset=813863582
+[TELEGRAM CONNECTED] reason=startup username=@Gigorave_bot
+[SCRAPER COMMAND ABSOLUTE FASTPATH] platform=telegram route=scraper-start
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=1055 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=1055 messageId=16514 sent=-
+[VK HISTORY LOCAL SQLITE SKIP DURABLE] peer=2000000006 database=C:\Users\Adm\AppData\Local\Gigorave\state\history-recovery-v1872.sqlite currentRows=147443 checkpointRows=147374 lastScanRows=3612818 coverageMaxCmid=210111 coverageRows=147374 sourceFiles=42 checkpoint=v2
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1792427624 max=3500 reason=startup
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=154309-154408
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=99 new=1 existing=96 cmid=154309-154408
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=154209-154308
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=154109-154208
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=154009-154108
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153909-154008
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153809-153908
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153709-153808
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153609-153708
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153509-153608
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153409-153508
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=994 new=1 existing=870 cmid=153409-153508
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153309-153408
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153209-153308
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153109-153208
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153009-153108
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152909-153008
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=152986 type=kicked member=746894229 actor=89921228
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=15 requested=1500 received=1493 new=1 existing=1299 cmid=152909-153008
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1500 received=1493 new=1 existing=1299 cutoff=1792427624 limit=3500
+[SUMMARY V188 PLAN] messages=7 batches=1 batchMaxMessages=3000 inputTokenBudget~=32000 context=128000 ratio=0.9 cache=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite
+[AI RUNTIME TRANSPORT] requestId=mvgwlagm-b1639e8e model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=79712318 isChat=true text="Я слишком массивный для тебя ! Улетишь с своим самокатом )"
+[VK MESSAGE] peerId=2000000001 senderId=755496806 isChat=true text="гигорейв"
+[VK MESSAGE] peerId=2000000006 senderId=79712318 isChat=true text="Да жостко Димон! Наших так же хуярят 😞"
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text="Знаю"
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text="Йо умора! А подкатывать-то мне зачем?"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000001 reason=direct-bot-interaction
+[SESSION START] mode=prompt peerId=2000000001 senderId=755496806 expiresAt=2026-10-20T18:37:01.259Z
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 1484,
+  completion_tokens: 183,
+  total_tokens: 1667,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=mvgwlagm-b1639e8e operationId=mvgwlagm-b1639e8e operation=calendar-batch-summary:leaf provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=1484 output=183 total=1667 cached=0 reasoning=0 estimatedText=0 durationMs=28746
+[AI TOKEN TOTAL] requestId=mvgwlagm-b1639e8e operationId=mvgwlagm-b1639e8e operation=calendar-batch-summary:leaf provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=1484 output=183 total=1667 cached=0 reasoning=0 estimatedText=0
+[SUMMARY CACHE STORE] stage=leaf inputs=7 key=16e70438f749
+[SUMMARY V188 LEAF] batch=1/1 messages=7 outputs=1
+[SUMMARY V188 COMPLETE] messages=7 gptCalls=1 cacheHits=0
+[CALENDAR BATCH STORE] peer=2000000006 slice=2026-10-20@18:00 revision=2 messages=7 rawHardLimitPerLeaf=3000
+[CALENDAR SUMMARY MAINTENANCE] reason=maintenance peer=2000000006 batches=1 daily=0 weekly=0 monthly=0 aliases=0
+[VK MESSAGE] peerId=2000000006 senderId=79712318 isChat=true text="Моему Димону братанчику лёгкое пррхуярило"
+[VK MESSAGE] peerId=2000000001 senderId=755496806 isChat=true text="гигорейв чтиво низший пилотаж"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000001 reason=direct-bot-interaction
+[ACTIVE REQUEST] peerId=2000000001 senderId=755496806 mention=true reply=false replyOrQuote=false request="чтиво низший пилотаж"
+[COMMAND ROUTE] selected=default reason=no-explicit-command candidates=default explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=implicit astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=no packet=none
+[AI RUNTIME TRANSPORT] requestId=a9e0112c-c005-477f-a48c-9a45aa601e92 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 580,
+  completion_tokens: 13,
+  total_tokens: 593,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=a9e0112c-c005-477f-a48c-9a45aa601e92 operationId=mvgwq0ky-c01fef9f operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=580 output=13 total=593 cached=0 reasoning=0 estimatedText=0 durationMs=5201
+[AI TOKEN TOTAL] requestId=a9e0112c-c005-477f-a48c-9a45aa601e92 operationId=mvgwq0ky-c01fef9f operation=manual-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=580 output=13 total=593 cached=0 reasoning=0 estimatedText=0
+[GPT UNKNOWN TERMS] terms=2 resolved=0 unresolved=2 values=чтиво|низший пилотаж
+[GPT ROUTE RESOLVED] requestedMode=default effectiveMode=default model=gpt-6-luna packet=none
+[DIRECT GPT CHAT CONTEXT] peer=2000000001 sender=755496806 name="Uncle Seva" messages=39 chars=4710
+[AI RUNTIME TRANSPORT] requestId=a9e0112c-c005-477f-a48c-9a45aa601e92 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5576,
+  completion_tokens: 16,
+  total_tokens: 5592,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=a9e0112c-c005-477f-a48c-9a45aa601e92 operationId=mvgwq0ky-c01fef9f operation=chat-reply provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=5576 output=16 total=5592 cached=0 reasoning=0 estimatedText=0 durationMs=5640
+[AI TOKEN TOTAL] requestId=a9e0112c-c005-477f-a48c-9a45aa601e92 operationId=mvgwq0ky-c01fef9f operation=chat-reply provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=5576 output=16 total=5592 cached=0 reasoning=0 estimatedText=0
+[GPT ANSWER] mode=default model=gpt-5.6-luna length=standard paragraphs=1 chars=66  
+[VK MESSAGE] peerId=2000000006 senderId=79712318 isChat=true text="Из личного опыта"
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text="Ой. Не, такие как ты, уж точно не в моем вкусе 🤣"
+[VK MESSAGE] peerId=2000000006 senderId=79712318 isChat=true text="Когда я такое слышал в основном после я уже прошу меня в покое оставить"
+[VK MESSAGE] peerId=2000000006 senderId=79712318 isChat=true text="Напиши ещё что ты не такая как все"
+[VK MESSAGE] peerId=2000000006 senderId=79712318 isChat=true text="Удиви меня"
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text="Бля, да на фиг ты мне нужен. Как чатовый индивидум только, и не больше 🤣"
+[VK MESSAGE] peerId=2000000006 senderId=79712318 isChat=true text="Знаю вашу породу и этого порой за глаза хватает"
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text="У тебя по синей дыне голову с катушек срывает, плюсом угрозы разного характера высказываешь. Таких с птср лучше обходить стороной 😂"
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text="Так мне тоже"
+[VK MESSAGE] peerId=2000000006 senderId=268454230 isChat=true text="🤷"
+[VK MESSAGE] peerId=2000000006 senderId=79712318 isChat=true text="Особенно что уже больше года за каким то хочешь встретить меня на своем харлее"
+[VK MESSAGE] peerId=2000000006 senderId=79712318 isChat=true text="Ну значит вы теперь оба мои братанчики! Согласен ?"
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text=""

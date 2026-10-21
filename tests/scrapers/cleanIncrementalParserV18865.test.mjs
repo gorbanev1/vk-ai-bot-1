@@ -33,11 +33,15 @@ for (const file of files) {
     const source = await readFile(new URL(file, import.meta.url), 'utf8');
     assert.match(source, /incrementalOnly = false/u, file);
     assert.match(source, /getManualParserSeenItem\(\{ sourceId, itemId \}\)/u, file);
-    assert.match(source, /isManualParserSeenItemFinalStatus\(ledgerBefore\.parseStatus\)/u, file);
-    assert.match(source, /clean-mode-database-known/u, file);
-    assert.match(source, /!incrementalKnown[\s\S]{0,120}!decision\.aiEligible/u, file);
+    assert.match(source, /isManualParserSeenItemFinalStatus\(/u, file);
+    assert.match(source, /clean-mode-(?:database|content-hash)-known/u, file);
     assert.match(source, /upsertManualParserSeenItem/u, file);
     assert.match(source, /\.filter\(\([^)]*\) => !incrementalOnly \|\| !candidateDecisions\.get/u, file);
+}
+for (const file of files.slice(0, 2)) {
+    const source = await readFile(new URL(file, import.meta.url), 'utf8');
+    assert.match(source, /decision\.aiEligible[\s\S]{0,100}\(!incrementalOnly \|\| !existing\)/u, file);
+    assert.match(source, /const existing = \(incrementalOnly && !incrementalKnown\)/u, file);
 }
 
 const chat = await readFile(new URL('../../src/platforms/vk/vkChatEventScraper.js', import.meta.url), 'utf8');

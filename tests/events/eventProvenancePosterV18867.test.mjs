@@ -32,6 +32,20 @@ test('VK chat provenance prefers repost wall over body/attachment links', () => 
     assert.equal(provenance.sourceMessageId, 1234);
 });
 
+test('VK chat provenance never publishes a conversation URL and follows the deepest repost evidence', () => {
+    const provenance = resolveVkChatProvenance({
+        conversationUrl: 'https://vk.ru/im?sel=c22',
+        text: 'репост репоста https://vk.ru/wall-9_90',
+        repostUrls: [
+            { url: 'https://vk.ru/wall-1_10', depth: 1 },
+            { url: 'https://vk.ru/wall-9_90', depth: 3 },
+        ],
+    });
+    assert.equal(provenance.canonicalPostUrl, 'https://vk.ru/wall-9_90');
+    assert.equal(provenance.sourceOriginalUrl, 'https://vk.ru/wall-9_90');
+    assert.doesNotMatch(provenance.sourceOriginalUrl, /\/im(?:[/?]|$)/u);
+});
+
 test('clean VK chat message remains attributable even without a post URL', () => {
     const provenance = resolveVkChatProvenance({
         peerId: 55,
@@ -56,9 +70,32 @@ test('compact and full provenance use canonical post stored on the event', () =>
         sourceChatName: 'Тусовка',
         sourceMessageId: 42,
     };
-    assert.equal(formatEventProvenance(event, { compact: true }), '🔗 vk.ru/wall-77_900 (из беседы «Тусовка»)');
+    assert.equal(formatEventProvenance(event, { compact: true }), '🔗 https://vk.ru/wall-77_900 (из беседы «Тусовка»)');
     assert.match(formatEventProvenance(event), /Источник:\nhttps:\/\/vk\.ru\/wall-77_900/u);
     assert.match(formatEventProvenance(event), /Из беседы «Тусовка», сообщение #42/u);
+});
+
+test('technical VK conversation identifiers are omitted from public provenance', () => {
+    for (const sourceChatName of ['Беседа 22', 'VK-беседа 22', 'Беседа #22', 'chat:2000000022', '2000000022']) {
+        const formatted = formatEventProvenance({
+            provenanceSourceType: 'vk_chat',
+            canonicalPostUrl: 'https://vk.ru/wall-77_900',
+            sourceChatName,
+            sourceMessageId: 42,
+        }, { compact: true });
+        assert.equal(formatted, '🔗 https://vk.ru/wall-77_900', sourceChatName);
+        assert.doesNotMatch(formatted, /бесед|chat:|2000000022/iu);
+    }
+    assert.equal(formatEventProvenance({
+        provenanceSourceType: 'vk_chat',
+        sourceChatName: 'Беседа 22',
+        sourceMessageId: 42,
+    }, { compact: true }), '💬 Сообщение #42');
+    assert.equal(formatEventProvenance({
+        provenanceSourceType: 'vk_chat',
+        sourceChatName: 'Воронежская тусовка',
+        sourceMessageId: 42,
+    }, { compact: true }), '💬 Беседа «Воронежская тусовка», сообщение #42');
 });
 
 test('three separate posters bind to three separate child events', () => {
@@ -150,9 +187,8 @@ test('public formatting always appends source and location, and images are prove
     const compactStart = appSource.indexOf('function buildCompactPublicEventsMessage');
     const compactEnd = appSource.indexOf('async function sendCompactPublicEventList', compactStart);
     const compact = appSource.slice(compactStart, compactEnd);
-    assert.match(compact, /formatEventProvenance\(event, \{ compact: true \}\)/u);
+    assert.match(compact, /buildCompactEventLinkLine/u);
     assert.match(compact, /место не указано/u);
-    assert.match(compact, /— \$\{source\}/u);
 
     const fullStart = appSource.indexOf('function buildSinglePublicEventMessage');
     const fullEnd = appSource.indexOf('async function normalizeStoredEventForDisplay', fullStart);

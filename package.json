@@ -7,7 +7,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node --import ./src/infrastructure/database/databasePreflightRegister.js src/index.js",
-    "dev": "node --watch --import ./src/infrastructure/database/databasePreflightRegister.js src/index.js",
+    "dev": "node --import ./src/infrastructure/database/databasePreflightRegister.js src/index.js",
+    "dev:watch": "node --watch --import ./src/infrastructure/database/databasePreflightRegister.js src/index.js",
     "test:dossier-access": "node tests/security/dossierAccess.test.mjs",
     "test:stream": "node tests/ai/openAIStream.test.mjs",
     "test:image-edit": "node tests/ai/imageEditRouting.test.mjs",
@@ -36,7 +37,7 @@
     "test:shared-commands": "node tests/shared/sharedCommands.test.mjs",
     "test:shared-date": "node tests/shared/sharedDate.test.mjs",
     "test:event-range": "node tests/events/publicEventRange.test.mjs",
-    "test:qtickets": "node --test tests/events/qticketsParser.test.mjs tests/events/qticketsRouting.test.mjs tests/platforms/telegramQticketsMenu.test.mjs tests/events/v18887QticketsMenuFilter.test.mjs",
+    "test:qtickets": "node --test tests/events/qticketsParser.test.mjs tests/events/qticketsRouting.test.mjs tests/platforms/telegramQticketsMenu.test.mjs tests/events/v18887QticketsMenuFilter.test.mjs tests/platforms/qticketsDomSnapshot.test.mjs",
     "test:source-config": "node tests/scrapers/sourceConfiguration.test.mjs",
     "test:architecture": "node tests/architecture/architecture.test.mjs",
     "check:syntax": "node scripts/check-syntax.mjs",

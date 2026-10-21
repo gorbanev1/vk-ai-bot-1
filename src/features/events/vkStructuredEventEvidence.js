@@ -324,7 +324,7 @@ function collectVkWallPhotoUrls(wall, maximum = 4) {
         }
     };
     visit(wall);
-    return [...new Set(urls)].slice(0, Math.max(1, Math.min(12, Number(maximum) || 4)));
+    return [...new Set(urls)].slice(0, Math.max(1, Math.min(1000, Number(maximum) || 4)));
 }
 
 function parseExactWallTarget(value) {

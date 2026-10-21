@@ -5,7 +5,9 @@ import {
     collectTelegramVoiceAttachments,
     collectVkVoiceAttachments,
     formatVoiceTranscriptBlock,
+    hasUntranscribedDirectVkVoice,
     transcribeAudioBuffer,
+    vkVoiceDescriptorsNeedTranscriptHydration,
 } from '../../src/features/ai/voiceTranscription.js';
 import {
     extractVkMessageContent,
@@ -51,6 +53,15 @@ assert.equal(vkVoices[0].transcript, 'Сегодня в восемь конце�
 assert.equal(vkVoices[0].attachmentKey, 'vk:42:91');
 assert.equal(vkVoices[1].isDirect, false);
 assert.equal(vkVoices[1].mp3Url, 'https://example.test/forwarded.mp3');
+assert.equal(vkVoiceDescriptorsNeedTranscriptHydration(vkVoices), true, 'missing transcript must trigger VK hydration even when an audio URL exists');
+assert.equal(vkVoiceDescriptorsNeedTranscriptHydration([{ transcript: 'уже есть текст', url: 'https://example.test/voice.ogg' }]), false);
+assert.equal(hasUntranscribedDirectVkVoice(vkMessage, [], ''), false, 'native VK transcript should be accepted');
+const voiceOnlyMessage = { attachments: [{ type: 'audio_message', audio_message: { id: 92, owner_id: 42, link_ogg: 'https://example.test/voice.ogg' } }] };
+const unresolvedVoice = collectVkVoiceAttachments(voiceOnlyMessage);
+assert.equal(hasUntranscribedDirectVkVoice(voiceOnlyMessage, [], ''), true);
+assert.equal(hasUntranscribedDirectVkVoice(voiceOnlyMessage, [{ ...unresolvedVoice[0], transcript: 'Сказанный текст' }], ''), false);
+assert.equal(hasUntranscribedDirectVkVoice(voiceOnlyMessage, [], ''), true, 'quoted or caption text must not hide an unresolved direct voice');
+assert.equal(hasUntranscribedDirectVkVoice(voiceOnlyMessage, [], 'подпись рядом с голосовым'), false, 'an actual direct caption is processable');
 
 const normalizedVk = extractVkMessageContent(vkMessage);
 assert.match(normalizedVk.text, /Голосовое сообщение VK/u);

@@ -22,7 +22,7 @@ import {
 } from './eventRetry.js';
 
 const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
-const MAX_SOURCE_IMAGES = 12;
+const MAX_SOURCE_IMAGES = 1000;
 const DEFAULT_IMAGE_DOWNLOAD_TIMEOUT_MS = 30_000;
 
 function safeSegment(value, fallback = 'item') {
@@ -186,33 +186,11 @@ async function downloadSourceImages({
                 },
             );
 
+            // Source membership, not pixel count, determines whether an image
+            // reaches storage/Vision. URL-level avatar, sticker and UI filters
+            // run during source capture; small or compressed images remain
+            // inspectable evidence and must not disappear silently here.
             const dimensions = detectRasterImageDimensions(response.buffer);
-            // V188.73: size is no longer poster admission. VK often exposes a
-            // real event poster as a 72x72 thumbnail while an unrelated photo
-            // is 1440x1440. Preserve every non-trivial source image and let
-            // vision decide whether it is an actual announcement poster.
-            const tinyUiImage = Boolean(
-                dimensions.width && dimensions.height &&
-                Math.max(dimensions.width, dimensions.height) < 48
-            );
-            if (tinyUiImage || Number(response.buffer?.length || 0) < 1024) {
-                appendEventIngestAudit({
-                    dataDirectory,
-                    sourceType: 'event-assets',
-                    sourceKey: safeSource,
-                    itemId: safeItem,
-                    sourceUrl: urls[index],
-                    status: 'image-skipped',
-                    reason: tinyUiImage ? 'tiny-ui-image' : 'image-too-small-bytes',
-                    details: {
-                        width: Number(dimensions.width) || 0,
-                        height: Number(dimensions.height) || 0,
-                        bytes: Number(response.buffer?.length) || 0,
-                        sourceImageIndex: index + 1,
-                    },
-                });
-                continue;
-            }
 
             const extension = guessImageExtension(
                 response.contentType,
@@ -257,6 +235,7 @@ export {
     assignEventImageIndexesFromFacts,
     assignEventImageIndexesFromParsedFacts,
     parseIndexedImageFacts,
+    serializeIndexedImageFacts,
 } from './eventPosterMatching.js';
 
 /**
@@ -332,8 +311,13 @@ export async function prepareEventImages({
     });
     const sourceImageCount = uniqueHttpUrls(imageUrls, maxSourceImages).length;
     const result = [];
-    // V188.73: shareSourceImagesAcrossEvents is intentionally ignored. Source
-    // media is not event media until vision has bound a concrete [IMAGE N].
+    // A single source image on a multi-announcement post is the post's shared
+    // announcement image. Bind that exact downloaded file to every child
+    // event. This is deliberately limited to one source image; galleries still
+    // require an explicit Vision-to-event binding for each child.
+    const sharedMultiEventSourceBinding = Boolean(
+        shareSourceImagesAcrossEvents && safeEvents.length > 1 && sourceImageCount === 1 && downloaded.length === 1,
+    );
 
     for (let index = 0; index < safeEvents.length; index += 1) {
         const event = safeEvents[index];
@@ -342,13 +326,8 @@ export async function prepareEventImages({
                 .map((value) => String(value ?? '').trim())
                 .filter((value) => value && !isGeneratedEventAssetPath(value))
             : [];
-        /*
-         * V147: картинка принадлежит посту, а не каждой вытащенной из него
-         * строке расписания. Если один digest/pinned schedule породил несколько
-         * событий, нельзя слепо приклеивать одну и ту же афишу ко всем дочерним
-         * карточкам. Такие события остаются без event-level poster и затем
-         * проходят точечный поиск собственного анонса/афиши.
-         */
+        /* A one-image multi-announcement is intentionally shared by all of its
+         * child cards. Multiple source images remain event-specific below. */
         const sourceIndexFromPath = (pathValue) => {
             const match = String(pathValue ?? '').replace(/\\+/gu, '/').match(/-(\d+)(?:-[a-f0-9]{8,64})?\.[^.]+$/iu);
             const value = Number(match?.[1] || 0);
@@ -380,12 +359,16 @@ export async function prepareEventImages({
         // unambiguous event-to-media relationship even when the first Vision
         // pass did not return an image index. Keep that image attached so a
         // later metadata pass can enrich or replace it. Multi-announcement
-        // schedules still require an explicit binding per event.
+        // galleries still require an explicit binding per event; a one-image
+        // multi-announcement is the intentional shared-source exception below.
         const singleSourceEventBinding = safeEvents.length === 1 &&
-            sourceImageCount === 1 &&
-            downloaded.length === 1;
-        const singleEventSingleImageFallback = singleSourceEventBinding && !specificCandidates.length;
-        if (singleEventSingleImageFallback) {
+            !Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement) &&
+            downloaded.length > 0;
+        const singleEventSourceMediaFallback = singleSourceEventBinding && !specificCandidates.length;
+        if (singleEventSourceMediaFallback) {
+            specificCandidates.push(downloaded[0]);
+        }
+        if (sharedMultiEventSourceBinding) {
             specificCandidates.push(downloaded[0]);
         }
         let selectedPath = '';
@@ -394,6 +377,7 @@ export async function prepareEventImages({
             if (selectedPath) break;
         }
         if (!selectedPath) selectedPath = specificCandidates[0] || '';
+        if (sharedMultiEventSourceBinding) selectedPath = downloaded[0];
 
         // Keep an explicitly rejected source out of event media. Match the
         // negative fact to the selected path/index; a non-poster fact for a
@@ -414,18 +398,22 @@ export async function prepareEventImages({
         // preserve the source path and the negative fact for audit instead of
         // making the card lose its only image. Strict matching remains in force
         // for galleries and multi-announcement posts.
-        const eventImagePaths = selectedPath &&
-            (!selectedPathExplicitlyRejected || singleSourceEventBinding)
-            ? [selectedPath]
-            : [];
-        const fallbackPosterBinding = Boolean(
-            singleEventSingleImageFallback &&
-            selectedPath &&
-            eventImagePaths.length === 1 &&
-            safeEvents.length === 1,
-        );
+        // A mono-announcement owns the complete source gallery. Vision facts
+        // annotate those files, but even a negative/failed fact never removes
+        // the original media from the card. A single-image multi-announcement
+        // follows the same source-media rule for each child card.
+        const eventImagePaths = sharedMultiEventSourceBinding
+            ? [downloaded[0]]
+            : singleSourceEventBinding && downloaded.length
+                ? downloaded
+            : selectedPath && !selectedPathExplicitlyRejected
+                ? [selectedPath]
+                : [];
         const singletonSourceMediaBinding = Boolean(
-            singleSourceEventBinding && selectedPath && eventImagePaths.length === 1 && safeEvents.length === 1,
+            singleSourceEventBinding && selectedPath && eventImagePaths.length > 0 && safeEvents.length === 1,
+        );
+        const sharedMultiSourceMediaBinding = Boolean(
+            sharedMultiEventSourceBinding && selectedPath && eventImagePaths.length > 0,
         );
         if (!eventImagePaths.length && generateFallback) {
             appendEventIngestAudit({
@@ -443,31 +431,43 @@ export async function prepareEventImages({
             ? event.posterVisionFacts
             : [];
         const selectedIndex = selectedPath ? sourceIndexFromPath(selectedPath) : 0;
-        const existingFallbackFact = posterVisionFacts.find((fact) => Number(fact?.index || 0) === 1);
-        if (singleSourceEventBinding && selectedPath && existingFallbackFact) {
+        const existingFallbackFact = posterVisionFacts.find((fact) => Number(fact?.index || 0) === selectedIndex);
+        if ((singleSourceEventBinding || sharedMultiSourceMediaBinding) && selectedPath && existingFallbackFact) {
             // Preserve any explicit Vision fact, including poster:false, while
             // recording the independent singleton source binding.
             posterVisionFacts = posterVisionFacts.map((fact) => (
-                Number(fact?.index || 0) === 1
-                    ? { ...fact, fallbackBinding: 'single-event-single-image', sourceMediaBinding: true, sourceEventCount: 1, sourceImageCount: 1, imagePath: selectedPath.replace(/\\/gu, '/') }
+                Number(fact?.index || 0) === selectedIndex
+                    ? { ...fact,
+                        fallbackBinding: sharedMultiSourceMediaBinding
+                            ? 'multi-event-shared-source-image'
+                            : (sourceImageCount === 1 ? 'single-event-single-image' : 'single-event-source-media'),
+                        sourceMediaBinding: true,
+                        sourceEventCount: sharedMultiSourceMediaBinding ? safeEvents.length : 1,
+                        sourceImageCount,
+                        imagePath: selectedPath.replace(/\\/gu, '/'),
+                    }
                     : fact
             ));
-        } else if (singleSourceEventBinding && selectedPath) {
+        } else if ((singleSourceEventBinding || sharedMultiSourceMediaBinding) && selectedPath) {
             // Preserve the exact source binding for persistence/render safety.
             // This is deliberately a minimal fact: no OCR or event metadata is
             // invented, only the parser's one-event/one-image relationship.
             posterVisionFacts = [{
-                index: 1,
-                poster: true,
-                posterConfidence: 55,
+                index: selectedIndex,
+                poster: null,
+                posterConfidence: null,
                 imageType: 'source-image-fallback',
-                fallbackBinding: 'single-event-single-image',
+                fallbackBinding: sharedMultiSourceMediaBinding
+                    ? 'multi-event-shared-source-image'
+                    : (sourceImageCount === 1 ? 'single-event-single-image' : 'single-event-source-media'),
                 sourceMediaBinding: true,
-                sourceEventCount: 1,
-                sourceImageCount: 1,
+                sourceEventCount: sharedMultiSourceMediaBinding ? safeEvents.length : 1,
+                sourceImageCount,
                 imagePath: selectedPath.replace(/\\/gu, '/'),
+                visionInspected: false,
+                visionStatus: 'not_run',
                 text: '',
-            }, ...posterVisionFacts.filter((fact) => Number(fact?.index || 0) !== 1)];
+            }, ...posterVisionFacts.filter((fact) => Number(fact?.index || 0) !== selectedIndex)];
         }
         if (selectedPath && selectedIndex > 0) {
             try {
@@ -491,21 +491,30 @@ export async function prepareEventImages({
 
         result.push({
             ...event,
+            isMultiAnnouncement: sharedMultiEventSourceBinding
+                ? true
+                : Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement),
             imagePaths: eventImagePaths,
-            // A single event with exactly one downloaded source image has an
-            // unambiguous event-to-media relationship even when the first
-            // Vision pass returned no [IMAGE N] block. Keep a narrow status so
-            // poster delivery can use this source image; multi-announcement
-            // posts never receive this marker.
-            posterImageIndex: singletonSourceMediaBinding
+            // A single event with one source image, or a multi-announcement
+            // with one shared source image, has an explicit path-bound media
+            // relationship even when Vision returned an error. Keep the
+            // Vision fact for audit and retry; do not lose the source image.
+            posterImageIndex: (singletonSourceMediaBinding || sharedMultiSourceMediaBinding)
                 ? (selectedIndex || 1)
                 : Number(event?.posterImageIndex || 0),
             posterMatchStatus: singletonSourceMediaBinding
-                ? 'verified_single_event_source_media'
-                : String(event?.posterMatchStatus || ''),
+                ? (['exact_poster_match', 'verified_title_date_poster'].includes(String(event?.posterMatchStatus || '').trim())
+                    ? String(event.posterMatchStatus) : 'no_safe_poster')
+                : sharedMultiSourceMediaBinding
+                    ? 'shared_multi_event_source_image'
+                    : String(event?.posterMatchStatus || ''),
             posterMatchReason: singletonSourceMediaBinding
-                ? 'single-event-single-source-image-fallback'
-                : String(event?.posterMatchReason || ''),
+                ? (['exact_poster_match', 'verified_title_date_poster'].includes(String(event?.posterMatchStatus || '').trim())
+                    ? String(event?.posterMatchReason || 'metadata-confirmed-poster')
+                    : 'single-event-source-media-fallback')
+                : sharedMultiSourceMediaBinding
+                    ? 'multi-event-shared-source-image'
+                    : String(event?.posterMatchReason || ''),
             posterVisionFacts,
             // Source storage remains lossless for future repair/forensics.
             _sourceImagePaths: downloaded,

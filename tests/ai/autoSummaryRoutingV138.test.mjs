@@ -26,6 +26,22 @@ test('авторезюме/резюмирование commands are deterministic
     assert.equal(parseAutoSummaryCommand('что такое авторезюме').matched, false);
 });
 
+test('VK conversation URL resolves its exact peer_id instead of a short chat alias', () => {
+    for (const url of [
+        'https://vk.ru/im/convo/2000000027',
+        'https://vk.com/im/convo/2000000027',
+    ]) {
+        const parsed = parseAutoSummaryCommand(`авторезюме ${url} статус`);
+        assert.equal(parsed.action, 'status');
+        assert.deepEqual(parsed.target, {
+            platform: 'vk',
+            externalPeerId: '2000000027',
+            canonicalUrl: '',
+            matchedText: url,
+        });
+    }
+});
+
 test('plain резюмирование enabled at noon waits until fixed 13:00 slot', () => {
     const after = ts('2026-08-28T09:00:00Z'); // 12:00 MSK
     const next = getNextAutoSummaryRunAt({
@@ -90,6 +106,6 @@ test('runtime intercepts autoresume and durable calendar pipeline owns schedulin
     assert.match(source, /LEGACY_AUTO_SUMMARY_SCHEDULER_ENABLED/u);
     assert.match(source, /calendar rollup owns scheduled summaries/u);
     assert.match(source, /Настройка сохранена в SQLite и переживает перезапуск/u);
-    assert.match(source, /slices=09:00,13:00,15:00,18:00,21:00,23:59/u);
+    assert.match(source, /slices=03:00,09:00,12:00,15:00,18:00,21:00,22:30,23:59/u);
     assert.doesNotMatch(source, /с 06:00/u);
 });

@@ -1,0 +1,230 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=222466 scanned=5000 skipped=217466
+[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS] [{"id":"muzwe23p-4cbb24bd","name":"startup-telegram-connect","phase":"","tracePath":""}]
+(node:33068) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:49573:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131750 cutoff=1791399646 max=3500 reason=startup
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131971 cutoff=1791401539 max=3500 reason=periodic
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=132213 cutoff=1791403339 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 503: Выбранная модель временно недоступна: сейчас нет свободного канала. Повторите попытку позже или смените источник модели. (request id: 202610082016131589754268268d9d6bMPOnU6f) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 503
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=132250 cutoff=1791407436 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures

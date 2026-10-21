@@ -237,6 +237,11 @@ export function createAutoSummaryStateStore({
         FROM auto_summary_health
         WHERE peer_id = ?
     `);
+    const getMetaStatement = db.prepare('SELECT value FROM auto_summary_state_meta WHERE key = ?');
+    const upsertMetaStatement = db.prepare(`
+        INSERT INTO auto_summary_state_meta (key, value, updated_at) VALUES (?, ?, ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+    `);
     const upsertHealthStatement = db.prepare(`
         INSERT INTO auto_summary_health (
             peer_id, last_attempt_at, last_success_at, last_error, consecutive_failures
@@ -359,6 +364,16 @@ export function createAutoSummaryStateStore({
         return getHealth(peerId);
     }
 
+    function getMeta(key, fallback = '') {
+        const row = getMetaStatement.get(String(key || ''));
+        return row ? String(row.value || '') : fallback;
+    }
+
+    function saveMeta(key, value) {
+        upsertMetaStatement.run(String(key || ''), String(value ?? ''), Math.floor(Date.now() / 1000));
+        return String(value ?? '');
+    }
+
     function importLegacy({ settings = [], runs = [] } = {}) {
         let settingsImported = 0;
         let runsImported = 0;
@@ -411,6 +426,8 @@ export function createAutoSummaryStateStore({
         saveRun,
         getHealth,
         saveHealth,
+        getMeta,
+        saveMeta,
         importLegacy,
         close() {
             db.close();

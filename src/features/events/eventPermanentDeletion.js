@@ -89,6 +89,7 @@ export function buildPermanentEventFingerprint(event = {}) {
         sourceText: String(event?.sourceText || event?.rawText || '').trim().slice(0, 8000),
         sourceType: String(event?.sourceType || event?.provenanceSourceType || '').trim(),
         sourceItemId: String(event?.sourceItemId || event?.externalId || '').trim(),
+        isMultiAnnouncement: Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement),
         sourceUrl,
         canonicalPostUrl,
         posterVisionFacts: compactPosterFacts(event?.posterVisionFacts),

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#05030d">
+  <meta name="color-scheme" content="dark">
+  <title>GIGORAVE // PINBALL PSYCHOSIS</title>
+  <link rel="stylesheet" href="./pinball.css?v=129">
+  <script src="https://telegram.org/js/telegram-web-app.js?59" defer></script>
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <div class="noise" aria-hidden="true"></div>
+    <header class="hud-top">
+      <div class="brand">
+        <div class="brand-kicker">GIGORAVE ARCADE</div>
+        <div class="brand-title">PINBALL <span>PSYCHOSIS</span></div>
+      </div>
+      <div class="hud-pills">
+        <div class="pill"><span>SCORE</span><b id="score">0</b></div>
+        <div class="pill"><span>BEST</span><b id="bestScore">0</b></div>
+        <div class="pill"><span>BALL</span><b id="ballCount">3</b></div>
+        <div class="pill"><span>MULTI</span><b id="multiplier">×1</b></div>
+      </div>
+    </header>
+
+    <main class="game-stage" id="stage">
+      <div class="cabinet-glow" aria-hidden="true"></div>
+      <canvas id="game" width="900" height="1600" aria-label="Пинбол Gigorave"></canvas>
+      <div class="scanlines" aria-hidden="true"></div>
+      <div id="statusRibbon" class="status-ribbon">PRESS START</div>
+
+      <section id="startOverlay" class="overlay open">
+        <div class="overlay-card start-card">
+          <div class="sigil" aria-hidden="true">◉</div>
+          <h1>PINBALL PSYCHOSIS</h1>
+          <p class="lead">Неоновый автомат с мультболом, рампами, джекпотами, комбо, нуджем и режимами безумия.</p>
+          <div class="control-grid">
+            <div><kbd>A</kbd><kbd>←</kbd><span>левый флиппер</span></div>
+            <div><kbd>D</kbd><kbd>→</kbd><span>правый флиппер</span></div>
+            <div><kbd>SPACE</kbd><span>зарядить / запустить</span></div>
+            <div><kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><span>нудж влево / вверх / вправо</span></div>
+            <div><kbd>P</kbd><kbd>ESC</kbd><span>пауза</span></div>
+            <div><kbd>R</kbd><span>новая игра после GAME OVER</span></div>
+          </div>
+          <button id="startButton" class="mega-button">ЗАПУСТИТЬ БЕЗУМИЕ</button>
+          <button id="leaderboardButton" class="ghost-button">ТАБЛИЦА РЕКОРДОВ</button>
+          <div id="authState" class="auth-state">Telegram: подключение…</div>
+        </div>
+      </section>
+
+      <section id="pauseOverlay" class="overlay">
+        <div class="overlay-card compact-card">
+          <div class="eyebrow">SYSTEM HALT</div>
+          <h2>ПАУЗА</h2>
+          <p>Нажми <b>P</b> / <b>ESC</b> или кнопку ниже.</p>
+          <button id="resumeButton" class="mega-button">ПРОДОЛЖИТЬ</button>
+        </div>
+      </section>
+
+      <section id="gameOverOverlay" class="overlay">
+        <div class="overlay-card compact-card">
+          <div class="eyebrow">END OF TRANSMISSION</div>
+          <h2>GAME OVER</h2>
+          <div class="final-score"><span>ИТОГ</span><b id="finalScore">0</b></div>
+          <div class="final-stats" id="finalStats"></div>
+          <button id="restartButton" class="mega-button">ЕЩЁ ОДИН ЗАХОД</button>
+          <button id="gameOverLeaderboard" class="ghost-button">РЕКОРДЫ</button>
+        </div>
+      </section>
+
+      <section id="leaderboardOverlay" class="overlay">
+        <div class="overlay-card board-card">
+          <button id="closeLeaderboard" class="close-button" aria-label="Закрыть">×</button>
+          <div class="eyebrow">NEON HALL OF FAME</div>
+          <h2>РЕКОРДЫ</h2>
+          <ol id="leaderboard" class="leaderboard"></ol>
+          <div id="leaderboardNote" class="leaderboard-note"></div>
+        </div>
+      </section>
+
+      <div id="toast" class="toast" aria-live="polite"></div>
+    </main>
+
+    <footer class="touch-controls" id="touchControls">
+      <button class="touch-flip left" data-control="left" aria-label="Левый флиппер"><span>LEFT</span></button>
+      <div class="touch-center">
+        <button class="nudge" data-control="nudge-left">↙</button>
+        <button class="launch" data-control="launch"><span id="launchLabel">LAUNCH</span><i id="launchMeter"></i></button>
+        <button class="nudge" data-control="nudge-right">↘</button>
+      </div>
+      <button class="touch-flip right" data-control="right" aria-label="Правый флиппер"><span>RIGHT</span></button>
+    </footer>
+  </div>
+
+  <script src="./pinball.js?v=129" type="module"></script>
+</body>
+</html>

@@ -5,17 +5,20 @@
  */
 export function shouldSkipUnchangedCapturedItem({
     incrementalOnly,
+    resumeCompletedSince = 0,
     previous,
     contentHash,
     isFinalStatus,
+    current = null,
+    previousRows = null,
+    similarityThreshold = 1,
+    findProcessedNearDuplicate = null,
 }) {
-    return Boolean(
-        incrementalOnly &&
-        previous &&
-        typeof isFinalStatus === 'function' &&
-        isFinalStatus(previous.parseStatus) &&
-        String(previous.contentHash ?? '') !== '' &&
-        String(previous.contentHash) === String(contentHash ?? '') &&
-        String(contentHash ?? '') !== ''
-    );
+    if (!incrementalOnly || typeof isFinalStatus !== 'function') return false;
+    if (Number(resumeCompletedSince) > 0 && Number(previous?.processedAt || 0) < Number(resumeCompletedSince)) return false;
+    if (previous && isFinalStatus(previous.parseStatus) && String(previous.contentHash ?? '') !== '' &&
+        String(previous.contentHash) === String(contentHash ?? '') && String(contentHash ?? '') !== '') return true;
+    const threshold = Math.max(0, Math.min(1, Number(similarityThreshold) || 1));
+    if (threshold >= 1 || typeof findProcessedNearDuplicate !== 'function' || !current || !Array.isArray(previousRows)) return false;
+    return Boolean(findProcessedNearDuplicate(current, previousRows, { threshold }));
 }

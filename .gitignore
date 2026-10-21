@@ -6,8 +6,8 @@
 data/
 AI_FULL_AUDIT_RESULTS.old*/
 _data_recovery_conflicts/
-.idea/
 node_modules/
+.idea/
 backup/
 _packed_cleanup/
 /*.txt
@@ -20,6 +20,7 @@ _packed_cleanup/
 !/README.md
 !/package.json
 docs/*
+!docs/parser-audit-2026-10-07.md
 !docs/current/
 !docs/current/**
 AI_FULL_AUDIT_RESULTS/

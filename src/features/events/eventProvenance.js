@@ -45,6 +45,49 @@ export function canonicalPostUrl(value) {
     return canonicalVkWallUrl(value) || canonicalTelegramPostUrl(value) || '';
 }
 
+// Conversation labels coming from VK are often internal identifiers rather
+// than names a reader can recognise. Do not leak those identifiers into a
+// public event source line; a canonical post URL is sufficient provenance.
+export function getMeaningfulEventChatName(event) {
+    const value = clean(event?.sourceChatName || event?.source_chat_name || event?.sourceName);
+    if (!value) return '';
+    const normalized = value.replace(/[«»"']/gu, '').trim();
+    if (/^(?:(?:vk|вк)[- ]?)?(?:беседа|чат)(?:\s*(?:№|#)?\s*\d+)?$/iu.test(normalized)) return '';
+    if (/^(?:вконтакте\s+)?(?:чат|беседа)\s*(?:№|#)\s*\d+$/iu.test(normalized)) return '';
+    if (/^(?:chat|conversation|peer)[: _-]?\d+$/iu.test(normalized)) return '';
+    if (/^\d{5,}$/u.test(normalized)) return '';
+    if (/^(?:source|unknown|unnamed|без названия|неизвестно)$/iu.test(normalized)) return '';
+    return clean(normalized, 500);
+}
+
+/**
+ * Select the original VK wall post from a repost chain. VK exposes the same
+ * wall URL in several layers (outer repost, embedded repost, message text).
+ * A conversation URL is deliberately never accepted.  In a chain the
+ * innermost wall URL is the one with the deepest explicit repost marker; when
+ * markers are unavailable, preserving first-seen order is deterministic.
+ */
+export function canonicalVkOriginFromRepostChain(values = [], text = '') {
+    const candidates = [];
+    const add = (value, depth = 0) => {
+        const url = canonicalVkWallUrl(value);
+        if (!url) return;
+        const existing = candidates.find((item) => item.url === url);
+        if (existing) existing.depth = Math.max(existing.depth, Number(depth) || 0);
+        else candidates.push({ url, depth: Number(depth) || 0 });
+    };
+    const refs = Array.isArray(values) ? values : [];
+    refs.forEach((value) => {
+        if (value && typeof value === 'object') {
+            add(value.url || value.href, value.depth || value.repostDepth || 0);
+        } else {
+            add(value, 0);
+        }
+    });
+    for (const value of extractHttpUrls(text)) add(value, 0);
+    return candidates.sort((a, b) => b.depth - a.depth)[0]?.url || '';
+}
+
 export function extractHttpUrls(value) {
     return (String(value ?? '').match(/https?:\/\/[^\s<>"'«»]+/giu) ?? [])
         .map((url) => url.replace(/[),.;!?]+$/gu, ''));
@@ -69,7 +112,7 @@ export function resolveVkChatProvenance({
     links = [],
     sourceUrl = '',
 } = {}) {
-    const canonicalFromRepost = firstCanonical(repostUrls, 'vk');
+    const canonicalFromRepost = canonicalVkOriginFromRepostChain(repostUrls, text);
     const canonicalFromText = firstCanonical(extractHttpUrls(text), 'vk');
     const canonicalFromAttachment = firstCanonical(attachmentLinks, 'vk');
     const canonicalFromLinks = firstCanonical(links, 'vk');
@@ -87,7 +130,12 @@ export function resolveVkChatProvenance({
         sourceChatName: clean(conversationName, 500),
         sourceMessageId: Number(conversationMessageId) || 0,
         sourceItemId: `${Number(peerId) || 0}:${Number(conversationMessageId) || 0}`,
-        sourceOriginalUrl: clean(conversationUrl || sourceUrl, 2000),
+        // Keep the conversation URL only as provenance metadata. It must never
+        // become the public/source URL when a wall post is available.
+        // A private /im URL is useful only as an internal chat locator. Never
+        // expose it as the event's original/public source when no wall post
+        // was found; the formatter will then show a message-only provenance.
+        sourceOriginalUrl: clean(canonical || canonicalVkWallUrl(sourceUrl), 2000),
         canonicalOrigin,
     };
 }
@@ -261,19 +309,110 @@ function recoverSinglePathBoundPosterIndex(event, facts, status) {
 export function getEventPosterSafetyAssessment(event) {
     const status = clean(event?.posterMatchStatus).toLowerCase();
     const fallbackReason = clean(event?.posterMatchReason).toLowerCase();
-    if (status === 'verified_single_event_source_media' && fallbackReason === 'single-event-single-source-image-fallback') {
+    // A mono-announcement owns its source photo even when Vision cannot read
+    // event metadata from it. Keep this limited to an explicit mono source
+    // binding and the exact selected local image; multi-announcements still
+    // require a per-event poster match.
+    const monoBindingPaths = eventPosterBindingPaths(event);
+    const monoSelectedIndex = Number(event?.posterImageIndex || 0);
+    const bindingFacts = parsePosterVisionFactsForSafety(event);
+    const monoSelectedFact = bindingFacts.find((fact) => Number(fact?.index || 0) === monoSelectedIndex) || null;
+    const isExplicitMultiAnnouncement = event?.isMultiAnnouncement === true ||
+        (Object.hasOwn(event || {}, 'is_multi_announcement') && Number(event.is_multi_announcement) !== 0) ||
+        bindingFacts.some((fact) => fact?.fallbackBinding === 'multi-event-shared-source-image' &&
+            Number(fact?.sourceEventCount || 0) > 1);
+    const explicitMonoAnnouncement = !isExplicitMultiAnnouncement && (
+        event?.isMultiAnnouncement === false ||
+        (Object.hasOwn(event || {}, 'is_multi_announcement') && Number(event.is_multi_announcement) === 0)
+    );
+    if (explicitMonoAnnouncement) {
+        const factPath = normalizePosterBindingPath(monoSelectedFact?.imagePath);
+        const sourcePaths = (Array.isArray(event?.imagePaths) ? event.imagePaths : [])
+            .map(normalizePosterBindingPath).filter(Boolean);
+        const selectedPath = factPath && monoBindingPaths.includes(factPath)
+            ? factPath
+            : sourcePaths[monoSelectedIndex > 0 ? monoSelectedIndex - 1 : 0] || '';
+        const generated = /(?:^|\/)event_message_cards\/|(?:^|\/)event_generated_fallbacks\/|-event-\d+\.png$/iu.test(selectedPath);
+        if (selectedPath && monoBindingPaths.includes(selectedPath) && !generated) {
+            return {
+                accepted: true, status, reason: 'mono-announcement-source-image',
+                metadataQuality: scorePosterFactMetadataQuality(monoSelectedFact), fact: monoSelectedFact,
+                match: null, selectedIndex: monoSelectedIndex || Math.max(1, sourcePaths.indexOf(selectedPath) + 1),
+                recoveredMissingIndex: false, boundPath: selectedPath, ownerConfirmed: false,
+            };
+        }
+    }
+    // QTickets detail pages expose one authoritative poster URL and do not
+    // pass through the VK/Telegram Vision block contract. Keep this fallback
+    // deliberately narrow: one detail image, one selected index, no generated
+    // path. The renderer still checks that the file exists and has poster-sized
+    // dimensions before sending it.
+    if (String(event?.sourceType ?? event?.provenanceSourceType ?? '').trim().toLowerCase() === 'qtickets' &&
+        status === 'legacy_manual_poster') {
+        const paths = eventPosterBindingPaths(event);
+        const selectedIndex = Number(event?.posterImageIndex || 0);
+        const path = paths.length === 1 ? paths[0] : '';
+        const generated = /(?:^|\/)event_message_cards\/|(?:^|\/)event_generated_fallbacks\/|-event-\d+\.png$/iu.test(path);
+        const accepted = paths.length === 1 && selectedIndex === 1 && Boolean(path) && !generated;
+        return {
+            accepted,
+            status,
+            reason: accepted ? 'qtickets-detail-image' : 'invalid-qtickets-detail-image',
+            metadataQuality: accepted ? 100 : 0,
+            fact: null,
+            match: null,
+            selectedIndex: accepted ? selectedIndex : 0,
+            recoveredMissingIndex: false,
+            boundPath: accepted ? path : '',
+            ownerConfirmed: false,
+        };
+    }
+    if (status === 'shared_multi_event_source_image' && fallbackReason === 'multi-event-shared-source-image') {
         const paths = eventPosterBindingPaths(event);
         const facts = parsePosterVisionFactsForSafety(event);
         const selectedIndex = Number(event?.posterImageIndex || 0);
         const selectedFact = facts.find((fact) => Number(fact?.index || 0) === selectedIndex) || null;
         const factPath = normalizePosterBindingPath(selectedFact?.imagePath);
         const generated = /(?:^|\/)event_message_cards\/|(?:^|\/)event_generated_fallbacks\/|-event-\d+\.png$/iu.test(factPath);
-        const accepted = paths.length === 1 && selectedIndex === 1 &&
-            (selectedFact?.imageType === 'source-image-fallback' || selectedFact?.sourceMediaBinding === true) &&
-            selectedFact?.fallbackBinding === 'single-event-single-image' &&
-            Number(selectedFact?.sourceEventCount || 0) === 1 &&
+        const accepted = Boolean(
+            Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement) &&
+            paths.length === 1 && selectedIndex > 0 &&
+            selectedFact?.fallbackBinding === 'multi-event-shared-source-image' &&
+            selectedFact?.sourceMediaBinding === true &&
+            Number(selectedFact?.sourceEventCount || 0) > 1 &&
             Number(selectedFact?.sourceImageCount || 0) === 1 &&
-            (selectedFact?.poster !== false || selectedFact?.sourceMediaBinding === true) &&
+            factPath && paths[0] === factPath && !generated
+        );
+        return {
+            accepted,
+            status,
+            reason: accepted ? 'multi-event-shared-source-image' : 'invalid-multi-event-shared-source-image',
+            metadataQuality: 0,
+            fact: accepted ? selectedFact : null,
+            match: null,
+            selectedIndex: accepted ? selectedIndex : 0,
+            recoveredMissingIndex: false,
+            boundPath: accepted ? factPath : '',
+            ownerConfirmed: false,
+        };
+    }
+    if (status === 'verified_single_event_source_media' && (
+        fallbackReason === 'single-event-single-source-image-fallback' ||
+        fallbackReason === 'single-event-source-media-fallback'
+    )) {
+        const paths = eventPosterBindingPaths(event);
+        const facts = parsePosterVisionFactsForSafety(event);
+        const selectedIndex = Number(event?.posterImageIndex || 0);
+        const selectedFact = facts.find((fact) => Number(fact?.index || 0) === selectedIndex) || null;
+        const factPath = normalizePosterBindingPath(selectedFact?.imagePath);
+        const generated = /(?:^|\/)event_message_cards\/|(?:^|\/)event_generated_fallbacks\/|-event-\d+\.png$/iu.test(factPath);
+        const fallbackBinding = String(selectedFact?.fallbackBinding || '').trim();
+        const accepted = (fallbackBinding === 'single-event-source-media' ? paths.length > 0 : paths.length === 1) && selectedIndex > 0 &&
+            (selectedFact?.imageType === 'source-image-fallback' || selectedFact?.sourceMediaBinding === true) &&
+            (selectedFact?.fallbackBinding === 'single-event-single-image' || selectedFact?.fallbackBinding === 'single-event-source-media') &&
+            Number(selectedFact?.sourceEventCount || 0) === 1 &&
+            Number(selectedFact?.sourceImageCount || 0) >= 1 &&
+            selectedFact?.poster !== false &&
             Boolean(factPath) && paths.includes(factPath) && !generated;
         return {
             accepted,
@@ -344,6 +483,12 @@ export function getEventPosterSafetyAssessment(event) {
     }
     const bindingPaths = eventPosterBindingPaths(event);
     const ownerConfirmed = ownerConfirmedPosterForExactEvent(event, selectedFact, selectedIndex, bindingPaths);
+    // A singleton source-media binding keeps the original file available for
+    // audit/delivery, but it is never proof that the file is a poster. An
+    // explicit Vision negative must therefore remain negative here.
+    if (selectedFact?.poster === false) {
+        return { accepted: false, status, reason: 'vision-explicitly-not-poster', metadataQuality: scorePosterFactMetadataQuality(selectedFact), fact: selectedFact, match: null, boundPath: '' };
+    }
     if (!ownerConfirmed && !factExplicitlyConfirmsPoster(selectedFact) && selectedFact?.sourceMediaBinding !== true) {
         return { accepted: false, status, reason: 'poster-not-confirmed-by-metadata', metadataQuality: scorePosterFactMetadataQuality(selectedFact), fact: selectedFact, match: null, boundPath: '' };
     }
@@ -363,11 +508,20 @@ export function getEventPosterSafetyAssessment(event) {
 
     const match = evaluatePosterFactForEvent(event, selectedFact);
     const metadataQuality = scorePosterFactMetadataQuality(selectedFact);
-    const accepted = ownerConfirmed || Boolean(match.accepted) || selectedFact?.sourceMediaBinding === true;
+    const sourceImageCount = Number(selectedFact?.sourceImageCount || 0);
+    const inspected = selectedFact?.visionInspected === true || Boolean(selectedFact?.visionStatus && selectedFact.visionStatus !== 'not_run');
+    const sourceMediaFallback = selectedFact?.sourceMediaBinding === true &&
+        Number(selectedFact?.sourceEventCount || 0) === 1 &&
+        sourceImageCount === 1 &&
+        (!inspected || factExplicitlyConfirmsPoster(selectedFact));
+    // A source-media binding proves that the file came from the post; it does
+    // not prove that a gallery photo is an event poster. Multi-image galleries
+    // need an explicit positive Vision match before any image can be shown.
+    const accepted = selectedFact?.poster !== false && (ownerConfirmed || Boolean(match.accepted) || sourceMediaFallback);
     return {
         accepted,
         status,
-        reason: ownerConfirmed ? 'owner-confirmed-this-event-and-image' : (match.accepted ? match.reason : match.reason || 'poster-metadata-mismatch'),
+        reason: ownerConfirmed ? 'owner-confirmed-this-event-and-image' : (match.accepted ? match.reason : sourceMediaFallback ? 'single-event-single-source-image-fallback' : match.reason || 'poster-metadata-mismatch'),
         metadataQuality,
         fact: selectedFact,
         match,
@@ -382,30 +536,52 @@ export function eventHasSafePosterMatch(event) {
     return getEventPosterSafetyAssessment(event).accepted;
 }
 
+export function getEventSourceMediaBindingAssessment(event) {
+    if (Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement)) {
+        return { accepted: false, paths: [], reason: 'multi-announcement-needs-image-match' };
+    }
+    const facts = parsePosterVisionFactsForSafety(event);
+    const fact = facts.find((item) => ['single-event-single-image', 'single-event-source-media'].includes(item?.fallbackBinding) &&
+        item?.sourceMediaBinding === true && Number(item?.sourceEventCount || 0) === 1) || null;
+    const paths = eventPosterBindingPaths(event).filter((path) =>
+        !/(?:^|\/)event_message_cards\/|(?:^|\/)event_generated_fallbacks\/|-event-\d+\.png$/iu.test(path));
+    const boundPath = normalizePosterBindingPath(fact?.imagePath);
+    const accepted = Boolean(fact && boundPath && paths.includes(boundPath) && paths.length > 0 &&
+        Number(fact.sourceImageCount || 0) >= paths.length);
+    return { accepted, paths: accepted ? paths : [], boundPath: accepted ? boundPath : '', fact,
+        reason: accepted ? 'single-event-source-media-binding' : 'no-single-event-source-media-binding' };
+}
+
 export function formatEventProvenance(event, { compact = false } = {}) {
     const type = clean(event?.provenanceSourceType || event?.sourceType || event?.source_type).toLowerCase();
-    const canonicalStored = clean(event?.canonicalPostUrl || event?.canonical_post_url);
+    const canonicalStored = canonicalPostUrl(event?.canonicalPostUrl || event?.canonical_post_url);
     const canonical = canonicalStored || (type === 'vk_chat' || type === 'vk-chat' ? '' : canonicalPostUrl(event?.sourceUrl) || clean(event?.sourceUrl));
-    const chatName = clean(event?.sourceChatName || event?.source_chat_name || event?.sourceName || 'Беседа', 500);
+    const chatName = getMeaningfulEventChatName(event);
     const cmid = Number(event?.sourceMessageId || event?.source_message_id || event?.conversationMessageId || 0);
     const fromChat = type === 'vk_chat' || type === 'vk-chat';
 
     if (canonical) {
         if (fromChat) {
+            if (!chatName) return compact ? `🔗 ${canonical}` : `Источник:\n${canonical}`;
             return compact
-                ? `🔗 ${canonical.replace(/^https?:\/\//iu, '')} (из беседы «${chatName}»)`
+                ? `🔗 ${canonical} (из беседы «${chatName}»)`
                 : `Источник:\n${canonical}\nИз беседы «${chatName}», сообщение #${cmid || '?'}`;
         }
         return compact
-            ? `🔗 ${canonical.replace(/^https?:\/\//iu, '')}`
+            ? `🔗 ${canonical}`
             : `Источник:\n${canonical}`;
     }
     if (fromChat) {
+        if (!chatName) {
+            return compact
+                ? (cmid ? `💬 Сообщение #${cmid}` : 'Источник: не указан')
+                : `Источник:\n${cmid ? `💬 Сообщение #${cmid}` : 'не указан'}`;
+        }
         return compact
             ? `💬 Беседа «${chatName}», сообщение #${cmid || '?'}`
             : `Источник:\n💬 Беседа «${chatName}» — сообщение #${cmid || '?'}`;
     }
     const original = clean(event?.sourceOriginalUrl || event?.source_original_url || event?.sourceUrl);
-    if (original) return compact ? `🔗 ${original.replace(/^https?:\/\//iu, '')}` : `Источник:\n${original}`;
+    if (original) return compact ? `🔗 ${original}` : `Источник:\n${original}`;
     return compact ? 'Источник: не указан' : 'Источник:\nне указан';
 }

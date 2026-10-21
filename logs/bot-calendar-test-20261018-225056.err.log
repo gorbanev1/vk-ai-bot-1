@@ -1,0 +1,121 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=331428 scanned=5000 skipped=326428
+[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS] [{"id":"mve81oew-2c031547","name":"startup-telegram-connect","phase":"","tracePath":""}]
+(node:14836) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:50685:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151378 cutoff=1792266699 max=3500 reason=startup
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout._onTimeout (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792353137364-5d1bd4f799b3d8.png',
+  attempt: 1,
+  delayMs: 5000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792353137364-5d1bd4f799b3d8.png',
+  attempt: 2,
+  delayMs: 15000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792353137364-5d1bd4f799b3d8.png bytes=1883376 mime=image/png {
+  vkIo: {
+    name: 'AbortError',
+    message: 'The operation was aborted.',
+    code: null,
+    status: null
+  },
+  direct: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000001 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792353137364-5d1bd4f799b3d8.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792353137364-5d1bd4f799b3d8.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}

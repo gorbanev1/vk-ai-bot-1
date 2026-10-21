@@ -116,8 +116,36 @@ test('V188.63: poster gate runs only after global raw-cache barrier and before m
     assert.ok(captureBarrier >= 0 && posterGateStart > captureBarrier);
     assert.ok(posterRelease > posterGateStart && admissionBarrier > posterRelease);
     assert.match(app, /event-parser:poster-gate-vision/u);
+    assert.match(app, /failoverMaxRounds:\s*2/u);
+    assert.match(app, /buildOperationAbortSignal\(Math\.max\(60_000, Number\(requestTimeoutMs\) \|\| OPENAI_REQUEST_TIMEOUT_MS\)\)/u);
+    assert.match(app, /signal: requestSignal,[\s\S]*?onActivity: \(\) => streamWatchdog\?\.touch\(\)/u);
+    assert.match(app, /parser\.checkpoint\.poster-gate-progress/u);
     assert.match(app, /Смотри ТОЛЬКО на изображение/u);
     assert.match(app, /Дата публикации\/интерфейса сама по себе не засчитывается/u);
+});
+
+test('restart recovery records interrupted parser runs and sends an owner-visible summary after Telegram reconnects', async () => {
+    const app = await readFile(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
+    assert.match(app, /interruptedOperationsFromPriorRun\s*=\s*reconcileInterruptedOperationCheckpoints\(\)/u);
+    assert.match(app, /После перезапуска обнаружены/u);
+    assert.match(app, /ownerActionRequired === false/u);
+    assert.match(app, /recovery\.action/u);
+});
+
+test('parser reports Vision response latency and failures per model, including incomplete runs', async () => {
+    const app = await readFile(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
+    assert.match(app, /parser\.vision\.model\.timing/u);
+    assert.match(app, /visionModelTimings:\s*summarizeParserVisionTimings\(getCurrentOperation\(\)\?\.id\)/u);
+    assert.match(app, /averageMs:/u);
+    assert.match(app, /p50Ms:/u);
+    assert.match(app, /p95Ms:/u);
+    assert.match(app, /maxMs:/u);
+    assert.match(app, /vision-model-latency/u);
+    assert.match(app, /visionModelTimings:\s*entry\.modelSummary/u);
+    assert.match(app, /timeoutFailure|timeout:\s*Boolean/u);
+    assert.match(app, /configuredRequestTimeoutMs:\s*EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS/u);
+    assert.match(app, /produced no bytes/u);
+    assert.doesNotMatch(app, /configuredRequestTimeoutMs:\s*Math\.min\(15 \* 60 \* 1000, Number\(requestTimeoutMs\)/u);
 });
 
 test('V188.63: all three finite source types expose poster gate requests and final admission callbacks', async () => {

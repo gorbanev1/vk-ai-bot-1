@@ -34,12 +34,23 @@ test('V188.96 never silently sends a VK card without a confirmed poster after tr
     assert.doesNotMatch(failureBranch, /await context\.send\(message\)/u);
 });
 
-test('V188.96 preserves text-only output only for events with no proven poster', () => {
+test('future events without a proven poster remain visible as text cards', () => {
     const begin = app.indexOf('async function sendPublicEventMessages');
     const end = app.indexOf('\nfunction formatNoPublicEvents', begin);
     const source = app.slice(begin, end);
 
     assert.match(source, /EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN/u);
-    assert.match(source, /await context\.send\(message\)/u);
+    assert.match(source, /await context\.send\(\{/u);
+    assert.match(source, /card-sent-without-poster/u);
+    assert.match(source, /sentWithoutPoster \+= 1/u);
+    assert.doesNotMatch(source, /card-withheld-no-poster/u);
     assert.match(source, /failedPosterUploads/u);
+});
+
+test('compact public event output includes future cards even when they have no poster', () => {
+    const begin = app.indexOf('async function sendCompactPublicEventList');
+    const end = app.indexOf('\nfunction buildSinglePublicEventMessage', begin);
+    const source = app.slice(begin, end);
+    assert.match(source, /filter\(\(item\) => item\?\.event\)/u);
+    assert.doesNotMatch(source, /eventHasSafePosterMatch|filterGarbageEventImagePaths/u);
 });

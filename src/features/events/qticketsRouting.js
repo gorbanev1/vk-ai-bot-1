@@ -115,62 +115,92 @@ export function qticketsEventMatchesPriceLimit(event, maxPrice) {
     return price !== null && price <= limit;
 }
 
+export function hasQticketsPriceLimit(value) {
+    if (value === null || value === undefined || String(value).trim() === '') return false;
+    const limit = Number(value);
+    return Number.isFinite(limit) && limit >= 0;
+}
+
+/**
+ * QTickets is the Voronezh catalogue, but some detail pages carry stale
+ * structured location metadata for touring events. Only event identity text
+ * is used here; the site-wide body and venue address can contain false city
+ * values (or the words "Московский проспект").
+ */
+export function qticketsEventHasConflictingCity(event) {
+    const identity = [event?.title, event?.description]
+        .map((value) => String(value ?? ''))
+        .join(' ')
+        .normalize('NFKC')
+        .toLowerCase()
+        .replace(/ё/gu, 'е');
+    const namesMoscow = /(?<![\p{L}\p{N}])москв(?:а|ы|е|у|ой|ою)(?![\p{L}\p{N}])/iu.test(identity);
+    const namesVoronezh = /(?<![\p{L}\p{N}])воронеж(?:е|а|у|ом)?(?![\p{L}\p{N}])/iu.test(identity);
+    return namesMoscow && !namesVoronezh;
+}
+
 
 export function resolveQticketsWindowSpec(command = {}) {
+    const rangeText = String(command?.rangeText ?? '').trim();
+    const weeksOnly = /(?:^|\s)(?:на\s+)?(?:одну\s+)?недел(?:ю|я)(?:$|\s)/iu.test(rangeText) &&
+        !/(?:^|\s)\d{1,2}\s*недел/iu.test(rangeText);
+    if (weeksOnly) {
+        return { dayCount: null, weekendsOnly: false, usePublicRange: true };
+    }
     const dayCount = Number(command?.dayCount);
     if (Number.isInteger(dayCount) && dayCount >= 1 && dayCount <= 365) {
         return { dayCount, weekendsOnly: Boolean(command?.weekendsOnly), usePublicRange: false };
     }
     if (command?.weekendsOnly) {
-        return { dayCount: 14, weekendsOnly: true, usePublicRange: false };
-    }
-    if (String(command?.rangeText ?? '').trim()) {
         return { dayCount: null, weekendsOnly: false, usePublicRange: true };
     }
+    if (rangeText) {
+        return { dayCount: null, weekendsOnly: false, usePublicRange: true };
+    }
+    // Keep the existing default listing window; price is independent and
+    // remains unlimited unless the user explicitly supplies a price clause.
     return { dayCount: 7, weekendsOnly: false, usePublicRange: false };
 }
 
 export function parseQticketsCommand(value) {
-    const command = normalizeCommand(value)
+    const originalCommand = normalizeCommand(value)
         .replace(/^(?:гигорейв|gigorave)\s+/u, '')
+        .replace(/\bq[- ]?tickets\b/giu, 'qtickets')
         .trim();
-    if (!command) return { matched: false, action: '', rangeText: '', commandText: command };
+    if (!originalCommand) return { matched: false, action: '', rangeText: '', commandText: originalCommand };
 
-    const scrape = command.match(new RegExp(
-        `^(?:${NAMESPACE})(?:\\s+${CATEGORY})?\\s+(?:парсер|скрейпер|обновить|запустить|refresh|run)$|^(?:парсер|скрейпер|обновить)\\s+${NAMESPACE}$`,
-        'iu',
-    ));
-    if (scrape) {
+    const turboMatch = originalCommand.match(/(?:^|\s)(турбо[1-4]|турбо|turbo[1-4]|turbo)(?=\s|$)/iu);
+    const rawTurboMode = String(turboMatch?.[1] || '').toLowerCase().replace(/^турбо/iu, 'turbo');
+    const turboMode = rawTurboMode === 'turbo1' ? 'turbo' : rawTurboMode;
+    const cleanOnly = /(?:^|\s)(?:новые|new|чисто|clean)(?=\s|$)/iu.test(originalCommand);
+    const command = originalCommand
+        .replace(/(?:^|\s)(?:турбо[1-4]|турбо|turbo[1-4]|turbo)(?=\s|$)/giu, ' ')
+        .replace(/(?:^|\s)(?:новые|new|чисто|clean)(?=\s|$)/giu, ' ')
+        .replace(/\s+/gu, ' ')
+        .trim();
+    const tokens = command.split(' ').filter(Boolean);
+    const namespacePattern = new RegExp(`^${NAMESPACE}$`, 'iu');
+    const categoryPattern = new RegExp(`^${CATEGORY}$`, 'iu');
+    if (!tokens.some((token) => namespacePattern.test(token))) {
+        return { matched: false, action: '', rangeText: '', commandText: originalCommand };
+    }
+    const intentTokens = tokens.filter((token) => !namespacePattern.test(token) && !categoryPattern.test(token));
+    const hasScrapeIntent = intentTokens.some((token) => /^(?:парсер|скрейпер|обновить|запустить|refresh|run)$/iu.test(token));
+    if (hasScrapeIntent) {
         return {
-            matched: true,
-            action: 'scrape',
-            rangeText: '',
-            commandText: command,
-            dayCount: null,
-            weekendsOnly: false,
-            maxPrice: null,
+            matched: true, action: 'scrape', rangeText: '', commandText: originalCommand,
+            dayCount: null, weekendsOnly: false, maxPrice: null, cleanOnly,
+            ...(turboMode ? { turboMode } : {}),
         };
     }
 
-    const list = command.match(new RegExp(
-        `^(?:${NAMESPACE})(?:\\s+${CATEGORY})?(?:\\s+(.+))?$|^(?:${CATEGORY})\\s+${NAMESPACE}(?:\\s+(.+))?$`,
-        'iu',
-    ));
-    if (!list) return { matched: false, action: '', rangeText: '', commandText: command };
-
-    const rawRangeText = String(list[1] ?? list[2] ?? '').trim();
+    const rawRangeText = intentTokens.join(' ').trim();
     const dayCount = parseQticketsRollingDays(rawRangeText);
     const weekendsOnly = /(?:^|\s)выходн/iu.test(rawRangeText);
     const maxPrice = parseQticketsPriceLimit(rawRangeText);
-
     return {
-        matched: true,
-        action: 'list',
-        rangeText: stripQticketsPriceClause(rawRangeText),
-        rawRangeText,
-        dayCount,
-        weekendsOnly,
-        maxPrice,
-        commandText: command,
+        matched: true, action: 'list', rangeText: stripQticketsPriceClause(rawRangeText), rawRangeText,
+        dayCount, weekendsOnly, maxPrice, commandText: originalCommand, cleanOnly,
+        ...(turboMode ? { turboMode } : {}),
     };
 }

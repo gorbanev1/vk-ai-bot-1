@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "chatNumberForUser": 27,
+  "peerId": 2000000006,
+  "description": "Беседа 27 в списке пользователя, peer 6 у бота; история и события выходов — vk_message_archive/chat_membership_events peer 2000000006. А где Имя Фамилия?",
+  "inactivityDays": 14,
+  "minMessages": 16,
+  "timeZone": "Europe/Moscow",
+  "daytime": { "from": "10:00", "to": "21:00" },
+  "minGapMinutes": 120,
+  "dailyParticipants": { "min": 2, "max": 3 },
+  "oncePerAbsence": true
+}

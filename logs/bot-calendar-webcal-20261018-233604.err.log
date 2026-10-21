@@ -1,0 +1,1240 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=331717 scanned=5000 skipped=326717
+(node:14852) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:50692:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151386 cutoff=1792269375 max=3500 reason=startup
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лара Музыка" date=2026-10-18 source=https://t.me/kurazhcity/4113
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лара Музыка" date=2026-10-18 source=https://t.me/kurazhcity/4113
+[TELEGRAM MESSAGE HANDLER ERROR][DM] requestId=23a33fd2-2dbc-4b34-aa9d-5dbb3fe688da peerId=-3000000025 senderId=3000000027 messageId=15433 {
+  name: 'TelegramBotApiError',
+  message: 'Telegram Bot API sendPhoto: Bad Request: reply markup is too long',
+  code: 400,
+  status: 400
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лара Музыка" date=2026-10-18 source=https://t.me/kurazhcity/4113
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI KEY ATTEMPT FAILED] requestId=mveb708q-d1014505 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610182103109198639308268d9d6jHb6G4EF)',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151404 cutoff=1792271168 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151424 cutoff=1792272968 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151427 cutoff=1792274768 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151427 cutoff=1792276568 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151427 cutoff=1792278368 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151427 cutoff=1792280168 max=3500 reason=periodic
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout._onTimeout (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792368210419-32a3fef6851be8.png',
+  attempt: 1,
+  delayMs: 5000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792368210419-32a3fef6851be8.png',
+  attempt: 2,
+  delayMs: 15000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792368210419-32a3fef6851be8.png bytes=2361440 mime=image/png {
+  vkIo: {
+    name: 'AbortError',
+    message: 'The operation was aborted.',
+    code: null,
+    status: null
+  },
+  direct: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792368210419-32a3fef6851be8.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792368210419-32a3fef6851be8.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151431 cutoff=1792281968 max=3500 reason=periodic
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout._onTimeout (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792368517684-cee93ce58a809.png',
+  attempt: 1,
+  delayMs: 5000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792368517684-cee93ce58a809.png',
+  attempt: 2,
+  delayMs: 15000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792368517684-cee93ce58a809.png bytes=2361440 mime=image/png {
+  vkIo: {
+    name: 'AbortError',
+    message: 'The operation was aborted.',
+    code: null,
+    status: null
+  },
+  direct: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792368517684-cee93ce58a809.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792368517684-cee93ce58a809.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout._onTimeout (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792369414439-4094f20b0c58a8.png',
+  attempt: 1,
+  delayMs: 5000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792369414439-4094f20b0c58a8.png',
+  attempt: 2,
+  delayMs: 15000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792369414439-4094f20b0c58a8.png bytes=2361440 mime=image/png {
+  vkIo: {
+    name: 'AbortError',
+    message: 'The operation was aborted.',
+    code: null,
+    status: null
+  },
+  direct: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792369414439-4094f20b0c58a8.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792369414439-4094f20b0c58a8.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151431 cutoff=1792283768 max=3500 reason=periodic
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout._onTimeout (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792370314107-8fd44ae404fa.png',
+  attempt: 1,
+  delayMs: 5000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792370314107-8fd44ae404fa.png',
+  attempt: 2,
+  delayMs: 15000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792370314107-8fd44ae404fa.png bytes=2361440 mime=image/png {
+  vkIo: {
+    name: 'AbortError',
+    message: 'The operation was aborted.',
+    code: null,
+    status: null
+  },
+  direct: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792370314107-8fd44ae404fa.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792370314107-8fd44ae404fa.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'Error',
+  message: 'Not Allowed',
+  stack: 'Error: Not Allowed\n' +
+    '    at Upload.upload (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8927:23)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async Upload.conduct (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8824:26)\n' +
+    '    at async Upload.messagePhoto (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8353:25)\n' +
+    '    at async uploadGeneratedImageBuffer (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:44263:26)\n' +
+    '    at async sendScheduledAutoSummary (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:38396:36)\n' +
+    '    at async deliverCalendarBatchIfDue (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:39915:5)\n' +
+    '    at async deliverRecentCalendarSummaries (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:40138:9)\n' +
+    '    at async runCalendarSummaryMaintenanceForPeer (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:40165:18)\n' +
+    '    at async runHierarchicalSummaryMaintenance (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:40539:28)',
+  cause: undefined
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151438 cutoff=1792285568 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TelegramBotApiError',
+  message: 'Telegram Bot API getUpdates: Bad Gateway',
+  code: 502
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TelegramBotApiError',
+  message: 'Telegram Bot API getUpdates: Bad Gateway',
+  code: 502
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY CEILING LOOKUP FAIL] peer=2000000006 client=primary-group:233007447 {
+  name: 'Error',
+  message: 'VK getConversationsById timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151441 cutoff=1792287368 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY CEILING LOOKUP FAIL] peer=2000000006 client=primary-group:233007447 {
+  name: 'Error',
+  message: 'VK getConversationsById timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151445 cutoff=1792289168 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151449 cutoff=1792290968 max=3500 reason=periodic
+[VK HISTORY CMID STRATEGY FAIL] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151350-151449 attempt=1/3 {
+  name: 'Error',
+  message: 'VK getByConversationMessageId timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151453 cutoff=1792292768 max=3500 reason=periodic
+[VK HISTORY CMID STRATEGY FAIL] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151354-151453 attempt=1/3 {
+  name: 'Error',
+  message: 'VK getByConversationMessageId timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151516 cutoff=1792294568 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK HISTORY CMID STRATEGY FAIL] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151417-151516 attempt=1/3 {
+  name: 'Error',
+  message: 'VK getByConversationMessageId timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151630 cutoff=1792296368 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151757 cutoff=1792298168 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=187f8e56-edaf-48db-930d-005278efed47 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=187f8e56-edaf-48db-930d-005278efed47 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[TELEGRAM MESSAGE HANDLER ERROR][DM] requestId=187f8e56-edaf-48db-930d-005278efed47 peerId=-3000000025 senderId=3000000027 messageId=15469 {
+  name: 'Error',
+  message: 'GPT image API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151840 cutoff=1792299968 max=3500 reason=periodic
+[VK HISTORY CMID STRATEGY FAIL] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151741-151840 attempt=1/3 {
+  name: 'Error',
+  message: 'VK getByConversationMessageId timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[OPERATION CHECKPOINT WRITE ERROR] id=mvet0gm9-112a0297 EPERM EPERM: operation not permitted, rename 'C:\Users\Adm\WebstormProjects\vk-ai-bot\data\operation-checkpoints\mvet0gm9-112a0297.json.tmp-14852-9bc18e6d-f008-4b39-8049-15387d525666' -> 'C:\Users\Adm\WebstormProjects\vk-ai-bot\data\operation-checkpoints\mvet0gm9-112a0297.json'
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151896 cutoff=1792301768 max=3500 reason=periodic
+[VK HISTORY CMID STRATEGY FAIL] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151797-151896 attempt=1/3 {
+  name: 'Error',
+  message: 'VK getByConversationMessageId timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mveuigoa-d1124f47 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610190603278113523428268d9d6t9l8M2x1)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mveuigoa-d1124f47 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610190604360871160818268d9d6mT00Jjbb)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mveuigoa-d1124f47 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610190604462130284988268d9d6hiVQvyuG)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mveuigoa-d1124f47 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610190605096560770358268d9d6vC3A2iQu)',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=151955 cutoff=1792303568 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mveuigoa-d1124f47 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610190605475317028318268d9d6xTj3XUsC)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvev8v0u-eb770245 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610190623407005648558268d9d61IG0tuLc)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvev8v0u-eb770245 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610190624501749250188268d9d6uysyzjz0)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvev8v0u-eb770245 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610190625002812578788268d9d6PLM43IlU)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvev8v0u-eb770245 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610190625230373810848268d9d6RWmcGptW)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvev8v0u-eb770245 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610190625473838261468268d9d6kFZSO3am)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152017 cutoff=1792305368 max=3500 reason=periodic
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout._onTimeout (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792391975782-ca69d533a52e68.png',
+  attempt: 1,
+  delayMs: 5000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792391975782-ca69d533a52e68.png',
+  attempt: 2,
+  delayMs: 15000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792391975782-ca69d533a52e68.png bytes=2627238 mime=image/png {
+  vkIo: {
+    name: 'AbortError',
+    message: 'The operation was aborted.',
+    code: null,
+    status: null
+  },
+  direct: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792391975782-ca69d533a52e68.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792391975782-ca69d533a52e68.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152068 cutoff=1792307168 max=3500 reason=periodic
+[VK HISTORY CMID STRATEGY FAIL] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151969-152068 attempt=1/3 {
+  name: 'Error',
+  message: 'VK getByConversationMessageId timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152101 cutoff=1792308968 max=3500 reason=periodic
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152128 cutoff=1792310768 max=3500 reason=periodic
+[INACTIVE VK MEMBERS DATABASE FALLBACK] peer=2000000006 {
+  name: 'APIError',
+  message: "Code №917 - You don't have access to this chat",
+  code: 917,
+  status: null
+}
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=35811d9e5c9d4d1e currentRevision=7606cfc396a2cd67 snapshotRaw=88 currentRaw=82 fallback=sqlite
+[TELEGRAM MESSAGE HANDLER ERROR][DM] requestId=f5cbde38-0862-49b6-85c3-bd4879d76655 peerId=-3000000004 senderId=3000000004 messageId=15474 {
+  name: 'TelegramBotApiError',
+  message: 'Telegram Bot API sendPhoto: Bad Request: reply markup is too long',
+  code: 400,
+  status: 400
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152170 cutoff=1792312568 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[OPERATION CHECKPOINT WRITE ERROR] id=mvf0l6xe-bb55d522 EPERM EPERM: operation not permitted, rename 'C:\Users\Adm\WebstormProjects\vk-ai-bot\data\operation-checkpoints\mvf0l6xe-bb55d522.json.tmp-14852-fb869c63-cac6-4bd8-a9f6-64d30cb342ea' -> 'C:\Users\Adm\WebstormProjects\vk-ai-bot\data\operation-checkpoints\mvf0l6xe-bb55d522.json'
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout._onTimeout (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792400664847-8822a24b44ca4.png',
+  attempt: 1,
+  delayMs: 5000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792400664847-8822a24b44ca4.png',
+  attempt: 2,
+  delayMs: 15000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792400664847-8822a24b44ca4.png bytes=2533836 mime=image/png {
+  vkIo: {
+    name: 'AbortError',
+    message: 'The operation was aborted.',
+    code: null,
+    status: null
+  },
+  direct: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792400664847-8822a24b44ca4.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792400664847-8822a24b44ca4.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152191 cutoff=1792314368 max=3500 reason=periodic
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout._onTimeout (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792400927115-f4c5a5a215be1.png',
+  attempt: 1,
+  delayMs: 5000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792400927115-f4c5a5a215be1.png',
+  attempt: 2,
+  delayMs: 15000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792400927115-f4c5a5a215be1.png bytes=2533836 mime=image/png {
+  vkIo: {
+    name: 'AbortError',
+    message: 'The operation was aborted.',
+    code: null,
+    status: null
+  },
+  direct: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792400927115-f4c5a5a215be1.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792400927115-f4c5a5a215be1.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout._onTimeout (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'AbortError',
+  message: 'The operation was aborted.',
+  stack: 'AbortError: The operation was aborted.\n' +
+    '    at abort (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:70:18)\n' +
+    '    at AbortSignal.abortAndFinalize (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/node-fetch@3.3.2/node_modules/node-fetch/src/index.js:89:4)\n' +
+    '    at AbortSignal.dispatchEvent (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\event-target-shim@5.0.1\\node_modules\\event-target-shim\\dist\\event-target-shim.js:818:35)\n' +
+    '    at abortSignal (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:52:12)\n' +
+    '    at AbortController.abort (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\abort-controller@3.0.0\\node_modules\\abort-controller\\dist\\abort-controller.js:91:9)\n' +
+    '    at Timeout.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8908:54)\n' +
+    '    at listOnTimeout (node:internal/timers:608:17)\n' +
+    '    at process.processTimers (node:internal/timers:543:7)',
+  cause: undefined
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792401832266-2c1b3a9718bc18.png',
+  attempt: 1,
+  delayMs: 5000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD BACKOFF] {
+  file: 'C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792401832266-2c1b3a9718bc18.png',
+  attempt: 2,
+  delayMs: 15000,
+  error: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[VK IMAGE UPLOAD ERROR] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\generated-images\auto-summary-1792401832266-2c1b3a9718bc18.png bytes=2533836 mime=image/png {
+  vkIo: {
+    name: 'AbortError',
+    message: 'The operation was aborted.',
+    code: null,
+    status: null
+  },
+  direct: {
+    name: 'TypeError',
+    message: 'fetch failed',
+    code: 'UND_ERR_CONNECT_TIMEOUT',
+    status: null
+  }
+}
+[AUTO SUMMARY VK IMAGE SEND ERROR] peer=2000000006 {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792401832266-2c1b3a9718bc18.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось загрузить готовую картинку во VK. Файл сохранён: C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\data\\generated-images\\auto-summary-1792401832266-2c1b3a9718bc18.png. vk-io: The operation was aborted.; direct: fetch failed',
+  code: 'VK_IMAGE_UPLOAD_FAILED',
+  status: null
+}

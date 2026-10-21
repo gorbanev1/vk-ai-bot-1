@@ -98,12 +98,28 @@ function uniqueStrings(values, maximum = 50) {
  * повод для AI-проверки даже без явных слов «концерт/вечеринка». Это нужно для
  * коротких анонсов, где смысл находится в репосте или афише.
  */
-export function hasVkChatRepostEvidence({ text, links } = {}) {
-    const source = trimText(text);
-    if (VK_REPOST_MARKER_PATTERN.test(source) || VK_WALL_LINK_PATTERN.test(source)) {
-        return true;
-    }
-    return uniqueStrings(links).some((url) => VK_WALL_LINK_PATTERN.test(url));
+export function hasVkChatRepostEvidence(input = {}) {
+    const source = trimText(input?.text);
+    const embeddedText = trimText(input?.embeddedText ?? input?.repostText);
+    const nestedPosts = Array.isArray(input?.embeddedPosts) ? input.embeddedPosts : [];
+    const repostChain = Array.isArray(input?.repostChain) ? input.repostChain : [];
+    const imageMedia = Array.isArray(input?.imageMedia) ? input.imageMedia : [];
+    const nestedRepostDetected = input?.nestedRepostDetected === true;
+    const rootPostSourceUrl = String(input?.rootPostSourceUrl || '').trim();
+    const domAudit = input?.domAudit && typeof input.domAudit === 'object'
+        ? JSON.stringify(input.domAudit)
+        : '';
+
+    // A wall URL is provenance only. It is present in ordinary messages that
+    // quote an announcement and must not turn those messages into unresolved
+    // reposts. Structural evidence comes from the nested DOM/container fields.
+    if (VK_REPOST_MARKER_PATTERN.test(source) || embeddedText) return true;
+    if (input?.rootPostTextResolved === true && VK_WALL_LINK_PATTERN.test(rootPostSourceUrl)) return true;
+    if (nestedPosts.length || repostChain.some((item) => item && typeof item === 'object' && (item.text || item.rootPostText || item.kind === 'wall'))) return true;
+    if (nestedRepostDetected) return true;
+    if (imageMedia.some((item) => /repost|nested|forward/iu.test(String(item?.origin || '')))) return true;
+    if (/AttachWall|ForwardedMessage|(?:^|[^a-z])repost|data-post-nesting-lvl|copy_history/iu.test(domAudit)) return true;
+    return false;
 }
 
 /**
@@ -116,14 +132,22 @@ export function hasVkChatRepostEvidence({ text, links } = {}) {
 export function explainVkChatEventCandidate(input = {}) {
     const contentText = trimText(input?.contentText ?? '');
     const repostText = trimText(input?.repostText ?? input?.embeddedText ?? '');
+    // Once repost hydration has completed, the deepest/root wall text is the
+    // only text allowed to establish an event date. Wrapper chat text can have
+    // a different date (or the publication date) and must never satisfy the
+    // AI admission gate for a repost.
+    const rootPostTextResolved = input?.rootPostTextResolved === true;
+    const rootPostText = trimText(input?.rootPostText ?? '');
     // New exact DOM snapshots keep UI metadata out of these structural fields.
     // For legacy/adaptive payloads fall back to `text`, but only when neither
     // structural field exists.
-    const source = trimText(
-        contentText || repostText
-            ? [contentText, repostText].filter(Boolean).join('\n\n')
-            : input?.text,
-    );
+    const source = rootPostTextResolved
+        ? rootPostText
+        : trimText(
+            contentText || repostText
+                ? [contentText, repostText].filter(Boolean).join('\n\n')
+                : input?.text,
+        );
     const links = uniqueStrings(input?.links);
     const imageUrls = uniqueStrings(input?.posterImageUrls?.length
         ? input.posterImageUrls
@@ -136,14 +160,28 @@ export function explainVkChatEventCandidate(input = {}) {
     const hasPrice = PRICE_PATTERN.test(source);
     const hasVenueCue = VENUE_CUE_PATTERN.test(source);
     const hasPoster = imageUrls.length > 0;
-    const hasRepost = Boolean(repostText || input?.hasRepostEvidence || hasWallLink || VK_REPOST_MARKER_PATTERN.test(source));
+    const hasRepost = hasVkChatRepostEvidence({ ...input, text: source, embeddedText: repostText });
     const aiAdmission = explainEventAiAdmissionWithPosterFacts({
         text: source,
         posterFacts: input?.__posterGateFacts || '',
         posterVisionAttempted: Boolean(input?.__posterGateVisionAttempted),
+        dateFreePhase: input?.__dateFreeVisionPhase === true,
         publishedAt: Number(input?.createdAt || 0),
         referenceNow: input?.referenceNow,
     });
+    // Every repost must prove that its deepest/root wall text was recovered;
+    // an omitted flag is treated as unresolved as well, so legacy captures
+    // cannot accidentally re-enter AI on wrapper text or publication dates.
+    const repostRootTextMissing = hasRepost && input?.rootPostTextResolved !== true;
+    if (repostRootTextMissing) {
+        aiAdmission.eligible = false;
+        aiAdmission.rejectionReason = 'repost-root-text-unresolved';
+        aiAdmission.dateSource = 'repost-root-text-required';
+        aiAdmission.hasCalendarDate = false;
+        aiAdmission.hasEventDateCandidate = false;
+        aiAdmission.hasNonPastDate = false;
+        aiAdmission.pastOnly = false;
+    }
 
     let score = 0;
     const reasons = [];
@@ -203,6 +241,8 @@ export function explainVkChatEventCandidate(input = {}) {
             hasAiEventTitle: aiAdmission.hasTitle,
             hasAiNonPastDate: aiAdmission.hasNonPastDate,
             aiGateRejectionReason: aiAdmission.rejectionReason,
+            rootPostTextResolved,
+            rootPostTextChars: rootPostText.length,
         },
     };
 }

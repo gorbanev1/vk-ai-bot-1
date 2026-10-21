@@ -1,0 +1,928 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=281419 scanned=5000 skipped=276419
+[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS] [{"id":"mv810w65-b3ed5207","name":"parser-all-recovery:primary","phase":"parser-capture","tracePath":"data/parser-forensic-archives/2026-10-14T11-28-33-249Z_parser-all-clean_76e801/trace.jsonl"}]
+(node:40192) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:49730:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=142775 cutoff=1791891121 max=3500 reason=startup
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[INTERRUPTED OPERATIONS OWNER NOTICE FAILED] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=142787 cutoff=1791893256 max=3500 reason=periodic
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vavilone_rb/4670 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vavilone_rb/4664 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vavilone_rb/4664 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=liverpool_pub_vrn/2733 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=idmamaanarchy/944 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=liverpool_pub_vrn/2733 source=missing-source-date-v185 publishedAt=0
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=142799 cutoff=1791895056 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=899ae237ce86c40f currentRevision=1e8c087266670ca1 snapshotRaw=91 currentRaw=96 fallback=sqlite
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="❗️Срок подачи заявки — до" date=2026-10-15 source=https://t.me/kurazhcity/4091
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="El Mental" date=2026-11-14 source=https://vk.ru/wall-117292629_13821
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter" date=2026-11-14 source=https://vk.ru/wall-227219886_186
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="ВАРКА ЧАЯ НА ОГНЕ" date=2026-10-15 source=https://vk.ru/wall-67647763_17622
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=899ae237ce86c40f currentRevision=a3d0cd7682e7b471 snapshotRaw=91 currentRaw=94 fallback=sqlite
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=899ae237ce86c40f currentRevision=a3d0cd7682e7b471 snapshotRaw=91 currentRaw=94 fallback=sqlite
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=899ae237ce86c40f currentRevision=a3d0cd7682e7b471 snapshotRaw=91 currentRaw=94 fallback=sqlite
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="❗️Срок подачи заявки — до" date=2026-10-15 source=https://t.me/kurazhcity/4091
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="El Mental" date=2026-11-14 source=https://vk.ru/wall-117292629_13821
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter" date=2026-11-14 source=https://vk.ru/wall-227219886_186
+[DM PUBLIC EVENTS CLASSIFIER ERROR] {
+  name: 'TelegramBotApiError',
+  message: 'Telegram Bot API sendPhoto: Too Many Requests: retry after 9',
+  code: 429,
+  status: 429
+}
+[TELEGRAM MESSAGE HANDLER ERROR][DM] requestId=0e57542d-91bf-43a5-9737-1e21305b41be peerId=-3000000004 senderId=3000000004 messageId=13711 {
+  name: 'TelegramBotApiError',
+  message: 'Telegram Bot API sendPhoto: Too Many Requests: retry after 3',
+  code: 429,
+  status: 429
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141257586622584218268d9d68YYi468p)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141257587725534418268d9d6lL141A3l) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 1,
+  round: 1,
+  durationMs: 297,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141257587725534418268d9d6lL141A3l) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258003978946758268d9d6P47QOF3b)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258005191110118268d9d6VLVDpbky) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 2,
+  round: 1,
+  durationMs: 240,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258005191110118268d9d6VLVDpbky) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258036489989858268d9d6fRi2R8IZ)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258037535432398268d9d6AWx1LCYw) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 3,
+  round: 1,
+  durationMs: 216,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258037535432398268d9d6AWx1LCYw) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142867 OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258037535432398268d9d6AWx1LCYw) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142871 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258037535432398268d9d6AWx1LCYw) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142874 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258037535432398268d9d6AWx1LCYw) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142876 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258037535432398268d9d6AWx1LCYw) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142880 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258037535432398268d9d6AWx1LCYw) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142886 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141258037535432398268d9d6AWx1LCYw) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310203721089908268d9d6WzIvLysw)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310204317795278268d9d6RGtaAWqg)',
+    code: null,
+    status: 404
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310205558970028268d9d6mJewSlvp) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 1,
+  round: 1,
+  durationMs: 981,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310205558970028268d9d6mJewSlvp) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310206090531088268d9d6i8wWmfew) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 1,
+  round: 1,
+  durationMs: 979,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310206090531088268d9d6i8wWmfew) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=142898 cutoff=1791896856 max=3500 reason=periodic
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310227469277878268d9d6k5Jikqoa)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310228089034548268d9d6rDbGWlsR)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310229787092618268d9d6z5DKevxF) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 2,
+  round: 1,
+  durationMs: 472,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310229787092618268d9d6z5DKevxF) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310230522970318268d9d6k6VWkEjQ) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 2,
+  round: 1,
+  durationMs: 520,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310230522970318268d9d6k6VWkEjQ) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310262046763148268d9d6HVjkX0XT)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310262455582198268d9d6jsWALBNb)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310263947771208268d9d6Vw4MAqaV) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 3,
+  round: 1,
+  durationMs: 384,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310263947771208268d9d6Vw4MAqaV) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142891 OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310263947771208268d9d6Vw4MAqaV) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310264528795058268d9d6mwoH6qNF) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 3,
+  round: 1,
+  durationMs: 382,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310264528795058268d9d6mwoH6qNF) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142895 OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310264528795058268d9d6mwoH6qNF) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142901 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310264528795058268d9d6mwoH6qNF) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142905 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310264528795058268d9d6mwoH6qNF) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142907 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310264528795058268d9d6mwoH6qNF) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142910 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141310264528795058268d9d6mwoH6qNF) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317168558717698268d9d60IoWzKto)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317170298145408268d9d6CLwXV9F4) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 1,
+  round: 1,
+  durationMs: 493,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317170298145408268d9d6CLwXV9F4) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317186881231718268d9d6nCdBlFff)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317188395585988268d9d6WTALZjJx) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 2,
+  round: 1,
+  durationMs: 329,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317188395585988268d9d6WTALZjJx) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317220329863458268d9d6muAYrmEm)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317223159831288268d9d6A8R8NEvq) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 3,
+  round: 1,
+  durationMs: 469,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317223159831288268d9d6A8R8NEvq) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142927 OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317223159831288268d9d6A8R8NEvq) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142937 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141317223159831288268d9d6A8R8NEvq) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325212267667288268d9d69diq17Bm)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325212345012008268d9d6Tklt39iV)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325214151060848268d9d6cN3R9FFo) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 1,
+  round: 1,
+  durationMs: 474,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325214151060848268d9d6cN3R9FFo) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325214725914098268d9d6FCkkF5I8) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 1,
+  round: 1,
+  durationMs: 526,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325214725914098268d9d6FCkkF5I8) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325230815751218268d9d6IndYmWjI)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325231943384558268d9d6x7wTqsw9)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325232300271258268d9d6EMTiBEMg) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 2,
+  round: 1,
+  durationMs: 272,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325232300271258268d9d6EMTiBEMg) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325233472191598268d9d6DYpOHSpN) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 2,
+  round: 1,
+  durationMs: 339,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325233472191598268d9d6DYpOHSpN) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325263695624378268d9d6sLs0JNqr)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325265469339048268d9d6pxi68eQ1) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 3,
+  round: 1,
+  durationMs: 298,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325265469339048268d9d6pxi68eQ1) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142960 OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325265469339048268d9d6pxi68eQ1) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325265594048128268d9d6Y3chX5yz)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325266758492288268d9d6RyJwLPU6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 3,
+  round: 1,
+  durationMs: 333,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325266758492288268d9d6RyJwLPU6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142962 OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325266758492288268d9d6RyJwLPU6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142985 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325266758492288268d9d6RyJwLPU6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142987 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325266758492288268d9d6RyJwLPU6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142989 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325266758492288268d9d6RyJwLPU6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=142996 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141325266758492288268d9d6RyJwLPU6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331024674661538268d9d66Pr18C06)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331026457853158268d9d61QR244cn) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 1,
+  round: 1,
+  durationMs: 484,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331026457853158268d9d61QR244cn) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331043070933378268d9d6JjtO3cD0)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331044710661928268d9d6vyL8FySp) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 2,
+  round: 1,
+  durationMs: 335,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331044710661928268d9d6vyL8FySp) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY whisper-1: HTTP 404 — Модель whisper-1 недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331076317691578268d9d6aFSJiujN)',
+    code: null,
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  model: 'gpt-4o-mini-transcribe',
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331077979300538268d9d6r0z4nyef) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'OPENAI_COMPAT_API_KEY',
+  attempt: 3,
+  round: 1,
+  durationMs: 315,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331077979300538268d9d6r0z4nyef) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+    code: null,
+    status: 404
+  }
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=143010 OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331077979300538268d9d6r0z4nyef) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=143031 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331077979300538268d9d6r0z4nyef) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=143035 AI provider временно в карантине после предыдущей ошибки: OPENAI_COMPAT_API_KEY gpt-4o-mini-transcribe: HTTP 404 — Модель gpt-4o-mini-transcribe недоступна. Получите список доступных моделей через GET /v1/models. (request id: 202610141331077979300538268d9d6r0z4nyef) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=143038 cutoff=1791898656 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=143049 cutoff=1791900456 max=3500 reason=periodic

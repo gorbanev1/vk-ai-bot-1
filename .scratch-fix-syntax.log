@@ -1,0 +1,5 @@
+
+> vk-ai-bot@0.188.127 check:syntax
+> node scripts/check-syntax.mjs
+
+Syntax check: OK (706 files)

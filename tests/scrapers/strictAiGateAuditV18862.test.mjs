@@ -50,6 +50,53 @@ test('V188.62: actual body date plus event title plus non-past date enters AI', 
     assert.equal(decision.aiAdmission.admittedDateEvidence[0].yearInferenceSource, 'published-at-for-year-only');
 });
 
+test('V188.62: reposts require the recovered root post text before AI admission', () => {
+    const wrapperOnly = explainVkChatEventCandidate({
+        contentText: 'смотрите репост',
+        repostText: 'смотрите репост',
+        hasRepostEvidence: true,
+        links: ['https://vk.ru/wall-1_2'],
+        referenceNow: NOW,
+    });
+    assert.equal(wrapperOnly.candidate, false, 'unresolved reposts must not enter the event/AI candidate pool');
+    assert.equal(wrapperOnly.aiEligible, false);
+    assert.equal(wrapperOnly.aiAdmission.rejectionReason, 'repost-root-text-unresolved');
+
+    const root = explainVkChatEventCandidate({
+        contentText: 'смотрите репост',
+        repostText: 'смотрите репост',
+        hasRepostEvidence: true,
+        rootPostTextResolved: true,
+        rootPostText: 'Концерт группы Test Band 20 сентября 2026, начало в 19:00',
+        links: ['https://vk.ru/wall-1_2'],
+        referenceNow: NOW,
+    });
+    assert.equal(root.aiEligible, true);
+    assert.equal(root.aiAdmission.dateSource, 'body-text-only');
+});
+
+test('V188.62: public nested reposts use only the resolved root body for date admission', () => {
+    const wrapperOnly = explainPublicPostEventCandidate({
+        text: 'Внешняя подпись 20 октября 2026 концерт',
+        repostText: 'Внешняя подпись 20 октября 2026 концерт',
+        imageOrigin: 'nested-repost',
+        referenceNow: NOW,
+    });
+    assert.equal(wrapperOnly.candidate, false);
+    assert.equal(wrapperOnly.aiEligible, false);
+    assert.equal(wrapperOnly.aiAdmission.rejectionReason, 'repost-root-text-unresolved');
+
+    const root = explainPublicPostEventCandidate({
+        text: 'Внешняя подпись',
+        repostText: 'Внешняя подпись',
+        imageOrigin: 'nested-repost',
+        rootPostTextResolved: true,
+        rootPostText: 'Корневой концерт 20 октября 2026, начало в 19:00',
+        referenceNow: NOW,
+    });
+    assert.equal(root.aiEligible, true);
+});
+
 test('V188.62: price suffix is not swallowed as a fake 3-digit year', () => {
     const mentions = extractRawDateMentions('Цена: до 4.09-800₽, после 1000₽');
     assert.equal(mentions.length, 1);

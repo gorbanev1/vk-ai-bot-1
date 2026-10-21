@@ -1,0 +1,2094 @@
+[TEST ISOLATION] data=C:\Users\Adm\AppData\Local\Temp\gigorave-test-IVFm4W\data
+✖ V188.12 approved proposal does not await the expensive verified snapshot rebuild (2.5782ms)
+✖ V188.12 owner moderation uses the cached proposal before any pending-edit/generic proposal routing (5.9833ms)
+✖ V188.12 moderation and background snapshot logs expose elapsed milliseconds (1.4225ms)
+✔ V188.14 a fresh VK/Telegram source link escapes pending draft-edit state (1.7442ms)
+✔ V188.14 correction containing a generic URL is not blindly treated as a new proposal (0.2485ms)
+✖ V188.14 restart routing executes before pending review corrections (10.4227ms)
+✔ V188.14 Diesel Bar post resolves venue, date, start time and price locally (43.6636ms)
+✔ V188.14 semantic venue audit uses poster facts and respects is_event=false (1.4452ms)
+✖ V140 owner proposal refreshes an already stored source before normal proposal flow (1.7222ms)
+✖ V140 exact VK wall proposals keep the API fast path and only open Chromium when date evidence is still missing (2.1379ms)
+✔ V140 manual event browser access is bounded instead of waiting 15 minutes (0.2724ms)
+✔ V140 proposal AI calls have a dedicated bounded timeout (0.5646ms)
+✖ V140 existing-source refresh does not wait for a full AI snapshot rebuild (0.8694ms)
+✔ V140 exact source repair saves only the best real poster with a bounded download (0.5525ms)
+✔ entry aliases for all users preserve owner direct-add route (1.1337ms)
+✔ submission requirements differ from autoapproval, contacts/photo optional (1.2625ms)
+✔ complete draft requires confirmation and duplicate submit creates one proposal (2.9985ms)
+✔ incomplete as-is explicitly confirms missing fields; contacts not requested (1.3132ms)
+✔ cancel during parse discards late result; old buttons cannot affect new draft (2.9224ms)
+✔ cancel during prepare creates nothing (0.7676ms)
+✔ back undoes changes; stale confirm cannot send modified draft (1.3659ms)
+✔ restart preserves draft; explicit command does not discard it (0.475ms)
+✔ new photo and link enrich existing draft, do not replace manual fields or old photo (1.6941ms)
+✔ parse failure and timeout retain previous data and controls (17.2305ms)
+✔ owner reply requires confirmation, preserves moderation, nonowner cannot moderate (0.8646ms)
+✔ cross-user callback cannot access draft (0.2574ms)
+✔ multi-event enrichment requires explicit target; contacts correction survives (0.9599ms)
+[SCRAPER V130 DATE CLEANUP] telegramRemoved=0 vkRemoved=0
+[SCRAPER V147 DB REPAIR] vkSharedMediaCleared=0 telegramSharedMediaCleared=0 generatedCleared=0
+eventProposalV104.test.mjs: OK
+(node:50344) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tests\events\eventProposalV104.test.mjs (282.0707ms)
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The input did not match the regular expression /MANUAL EVENT TEMPORAL FUSION/u. Input:
+
+"import { resolveVkOriginalPosts, selectDeepestCapturedVkWall } from '../features/events/vkOriginalPost.js';\r\n" +
+  "import { explainEventAiAdmission } from '../features/events/eventAiAdmission.js';\r\n" +
+  '/**\r\n' +
+  ' * Главный оркестратор: связывает VK, Telegram, GPT, базу, события и фоновые задачи. Здесь должны оставаться только сценарии верхнего уровня; чистую логику выносим в features/shared.\r\n' +
+  ' */\r\n' +
+  'import {\r\n' +
+  '    copyFileSync,\r\n' +
+  '    createReadStream,\r\n' +
+  '    existsSync,\r\n' +
+  '    mkdirSync,\r\n' +
+  '    openSync,\r\n' +
+  '    closeSync,\r\n' +
+  '    fsyncSync,\r\n' +
+  '    openAsBlob,\r\n' +
+  '    readFileSync,\r\n' +
+  '    readdirSync,\r\n' +
+  '    renameSync,\r\n' +
+  '    statSync,\r\n' +
+  '    unlinkSync,\r\n' +
+  '    writeFileSync,\r\n' +
+  "} from 'node:fs';\r\n" +
+  "import { mkdir as mkdirAsync, open as openAsync, rename as renameAsync, unlink as unlinkAsync } from 'node:fs/promises';\r\n" +
+  "import { Agent } from 'node:https';\r\n" +
+  "import { Buffer } from 'node:buffer';\r\n" +
+  "import { AsyncLocalStorage } from 'node:async_hooks';\r\n" +
+  "import { createDateFreeParserPolicy, createParserAttemptPacer, formatDateFreePhaseReport } from '../features/ai/dateFreeParserPolicy.js';\r\n" +
+  "import { buildDateFreePhasePlan, serializeDateFreePhasePlan, restoreDateFreePhasePlan } from '../features/scrapers/parserPhasePlan.js';\r\n" +
+  'const dateFreeParserContext = new AsyncLocalStorage();\r\n' +
+  '// Separate from the date-free policy: phase one keeps its normal model ladder\r\n' +
+  '// while this context only spaces request starts for explicit turbo modes.\r\n' +
+  'const parserPacingContext = new AsyncLocalStorage();\r\n' +
+  "function parserTurboPacer(mode = '') {\r\n" +
+  "    return createParserAttemptPacer({ mode: String(mode || '').toLowerCase() || 'default' });\r\n" +
+  '}\r\n' +
+  'const parserAttemptPacer = parserTurboPacer();\r\n' +
+  'async function paceParserRequest(capability, options = {}) {\r\n' +
+  '    if (options?.dateFreePolicyAttempt || dateFreeParserContext.getStore()) return;\r\n' +
+  "    if (!/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) return;\r\n" +
+  '    const state = parserPacingContext.getStore();\r\n' +
+  "    if (typeof state?.beforeAttempt === 'function') await state.beforeAttempt(capability);\r\n" +
+  '}\r\n' +
+  'import {\r\n' +
+  '    DEFAULT_OPERATION_TIMEOUT_MS,\r\n' +
+  '    auditRuntimeEvent,\r\n' +
+  '    getCurrentOperation,\r\n' +
+  '    getCurrentOperationSignal,\r\n' +
+  '    getOperation,\r\n' +
+  '    installGlobalRuntimeAuditHandlers,\r\n' +
+  '    listActiveOperations,\r\n' +
+  '    registerOperationStopHandler,\r\n' +
+  '    requestOperationStop,\r\n' +
+  '    requestStopWhere,\r\n' +
+  '    runSupervisedOperation,\r\n' +
+  '    reconcileInterruptedOperationCheckpoints,\r\n' +
+  '    saveOperationCheckpoint as persistOperationCheckpoint,\r\n' +
+  '    updateOperationProgress,\r\n' +
+  "} from '../runtime/operationSupervisor.js';\r\n" +
+  "import { basename, dirname, extname, resolve, sep } from 'node:path';\r\n" +
+  "import { loadLatestParserAllRecovery, mergeParserAllCheckpoint, parserRecoveryCheckpointInputs, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand, claimParserAllRecovery, getParserPosterGateImage } from '../features/scrapers/parserAllRecovery.js';\r\n" +
+  "import { loadLatestParserAllRecoveryAsync } from '../features/scrapers/parserRecoveryAsync.js';\r\n" +
+  "import { BOT_PATCH_VERSION } from '../shared/buildVersion.js';\r\n" +
+  "import { eventPosterRevisionEvidence } from '../features/events/eventSourceRevisionEvidence.js';\r\n" +
+  "import { createProjectAuditStreamJournal } from '../features/audit/projectAuditStreamJournal.js';\r\n" +
+  "import { createAiResponseTrace } from '../features/audit/aiResponseTrace.js';\r\n" +
+  "import { appendPosterDeliveryForensic } from '../features/scrapers/parserPosterForensics.js';\r\n" +
+  "import { recoverTextResponseJobs, saveTextJobRecipient, markTextJobDelivered } from '../features/audit/astraTextResponseRecovery.js';\r\n" +
+  "import { appendTelegramTextTransferLog } from '../features/audit/telegramTextTransferLog.js';\r\n" +
+  "import { splitTelegramLongReply } from '../platforms/telegram/telegramLongReply.js';\r\n" +
+  "import { parseCfProbeCommand, handleCfProbeCommand } from '../features/diagnostics/cloudflareProbe.js';\r\n" +
+  'import { beginTelegramTextJob, getActiveTelegramTextJob, observeTelegramTextJob, finishTelegramTextJob,\r\n' +
+  '    resolveTelegramTextJobId, readTelegramTextJobLog, telegramTextJobStatus,\r\n' +
+  '    saveTelegramTextJobInput, loadTelegramTextJobInput, getTelegramTextJobDeliveryState,\r\n' +
+  "    markTelegramTextJobDelivery } from '../features/audit/telegramTextJobControl.js';\r\n" +
+  "import { auditStageInputHash, createAuditStageJournal } from '../features/audit/projectAuditStageJournal.js';\r\n" +
+  'import {\r\n' +
+  '    getRouterFileVariant,\r\n' +
+  '    loadRouterFileProbeCache,\r\n' +
+  '    saveRouterFileProbeCache,\r\n' +
+  '    buildRouterFileUploadRequest,\r\n' +
+  '    probeRouterFileUploads,\r\n' +
+  '    probeRouterInputFileOnce,\r\n' +
+  "} from '../features/ai/routerFileProbe.js';\r\n" +
+  "import { createHash, randomInt, randomUUID } from 'node:crypto';\r\n" +
+  "import { assertTrustedModelImageUrl } from './imageDownloadPolicy.js';\r\n" +
+  "import { VK } from 'vk-io';\r\n" +
+  "import { GigaChat, detectImage } from 'gigachat';\r\n" +
+  '\r\n' +
+  'import {\r\n' +
+  '    getAllMessages,\r\n' +
+  '    getAllStoredMessages,\r\n' +
+  '    getStoredGroupPeerIds,\r\n' +
+  '    searchStoredMessagesByText,\r\n' +
+  '    getChatStats,\r\n' +
+  '    getDossierFacts,\r\n' +
+  '    getMessagesByCount,\r\n' +
+  '    getMessagesSince,\r\n' +
+  '    getMessagesBetween,\r\n' +
+  '    getParticipantMessagesBetween,\r\n' +
+  '    getParticipantPairsBetween,\r\n' +
+  '    getParticipantStyle,\r\n' +
+  '    getCommunicationSettings,\r\n' +
+  '    getCommunicationBanterState,\r\n' +
+  '    getAutoSummarySettings,\r\n' +
+  '    saveAutoSummarySettings,\r\n' +
+  '    getDueAutoSummarySettings,\r\n' +
+  '    getEnabledAutoSummarySettings,\r\n' +
+  '    getAllAutoSummarySettings,\r\n' +
+  '    getAutoSummaryStateDatabasePath,\r\n' +
+  '    getAutoSummaryStateMeta,\r\n' +
+  '    saveAutoSummaryStateMeta,\r\n' +
+  '    getAutoSummaryRun,\r\n' +
+  '    saveAutoSummaryRun,\r\n' +
+  '    getAutoSummaryHealth,\r\n' +
+  '    saveAutoSummaryHealth,\r\n' +
+  '    getDueCommunicationSettings,\r\n' +
+  '    getRecentCommunicationParticipants,\r\n' +
+  '    getRecentInteractions,\r\n' +
+  '    getRecentParticipantMessages,\r\n' +
+  '    getExplicitMemories,\r\n' +
+  '    getExplicitMemorySourceKeys,\r\n' +
+  '    deactivateExplicitMemories,\r\n' +
+  '    replaceDossierFacts,\r\n' +
+  '    saveIncomingMessage,\r\n' +
+  '    saveChatMembershipEvent,\r\n' +
+  '    getChatLeavers,\r\n' +
+  '    getChatExitEvents,\r\n' +
+  '    getChatLeaverAutoSettings,\r\n' +
+  '    saveChatLeaverAutoSettings,\r\n' +
+  '    getDueChatLeaverAutoSettings,\r\n' +
+  '    getEnabledChatLeaverAutoSettings,\r\n' +
+  '    getVkCachedUserNames,\r\n' +
+  '    getVkUserNamesAt,\r\n' +
+  '    getTelegramPostMeta,\r\n' +
+  '    getVkPostMeta,\r\n' +
+  '    saveVkUserNames,\r\n' +
+  '    saveVkMessageArchiveRecord,\r\n' +
+  '    getVkMessageArchiveStats,\r\n' +
+  '    getVkMessageArchiveMessages,\r\n' +
+  '    getVkServiceEventSummary,\r\n' +
+  '    getVkServiceEvents,\r\n' +
+  '    getVkMessageArchiveUserMessages,\r\n' +
+  '    getVkMessageArchiveParticipantIds,\r\n' +
+  '    recordBotRequestEvent,\r\n' +
+  '    getBotRequestStats,\r\n' +
+  '    saveInteraction,\r\n' +
+  '    saveExplicitMemory,\r\n' +
+  '    saveCommunicationSettings,\r\n' +
+  '    saveCommunicationBanterState,\r\n' +
+  '    saveManualEvent,\r\n' +
+  '    createEventProposal,\r\n' +
+  '    createEventProposalOnce,\r\n' +
+  '    getEventProposal,\r\n' +
+  '    getLatestPendingEventProposal,\r\n' +
+  '    getPendingEventProposals,\r\n' +
+  '    updatePendingEventProposal,\r\n' +
+  '    getDueEventProposals,\r\n' +
+  '    resolveEventProposal,\r\n' +
+  '    setParticipantStyle,\r\n' +
+  '    touchCommunicationParticipant,\r\n' +
+  '    updateCommunicationOutburstSchedule,\r\n' +
+  '    updateActiveCommunicationState,\r\n' +
+  '    clearCommunicationBanterState,\r\n' +
+  '    clearCommunicationBanterStatesForPeer,\r\n' +
+  '    auditInvalidEventRecords,\r\n' +
+  '    replaceEventDedupeRegistry,\r\n' +
+  '    getEventDedupeRegistryStats,\r\n' +
+  '    getEventDedupeDuplicateRefs,\r\n' +
+  '    updateStoredEventRecordFromReparse,\r\n' +
+  '    updateStoredEventSemanticFieldsByOwner,\r\n' +
+  '    consumeUserRateLimit,\r\n' +
+  '    refundUserRateLimit,\r\n' +
+  '    consumeGptModelDailyRateLimit,\r\n' +
+  '    refundGptModelDailyRateLimit,\r\n' +
+  '    consumeDmAiNotice,\r\n' +
+  '    getPermanentEventBlocks,\r\n' +
+  '    permanentlyDeleteStoredEvent,\r\n' +
+  '    permanentlyDeleteStoredEventByIdentity,\r\n' +
+  '    restorePermanentEventBlocks,\r\n' +
+  '    softDeleteMatchingStoredEvents,\r\n' +
+  '    softDeleteStoredEventByIdentity,\r\n' +
+  '    cleanupDisabledCommunicationAutonomy,\r\n' +
+  '    disableLegacyCommunicationOutburstAutomation,\r\n' +
+  '    getDmPartyFaqAnswers,\r\n' +
+  '    getCoordsOverrideSettings,\r\n' +
+  '    saveCoordsOverrideMessage,\r\n' +
+  '    setCoordsOverrideEnabled,\r\n' +
+  '    deleteCoordsOverrideMessage,\r\n' +
+  '    recordCoordsRequestRecipient,\r\n' +
+  '    getCoordsRequestRecipients,\r\n' +
+  '    clearCoordsRequestRecipients,\r\n' +
+  '    armPostEventFeedbackRecipients,\r\n' +
+  '    getPendingPostEventFeedbackRequest,\r\n' +
+  '    cancelPostEventFeedbackRequest,\r\n' +
+  '    getPostEventFeedbackReviews,\r\n' +
+  '    getPostEventFeedbackStats,\r\n' +
+  '    savePostEventFeedbackReview,\r\n' +
+  '    getQrCodeSettings,\r\n' +
+  '    updateQrCodeSettings,\r\n' +
+  '    getMaintenanceState,\r\n' +
+  '    setMaintenanceState,\r\n' +
+  '    getManualUpcomingEvents,\r\n' +
+  '    getManualEventsBySourceUrl,\r\n' +
+  '    ignoreManualEventsBySourceUrl,\r\n' +
+  '    getAllUpcomingEventRecordsForDedupe,\r\n' +
+  '    getQticketsUpcomingEvents,\r\n' +
+  '    replaceAllPartyMetadata,\r\n' +
+  '    getAllPartyMetadata,\r\n' +
+  '    getOrCreatePlatformIdentity,\r\n' +
+  '    getMostActiveStoredGroupPeer,\r\n' +
+  '    getBestStoredGroupPeerForHistoryRebind,\r\n' +
+  '    getPeerHistoryMigration,\r\n' +
+  '    migrateStoredGroupHistory,\r\n' +
+  '    resetAllRateLimits,\r\n' +
+  '    replaceAiRuntimeModes,\r\n' +
+  '    getAiRuntimeModes,\r\n' +
+  '    getAiRuntimeModePolicy,\r\n' +
+  '    replaceAiHealthRegistry,\r\n' +
+  '    getAiKeyHealthRows,\r\n' +
+  '    getAiModelHealthRows,\r\n' +
+  '    getAiModelHealthStatus,\r\n' +
+  '    getQualifiedDiscoveredAiModels,\r\n' +
+  '    getVoiceTranscriptCache,\r\n' +
+  '    saveVoiceTranscriptCache,\r\n' +
+  '    backfillCleanLegacyPosterBindingsV18868,\r\n' +
+  '    getStartupPosterRepairGroupsV18877,\r\n' +
+  '    getAllStoredSourceImageAuditGroupsV188100,\r\n' +
+  '    saveStartupPosterRepairVisionFactsV18877,\r\n' +
+  '    reconcileStoredEventPosterFromMetadataV18892,\r\n' +
+  '    saveManualPosterMetadataV18892,\r\n' +
+  '    getStoredPosterReviewEventsV18893,\r\n' +
+  '    setStoredEventPosterChoiceV18893,\r\n' +
+  '    setStoredEventPosterReviewDeclinedV188100,\r\n' +
+  '    replaceStoredImagePathEverywhereV18893,\r\n' +
+  '    isStartupPosterRepairV18877Complete,\r\n' +
+  '    markStartupPosterRepairV18877Complete,\r\n' +
+  '    isStartupMediaRepairV18883Complete,\r\n' +
+  '    markStartupMediaRepairV18883Complete,\r\n' +
+  '    repairQticketsSinglePosterV18885,\r\n' +
+  '    RUNTIME_DATA_DIRECTORY,\r\n' +
+  "} from '../infrastructure/database/index.js';\r\n" +
+  '\r\n' +
+  'import {\r\n' +
+  '    PERSONALIZATION_STATE_DB_PATH,\r\n' +
+  '    getStyleBatchState,\r\n' +
+  '    saveStyleBatchState,\r\n' +
+  '    getCommunicationStyleExamples,\r\n' +
+  '    saveCommunicationStyleExamples,\r\n' +
+  '    getDossierCommandState,\r\n' +
+  '    saveDossierCommandState,\r\n' +
+  '    getDossierSourceStates,\r\n' +
+  '    saveDossierSourceState,\r\n' +
+  '    get'... 2212194 more characters
+
+    at file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/events/eventProposalVkBootstrapTemporalFusionV1886.test.mjs:34:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:689:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: "import { resolveVkOriginalPosts, selectDeepestCapturedVkWall } from '../features/events/vkOriginalPost.js';\r\n" +
+    "import { explainEventAiAdmission } from '../features/events/eventAiAdmission.js';\r\n" +
+    '/**\r\n' +
+    ' * Главный оркестратор: связывает VK, Telegram, GPT, базу, события и фоновые задачи. Здесь должны оставаться только сценарии верхнего уровня; чистую логику выносим в features/shared.\r\n' +
+    ' */\r\n' +
+    'import {\r\n' +
+    '    copyFileSync,\r\n' +
+    '    createReadStream,\r\n' +
+    '    existsSync,\r\n' +
+    '    mkdirSync,\r\n' +
+    '    openSync,\r\n' +
+    '    closeSync,\r\n' +
+    '    fsyncSync,\r\n' +
+    '    openAsBlob,\r\n' +
+    '    readFileSync,\r\n' +
+    '    readdirSync,\r\n' +
+    '    renameSync,\r\n' +
+    '    statSync,\r\n' +
+    '    unlinkSync,\r\n' +
+    '    writeFileSync,\r\n' +
+    "} from 'node:fs';\r\n" +
+    "import { mkdir as mkdirAsync, open as openAsync, rename as renameAsync, unlink as unlinkAsync } from 'node:fs/promises';\r\n" +
+    "import { Agent } from 'node:https';\r\n" +
+    "import { Buffer } from 'node:buffer';\r\n" +
+    "import { AsyncLocalStorage } from 'node:async_hooks';\r\n" +
+    "import { createDateFreeParserPolicy, createParserAttemptPacer, formatDateFreePhaseReport } from '../features/ai/dateFreeParserPolicy.js';\r\n" +
+    "import { buildDateFreePhasePlan, serializeDateFreePhasePlan, restoreDateFreePhasePlan } from '../features/scrapers/parserPhasePlan.js';\r\n" +
+    'const dateFreeParserContext = new AsyncLocalStorage();\r\n' +
+    '// Separate from the date-free policy: phase one keeps its normal model ladder\r\n' +
+    '// while this context only spaces request starts for explicit turbo modes.\r\n' +
+    'const parserPacingContext = new AsyncLocalStorage();\r\n' +
+    "function parserTurboPacer(mode = '') {\r\n" +
+    "    return createParserAttemptPacer({ mode: String(mode || '').toLowerCase() || 'default' });\r\n" +
+    '}\r\n' +
+    'const parserAttemptPacer = parserTurboPacer();\r\n' +
+    'async function paceParserRequest(capability, options = {}) {\r\n' +
+    '    if (options?.dateFreePolicyAttempt || dateFreeParserContext.getStore()) return;\r\n' +
+    "    if (!/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) return;\r\n" +
+    '    const state = parserPacingContext.getStore();\r\n' +
+    "    if (typeof state?.beforeAttempt === 'function') await state.beforeAttempt(capability);\r\n" +
+    '}\r\n' +
+    'import {\r\n' +
+    '    DEFAULT_OPERATION_TIMEOUT_MS,\r\n' +
+    '    auditRuntimeEvent,\r\n' +
+    '    getCurrentOperation,\r\n' +
+    '    getCurrentOperationSignal,\r\n' +
+    '    getOperation,\r\n' +
+    '    installGlobalRuntimeAuditHandlers,\r\n' +
+    '    listActiveOperations,\r\n' +
+    '    registerOperationStopHandler,\r\n' +
+    '    requestOperationStop,\r\n' +
+    '    requestStopWhere,\r\n' +
+    '    runSupervisedOperation,\r\n' +
+    '    reconcileInterruptedOperationCheckpoints,\r\n' +
+    '    saveOperationCheckpoint as persistOperationCheckpoint,\r\n' +
+    '    updateOperationProgress,\r\n' +
+    "} from '../runtime/operationSupervisor.js';\r\n" +
+    "import { basename, dirname, extname, resolve, sep } from 'node:path';\r\n" +
+    "import { loadLatestParserAllRecovery, mergeParserAllCheckpoint, parserRecoveryCheckpointInputs, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand, claimParserAllRecovery, getParserPosterGateImage } from '../features/scrapers/parserAllRecovery.js';\r\n" +
+    "import { loadLatestParserAllRecoveryAsync } from '../features/scrapers/parserRecoveryAsync.js';\r\n" +
+    "import { BOT_PATCH_VERSION } from '../shared/buildVersion.js';\r\n" +
+    "import { eventPosterRevisionEvidence } from '../features/events/eventSourceRevisionEvidence.js';\r\n" +
+    "import { createProjectAuditStreamJournal } from '../features/audit/projectAuditStreamJournal.js';\r\n" +
+    "import { createAiResponseTrace } from '../features/audit/aiResponseTrace.js';\r\n" +
+    "import { appendPosterDeliveryForensic } from '../features/scrapers/parserPosterForensics.js';\r\n" +
+    "import { recoverTextResponseJobs, saveTextJobRecipient, markTextJobDelivered } from '../features/audit/astraTextResponseRecovery.js';\r\n" +
+    "import { appendTelegramTextTransferLog } from '../features/audit/telegramTextTransferLog.js';\r\n" +
+    "import { splitTelegramLongReply } from '../platforms/telegram/telegramLongReply.js';\r\n" +
+    "import { parseCfProbeCommand, handleCfProbeCommand } from '../features/diagnostics/cloudflareProbe.js';\r\n" +
+    'import { beginTelegramTextJob, getActiveTelegramTextJob, observeTelegramTextJob, finishTelegramTextJob,\r\n' +
+    '    resolveTelegramTextJobId, readTelegramTextJobLog, telegramTextJobStatus,\r\n' +
+    '    saveTelegramTextJobInput, loadTelegramTextJobInput, getTelegramTextJobDeliveryState,\r\n' +
+    "    markTelegramTextJobDelivery } from '../features/audit/telegramTextJobControl.js';\r\n" +
+    "import { auditStageInputHash, createAuditStageJournal } from '../features/audit/projectAuditStageJournal.js';\r\n" +
+    'import {\r\n' +
+    '    getRouterFileVariant,\r\n' +
+    '    loadRouterFileProbeCache,\r\n' +
+    '    saveRouterFileProbeCache,\r\n' +
+    '    buildRouterFileUploadRequest,\r\n' +
+    '    probeRouterFileUploads,\r\n' +
+    '    probeRouterInputFileOnce,\r\n' +
+    "} from '../features/ai/routerFileProbe.js';\r\n" +
+    "import { createHash, randomInt, randomUUID } from 'node:crypto';\r\n" +
+    "import { assertTrustedModelImageUrl } from './imageDownloadPolicy.js';\r\n" +
+    "import { VK } from 'vk-io';\r\n" +
+    "import { GigaChat, detectImage } from 'gigachat';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    getAllMessages,\r\n' +
+    '    getAllStoredMessages,\r\n' +
+    '    getStoredGroupPeerIds,\r\n' +
+    '    searchStoredMessagesByText,\r\n' +
+    '    getChatStats,\r\n' +
+    '    getDossierFacts,\r\n' +
+    '    getMessagesByCount,\r\n' +
+    '    getMessagesSince,\r\n' +
+    '    getMessagesBetween,\r\n' +
+    '    getParticipantMessagesBetween,\r\n' +
+    '    getParticipantPairsBetween,\r\n' +
+    '    getParticipantStyle,\r\n' +
+    '    getCommunicationSettings,\r\n' +
+    '    getCommunicationBanterState,\r\n' +
+    '    getAutoSummarySettings,\r\n' +
+    '    saveAutoSummarySettings,\r\n' +
+    '    getDueAutoSummarySettings,\r\n' +
+    '    getEnabledAutoSummarySettings,\r\n' +
+    '    getAllAutoSummarySettings,\r\n' +
+    '    getAutoSummaryStateDatabasePath,\r\n' +
+    '    getAutoSummaryStateMeta,\r\n' +
+    '    saveAutoSummaryStateMeta,\r\n' +
+    '    getAutoSummaryRun,\r\n' +
+    '    saveAutoSummaryRun,\r\n' +
+    '    getAutoSummaryHealth,\r\n' +
+    '    saveAutoSummaryHealth,\r\n' +
+    '    getDueCommunicationSettings,\r\n' +
+    '    getRecentCommunicationParticipants,\r\n' +
+    '    getRecentInteractions,\r\n' +
+    '    getRecentParticipantMessages,\r\n' +
+    '    getExplicitMemories,\r\n' +
+    '    getExplicitMemorySourceKeys,\r\n' +
+    '    deactivateExplicitMemories,\r\n' +
+    '    replaceDossierFacts,\r\n' +
+    '    saveIncomingMessage,\r\n' +
+    '    saveChatMembershipEvent,\r\n' +
+    '    getChatLeavers,\r\n' +
+    '    getChatExitEvents,\r\n' +
+    '    getChatLeaverAutoSettings,\r\n' +
+    '    saveChatLeaverAutoSettings,\r\n' +
+    '    getDueChatLeaverAutoSettings,\r\n' +
+    '    getEnabledChatLeaverAutoSettings,\r\n' +
+    '    getVkCachedUserNames,\r\n' +
+    '    getVkUserNamesAt,\r\n' +
+    '    getTelegramPostMeta,\r\n' +
+    '    getVkPostMeta,\r\n' +
+    '    saveVkUserNames,\r\n' +
+    '    saveVkMessageArchiveRecord,\r\n' +
+    '    getVkMessageArchiveStats,\r\n' +
+    '    getVkMessageArchiveMessages,\r\n' +
+    '    getVkServiceEventSummary,\r\n' +
+    '    getVkServiceEvents,\r\n' +
+    '    getVkMessageArchiveUserMessages,\r\n' +
+    '    getVkMessageArchiveParticipantIds,\r\n' +
+    '    recordBotRequestEvent,\r\n' +
+    '    getBotRequestStats,\r\n' +
+    '    saveInteraction,\r\n' +
+    '    saveExplicitMemory,\r\n' +
+    '    saveCommunicationSettings,\r\n' +
+    '    saveCommunicationBanterState,\r\n' +
+    '    saveManualEvent,\r\n' +
+    '    createEventProposal,\r\n' +
+    '    createEventProposalOnce,\r\n' +
+    '    getEventProposal,\r\n' +
+    '    getLatestPendingEventProposal,\r\n' +
+    '    getPendingEventProposals,\r\n' +
+    '    updatePendingEventProposal,\r\n' +
+    '    getDueEventProposals,\r\n' +
+    '    resolveEventProposal,\r\n' +
+    '    setParticipantStyle,\r\n' +
+    '    touchCommunicationParticipant,\r\n' +
+    '    updateCommunicationOutburstSchedule,\r\n' +
+    '    updateActiveCommunicationState,\r\n' +
+    '    clearCommunicationBanterState,\r\n' +
+    '    clearCommunicationBanterStatesForPeer,\r\n' +
+    '    auditInvalidEventRecords,\r\n' +
+    '    replaceEventDedupeRegistry,\r\n' +
+    '    getEventDedupeRegistryStats,\r\n' +
+    '    getEventDedupeDuplicateRefs,\r\n' +
+    '    updateStoredEventRecordFromReparse,\r\n' +
+    '    updateStoredEventSemanticFieldsByOwner,\r\n' +
+    '    consumeUserRateLimit,\r\n' +
+    '    refundUserRateLimit,\r\n' +
+    '    consumeGptModelDailyRateLimit,\r\n' +
+    '    refundGptModelDailyRateLimit,\r\n' +
+    '    consumeDmAiNotice,\r\n' +
+    '    getPermanentEventBlocks,\r\n' +
+    '    permanentlyDeleteStoredEvent,\r\n' +
+    '    permanentlyDeleteStoredEventByIdentity,\r\n' +
+    '    restorePermanentEventBlocks,\r\n' +
+    '    softDeleteMatchingStoredEvents,\r\n' +
+    '    softDeleteStoredEventByIdentity,\r\n' +
+    '    cleanupDisabledCommunicationAutonomy,\r\n' +
+    '    disableLegacyCommunicationOutburstAutomation,\r\n' +
+    '    getDmPartyFaqAnswers,\r\n' +
+    '    getCoordsOverrideSettings,\r\n' +
+    '    saveCoordsOverrideMessage,\r\n' +
+    '    setCoordsOverrideEnabled,\r\n' +
+    '    deleteCoordsOverrideMessage,\r\n' +
+    '    recordCoordsRequestRecipient,\r\n' +
+    '    getCoordsRequestRecipients,\r\n' +
+    '    clearCoordsRequestRecipients,\r\n' +
+    '    armPostEventFeedbackRecipients,\r\n' +
+    '    getPendingPostEventFeedbackRequest,\r\n' +
+    '    cancelPostEventFeedbackRequest,\r\n' +
+    '    getPostEventFeedbackReviews,\r\n' +
+    '    getPostEventFeedbackStats,\r\n' +
+    '    savePostEventFeedbackReview,\r\n' +
+    '    getQrCodeSettings,\r\n' +
+    '    updateQrCodeSettings,\r\n' +
+    '    getMaintenanceState,\r\n' +
+    '    setMaintenanceState,\r\n' +
+    '    getManualUpcomingEvents,\r\n' +
+    '    getManualEventsBySourceUrl,\r\n' +
+    '    ignoreManualEventsBySourceUrl,\r\n' +
+    '    getAllUpcomingEventRecordsForDedupe,\r\n' +
+    '    getQticketsUpcomingEvents,\r\n' +
+    '    replaceAllPartyMetadata,\r\n' +
+    '    getAllPartyMetadata,\r\n' +
+    '    getOrCreatePlatformIdentity,\r\n' +
+    '    getMostActiveStoredGroupPeer,\r\n' +
+    '    getBestStoredGroupPeerForHistoryRebind,\r\n' +
+    '    getPeerHistoryMigration,\r\n' +
+    '    migrateStoredGroupHistory,\r\n' +
+    '    resetAllRateLimits,\r\n' +
+    '    replaceAiRuntimeModes,\r\n' +
+    '    getAiRuntimeModes,\r\n' +
+    '    getAiRuntimeModePolicy,\r\n' +
+    '    replaceAiHealthRegistry,\r\n' +
+    '    getAiKeyHealthRows,\r\n' +
+    '    getAiModelHealthRows,\r\n' +
+    '    getAiModelHealthStatus,\r\n' +
+    '    getQualifiedDiscoveredAiModels,\r\n' +
+    '    getVoiceTranscriptCache,\r\n' +
+    '    saveVoiceTranscriptCache,\r\n' +
+    '    backfillCleanLegacyPosterBindingsV18868,\r\n' +
+    '    getStartupPosterRepairGroupsV18877,\r\n' +
+    '    getAllStoredSourceImageAuditGroupsV188100,\r\n' +
+    '    saveStartupPosterRepairVisionFactsV18877,\r\n' +
+    '    reconcileStoredEventPosterFromMetadataV18892,\r\n' +
+    '    saveManualPosterMetadataV18892,\r\n' +
+    '    getStoredPosterReviewEventsV18893,\r\n' +
+    '    setStoredEventPosterChoiceV18893,\r\n' +
+    '    setStoredEventPosterReviewDeclinedV188100,\r\n' +
+    '    replaceStoredImagePathEverywhereV18893,\r\n' +
+    '    isStartupPosterRepairV18877Complete,\r\n' +
+    '    markStartupPosterRepairV18877Complete,\r\n' +
+    '    isStartupMediaRepairV18883Complete,\r\n' +
+    '    markStartupMediaRepairV18883Complete,\r\n' +
+    '    repairQticketsSinglePosterV18885,\r\n' +
+    '    RUNTIME_DATA_DIRECTORY,\r\n' +
+    "} from '../infrastructure/database/index.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    PERSONALIZATION_STATE_DB_PATH,\r\n' +
+    '    getStyleBatchState,\r\n' +
+    '    saveStyleBatchState,\r\n' +
+    '    getCommunicationStyleExamples,\r\n' +
+    '    saveCommunicationStyleExamples,\r\n' +
+    '    getDossierCommandState,\r\n' +
+    '    saveDossierCommandState,\r\n' +
+    '    getDossierSourceStates,\r\n' +
+    '    saveDossierSourceState,\r\n' +
+    '    get'... 2212194 more characters,
+  expected: /MANUAL EVENT TEMPORAL FUSION/u,
+  operator: 'match',
+  diff: 'simple'
+}
+
+Node.js v24.9.0
+✖ tests\events\eventProposalVkBootstrapTemporalFusionV1886.test.mjs (103.7029ms)
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /if \(openAIApiKey\)/u. Input:
+
+'async function parseEventProposalSubmission(context, submitted, {\r\n' +
+  '    parserTrace = null,\r\n' +
+  '    trustedOwner = false,\r\n' +
+  '} = {}) {\r\n' +
+  '    const trace = parserTrace?.log || null;\r\n' +
+  '    const rawContext = getRawContext(context);\r\n' +
+  "    const sourceName = trustedOwner ? 'добавлено владельцем' : 'предложено пользователем';\r\n" +
+  "    const draftStatus = trustedOwner ? 'approved' : 'pending';\r\n" +
+  "    const cleanSubmission = String(submitted ?? '').trim();\r\n" +
+  '    const urls = extractHttpUrls(cleanSubmission);\r\n' +
+  '    const plainText = stripHttpUrls(cleanSubmission);\r\n' +
+  '    const onlyLinks = Boolean(urls.length && !plainText);\r\n' +
+  '    const incomingImageUrls = await resolveRichIncomingImageTargets(rawContext).catch(() => []);\r\n' +
+  '    let linkData = null;\r\n' +
+  "    let sourceUrl = urls[0] ?? '';\r\n" +
+  '    let selectedPost = null;\r\n' +
+  '    let draftEvents = [];\r\n' +
+  '    let sawPastEvent = false;\r\n' +
+  '    const referenceDate = getLocalDateString(new Date(), botTimeZone);\r\n' +
+  "    trace?.('proposal.input.normalized', {\r\n" +
+  '        cleanSubmission,\r\n' +
+  '        urls,\r\n' +
+  '        plainText,\r\n' +
+  '        onlyLinks,\r\n' +
+  '        incomingImageUrls,\r\n' +
+  '        sourceUrl,\r\n' +
+  '        referenceDate,\r\n' +
+  '        runtimeModelCredentialCount: runtimeModelCredentials.length,\r\n' +
+  '        trustedOwner,\r\n' +
+  '        sourceName,\r\n' +
+  '        draftStatus,\r\n' +
+  '    });\r\n' +
+  '\r\n' +
+  '    if (sourceUrl) {\r\n' +
+  '        const sourceDescriptor = classifyEventSourceUrl(sourceUrl);\r\n' +
+  "        trace?.('proposal.source.classified', {\r\n" +
+  '            sourceUrl,\r\n' +
+  '            sourceDescriptor,\r\n' +
+  '        });\r\n' +
+  '        let exactVkPost = null;\r\n' +
+  "        if (sourceDescriptor.platform === 'vk' && sourceDescriptor.exactPost) {\r\n" +
+  '            // Open the submitted link first: the page DOM and its own VK\r\n' +
+  '            // bootstrap payload are the source of truth for this manual flow.\r\n' +
+  '            // A separate VK API hydrate used to delay browser capture and made\r\n' +
+  '            // the link path depend on an optional API result.\r\n' +
+  "            trace?.('proposal.vk_direct.defer_api', {\r\n" +
+  '                sourceUrl,\r\n' +
+  "                reason: 'manual-link-dom-first',\r\n" +
+  '            });\r\n' +
+  '        }\r\n' +
+  "        trace?.('proposal.vk_direct.result', {\r\n" +
+  '            sourceDescriptor,\r\n' +
+  '            exactVkPost,\r\n' +
+  '        });\r\n' +
+  '\r\n' +
+  '        const exactVkLocalParsedEvents = exactVkPost\r\n' +
+  '            ? parsePublicPostLocally({\r\n' +
+  '                ...exactVkPost,\r\n' +
+  "                text: String(exactVkPost.text || '').trim(),\r\n" +
+  '                sourceUrl: exactVkPost.sourceUrl || sourceUrl,\r\n' +
+  '                screenName: eventSourceScreenName(exactVkPost.sourceUrl || sourceUrl),\r\n' +
+  '                publishedAt: Number(exactVkPost.publishedAt || 0),\r\n' +
+  '            })\r\n' +
+  '            : [];\r\n' +
+  '        const exactVkLocalDateEvidence = exactVkLocalParsedEvents.some((event) => Boolean(event?.eventDate));\r\n' +
+  '        const exactVkHasDateEvidence = Boolean(exactVkPost?.eventDate) || exactVkLocalDateEvidence;\r\n' +
+  "        trace?.('proposal.vk_direct.date_decision', {\r\n" +
+  "            exactVkPostEventDate: exactVkPost?.eventDate || '',\r\n" +
+  "            exactVkPostEventTime: exactVkPost?.eventTime || '',\r\n" +
+  '            exactVkLocalParsedEvents,\r\n' +
+  '            exactVkLocalDateEvidence,\r\n' +
+  '            exactVkHasDateEvidence,\r\n' +
+  '        });\r\n' +
+  '\r\n' +
+  "        const exactVkRawWallText = String(exactVkPost?.rawWallText || '').trim();\r\n" +
+  '        const exactVkStructuredOnly = Boolean(\r\n' +
+  '            exactVkPost &&\r\n' +
+  '            exactVkHasDateEvidence &&\r\n' +
+  '            exactVkPost?.eventDate &&\r\n' +
+  '            exactVkRawWallText.length < 40\r\n' +
+  '        );\r\n' +
+  "        trace?.('proposal.vk_direct.enrichment_decision', {\r\n" +
+  '            exactVkHasDateEvidence,\r\n' +
+  '            exactVkRawWallTextLength: exactVkRawWallText.length,\r\n' +
+  '            exactVkStructuredOnly,\r\n' +
+  '            reason: exactVkStructuredOnly\r\n' +
+  "                ? 'structured-date-without-rich-wall-text'\r\n" +
+  "                : 'api-wall-has-usable-text-or-no-structured-date',\r\n" +
+  '        });\r\n' +
+  '\r\n' +
+  "        if (exactVkPost && exactVkHasDateEvidence && !exactVkStructuredOnly && exactVkPost.imageConfidence === 'wall-photo') {\r\n" +
+  "            trace?.('proposal.branch.fast_path', {\r\n" +
+  "                reason: exactVkPost?.eventDate ? 'structured-event-date+rich-wall-text' : 'local-post-date',\r\n" +
+  '                exactVkPost,\r\n' +
+  '            });\r\n' +
+  '            // Fast path: wall.getById + owner groups.getById already produced a\r\n' +
+  '            // deterministic event date (or the post text itself contains one).\r\n' +
+  '            // No Chromium is needed in that case.\r\n' +
+  '            sourceUrl = exactVkPost.sourceUrl || sourceUrl;\r\n' +
+  '            selectedPost = exactVkPost;\r\n' +
+  '            linkData = {\r\n' +
+  "                title: exactVkPost.eventTitle || '',\r\n" +
+  "                description: exactVkPost.eventDescription || '',\r\n" +
+  '                text: exactVkPost.text,\r\n' +
+  "                imageUrl: exactVkPost.imageUrls?.[0] || '',\r\n" +
+  '                imageUrls: exactVkPost.imageUrls || [],\r\n' +
+  '                posts: [exactVkPost],\r\n' +
+  '                structuredEvents: exactVkPost.eventDate ? [{\r\n' +
+  '                    id: Math.abs(Number(exactVkPost.ownerId || 0)),\r\n' +
+  "                    title: exactVkPost.eventTitle || '',\r\n" +
+  "                    venue: exactVkPost.eventVenue || '',\r\n" +
+  '                    startAt: Number(exactVkPost.eventStartAt || 0),\r\n' +
+  '                    finishAt: Number(exactVkPost.eventFinishAt || 0),\r\n' +
+  "                    sourceMethod: exactVkPost.structuredSourceMethod || 'groups.getById',\r\n" +
+  '                }] : [],\r\n' +
+  '                finalUrl: sourceUrl,\r\n' +
+  '            };\r\n' +
+  '        } else {\r\n' +
+  "            trace?.('proposal.branch.browser_fallback', {\r\n" +
+  '                exactVkPostPresent: Boolean(exactVkPost),\r\n' +
+  '                exactVkHasDateEvidence,\r\n' +
+  '                exactVkStructuredOnly,\r\n' +
+  '                exactVkRawWallTextLength: exactVkRawWallText.length,\r\n' +
+  '                exactVkPost,\r\n' +
+  '            });\r\n' +
+  '            // Required VK structured fields were not available. This is the\r\n' +
+  '            // deliberate fallback requested for VK: parse the actual page as a\r\n' +
+  '            // finite pass, then merge the exact wall API result back in. The tab\r\n' +
+  '            // closes in openEventLinkForReview.finally; browser closure is never\r\n' +
+  '            // used as a parsing stop signal.\r\n' +
+  '            try {\r\n' +
+  '                linkData = await openEventLinkForReview({\r\n' +
+  '                    url: sourceUrl,\r\n' +
+  "                    dataDirectory: './data',\r\n" +
+  '                    notifyAttention: notifyScraperAttention,\r\n' +
+  '                    navigationTimeoutMs: 15_000,\r\n' +
+  '                    manualAccessTimeoutMs: 5_000,\r\n' +
+  '                    keepPageOpen: false,\r\n' +
+  '                    // User/owner event submissions need a real browser dwell:\r\n' +
+  "                    // VK's SPA often renders the post and lazy media after the\r\n" +
+  '                    // initial navigation. This is measured from page opening.\r\n' +
+  '                    minimumOpenMs: 45_000,\r\n' +
+  '                    allowShortMinimumOpen: true,\r\n' +
+  '                    trace,\r\n' +
+  '                });\r\n' +
+  "                trace?.('proposal.browser.result', {\r\n" +
+  '                    linkData: {\r\n' +
+  '                        ...linkData,\r\n' +
+  "                        page: linkData?.page ? '[PLAYWRIGHT PAGE]' : null,\r\n" +
+  '                    },\r\n' +
+  '                });\r\n' +
+  '                sourceUrl = String(linkData.finalUrl || sourceUrl);\r\n' +
+  '                if (exactVkPost) {\r\n' +
+  '                    const browserExact = findExactManualLinkPost(linkData, exactVkPost.sourceUrl || sourceUrl);\r\n' +
+  '                    const mergedExact = mergeManualExactVkPostSources(exactVkPost, browserExact, exactVkPost.sourceUrl || sourceUrl);\r\n' +
+  '                    const existingPosts = Array.isArray(linkData.posts) ? linkData.posts : [];\r\n' +
+  '                    const remainingPosts = browserExact\r\n' +
+  '                        ? existingPosts.filter((post) => post !== browserExact)\r\n' +
+  '                        : existingPosts;\r\n' +
+  '                    linkData = {\r\n' +
+  '                        ...linkData,\r\n' +
+  "                        text: String(linkData.text || mergedExact?.text || exactVkPost.text || ''),\r\n" +
+  "                        imageUrl: linkData.imageUrl || mergedExact?.imageUrls?.[0] || '',\r\n" +
+  '                        imageUrls: [...new Set([\r\n' +
+  '                            ...(Array.isArray(mergedExact?.imageUrls) ? mergedExact.imageUrls : []),\r\n' +
+  '                            ...(Array.isArray(linkData.imageUrls) ? linkData.imageUrls : []),\r\n' +
+  '                        ])].slice(0, VISION_IMAGE_MAX_COUNT * 3),\r\n' +
+  '                        posts: [\r\n' +
+  "                            ...remainingPosts.filter((post) => String(post?.extractionMethod || '') === 'vk-structured-event-first-pass'),\r\n" +
+  '                            ...(mergedExact ? [mergedExact] : []),\r\n' +
+  "                            ...remainingPosts.filter((post) => String(post?.extractionMethod || '') !== 'vk-structured-event-first-pass'),\r\n" +
+  '                        ],\r\n' +
+  '                    };\r\n' +
+  "                    trace?.('proposal.browser.merge_exact_vk', {\r\n" +
+  '                        browserExact,\r\n' +
+  '                        mergedExact,\r\n' +
+  '                        mergedLinkData: {\r\n' +
+  '                            ...linkData,\r\n' +
+  "                            page: linkData?.page ? '[PLAYWRIGHT PAGE]' : null,\r\n" +
+  '                        },\r\n' +
+  '                    });\r\n' +
+  '                    selectedPost = null;\r\n' +
+  '                }\r\n' +
+  '            } catch (error) {\r\n' +
+  "                trace?.('proposal.browser.error', { sourceUrl, error, exactVkPost });\r\n" +
+  "                console.error('[EVENT PROPOSAL LINK ERROR]', formatPrivateError(error));\r\n" +
+  '                if (exactVkPost) {\r\n' +
+  '                    // Last fallback: retain the exact post even when the page\r\n' +
+  '                    // itself could not be loaded, instead of dropping the source.\r\n' +
+  '                    sourceUrl = exactVkPost.sourceUrl || sourceUrl;\r\n' +
+  '                    selectedPost = exactVkPost;\r\n' +
+  '                    linkData = {\r\n' +
+  "                        title: exactVkPost.eventTitle || '',\r\n" +
+  "                        description: exactVkPost.eventDescription || '',\r\n" +
+  '                        text: exactVkPost.text,\r\n' +
+  "                        imageUrl: exactVkPost.imageUrls?.[0] || '',\r\n" +
+  '                        imageUrls: exactV'... 869637 more characters
+
+    at file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/events/eventProposalVkOpenPostRecoveryV1885.test.mjs:26:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:377:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:689:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 'async function parseEventProposalSubmission(context, submitted, {\r\n' +
+    '    parserTrace = null,\r\n' +
+    '    trustedOwner = false,\r\n' +
+    '} = {}) {\r\n' +
+    '    const trace = parserTrace?.log || null;\r\n' +
+    '    const rawContext = getRawContext(context);\r\n' +
+    "    const sourceName = trustedOwner ? 'добавлено владельцем' : 'предложено пользователем';\r\n" +
+    "    const draftStatus = trustedOwner ? 'approved' : 'pending';\r\n" +
+    "    const cleanSubmission = String(submitted ?? '').trim();\r\n" +
+    '    const urls = extractHttpUrls(cleanSubmission);\r\n' +
+    '    const plainText = stripHttpUrls(cleanSubmission);\r\n' +
+    '    const onlyLinks = Boolean(urls.length && !plainText);\r\n' +
+    '    const incomingImageUrls = await resolveRichIncomingImageTargets(rawContext).catch(() => []);\r\n' +
+    '    let linkData = null;\r\n' +
+    "    let sourceUrl = urls[0] ?? '';\r\n" +
+    '    let selectedPost = null;\r\n' +
+    '    let draftEvents = [];\r\n' +
+    '    let sawPastEvent = false;\r\n' +
+    '    const referenceDate = getLocalDateString(new Date(), botTimeZone);\r\n' +
+    "    trace?.('proposal.input.normalized', {\r\n" +
+    '        cleanSubmission,\r\n' +
+    '        urls,\r\n' +
+    '        plainText,\r\n' +
+    '        onlyLinks,\r\n' +
+    '        incomingImageUrls,\r\n' +
+    '        sourceUrl,\r\n' +
+    '        referenceDate,\r\n' +
+    '        runtimeModelCredentialCount: runtimeModelCredentials.length,\r\n' +
+    '        trustedOwner,\r\n' +
+    '        sourceName,\r\n' +
+    '        draftStatus,\r\n' +
+    '    });\r\n' +
+    '\r\n' +
+    '    if (sourceUrl) {\r\n' +
+    '        const sourceDescriptor = classifyEventSourceUrl(sourceUrl);\r\n' +
+    "        trace?.('proposal.source.classified', {\r\n" +
+    '            sourceUrl,\r\n' +
+    '            sourceDescriptor,\r\n' +
+    '        });\r\n' +
+    '        let exactVkPost = null;\r\n' +
+    "        if (sourceDescriptor.platform === 'vk' && sourceDescriptor.exactPost) {\r\n" +
+    '            // Open the submitted link first: the page DOM and its own VK\r\n' +
+    '            // bootstrap payload are the source of truth for this manual flow.\r\n' +
+    '            // A separate VK API hydrate used to delay browser capture and made\r\n' +
+    '            // the link path depend on an optional API result.\r\n' +
+    "            trace?.('proposal.vk_direct.defer_api', {\r\n" +
+    '                sourceUrl,\r\n' +
+    "                reason: 'manual-link-dom-first',\r\n" +
+    '            });\r\n' +
+    '        }\r\n' +
+    "        trace?.('proposal.vk_direct.result', {\r\n" +
+    '            sourceDescriptor,\r\n' +
+    '            exactVkPost,\r\n' +
+    '        });\r\n' +
+    '\r\n' +
+    '        const exactVkLocalParsedEvents = exactVkPost\r\n' +
+    '            ? parsePublicPostLocally({\r\n' +
+    '                ...exactVkPost,\r\n' +
+    "                text: String(exactVkPost.text || '').trim(),\r\n" +
+    '                sourceUrl: exactVkPost.sourceUrl || sourceUrl,\r\n' +
+    '                screenName: eventSourceScreenName(exactVkPost.sourceUrl || sourceUrl),\r\n' +
+    '                publishedAt: Number(exactVkPost.publishedAt || 0),\r\n' +
+    '            })\r\n' +
+    '            : [];\r\n' +
+    '        const exactVkLocalDateEvidence = exactVkLocalParsedEvents.some((event) => Boolean(event?.eventDate));\r\n' +
+    '        const exactVkHasDateEvidence = Boolean(exactVkPost?.eventDate) || exactVkLocalDateEvidence;\r\n' +
+    "        trace?.('proposal.vk_direct.date_decision', {\r\n" +
+    "            exactVkPostEventDate: exactVkPost?.eventDate || '',\r\n" +
+    "            exactVkPostEventTime: exactVkPost?.eventTime || '',\r\n" +
+    '            exactVkLocalParsedEvents,\r\n' +
+    '            exactVkLocalDateEvidence,\r\n' +
+    '            exactVkHasDateEvidence,\r\n' +
+    '        });\r\n' +
+    '\r\n' +
+    "        const exactVkRawWallText = String(exactVkPost?.rawWallText || '').trim();\r\n" +
+    '        const exactVkStructuredOnly = Boolean(\r\n' +
+    '            exactVkPost &&\r\n' +
+    '            exactVkHasDateEvidence &&\r\n' +
+    '            exactVkPost?.eventDate &&\r\n' +
+    '            exactVkRawWallText.length < 40\r\n' +
+    '        );\r\n' +
+    "        trace?.('proposal.vk_direct.enrichment_decision', {\r\n" +
+    '            exactVkHasDateEvidence,\r\n' +
+    '            exactVkRawWallTextLength: exactVkRawWallText.length,\r\n' +
+    '            exactVkStructuredOnly,\r\n' +
+    '            reason: exactVkStructuredOnly\r\n' +
+    "                ? 'structured-date-without-rich-wall-text'\r\n" +
+    "                : 'api-wall-has-usable-text-or-no-structured-date',\r\n" +
+    '        });\r\n' +
+    '\r\n' +
+    "        if (exactVkPost && exactVkHasDateEvidence && !exactVkStructuredOnly && exactVkPost.imageConfidence === 'wall-photo') {\r\n" +
+    "            trace?.('proposal.branch.fast_path', {\r\n" +
+    "                reason: exactVkPost?.eventDate ? 'structured-event-date+rich-wall-text' : 'local-post-date',\r\n" +
+    '                exactVkPost,\r\n' +
+    '            });\r\n' +
+    '            // Fast path: wall.getById + owner groups.getById already produced a\r\n' +
+    '            // deterministic event date (or the post text itself contains one).\r\n' +
+    '            // No Chromium is needed in that case.\r\n' +
+    '            sourceUrl = exactVkPost.sourceUrl || sourceUrl;\r\n' +
+    '            selectedPost = exactVkPost;\r\n' +
+    '            linkData = {\r\n' +
+    "                title: exactVkPost.eventTitle || '',\r\n" +
+    "                description: exactVkPost.eventDescription || '',\r\n" +
+    '                text: exactVkPost.text,\r\n' +
+    "                imageUrl: exactVkPost.imageUrls?.[0] || '',\r\n" +
+    '                imageUrls: exactVkPost.imageUrls || [],\r\n' +
+    '                posts: [exactVkPost],\r\n' +
+    '                structuredEvents: exactVkPost.eventDate ? [{\r\n' +
+    '                    id: Math.abs(Number(exactVkPost.ownerId || 0)),\r\n' +
+    "                    title: exactVkPost.eventTitle || '',\r\n" +
+    "                    venue: exactVkPost.eventVenue || '',\r\n" +
+    '                    startAt: Number(exactVkPost.eventStartAt || 0),\r\n' +
+    '                    finishAt: Number(exactVkPost.eventFinishAt || 0),\r\n' +
+    "                    sourceMethod: exactVkPost.structuredSourceMethod || 'groups.getById',\r\n" +
+    '                }] : [],\r\n' +
+    '                finalUrl: sourceUrl,\r\n' +
+    '            };\r\n' +
+    '        } else {\r\n' +
+    "            trace?.('proposal.branch.browser_fallback', {\r\n" +
+    '                exactVkPostPresent: Boolean(exactVkPost),\r\n' +
+    '                exactVkHasDateEvidence,\r\n' +
+    '                exactVkStructuredOnly,\r\n' +
+    '                exactVkRawWallTextLength: exactVkRawWallText.length,\r\n' +
+    '                exactVkPost,\r\n' +
+    '            });\r\n' +
+    '            // Required VK structured fields were not available. This is the\r\n' +
+    '            // deliberate fallback requested for VK: parse the actual page as a\r\n' +
+    '            // finite pass, then merge the exact wall API result back in. The tab\r\n' +
+    '            // closes in openEventLinkForReview.finally; browser closure is never\r\n' +
+    '            // used as a parsing stop signal.\r\n' +
+    '            try {\r\n' +
+    '                linkData = await openEventLinkForReview({\r\n' +
+    '                    url: sourceUrl,\r\n' +
+    "                    dataDirectory: './data',\r\n" +
+    '                    notifyAttention: notifyScraperAttention,\r\n' +
+    '                    navigationTimeoutMs: 15_000,\r\n' +
+    '                    manualAccessTimeoutMs: 5_000,\r\n' +
+    '                    keepPageOpen: false,\r\n' +
+    '                    // User/owner event submissions need a real browser dwell:\r\n' +
+    "                    // VK's SPA often renders the post and lazy media after the\r\n" +
+    '                    // initial navigation. This is measured from page opening.\r\n' +
+    '                    minimumOpenMs: 45_000,\r\n' +
+    '                    allowShortMinimumOpen: true,\r\n' +
+    '                    trace,\r\n' +
+    '                });\r\n' +
+    "                trace?.('proposal.browser.result', {\r\n" +
+    '                    linkData: {\r\n' +
+    '                        ...linkData,\r\n' +
+    "                        page: linkData?.page ? '[PLAYWRIGHT PAGE]' : null,\r\n" +
+    '                    },\r\n' +
+    '                });\r\n' +
+    '                sourceUrl = String(linkData.finalUrl || sourceUrl);\r\n' +
+    '                if (exactVkPost) {\r\n' +
+    '                    const browserExact = findExactManualLinkPost(linkData, exactVkPost.sourceUrl || sourceUrl);\r\n' +
+    '                    const mergedExact = mergeManualExactVkPostSources(exactVkPost, browserExact, exactVkPost.sourceUrl || sourceUrl);\r\n' +
+    '                    const existingPosts = Array.isArray(linkData.posts) ? linkData.posts : [];\r\n' +
+    '                    const remainingPosts = browserExact\r\n' +
+    '                        ? existingPosts.filter((post) => post !== browserExact)\r\n' +
+    '                        : existingPosts;\r\n' +
+    '                    linkData = {\r\n' +
+    '                        ...linkData,\r\n' +
+    "                        text: String(linkData.text || mergedExact?.text || exactVkPost.text || ''),\r\n" +
+    "                        imageUrl: linkData.imageUrl || mergedExact?.imageUrls?.[0] || '',\r\n" +
+    '                        imageUrls: [...new Set([\r\n' +
+    '                            ...(Array.isArray(mergedExact?.imageUrls) ? mergedExact.imageUrls : []),\r\n' +
+    '                            ...(Array.isArray(linkData.imageUrls) ? linkData.imageUrls : []),\r\n' +
+    '                        ])].slice(0, VISION_IMAGE_MAX_COUNT * 3),\r\n' +
+    '                        posts: [\r\n' +
+    "                            ...remainingPosts.filter((post) => String(post?.extractionMethod || '') === 'vk-structured-event-first-pass'),\r\n" +
+    '                            ...(mergedExact ? [mergedExact] : []),\r\n' +
+    "                            ...remainingPosts.filter((post) => String(post?.extractionMethod || '') !== 'vk-structured-event-first-pass'),\r\n" +
+    '                        ],\r\n' +
+    '                    };\r\n' +
+    "                    trace?.('proposal.browser.merge_exact_vk', {\r\n" +
+    '                        browserExact,\r\n' +
+    '                        mergedExact,\r\n' +
+    '                        mergedLinkData: {\r\n' +
+    '                            ...linkData,\r\n' +
+    "                            page: linkData?.page ? '[PLAYWRIGHT PAGE]' : null,\r\n" +
+    '                        },\r\n' +
+    '                    });\r\n' +
+    '                    selectedPost = null;\r\n' +
+    '                }\r\n' +
+    '            } catch (error) {\r\n' +
+    "                trace?.('proposal.browser.error', { sourceUrl, error, exactVkPost });\r\n" +
+    "                console.error('[EVENT PROPOSAL LINK ERROR]', formatPrivateError(error));\r\n" +
+    '                if (exactVkPost) {\r\n' +
+    '                    // Last fallback: retain the exact post even when the page\r\n' +
+    '                    // itself could not be loaded, instead of dropping the source.\r\n' +
+    '                    sourceUrl = exactVkPost.sourceUrl || sourceUrl;\r\n' +
+    '                    selectedPost = exactVkPost;\r\n' +
+    '                    linkData = {\r\n' +
+    "                        title: exactVkPost.eventTitle || '',\r\n" +
+    "                        description: exactVkPost.eventDescription || '',\r\n" +
+    '                        text: exactVkPost.text,\r\n' +
+    "                        imageUrl: exactVkPost.imageUrls?.[0] || '',\r\n" +
+    '                        imageUrls: exactV'... 869637 more characters,
+  expected: /if \(openAIApiKey\)/u,
+  operator: 'doesNotMatch',
+  diff: 'simple'
+}
+
+Node.js v24.9.0
+✖ tests\events\eventProposalVkOpenPostRecoveryV1885.test.mjs (52.93ms)
+✔ V188.11 recovers exact VK wall timestamp/poster from raw apiPrefetchCache (2.3525ms)
+✔ V188.11 local parser uses recovered publication year and bullet lineup without AI (38.0923ms)
+✔ V188.11 browser keeps exact raw-wall evidence and optionally hydrates related VK event page (0.2721ms)
+✖ V188.11 exact links do not ask GPT to select duplicate DOM containers and proposal AI is bounded (3.1782ms)
+✔ V130 proposal hard requirements: date and venue are mandatory, time is optional (2.5337ms)
+✔ V130 explicitly deferred venue is valid and still allows missing time (0.2389ms)
+✔ V130 past dates never submit (0.2031ms)
+✔ V130 corrections can fill required and optional fields (18.5909ms)
+✔ proposal prompt supplies a native copy button while retaining the back menu (2.0438ms)
+✔ V130 explicit parser command escapes pending proposal menu state (31.2004ms)
+✔ V130 image-only message in proposal mode becomes proposal command and keeps media path open (0.6531ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 31
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1671.5025
+
+✖ failing tests:
+
+test at tests\events\eventProposalModerationFastPathV18812.test.mjs:18:1
+✖ V188.12 approved proposal does not await the expensive verified snapshot rebuild (2.5782ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /void rebuildVerifiedPartySnapshotQueued\(\{/u. Input:
+  
+  'async function materializeEventProposal(proposal, options = {}) {\r\n' +
+    '    if (proposalMaterializationLocks.has(proposal?.id)) return { savedEvents: [], proposal, alreadyProcessing: true };\r\n' +
+    '    proposalMaterializationLocks.add(proposal?.id);\r\n' +
+    '    try { return await materializeEventProposalUnlocked(getEventProposal(proposal.id), options); }\r\n' +
+    '    finally { proposalMaterializationLocks.delete(proposal?.id); }\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    'async function materializeEventProposalUnlocked(proposal, {\r\n' +
+    "    status = 'approved',\r\n" +
+    "    reviewedByPlatform = '',\r\n" +
+    '    reviewedBy = 0,\r\n' +
+    '} = {}) {\r\n' +
+    "    if (!proposal || proposal.status !== 'pending') return { savedEvents: [], proposal };\r\n" +
+    '    const now = Math.floor(Date.now() / 1000);\r\n' +
+    "    const finalStatus = status === 'auto_approved' ? 'auto_approved' : 'approved';\r\n" +
+    '    const savedEvents = [];\r\n' +
+    '    const parsedEvents = Array.isArray(proposal.parsedEvents) ? proposal.parsedEvents : [];\r\n' +
+    '    const referenceDate = getLocalDateString(new Date(), botTimeZone);\r\n' +
+    '    const validation = analyzeEventProposalDrafts(parsedEvents, { referenceDate });\r\n' +
+    '\r\n' +
+    '    // Defence in depth: even an old/stale/corrupted proposal must never reach\r\n' +
+    '    // manual_events without the two hard requirements introduced in V130.\r\n' +
+    '    // Date must be a real future/today ISO date; venue must either be a real\r\n' +
+    '    // place/address or explicitly say that the location will be announced\r\n' +
+    '    // later/on the day. Time is intentionally optional.\r\n' +
+    '    if (!validation.canSubmit) {\r\n' +
+    '        return {\r\n' +
+    '            savedEvents,\r\n' +
+    '            proposal,\r\n' +
+    '            validationRejected: true,\r\n' +
+    '            validation,\r\n' +
+    '        };\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    '    // V188.64: event_proposals is a staging area, not durable event storage.\r\n' +
+    '    // Before either refreshing an existing row or inserting a manual event,\r\n' +
+    '    // materialize every surviving proposal image into manual_event_announcements.\r\n' +
+    '    const durableAnalyses = validation.analyses.map((analysis, index) => ({\r\n' +
+    '        ...analysis,\r\n' +
+    "        event: persistApprovedProposalEventImages({ ...analysis.event, description: analysis.event.description + (analysis.event.contacts ? '\\nКонтакты: ' + analysis.event.contacts : '') }, proposal.id, index),\r\n" +
+    '    }));\r\n' +
+    '\r\n' +
+    '    // A proposal may be an update to an event that is already in the database\r\n' +
+    '    // (the common case is an old card saved before its source poster was\r\n' +
+    '    // available). If the canonical source URL already exists, refresh those\r\n' +
+    '    // rows in place instead of creating another manual-event duplicate.\r\n' +
+    '    if (proposal.sourceUrl) {\r\n' +
+    '        try {\r\n' +
+    '            const refresh = await refreshStoredEventsFromFreshSource({\r\n' +
+    '                sourceUrl: proposal.sourceUrl,\r\n' +
+    '                freshEvents: durableAnalyses.map((item) => item.event),\r\n' +
+    '                reason: `proposal-${finalStatus}-${proposal.id}`,\r\n' +
+    '            });\r\n' +
+    '            if (refresh.changed > 0) {\r\n' +
+    '                const resolved = resolveEventProposal({\r\n' +
+    '                    id: proposal.id,\r\n' +
+    '                    status: finalStatus,\r\n' +
+    '                    reviewedByPlatform,\r\n' +
+    '                    reviewedBy,\r\n' +
+    '                    resolvedAt: now,\r\n' +
+    '                });\r\n' +
+    '                return {\r\n' +
+    '                    savedEvents,\r\n' +
+    '                    updatedRows: refresh.changed,\r\n' +
+    '                    refreshedExisting: true,\r\n' +
+    '                    proposal: resolved,\r\n' +
+    '                };\r\n' +
+    '            }\r\n' +
+    '        } catch (error) {\r\n' +
+    "            console.error('[EVENT PROPOSAL EXISTING SOURCE REFRESH ERROR]', `id=${proposal.id}`, formatPrivateError(error));\r\n" +
+    '        }\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    '    for (const analysis of durableAnalyses) {\r\n' +
+    '        const event = analysis.event;\r\n' +
+    '        const id = saveManualEvent({\r\n' +
+    '            ...event,\r\n' +
+    "            status: 'approved',\r\n" +
+    "            createdByPlatform: `proposal:${proposal.submitterPlatform || 'unknown'}`,\r\n" +
+    '            createdBy: proposal.submitterInternalId || 0,\r\n' +
+    '            createdAt: proposal.submittedAt || now,\r\n' +
+    '            updatedAt: now,\r\n' +
+    '        });\r\n' +
+    '        if (id > 0) savedEvents.push({ ...event, id });\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    '    const resolved = resolveEventProposal({\r\n' +
+    '        id: proposal.id,\r\n' +
+    '        status: finalStatus,\r\n' +
+    '        reviewedByPlatform,\r\n' +
+    '        reviewedBy,\r\n' +
+    '        resolvedAt: now,\r\n' +
+    '    });\r\n' +
+    '\r\n' +
+    '    // V188.12: owner moderation must acknowledge the cached proposal immediately.\r\n' +
+    '    // A full verified-party snapshot can legitimately spend minutes in AI\r\n' +
+    '    // normalization/summary work, but it is only a cache. SQLite rows above are\r\n' +
+    '    // already committed and are the source of truth. Invalidate the stale cache\r\n' +
+    '    // synchronously, then queue the expensive rebuild in the background.\r\n' +
+    '    const snapshotReason = `event-proposal:${finalStatus}:${proposal.id}`;\r\n' +
+    '    invalidateVerifiedPartySnapshot(snapshotReason);\r\n' +
+    '    const snapshotQueuedAt = Date.now();\r\n' +
+    '    runDetachedSupervisedOperation({\r\n' +
+    '        name: `event-snapshot:proposal:${proposal.id}`,\r\n' +
+    "        category: 'event-snapshot',\r\n" +
+    '        metadata: { proposalId: proposal.id, status: finalStatus },\r\n' +
+    '    }, async () => {\r\n' +
+    '        const snapshot = await rebuildVerifiedPartySnapshotQueued({\r\n' +
+    '            reason: snapshotReason,\r\n' +
+    '        });\r\n' +
+    "        auditRuntimeEvent('event-snapshot.proposal.complete', {\r\n" +
+    '            proposalId: proposal.id,\r\n' +
+    '            status: finalStatus,\r\n' +
+    '            elapsedMs: Date.now() - snapshotQueuedAt,\r\n' +
+    '            snapshotElapsedMs: Number(snapshot?.elapsedMs || 0),\r\n' +
+    '            canonicalCount: Number(snapshot?.canonicalCount || 0),\r\n' +
+    '        });\r\n' +
+    '        console.log(\r\n' +
+    "            '[EVENT PROPOSAL SNAPSHOT BACKGROUND DONE]',\r\n" +
+    '            `id=${proposal.id}`,\r\n' +
+    '            `status=${finalStatus}`,\r\n' +
+    '            `elapsedMs=${Date.now() - snapshotQueuedAt}`,\r\n' +
+    '            `snapshotElapsedMs=${Number(snapshot?.elapsedMs || 0)}`,\r\n' +
+    '        );\r\n' +
+    '        return snapshot;\r\n' +
+    '    });\r\n' +
+    '\r\n' +
+    '    return { savedEvents, proposal: resolved, snapshotQueued: true };\r\n' +
+    '}\r\n' +
+    '\r\n'
+  
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/events/eventProposalModerationFastPathV18812.test.mjs:26:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "async function materializeEventProposal(proposal, options = {}) {\r\n    if (proposalMaterializationLocks.has(proposal?.id)) return { savedEvents: [], proposal, alreadyProcessing: true };\r\n    proposalMaterializationLocks.add(proposal?.id);\r\n    try { return await materializeEventProposalUnlocked(getEventProposal(proposal.id), options); }\r\n    finally { proposalMaterializationLocks.delete(proposal?.id); }\r\n}\r\n\r\nasync function materializeEventProposalUnlocked(proposal, {\r\n    status = 'approved',\r\n    reviewedByPlatform = '',\r\n    reviewedBy = 0,\r\n} = {}) {\r\n    if (!proposal || proposal.status !== 'pending') return { savedEvents: [], proposal };\r\n    const now = Math.floor(Date.now() / 1000);\r\n    const finalStatus = status === 'auto_approved' ? 'auto_approved' : 'approved';\r\n    const savedEvents = [];\r\n    const parsedEvents = Array.isArray(proposal.parsedEvents) ? proposal.parsedEvents : [];\r\n    const referenceDate = getLocalDateString(new Date(), botTimeZone);\r\n    const validation = analyzeEventProposalDrafts(parsedEvents, { referenceDate });\r\n\r\n    // Defence in depth: even an old/stale/corrupted proposal must never reach\r\n    // manual_events without the two hard requirements introduced in V130.\r\n    // Date must be a real future/today ISO date; venue must either be a real\r\n    // place/address or explicitly say that the location will be announced\r\n    // later/on the day. Time is intentionally optional.\r\n    if (!validation.canSubmit) {\r\n        return {\r\n            savedEvents,\r\n            proposal,\r\n            validationRejected: true,\r\n            validation,\r\n        };\r\n    }\r\n\r\n    // V188.64: event_proposals is a staging area, not durable event storage.\r\n    // Before either refreshing an existing row or inserting a manual event,\r\n    // materialize every surviving proposal image into manual_event_announcements.\r\n    const durableAnalyses = validation.analyses.map((analysis, index) => ({\r\n        ...analysis,\r\n        event: persistApprovedProposalEventImages({ ...analysis.event, description: analysis.event.description + (analysis.event.contacts ? '\\nКонтакты: ' + analysis.event.contacts : '') }, proposal.id, index),\r\n    }));\r\n\r\n    // A proposal may be an update to an event that is already in the database\r\n    // (the common case is an old card saved before its source poster was\r\n    // available). If the canonical source URL already exists, refresh those\r\n    // rows in place instead of creating another manual-event duplicate.\r\n    if (proposal.sourceUrl) {\r\n        try {\r\n            const refresh = await refreshStoredEventsFromFreshSource({\r\n                sourceUrl: proposal.sourceUrl,\r\n                freshEvents: durableAnalyses.map((item) => item.event),\r\n                reason: `proposal-${finalStatus}-${proposal.id}`,\r\n            });\r\n            if (refresh.changed > 0) {\r\n                const resolved = resolveEventProposal({\r\n                    id: proposal.id,\r\n                    status: finalStatus,\r\n                    reviewedByPlatform,\r\n                    reviewedBy,\r\n                    resolvedAt: now,\r\n                });\r\n                return {\r\n                    savedEvents,\r\n                    updatedRows: refresh.changed,\r\n                    refreshedExisting: true,\r\n                    proposal: resolved,\r\n                };\r\n            }\r\n        } catch (error) {\r\n            console.error('[EVENT PROPOSAL EXISTING SOURCE REFRESH ERROR]', `id=${proposal.id}`, formatPrivateError(error));\r\n        }\r\n    }\r\n\r\n    for (const analysis of durableAnalyses) {\r\n        const event = analysis.event;\r\n        const id = saveManualEvent({\r\n            ...event,\r\n            status: 'approved',\r\n            createdByPlatform: `proposal:${proposal.submitterPlatform || 'unknown'}`,\r\n            createdBy: proposal.submitterInternalId || 0,\r\n            createdAt: proposal.submittedAt || now,\r\n            updatedAt: now,\r\n        });\r\n        if (id > 0) savedEvents.push({ ...event, id });\r\n    }\r\n\r\n    const resolved = resolveEventProposal({\r\n        id: proposal.id,\r\n        status: finalStatus,\r\n        reviewedByPlatform,\r\n        reviewedBy,\r\n        resolvedAt: now,\r\n    });\r\n\r\n    // V188.12: owner moderation must acknowledge the cached proposal immediately.\r\n    // A full verified-party snapshot can legitimately spend minutes in AI\r\n    // normalization/summary work, but it is only a cache. SQLite rows above are\r\n    // already committed and are the source of truth. Invalidate the stale cache\r\n    // synchronously, then queue the expensive rebuild in the background.\r\n    const snapshotReason = `event-proposal:${finalStatus}:${proposal.id}`;\r\n    invalidateVerifiedPartySnapshot(snapshotReason);\r\n    const snapshotQueuedAt = Date.now();\r\n    runDetachedSupervisedOperation({\r\n        name: `event-snapshot:proposal:${proposal.id}`,\r\n        category: 'event-snapshot',\r\n        metadata: { proposalId: proposal.id, status: finalStatus },\r\n    }, async () => {\r\n        const snapshot = await rebuildVerifiedPartySnapshotQueued({\r\n            reason: snapshotReason,\r\n        });\r\n        auditRuntimeEvent('event-snapshot.proposal.complete', {\r\n            proposalId: proposal.id,\r\n            status: finalStatus,\r\n            elapsedMs: Date.now() - snapshotQueuedAt,\r\n            snapshotElapsedMs: Number(snapshot?.elapsedMs || 0),\r\n            canonicalCount: Number(snapshot?.canonicalCount || 0),\r\n        });\r\n        console.log(\r\n            '[EVENT PROPOSAL SNAPSHOT BACKGROUND DONE]',\r\n            `id=${proposal.id}`,\r\n            `status=${finalStatus}`,\r\n            `elapsedMs=${Date.now() - snapshotQueuedAt}`,\r\n            `snapshotElapsedMs=${Number(snapshot?.elapsedMs || 0)}`,\r\n        );\r\n        return snapshot;\r\n    });\r\n\r\n    return { savedEvents, proposal: resolved, snapshotQueued: true };\r\n}\r\n\r\n",
+    expected: /void rebuildVerifiedPartySnapshotQueued\(\{/u,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\events\eventProposalModerationFastPathV18812.test.mjs:31:1
+✖ V188.12 owner moderation uses the cached proposal before any pending-edit/generic proposal routing (5.9833ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(pendingIndex > decisionIndex)
+  
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/events/eventProposalModerationFastPathV18812.test.mjs:41:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\events\eventProposalModerationFastPathV18812.test.mjs:53:1
+✖ V188.12 moderation and background snapshot logs expose elapsed milliseconds (1.4225ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /\[EVENT PROPOSAL MODERATION FASTPATH\]/u. Input:
+  
+  "import { resolveVkOriginalPosts, selectDeepestCapturedVkWall } from '../features/events/vkOriginalPost.js';\r\n" +
+    "import { explainEventAiAdmission } from '../features/events/eventAiAdmission.js';\r\n" +
+    '/**\r\n' +
+    ' * Главный оркестратор: связывает VK, Telegram, GPT, базу, события и фоновые задачи. Здесь должны оставаться только сценарии верхнего уровня; чистую логику выносим в features/shared.\r\n' +
+    ' */\r\n' +
+    'import {\r\n' +
+    '    copyFileSync,\r\n' +
+    '    createReadStream,\r\n' +
+    '    existsSync,\r\n' +
+    '    mkdirSync,\r\n' +
+    '    openSync,\r\n' +
+    '    closeSync,\r\n' +
+    '    fsyncSync,\r\n' +
+    '    openAsBlob,\r\n' +
+    '    readFileSync,\r\n' +
+    '    readdirSync,\r\n' +
+    '    renameSync,\r\n' +
+    '    statSync,\r\n' +
+    '    unlinkSync,\r\n' +
+    '    writeFileSync,\r\n' +
+    "} from 'node:fs';\r\n" +
+    "import { mkdir as mkdirAsync, open as openAsync, rename as renameAsync, unlink as unlinkAsync } from 'node:fs/promises';\r\n" +
+    "import { Agent } from 'node:https';\r\n" +
+    "import { Buffer } from 'node:buffer';\r\n" +
+    "import { AsyncLocalStorage } from 'node:async_hooks';\r\n" +
+    "import { createDateFreeParserPolicy, createParserAttemptPacer, formatDateFreePhaseReport } from '../features/ai/dateFreeParserPolicy.js';\r\n" +
+    "import { buildDateFreePhasePlan, serializeDateFreePhasePlan, restoreDateFreePhasePlan } from '../features/scrapers/parserPhasePlan.js';\r\n" +
+    'const dateFreeParserContext = new AsyncLocalStorage();\r\n' +
+    '// Separate from the date-free policy: phase one keeps its normal model ladder\r\n' +
+    '// while this context only spaces request starts for explicit turbo modes.\r\n' +
+    'const parserPacingContext = new AsyncLocalStorage();\r\n' +
+    "function parserTurboPacer(mode = '') {\r\n" +
+    "    return createParserAttemptPacer({ mode: String(mode || '').toLowerCase() || 'default' });\r\n" +
+    '}\r\n' +
+    'const parserAttemptPacer = parserTurboPacer();\r\n' +
+    'async function paceParserRequest(capability, options = {}) {\r\n' +
+    '    if (options?.dateFreePolicyAttempt || dateFreeParserContext.getStore()) return;\r\n' +
+    "    if (!/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) return;\r\n" +
+    '    const state = parserPacingContext.getStore();\r\n' +
+    "    if (typeof state?.beforeAttempt === 'function') await state.beforeAttempt(capability);\r\n" +
+    '}\r\n' +
+    'import {\r\n' +
+    '    DEFAULT_OPERATION_TIMEOUT_MS,\r\n' +
+    '    auditRuntimeEvent,\r\n' +
+    '    getCurrentOperation,\r\n' +
+    '    getCurrentOperationSignal,\r\n' +
+    '    getOperation,\r\n' +
+    '    installGlobalRuntimeAuditHandlers,\r\n' +
+    '    listActiveOperations,\r\n' +
+    '    registerOperationStopHandler,\r\n' +
+    '    requestOperationStop,\r\n' +
+    '    requestStopWhere,\r\n' +
+    '    runSupervisedOperation,\r\n' +
+    '    reconcileInterruptedOperationCheckpoints,\r\n' +
+    '    saveOperationCheckpoint as persistOperationCheckpoint,\r\n' +
+    '    updateOperationProgress,\r\n' +
+    "} from '../runtime/operationSupervisor.js';\r\n" +
+    "import { basename, dirname, extname, resolve, sep } from 'node:path';\r\n" +
+    "import { loadLatestParserAllRecovery, mergeParserAllCheckpoint, parserRecoveryCheckpointInputs, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand, claimParserAllRecovery, getParserPosterGateImage } from '../features/scrapers/parserAllRecovery.js';\r\n" +
+    "import { loadLatestParserAllRecoveryAsync } from '../features/scrapers/parserRecoveryAsync.js';\r\n" +
+    "import { BOT_PATCH_VERSION } from '../shared/buildVersion.js';\r\n" +
+    "import { eventPosterRevisionEvidence } from '../features/events/eventSourceRevisionEvidence.js';\r\n" +
+    "import { createProjectAuditStreamJournal } from '../features/audit/projectAuditStreamJournal.js';\r\n" +
+    "import { createAiResponseTrace } from '../features/audit/aiResponseTrace.js';\r\n" +
+    "import { appendPosterDeliveryForensic } from '../features/scrapers/parserPosterForensics.js';\r\n" +
+    "import { recoverTextResponseJobs, saveTextJobRecipient, markTextJobDelivered } from '../features/audit/astraTextResponseRecovery.js';\r\n" +
+    "import { appendTelegramTextTransferLog } from '../features/audit/telegramTextTransferLog.js';\r\n" +
+    "import { splitTelegramLongReply } from '../platforms/telegram/telegramLongReply.js';\r\n" +
+    "import { parseCfProbeCommand, handleCfProbeCommand } from '../features/diagnostics/cloudflareProbe.js';\r\n" +
+    'import { beginTelegramTextJob, getActiveTelegramTextJob, observeTelegramTextJob, finishTelegramTextJob,\r\n' +
+    '    resolveTelegramTextJobId, readTelegramTextJobLog, telegramTextJobStatus,\r\n' +
+    '    saveTelegramTextJobInput, loadTelegramTextJobInput, getTelegramTextJobDeliveryState,\r\n' +
+    "    markTelegramTextJobDelivery } from '../features/audit/telegramTextJobControl.js';\r\n" +
+    "import { auditStageInputHash, createAuditStageJournal } from '../features/audit/projectAuditStageJournal.js';\r\n" +
+    'import {\r\n' +
+    '    getRouterFileVariant,\r\n' +
+    '    loadRouterFileProbeCache,\r\n' +
+    '    saveRouterFileProbeCache,\r\n' +
+    '    buildRouterFileUploadRequest,\r\n' +
+    '    probeRouterFileUploads,\r\n' +
+    '    probeRouterInputFileOnce,\r\n' +
+    "} from '../features/ai/routerFileProbe.js';\r\n" +
+    "import { createHash, randomInt, randomUUID } from 'node:crypto';\r\n" +
+    "import { assertTrustedModelImageUrl } from './imageDownloadPolicy.js';\r\n" +
+    "import { VK } from 'vk-io';\r\n" +
+    "import { GigaChat, detectImage } from 'gigachat';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    getAllMessages,\r\n' +
+    '    getAllStoredMessages,\r\n' +
+    '    getStoredGroupPeerIds,\r\n' +
+    '    searchStoredMessagesByText,\r\n' +
+    '    getChatStats,\r\n' +
+    '    getDossierFacts,\r\n' +
+    '    getMessagesByCount,\r\n' +
+    '    getMessagesSince,\r\n' +
+    '    getMessagesBetween,\r\n' +
+    '    getParticipantMessagesBetween,\r\n' +
+    '    getParticipantPairsBetween,\r\n' +
+    '    getParticipantStyle,\r\n' +
+    '    getCommunicationSettings,\r\n' +
+    '    getCommunicationBanterState,\r\n' +
+    '    getAutoSummarySettings,\r\n' +
+    '    saveAutoSummarySettings,\r\n' +
+    '    getDueAutoSummarySettings,\r\n' +
+    '    getEnabledAutoSummarySettings,\r\n' +
+    '    getAllAutoSummarySettings,\r\n' +
+    '    getAutoSummaryStateDatabasePath,\r\n' +
+    '    getAutoSummaryStateMeta,\r\n' +
+    '    saveAutoSummaryStateMeta,\r\n' +
+    '    getAutoSummaryRun,\r\n' +
+    '    saveAutoSummaryRun,\r\n' +
+    '    getAutoSummaryHealth,\r\n' +
+    '    saveAutoSummaryHealth,\r\n' +
+    '    getDueCommunicationSettings,\r\n' +
+    '    getRecentCommunicationParticipants,\r\n' +
+    '    getRecentInteractions,\r\n' +
+    '    getRecentParticipantMessages,\r\n' +
+    '    getExplicitMemories,\r\n' +
+    '    getExplicitMemorySourceKeys,\r\n' +
+    '    deactivateExplicitMemories,\r\n' +
+    '    replaceDossierFacts,\r\n' +
+    '    saveIncomingMessage,\r\n' +
+    '    saveChatMembershipEvent,\r\n' +
+    '    getChatLeavers,\r\n' +
+    '    getChatExitEvents,\r\n' +
+    '    getChatLeaverAutoSettings,\r\n' +
+    '    saveChatLeaverAutoSettings,\r\n' +
+    '    getDueChatLeaverAutoSettings,\r\n' +
+    '    getEnabledChatLeaverAutoSettings,\r\n' +
+    '    getVkCachedUserNames,\r\n' +
+    '    getVkUserNamesAt,\r\n' +
+    '    getTelegramPostMeta,\r\n' +
+    '    getVkPostMeta,\r\n' +
+    '    saveVkUserNames,\r\n' +
+    '    saveVkMessageArchiveRecord,\r\n' +
+    '    getVkMessageArchiveStats,\r\n' +
+    '    getVkMessageArchiveMessages,\r\n' +
+    '    getVkServiceEventSummary,\r\n' +
+    '    getVkServiceEvents,\r\n' +
+    '    getVkMessageArchiveUserMessages,\r\n' +
+    '    getVkMessageArchiveParticipantIds,\r\n' +
+    '    recordBotRequestEvent,\r\n' +
+    '    getBotRequestStats,\r\n' +
+    '    saveInteraction,\r\n' +
+    '    saveExplicitMemory,\r\n' +
+    '    saveCommunicationSettings,\r\n' +
+    '    saveCommunicationBanterState,\r\n' +
+    '    saveManualEvent,\r\n' +
+    '    createEventProposal,\r\n' +
+    '    createEventProposalOnce,\r\n' +
+    '    getEventProposal,\r\n' +
+    '    getLatestPendingEventProposal,\r\n' +
+    '    getPendingEventProposals,\r\n' +
+    '    updatePendingEventProposal,\r\n' +
+    '    getDueEventProposals,\r\n' +
+    '    resolveEventProposal,\r\n' +
+    '    setParticipantStyle,\r\n' +
+    '    touchCommunicationParticipant,\r\n' +
+    '    updateCommunicationOutburstSchedule,\r\n' +
+    '    updateActiveCommunicationState,\r\n' +
+    '    clearCommunicationBanterState,\r\n' +
+    '    clearCommunicationBanterStatesForPeer,\r\n' +
+    '    auditInvalidEventRecords,\r\n' +
+    '    replaceEventDedupeRegistry,\r\n' +
+    '    getEventDedupeRegistryStats,\r\n' +
+    '    getEventDedupeDuplicateRefs,\r\n' +
+    '    updateStoredEventRecordFromReparse,\r\n' +
+    '    updateStoredEventSemanticFieldsByOwner,\r\n' +
+    '    consumeUserRateLimit,\r\n' +
+    '    refundUserRateLimit,\r\n' +
+    '    consumeGptModelDailyRateLimit,\r\n' +
+    '    refundGptModelDailyRateLimit,\r\n' +
+    '    consumeDmAiNotice,\r\n' +
+    '    getPermanentEventBlocks,\r\n' +
+    '    permanentlyDeleteStoredEvent,\r\n' +
+    '    permanentlyDeleteStoredEventByIdentity,\r\n' +
+    '    restorePermanentEventBlocks,\r\n' +
+    '    softDeleteMatchingStoredEvents,\r\n' +
+    '    softDeleteStoredEventByIdentity,\r\n' +
+    '    cleanupDisabledCommunicationAutonomy,\r\n' +
+    '    disableLegacyCommunicationOutburstAutomation,\r\n' +
+    '    getDmPartyFaqAnswers,\r\n' +
+    '    getCoordsOverrideSettings,\r\n' +
+    '    saveCoordsOverrideMessage,\r\n' +
+    '    setCoordsOverrideEnabled,\r\n' +
+    '    deleteCoordsOverrideMessage,\r\n' +
+    '    recordCoordsRequestRecipient,\r\n' +
+    '    getCoordsRequestRecipients,\r\n' +
+    '    clearCoordsRequestRecipients,\r\n' +
+    '    armPostEventFeedbackRecipients,\r\n' +
+    '    getPendingPostEventFeedbackRequest,\r\n' +
+    '    cancelPostEventFeedbackRequest,\r\n' +
+    '    getPostEventFeedbackReviews,\r\n' +
+    '    getPostEventFeedbackStats,\r\n' +
+    '    savePostEventFeedbackReview,\r\n' +
+    '    getQrCodeSettings,\r\n' +
+    '    updateQrCodeSettings,\r\n' +
+    '    getMaintenanceState,\r\n' +
+    '    setMaintenanceState,\r\n' +
+    '    getManualUpcomingEvents,\r\n' +
+    '    getManualEventsBySourceUrl,\r\n' +
+    '    ignoreManualEventsBySourceUrl,\r\n' +
+    '    getAllUpcomingEventRecordsForDedupe,\r\n' +
+    '    getQticketsUpcomingEvents,\r\n' +
+    '    replaceAllPartyMetadata,\r\n' +
+    '    getAllPartyMetadata,\r\n' +
+    '    getOrCreatePlatformIdentity,\r\n' +
+    '    getMostActiveStoredGroupPeer,\r\n' +
+    '    getBestStoredGroupPeerForHistoryRebind,\r\n' +
+    '    getPeerHistoryMigration,\r\n' +
+    '    migrateStoredGroupHistory,\r\n' +
+    '    resetAllRateLimits,\r\n' +
+    '    replaceAiRuntimeModes,\r\n' +
+    '    getAiRuntimeModes,\r\n' +
+    '    getAiRuntimeModePolicy,\r\n' +
+    '    replaceAiHealthRegistry,\r\n' +
+    '    getAiKeyHealthRows,\r\n' +
+    '    getAiModelHealthRows,\r\n' +
+    '    getAiModelHealthStatus,\r\n' +
+    '    getQualifiedDiscoveredAiModels,\r\n' +
+    '    getVoiceTranscriptCache,\r\n' +
+    '    saveVoiceTranscriptCache,\r\n' +
+    '    backfillCleanLegacyPosterBindingsV18868,\r\n' +
+    '    getStartupPosterRepairGroupsV18877,\r\n' +
+    '    getAllStoredSourceImageAuditGroupsV188100,\r\n' +
+    '    saveStartupPosterRepairVisionFactsV18877,\r\n' +
+    '    reconcileStoredEventPosterFromMetadataV18892,\r\n' +
+    '    saveManualPosterMetadataV18892,\r\n' +
+    '    getStoredPosterReviewEventsV18893,\r\n' +
+    '    setStoredEventPosterChoiceV18893,\r\n' +
+    '    setStoredEventPosterReviewDeclinedV188100,\r\n' +
+    '    replaceStoredImagePathEverywhereV18893,\r\n' +
+    '    isStartupPosterRepairV18877Complete,\r\n' +
+    '    markStartupPosterRepairV18877Complete,\r\n' +
+    '    isStartupMediaRepairV18883Complete,\r\n' +
+    '    markStartupMediaRepairV18883Complete,\r\n' +
+    '    repairQticketsSinglePosterV18885,\r\n' +
+    '    RUNTIME_DATA_DIRECTORY,\r\n' +
+    "} from '../infrastructure/database/index.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    PERSONALIZATION_STATE_DB_PATH,\r\n' +
+    '    getStyleBatchState,\r\n' +
+    '    saveStyleBatchState,\r\n' +
+    '    getCommunicationStyleExamples,\r\n' +
+    '    saveCommunicationStyleExamples,\r\n' +
+    '    getDossierCommandState,\r\n' +
+    '    saveDossierCommandState,\r\n' +
+    '    getDossierSourceStates,\r\n' +
+    '    saveDossierSourceState,\r\n' +
+    '    get'... 2212194 more characters
+  
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/events/eventProposalModerationFastPathV18812.test.mjs:54:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "import { resolveVkOriginalPosts, selectDeepestCapturedVkWall } from '../features/events/vkOriginalPost.js';\r\nimport { explainEventAiAdmission } from '../features/events/eventAiAdmission.js';\r\n/**\r\n * Главный оркестратор: связывает VK, Telegram, GPT, базу, события и фоновые задачи. Здесь должны оставаться только сценарии верхнего уровня; чистую логику выносим в features/shared.\r\n */\r\nimport {\r\n    copyFileSync,\r\n    createReadStream,\r\n    existsSync,\r\n    mkdirSync,\r\n    openSync,\r\n    closeSync,\r\n    fsyncSync,\r\n    openAsBlob,\r\n    readFileSync,\r\n    readdirSync,\r\n    renameSync,\r\n    statSync,\r\n    unlinkSync,\r\n    writeFileSync,\r\n} from 'node:fs';\r\nimport { mkdir as mkdirAsync, open as openAsync, rename as renameAsync, unlink as unlinkAsync } from 'node:fs/promises';\r\nimport { Agent } from 'node:https';\r\nimport { Buffer } from 'node:buffer';\r\nimport { AsyncLocalStorage } from 'node:async_hooks';\r\nimport { createDateFreeParserPolicy, createParserAttemptPacer, formatDateFreePhaseReport } from '../features/ai/dateFreeParserPolicy.js';\r\nimport { buildDateFreePhasePlan, serializeDateFreePhasePlan, restoreDateFreePhasePlan } from '../features/scrapers/parserPhasePlan.js';\r\nconst dateFreeParserContext = new AsyncLocalStorage();\r\n// Separate from the date-free policy: phase one keeps its normal model ladder\r\n// while this context only spaces request starts for explicit turbo modes.\r\nconst parserPacingContext = new AsyncLocalStorage();\r\nfunction parserTurboPacer(mode = '') {\r\n    return createParserAttemptPacer({ mode: String(mode || '').toLowerCase() || 'default' });\r\n}\r\nconst parserAttemptPacer = parserTurboPacer();\r\nasync function paceParserRequest(capability, options = {}) {\r\n    if (options?.dateFreePolicyAttempt || dateFreeParserContext.getStore()) return;\r\n    if (!/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) return;\r\n    const state = parserPacingContext.getStore();\r\n    if (typeof state?.beforeAttempt === 'function') await state.beforeAttempt(capability);\r\n}\r\nimport {\r\n    DEFAULT_OPERATION_TIMEOUT_MS,\r\n    auditRuntimeEvent,\r\n    getCurrentOperation,\r\n    getCurrentOperationSignal,\r\n    getOperation,\r\n    installGlobalRuntimeAuditHandlers,\r\n    listActiveOperations,\r\n    registerOperationStopHandler,\r\n    requestOperationStop,\r\n    requestStopWhere,\r\n    runSupervisedOperation,\r\n    reconcileInterruptedOperationCheckpoints,\r\n    saveOperationCheckpoint as persistOperationCheckpoint,\r\n    updateOperationProgress,\r\n} from '../runtime/operationSupervisor.js';\r\nimport { basename, dirname, extname, resolve, sep } from 'node:path';\r\nimport { loadLatestParserAllRecovery, mergeParserAllCheckpoint, parserRecoveryCheckpointInputs, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand, claimParserAllRecovery, getParserPosterGateImage } from '../features/scrapers/parserAllRecovery.js';\r\nimport { loadLatestParserAllRecoveryAsync } from '../features/scrapers/parserRecoveryAsync.js';\r\nimport { BOT_PATCH_VERSION } from '../shared/buildVersion.js';\r\nimport { eventPosterRevisionEvidence } from '../features/events/eventSourceRevisionEvidence.js';\r\nimport { createProjectAuditStreamJournal } from '../features/audit/projectAuditStreamJournal.js';\r\nimport { createAiResponseTrace } from '../features/audit/aiResponseTrace.js';\r\nimport { appendPosterDeliveryForensic } from '../features/scrapers/parserPosterForensics.js';\r\nimport { recoverTextResponseJobs, saveTextJobRecipient, markTextJobDelivered } from '../features/audit/astraTextResponseRecovery.js';\r\nimport { appendTelegramTextTransferLog } from '../features/audit/telegramTextTransferLog.js';\r\nimport { splitTelegramLongReply } from '../platforms/telegram/telegramLongReply.js';\r\nimport { parseCfProbeCommand, handleCfProbeCommand } from '../features/diagnostics/cloudflareProbe.js';\r\nimport { beginTelegramTextJob, getActiveTelegramTextJob, observeTelegramTextJob, finishTelegramTextJob,\r\n    resolveTelegramTextJobId, readTelegramTextJobLog, telegramTextJobStatus,\r\n    saveTelegramTextJobInput, loadTelegramTextJobInput, getTelegramTextJobDeliveryState,\r\n    markTelegramTextJobDelivery } from '../features/audit/telegramTextJobControl.js';\r\nimport { auditStageInputHash, createAuditStageJournal } from '../features/audit/projectAuditStageJournal.js';\r\nimport {\r\n    getRouterFileVariant,\r\n    loadRouterFileProbeCache,\r\n    saveRouterFileProbeCache,\r\n    buildRouterFileUploadRequest,\r\n    probeRouterFileUploads,\r\n    probeRouterInputFileOnce,\r\n} from '../features/ai/routerFileProbe.js';\r\nimport { createHash, randomInt, randomUUID } from 'node:crypto';\r\nimport { assertTrustedModelImageUrl } from './imageDownloadPolicy.js';\r\nimport { VK } from 'vk-io';\r\nimport { GigaChat, detectImage } from 'gigachat';\r\n\r\nimport {\r\n    getAllMessages,\r\n    getAllStoredMessages,\r\n    getStoredGroupPeerIds,\r\n    searchStoredMessagesByText,\r\n    getChatStats,\r\n    getDossierFacts,\r\n    getMessagesByCount,\r\n    getMessagesSince,\r\n    getMessagesBetween,\r\n    getParticipantMessagesBetween,\r\n    getParticipantPairsBetween,\r\n    getParticipantStyle,\r\n    getCommunicationSettings,\r\n    getCommunicationBanterState,\r\n    getAutoSummarySettings,\r\n    saveAutoSummarySettings,\r\n    getDueAutoSummarySettings,\r\n    getEnabledAutoSummarySettings,\r\n    getAllAutoSummarySettings,\r\n    getAutoSummaryStateDatabasePath,\r\n    getAutoSummaryStateMeta,\r\n    saveAutoSummaryStateMeta,\r\n    getAutoSummaryRun,\r\n    saveAutoSummaryRun,\r\n    getAutoSummaryHealth,\r\n    saveAutoSummaryHealth,\r\n    getDueCommunicationSettings,\r\n    getRecentCommunicationParticipants,\r\n    getRecentInteractions,\r\n    getRecentParticipantMessages,\r\n    getExplicitMemories,\r\n    getExplicitMemorySourceKeys,\r\n    deactivateExplicitMemories,\r\n    replaceDossierFacts,\r\n    saveIncomingMessage,\r\n    saveChatMembershipEvent,\r\n    getChatLeavers,\r\n    getChatExitEvents,\r\n    getChatLeaverAutoSettings,\r\n    saveChatLeaverAutoSettings,\r\n    getDueChatLeaverAutoSettings,\r\n    getEnabledChatLeaverAutoSettings,\r\n    getVkCachedUserNames,\r\n    getVkUserNamesAt,\r\n    getTelegramPostMeta,\r\n    getVkPostMeta,\r\n    saveVkUserNames,\r\n    saveVkMessageArchiveRecord,\r\n    getVkMessageArchiveStats,\r\n    getVkMessageArchiveMessages,\r\n    getVkServiceEventSummary,\r\n    getVkServiceEvents,\r\n    getVkMessageArchiveUserMessages,\r\n    getVkMessageArchiveParticipantIds,\r\n    recordBotRequestEvent,\r\n    getBotRequestStats,\r\n    saveInteraction,\r\n    saveExplicitMemory,\r\n    saveCommunicationSettings,\r\n    saveCommunicationBanterState,\r\n    saveManualEvent,\r\n    createEventProposal,\r\n    createEventProposalOnce,\r\n    getEventProposal,\r\n    getLatestPendingEventProposal,\r\n    getPendingEventProposals,\r\n    updatePendingEventProposal,\r\n    getDueEventProposals,\r\n    resolveEventProposal,\r\n    setParticipantStyle,\r\n    touchCommunicationParticipant,\r\n    updateCommunicationOutburstSchedule,\r\n    updateActiveCommunicationState,\r\n    clearCommunicationBanterState,\r\n    clearCommunicationBanterStatesForPeer,\r\n    auditInvalidEventRecords,\r\n    replaceEventDedupeRegistry,\r\n    getEventDedupeRegistryStats,\r\n    getEventDedupeDuplicateRefs,\r\n    updateStoredEventRecordFromReparse,\r\n    updateStoredEventSemanticFieldsByOwner,\r\n    consumeUserRateLimit,\r\n    refundUserRateLimit,\r\n    consumeGptModelDailyRateLimit,\r\n    refundGptModelDailyRateLimit,\r\n    consumeDmAiNotice,\r\n    getPermanentEventBlocks,\r\n    permanentlyDeleteStoredEvent,\r\n    permanentlyDeleteStoredEventByIdentity,\r\n    restorePermanentEventBlocks,\r\n    softDeleteMatchingStoredEvents,\r\n    softDeleteStoredEventByIdentity,\r\n    cleanupDisabledCommunicationAutonomy,\r\n    disableLegacyCommunicationOutburstAutomation,\r\n    getDmPartyFaqAnswers,\r\n    getCoordsOverrideSettings,\r\n    saveCoordsOverrideMessage,\r\n    setCoordsOverrideEnabled,\r\n    deleteCoordsOverrideMessage,\r\n    recordCoordsRequestRecipient,\r\n    getCoordsRequestRecipients,\r\n    clearCoordsRequestRecipients,\r\n    armPostEventFeedbackRecipients,\r\n    getPendingPostEventFeedbackRequest,\r\n    cancelPostEventFeedbackRequest,\r\n    getPostEventFeedbackReviews,\r\n    getPostEventFeedbackStats,\r\n    savePostEventFeedbackReview,\r\n    getQrCodeSettings,\r\n    updateQrCodeSettings,\r\n    getMaintenanceState,\r\n    setMaintenanceState,\r\n    getManualUpcomingEvents,\r\n    getManualEventsBySourceUrl,\r\n    ignoreManualEventsBySourceUrl,\r\n    getAllUpcomingEventRecordsForDedupe,\r\n    getQticketsUpcomingEvents,\r\n    replaceAllPartyMetadata,\r\n    getAllPartyMetadata,\r\n    getOrCreatePlatformIdentity,\r\n    getMostActiveStoredGroupPeer,\r\n    getBestStoredGroupPeerForHistoryRebind,\r\n    getPeerHistoryMigration,\r\n    migrateStoredGroupHistory,\r\n    resetAllRateLimits,\r\n    replaceAiRuntimeModes,\r\n    getAiRuntimeModes,\r\n    getAiRuntimeModePolicy,\r\n    replaceAiHealthRegistry,\r\n    getAiKeyHealthRows,\r\n    getAiModelHealthRows,\r\n    getAiModelHealthStatus,\r\n    getQualifiedDiscoveredAiModels,\r\n    getVoiceTranscriptCache,\r\n    saveVoiceTranscriptCache,\r\n    backfillCleanLegacyPosterBindingsV18868,\r\n    getStartupPosterRepairGroupsV18877,\r\n    getAllStoredSourceImageAuditGroupsV188100,\r\n    saveStartupPosterRepairVisionFactsV18877,\r\n    reconcileStoredEventPosterFromMetadataV18892,\r\n    saveManualPosterMetadataV18892,\r\n    getStoredPosterReviewEventsV18893,\r\n    setStoredEventPosterChoiceV18893,\r\n    setStoredEventPosterReviewDeclinedV188100,\r\n    replaceStoredImagePathEverywhereV18893,\r\n    isStartupPosterRepairV18877Complete,\r\n    markStartupPosterRepairV18877Complete,\r\n    isStartupMediaRepairV18883Complete,\r\n    markStartupMediaRepairV18883Complete,\r\n    repairQticketsSinglePosterV18885,\r\n    RUNTIME_DATA_DIRECTORY,\r\n} from '../infrastructure/database/index.js';\r\n\r\nimport {\r\n    PERSONALIZATION_STATE_DB_PATH,\r\n    getStyleBatchState,\r\n    saveStyleBatchState,\r\n    getCommunicationStyleExamples,\r\n    saveCommunicationStyleExamples,\r\n    getDossierCommandState,\r\n    saveDossierCommandState,\r\n    getDossierSourceStates,\r\n    saveDossierSourceState,\r\n    get"... 2212194 more characters,
+    expected: /\[EVENT PROPOSAL MODERATION FASTPATH\]/u,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\events\eventProposalNewSourcePriorityV18814.test.mjs:32:1
+✖ V188.14 restart routing executes before pending review corrections (10.4227ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(restartPos > 0)
+  
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/events/eventProposalNewSourcePriorityV18814.test.mjs:35:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\events\eventProposalSourceRefreshV140.test.mjs:8:1
+✖ V140 owner proposal refreshes an already stored source before normal proposal flow (1.7222ms)
+  AssertionError [ERR_ASSERTION]: owner refresh hook must exist
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/events/eventProposalSourceRefreshV140.test.mjs:11:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at tests\events\eventProposalSourceRefreshV140.test.mjs:16:1
+✖ V140 exact VK wall proposals keep the API fast path and only open Chromium when date evidence is still missing (2.1379ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /if \(exactVkPost && exactVkHasDateEvidence\) \{[\s\S]{0,2200}linkData = \{/u. Input:
+  
+  "import { resolveVkOriginalPosts, selectDeepestCapturedVkWall } from '../features/events/vkOriginalPost.js';\r\n" +
+    "import { explainEventAiAdmission } from '../features/events/eventAiAdmission.js';\r\n" +
+    '/**\r\n' +
+    ' * Главный оркестратор: связывает VK, Telegram, GPT, базу, события и фоновые задачи. Здесь должны оставаться только сценарии верхнего уровня; чистую логику выносим в features/shared.\r\n' +
+    ' */\r\n' +
+    'import {\r\n' +
+    '    copyFileSync,\r\n' +
+    '    createReadStream,\r\n' +
+    '    existsSync,\r\n' +
+    '    mkdirSync,\r\n' +
+    '    openSync,\r\n' +
+    '    closeSync,\r\n' +
+    '    fsyncSync,\r\n' +
+    '    openAsBlob,\r\n' +
+    '    readFileSync,\r\n' +
+    '    readdirSync,\r\n' +
+    '    renameSync,\r\n' +
+    '    statSync,\r\n' +
+    '    unlinkSync,\r\n' +
+    '    writeFileSync,\r\n' +
+    "} from 'node:fs';\r\n" +
+    "import { mkdir as mkdirAsync, open as openAsync, rename as renameAsync, unlink as unlinkAsync } from 'node:fs/promises';\r\n" +
+    "import { Agent } from 'node:https';\r\n" +
+    "import { Buffer } from 'node:buffer';\r\n" +
+    "import { AsyncLocalStorage } from 'node:async_hooks';\r\n" +
+    "import { createDateFreeParserPolicy, createParserAttemptPacer, formatDateFreePhaseReport } from '../features/ai/dateFreeParserPolicy.js';\r\n" +
+    "import { buildDateFreePhasePlan, serializeDateFreePhasePlan, restoreDateFreePhasePlan } from '../features/scrapers/parserPhasePlan.js';\r\n" +
+    'const dateFreeParserContext = new AsyncLocalStorage();\r\n' +
+    '// Separate from the date-free policy: phase one keeps its normal model ladder\r\n' +
+    '// while this context only spaces request starts for explicit turbo modes.\r\n' +
+    'const parserPacingContext = new AsyncLocalStorage();\r\n' +
+    "function parserTurboPacer(mode = '') {\r\n" +
+    "    return createParserAttemptPacer({ mode: String(mode || '').toLowerCase() || 'default' });\r\n" +
+    '}\r\n' +
+    'const parserAttemptPacer = parserTurboPacer();\r\n' +
+    'async function paceParserRequest(capability, options = {}) {\r\n' +
+    '    if (options?.dateFreePolicyAttempt || dateFreeParserContext.getStore()) return;\r\n' +
+    "    if (!/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) return;\r\n" +
+    '    const state = parserPacingContext.getStore();\r\n' +
+    "    if (typeof state?.beforeAttempt === 'function') await state.beforeAttempt(capability);\r\n" +
+    '}\r\n' +
+    'import {\r\n' +
+    '    DEFAULT_OPERATION_TIMEOUT_MS,\r\n' +
+    '    auditRuntimeEvent,\r\n' +
+    '    getCurrentOperation,\r\n' +
+    '    getCurrentOperationSignal,\r\n' +
+    '    getOperation,\r\n' +
+    '    installGlobalRuntimeAuditHandlers,\r\n' +
+    '    listActiveOperations,\r\n' +
+    '    registerOperationStopHandler,\r\n' +
+    '    requestOperationStop,\r\n' +
+    '    requestStopWhere,\r\n' +
+    '    runSupervisedOperation,\r\n' +
+    '    reconcileInterruptedOperationCheckpoints,\r\n' +
+    '    saveOperationCheckpoint as persistOperationCheckpoint,\r\n' +
+    '    updateOperationProgress,\r\n' +
+    "} from '../runtime/operationSupervisor.js';\r\n" +
+    "import { basename, dirname, extname, resolve, sep } from 'node:path';\r\n" +
+    "import { loadLatestParserAllRecovery, mergeParserAllCheckpoint, parserRecoveryCheckpointInputs, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand, claimParserAllRecovery, getParserPosterGateImage } from '../features/scrapers/parserAllRecovery.js';\r\n" +
+    "import { loadLatestParserAllRecoveryAsync } from '../features/scrapers/parserRecoveryAsync.js';\r\n" +
+    "import { BOT_PATCH_VERSION } from '../shared/buildVersion.js';\r\n" +
+    "import { eventPosterRevisionEvidence } from '../features/events/eventSourceRevisionEvidence.js';\r\n" +
+    "import { createProjectAuditStreamJournal } from '../features/audit/projectAuditStreamJournal.js';\r\n" +
+    "import { createAiResponseTrace } from '../features/audit/aiResponseTrace.js';\r\n" +
+    "import { appendPosterDeliveryForensic } from '../features/scrapers/parserPosterForensics.js';\r\n" +
+    "import { recoverTextResponseJobs, saveTextJobRecipient, markTextJobDelivered } from '../features/audit/astraTextResponseRecovery.js';\r\n" +
+    "import { appendTelegramTextTransferLog } from '../features/audit/telegramTextTransferLog.js';\r\n" +
+    "import { splitTelegramLongReply } from '../platforms/telegram/telegramLongReply.js';\r\n" +
+    "import { parseCfProbeCommand, handleCfProbeCommand } from '../features/diagnostics/cloudflareProbe.js';\r\n" +
+    'import { beginTelegramTextJob, getActiveTelegramTextJob, observeTelegramTextJob, finishTelegramTextJob,\r\n' +
+    '    resolveTelegramTextJobId, readTelegramTextJobLog, telegramTextJobStatus,\r\n' +
+    '    saveTelegramTextJobInput, loadTelegramTextJobInput, getTelegramTextJobDeliveryState,\r\n' +
+    "    markTelegramTextJobDelivery } from '../features/audit/telegramTextJobControl.js';\r\n" +
+    "import { auditStageInputHash, createAuditStageJournal } from '../features/audit/projectAuditStageJournal.js';\r\n" +
+    'import {\r\n' +
+    '    getRouterFileVariant,\r\n' +
+    '    loadRouterFileProbeCache,\r\n' +
+    '    saveRouterFileProbeCache,\r\n' +
+    '    buildRouterFileUploadRequest,\r\n' +
+    '    probeRouterFileUploads,\r\n' +
+    '    probeRouterInputFileOnce,\r\n' +
+    "} from '../features/ai/routerFileProbe.js';\r\n" +
+    "import { createHash, randomInt, randomUUID } from 'node:crypto';\r\n" +
+    "import { assertTrustedModelImageUrl } from './imageDownloadPolicy.js';\r\n" +
+    "import { VK } from 'vk-io';\r\n" +
+    "import { GigaChat, detectImage } from 'gigachat';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    getAllMessages,\r\n' +
+    '    getAllStoredMessages,\r\n' +
+    '    getStoredGroupPeerIds,\r\n' +
+    '    searchStoredMessagesByText,\r\n' +
+    '    getChatStats,\r\n' +
+    '    getDossierFacts,\r\n' +
+    '    getMessagesByCount,\r\n' +
+    '    getMessagesSince,\r\n' +
+    '    getMessagesBetween,\r\n' +
+    '    getParticipantMessagesBetween,\r\n' +
+    '    getParticipantPairsBetween,\r\n' +
+    '    getParticipantStyle,\r\n' +
+    '    getCommunicationSettings,\r\n' +
+    '    getCommunicationBanterState,\r\n' +
+    '    getAutoSummarySettings,\r\n' +
+    '    saveAutoSummarySettings,\r\n' +
+    '    getDueAutoSummarySettings,\r\n' +
+    '    getEnabledAutoSummarySettings,\r\n' +
+    '    getAllAutoSummarySettings,\r\n' +
+    '    getAutoSummaryStateDatabasePath,\r\n' +
+    '    getAutoSummaryStateMeta,\r\n' +
+    '    saveAutoSummaryStateMeta,\r\n' +
+    '    getAutoSummaryRun,\r\n' +
+    '    saveAutoSummaryRun,\r\n' +
+    '    getAutoSummaryHealth,\r\n' +
+    '    saveAutoSummaryHealth,\r\n' +
+    '    getDueCommunicationSettings,\r\n' +
+    '    getRecentCommunicationParticipants,\r\n' +
+    '    getRecentInteractions,\r\n' +
+    '    getRecentParticipantMessages,\r\n' +
+    '    getExplicitMemories,\r\n' +
+    '    getExplicitMemorySourceKeys,\r\n' +
+    '    deactivateExplicitMemories,\r\n' +
+    '    replaceDossierFacts,\r\n' +
+    '    saveIncomingMessage,\r\n' +
+    '    saveChatMembershipEvent,\r\n' +
+    '    getChatLeavers,\r\n' +
+    '    getChatExitEvents,\r\n' +
+    '    getChatLeaverAutoSettings,\r\n' +
+    '    saveChatLeaverAutoSettings,\r\n' +
+    '    getDueChatLeaverAutoSettings,\r\n' +
+    '    getEnabledChatLeaverAutoSettings,\r\n' +
+    '    getVkCachedUserNames,\r\n' +
+    '    getVkUserNamesAt,\r\n' +
+    '    getTelegramPostMeta,\r\n' +
+    '    getVkPostMeta,\r\n' +
+    '    saveVkUserNames,\r\n' +
+    '    saveVkMessageArchiveRecord,\r\n' +
+    '    getVkMessageArchiveStats,\r\n' +
+    '    getVkMessageArchiveMessages,\r\n' +
+    '    getVkServiceEventSummary,\r\n' +
+    '    getVkServiceEvents,\r\n' +
+    '    getVkMessageArchiveUserMessages,\r\n' +
+    '    getVkMessageArchiveParticipantIds,\r\n' +
+    '    recordBotRequestEvent,\r\n' +
+    '    getBotRequestStats,\r\n' +
+    '    saveInteraction,\r\n' +
+    '    saveExplicitMemory,\r\n' +
+    '    saveCommunicationSettings,\r\n' +
+    '    saveCommunicationBanterState,\r\n' +
+    '    saveManualEvent,\r\n' +
+    '    createEventProposal,\r\n' +
+    '    createEventProposalOnce,\r\n' +
+    '    getEventProposal,\r\n' +
+    '    getLatestPendingEventProposal,\r\n' +
+    '    getPendingEventProposals,\r\n' +
+    '    updatePendingEventProposal,\r\n' +
+    '    getDueEventProposals,\r\n' +
+    '    resolveEventProposal,\r\n' +
+    '    setParticipantStyle,\r\n' +
+    '    touchCommunicationParticipant,\r\n' +
+    '    updateCommunicationOutburstSchedule,\r\n' +
+    '    updateActiveCommunicationState,\r\n' +
+    '    clearCommunicationBanterState,\r\n' +
+    '    clearCommunicationBanterStatesForPeer,\r\n' +
+    '    auditInvalidEventRecords,\r\n' +
+    '    replaceEventDedupeRegistry,\r\n' +
+    '    getEventDedupeRegistryStats,\r\n' +
+    '    getEventDedupeDuplicateRefs,\r\n' +
+    '    updateStoredEventRecordFromReparse,\r\n' +
+    '    updateStoredEventSemanticFieldsByOwner,\r\n' +
+    '    consumeUserRateLimit,\r\n' +
+    '    refundUserRateLimit,\r\n' +
+    '    consumeGptModelDailyRateLimit,\r\n' +
+    '    refundGptModelDailyRateLimit,\r\n' +
+    '    consumeDmAiNotice,\r\n' +
+    '    getPermanentEventBlocks,\r\n' +
+    '    permanentlyDeleteStoredEvent,\r\n' +
+    '    permanentlyDeleteStoredEventByIdentity,\r\n' +
+    '    restorePermanentEventBlocks,\r\n' +
+    '    softDeleteMatchingStoredEvents,\r\n' +
+    '    softDeleteStoredEventByIdentity,\r\n' +
+    '    cleanupDisabledCommunicationAutonomy,\r\n' +
+    '    disableLegacyCommunicationOutburstAutomation,\r\n' +
+    '    getDmPartyFaqAnswers,\r\n' +
+    '    getCoordsOverrideSettings,\r\n' +
+    '    saveCoordsOverrideMessage,\r\n' +
+    '    setCoordsOverrideEnabled,\r\n' +
+    '    deleteCoordsOverrideMessage,\r\n' +
+    '    recordCoordsRequestRecipient,\r\n' +
+    '    getCoordsRequestRecipients,\r\n' +
+    '    clearCoordsRequestRecipients,\r\n' +
+    '    armPostEventFeedbackRecipients,\r\n' +
+    '    getPendingPostEventFeedbackRequest,\r\n' +
+    '    cancelPostEventFeedbackRequest,\r\n' +
+    '    getPostEventFeedbackReviews,\r\n' +
+    '    getPostEventFeedbackStats,\r\n' +
+    '    savePostEventFeedbackReview,\r\n' +
+    '    getQrCodeSettings,\r\n' +
+    '    updateQrCodeSettings,\r\n' +
+    '    getMaintenanceState,\r\n' +
+    '    setMaintenanceState,\r\n' +
+    '    getManualUpcomingEvents,\r\n' +
+    '    getManualEventsBySourceUrl,\r\n' +
+    '    ignoreManualEventsBySourceUrl,\r\n' +
+    '    getAllUpcomingEventRecordsForDedupe,\r\n' +
+    '    getQticketsUpcomingEvents,\r\n' +
+    '    replaceAllPartyMetadata,\r\n' +
+    '    getAllPartyMetadata,\r\n' +
+    '    getOrCreatePlatformIdentity,\r\n' +
+    '    getMostActiveStoredGroupPeer,\r\n' +
+    '    getBestStoredGroupPeerForHistoryRebind,\r\n' +
+    '    getPeerHistoryMigration,\r\n' +
+    '    migrateStoredGroupHistory,\r\n' +
+    '    resetAllRateLimits,\r\n' +
+    '    replaceAiRuntimeModes,\r\n' +
+    '    getAiRuntimeModes,\r\n' +
+    '    getAiRuntimeModePolicy,\r\n' +
+    '    replaceAiHealthRegistry,\r\n' +
+    '    getAiKeyHealthRows,\r\n' +
+    '    getAiModelHealthRows,\r\n' +
+    '    getAiModelHealthStatus,\r\n' +
+    '    getQualifiedDiscoveredAiModels,\r\n' +
+    '    getVoiceTranscriptCache,\r\n' +
+    '    saveVoiceTranscriptCache,\r\n' +
+    '    backfillCleanLegacyPosterBindingsV18868,\r\n' +
+    '    getStartupPosterRepairGroupsV18877,\r\n' +
+    '    getAllStoredSourceImageAuditGroupsV188100,\r\n' +
+    '    saveStartupPosterRepairVisionFactsV18877,\r\n' +
+    '    reconcileStoredEventPosterFromMetadataV18892,\r\n' +
+    '    saveManualPosterMetadataV18892,\r\n' +
+    '    getStoredPosterReviewEventsV18893,\r\n' +
+    '    setStoredEventPosterChoiceV18893,\r\n' +
+    '    setStoredEventPosterReviewDeclinedV188100,\r\n' +
+    '    replaceStoredImagePathEverywhereV18893,\r\n' +
+    '    isStartupPosterRepairV18877Complete,\r\n' +
+    '    markStartupPosterRepairV18877Complete,\r\n' +
+    '    isStartupMediaRepairV18883Complete,\r\n' +
+    '    markStartupMediaRepairV18883Complete,\r\n' +
+    '    repairQticketsSinglePosterV18885,\r\n' +
+    '    RUNTIME_DATA_DIRECTORY,\r\n' +
+    "} from '../infrastructure/database/index.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    PERSONALIZATION_STATE_DB_PATH,\r\n' +
+    '    getStyleBatchState,\r\n' +
+    '    saveStyleBatchState,\r\n' +
+    '    getCommunicationStyleExamples,\r\n' +
+    '    saveCommunicationStyleExamples,\r\n' +
+    '    getDossierCommandState,\r\n' +
+    '    saveDossierCommandState,\r\n' +
+    '    getDossierSourceStates,\r\n' +
+    '    saveDossierSourceState,\r\n' +
+    '    get'... 2212194 more characters
+  
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/events/eventProposalSourceRefreshV140.test.mjs:18:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "import { resolveVkOriginalPosts, selectDeepestCapturedVkWall } from '../features/events/vkOriginalPost.js';\r\nimport { explainEventAiAdmission } from '../features/events/eventAiAdmission.js';\r\n/**\r\n * Главный оркестратор: связывает VK, Telegram, GPT, базу, события и фоновые задачи. Здесь должны оставаться только сценарии верхнего уровня; чистую логику выносим в features/shared.\r\n */\r\nimport {\r\n    copyFileSync,\r\n    createReadStream,\r\n    existsSync,\r\n    mkdirSync,\r\n    openSync,\r\n    closeSync,\r\n    fsyncSync,\r\n    openAsBlob,\r\n    readFileSync,\r\n    readdirSync,\r\n    renameSync,\r\n    statSync,\r\n    unlinkSync,\r\n    writeFileSync,\r\n} from 'node:fs';\r\nimport { mkdir as mkdirAsync, open as openAsync, rename as renameAsync, unlink as unlinkAsync } from 'node:fs/promises';\r\nimport { Agent } from 'node:https';\r\nimport { Buffer } from 'node:buffer';\r\nimport { AsyncLocalStorage } from 'node:async_hooks';\r\nimport { createDateFreeParserPolicy, createParserAttemptPacer, formatDateFreePhaseReport } from '../features/ai/dateFreeParserPolicy.js';\r\nimport { buildDateFreePhasePlan, serializeDateFreePhasePlan, restoreDateFreePhasePlan } from '../features/scrapers/parserPhasePlan.js';\r\nconst dateFreeParserContext = new AsyncLocalStorage();\r\n// Separate from the date-free policy: phase one keeps its normal model ladder\r\n// while this context only spaces request starts for explicit turbo modes.\r\nconst parserPacingContext = new AsyncLocalStorage();\r\nfunction parserTurboPacer(mode = '') {\r\n    return createParserAttemptPacer({ mode: String(mode || '').toLowerCase() || 'default' });\r\n}\r\nconst parserAttemptPacer = parserTurboPacer();\r\nasync function paceParserRequest(capability, options = {}) {\r\n    if (options?.dateFreePolicyAttempt || dateFreeParserContext.getStore()) return;\r\n    if (!/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) return;\r\n    const state = parserPacingContext.getStore();\r\n    if (typeof state?.beforeAttempt === 'function') await state.beforeAttempt(capability);\r\n}\r\nimport {\r\n    DEFAULT_OPERATION_TIMEOUT_MS,\r\n    auditRuntimeEvent,\r\n    getCurrentOperation,\r\n    getCurrentOperationSignal,\r\n    getOperation,\r\n    installGlobalRuntimeAuditHandlers,\r\n    listActiveOperations,\r\n    registerOperationStopHandler,\r\n    requestOperationStop,\r\n    requestStopWhere,\r\n    runSupervisedOperation,\r\n    reconcileInterruptedOperationCheckpoints,\r\n    saveOperationCheckpoint as persistOperationCheckpoint,\r\n    updateOperationProgress,\r\n} from '../runtime/operationSupervisor.js';\r\nimport { basename, dirname, extname, resolve, sep } from 'node:path';\r\nimport { loadLatestParserAllRecovery, mergeParserAllCheckpoint, parserRecoveryCheckpointInputs, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand, claimParserAllRecovery, getParserPosterGateImage } from '../features/scrapers/parserAllRecovery.js';\r\nimport { loadLatestParserAllRecoveryAsync } from '../features/scrapers/parserRecoveryAsync.js';\r\nimport { BOT_PATCH_VERSION } from '../shared/buildVersion.js';\r\nimport { eventPosterRevisionEvidence } from '../features/events/eventSourceRevisionEvidence.js';\r\nimport { createProjectAuditStreamJournal } from '../features/audit/projectAuditStreamJournal.js';\r\nimport { createAiResponseTrace } from '../features/audit/aiResponseTrace.js';\r\nimport { appendPosterDeliveryForensic } from '../features/scrapers/parserPosterForensics.js';\r\nimport { recoverTextResponseJobs, saveTextJobRecipient, markTextJobDelivered } from '../features/audit/astraTextResponseRecovery.js';\r\nimport { appendTelegramTextTransferLog } from '../features/audit/telegramTextTransferLog.js';\r\nimport { splitTelegramLongReply } from '../platforms/telegram/telegramLongReply.js';\r\nimport { parseCfProbeCommand, handleCfProbeCommand } from '../features/diagnostics/cloudflareProbe.js';\r\nimport { beginTelegramTextJob, getActiveTelegramTextJob, observeTelegramTextJob, finishTelegramTextJob,\r\n    resolveTelegramTextJobId, readTelegramTextJobLog, telegramTextJobStatus,\r\n    saveTelegramTextJobInput, loadTelegramTextJobInput, getTelegramTextJobDeliveryState,\r\n    markTelegramTextJobDelivery } from '../features/audit/telegramTextJobControl.js';\r\nimport { auditStageInputHash, createAuditStageJournal } from '../features/audit/projectAuditStageJournal.js';\r\nimport {\r\n    getRouterFileVariant,\r\n    loadRouterFileProbeCache,\r\n    saveRouterFileProbeCache,\r\n    buildRouterFileUploadRequest,\r\n    probeRouterFileUploads,\r\n    probeRouterInputFileOnce,\r\n} from '../features/ai/routerFileProbe.js';\r\nimport { createHash, randomInt, randomUUID } from 'node:crypto';\r\nimport { assertTrustedModelImageUrl } from './imageDownloadPolicy.js';\r\nimport { VK } from 'vk-io';\r\nimport { GigaChat, detectImage } from 'gigachat';\r\n\r\nimport {\r\n    getAllMessages,\r\n    getAllStoredMessages,\r\n    getStoredGroupPeerIds,\r\n    searchStoredMessagesByText,\r\n    getChatStats,\r\n    getDossierFacts,\r\n    getMessagesByCount,\r\n    getMessagesSince,\r\n    getMessagesBetween,\r\n    getParticipantMessagesBetween,\r\n    getParticipantPairsBetween,\r\n    getParticipantStyle,\r\n    getCommunicationSettings,\r\n    getCommunicationBanterState,\r\n    getAutoSummarySettings,\r\n    saveAutoSummarySettings,\r\n    getDueAutoSummarySettings,\r\n    getEnabledAutoSummarySettings,\r\n    getAllAutoSummarySettings,\r\n    getAutoSummaryStateDatabasePath,\r\n    getAutoSummaryStateMeta,\r\n    saveAutoSummaryStateMeta,\r\n    getAutoSummaryRun,\r\n    saveAutoSummaryRun,\r\n    getAutoSummaryHealth,\r\n    saveAutoSummaryHealth,\r\n    getDueCommunicationSettings,\r\n    getRecentCommunicationParticipants,\r\n    getRecentInteractions,\r\n    getRecentParticipantMessages,\r\n    getExplicitMemories,\r\n    getExplicitMemorySourceKeys,\r\n    deactivateExplicitMemories,\r\n    replaceDossierFacts,\r\n    saveIncomingMessage,\r\n    saveChatMembershipEvent,\r\n    getChatLeavers,\r\n    getChatExitEvents,\r\n    getChatLeaverAutoSettings,\r\n    saveChatLeaverAutoSettings,\r\n    getDueChatLeaverAutoSettings,\r\n    getEnabledChatLeaverAutoSettings,\r\n    getVkCachedUserNames,\r\n    getVkUserNamesAt,\r\n    getTelegramPostMeta,\r\n    getVkPostMeta,\r\n    saveVkUserNames,\r\n    saveVkMessageArchiveRecord,\r\n    getVkMessageArchiveStats,\r\n    getVkMessageArchiveMessages,\r\n    getVkServiceEventSummary,\r\n    getVkServiceEvents,\r\n    getVkMessageArchiveUserMessages,\r\n    getVkMessageArchiveParticipantIds,\r\n    recordBotRequestEvent,\r\n    getBotRequestStats,\r\n    saveInteraction,\r\n    saveExplicitMemory,\r\n    saveCommunicationSettings,\r\n    saveCommunicationBanterState,\r\n    saveManualEvent,\r\n    createEventProposal,\r\n    createEventProposalOnce,\r\n    getEventProposal,\r\n    getLatestPendingEventProposal,\r\n    getPendingEventProposals,\r\n    updatePendingEventProposal,\r\n    getDueEventProposals,\r\n    resolveEventProposal,\r\n    setParticipantStyle,\r\n    touchCommunicationParticipant,\r\n    updateCommunicationOutburstSchedule,\r\n    updateActiveCommunicationState,\r\n    clearCommunicationBanterState,\r\n    clearCommunicationBanterStatesForPeer,\r\n    auditInvalidEventRecords,\r\n    replaceEventDedupeRegistry,\r\n    getEventDedupeRegistryStats,\r\n    getEventDedupeDuplicateRefs,\r\n    updateStoredEventRecordFromReparse,\r\n    updateStoredEventSemanticFieldsByOwner,\r\n    consumeUserRateLimit,\r\n    refundUserRateLimit,\r\n    consumeGptModelDailyRateLimit,\r\n    refundGptModelDailyRateLimit,\r\n    consumeDmAiNotice,\r\n    getPermanentEventBlocks,\r\n    permanentlyDeleteStoredEvent,\r\n    permanentlyDeleteStoredEventByIdentity,\r\n    restorePermanentEventBlocks,\r\n    softDeleteMatchingStoredEvents,\r\n    softDeleteStoredEventByIdentity,\r\n    cleanupDisabledCommunicationAutonomy,\r\n    disableLegacyCommunicationOutburstAutomation,\r\n    getDmPartyFaqAnswers,\r\n    getCoordsOverrideSettings,\r\n    saveCoordsOverrideMessage,\r\n    setCoordsOverrideEnabled,\r\n    deleteCoordsOverrideMessage,\r\n    recordCoordsRequestRecipient,\r\n    getCoordsRequestRecipients,\r\n    clearCoordsRequestRecipients,\r\n    armPostEventFeedbackRecipients,\r\n    getPendingPostEventFeedbackRequest,\r\n    cancelPostEventFeedbackRequest,\r\n    getPostEventFeedbackReviews,\r\n    getPostEventFeedbackStats,\r\n    savePostEventFeedbackReview,\r\n    getQrCodeSettings,\r\n    updateQrCodeSettings,\r\n    getMaintenanceState,\r\n    setMaintenanceState,\r\n    getManualUpcomingEvents,\r\n    getManualEventsBySourceUrl,\r\n    ignoreManualEventsBySourceUrl,\r\n    getAllUpcomingEventRecordsForDedupe,\r\n    getQticketsUpcomingEvents,\r\n    replaceAllPartyMetadata,\r\n    getAllPartyMetadata,\r\n    getOrCreatePlatformIdentity,\r\n    getMostActiveStoredGroupPeer,\r\n    getBestStoredGroupPeerForHistoryRebind,\r\n    getPeerHistoryMigration,\r\n    migrateStoredGroupHistory,\r\n    resetAllRateLimits,\r\n    replaceAiRuntimeModes,\r\n    getAiRuntimeModes,\r\n    getAiRuntimeModePolicy,\r\n    replaceAiHealthRegistry,\r\n    getAiKeyHealthRows,\r\n    getAiModelHealthRows,\r\n    getAiModelHealthStatus,\r\n    getQualifiedDiscoveredAiModels,\r\n    getVoiceTranscriptCache,\r\n    saveVoiceTranscriptCache,\r\n    backfillCleanLegacyPosterBindingsV18868,\r\n    getStartupPosterRepairGroupsV18877,\r\n    getAllStoredSourceImageAuditGroupsV188100,\r\n    saveStartupPosterRepairVisionFactsV18877,\r\n    reconcileStoredEventPosterFromMetadataV18892,\r\n    saveManualPosterMetadataV18892,\r\n    getStoredPosterReviewEventsV18893,\r\n    setStoredEventPosterChoiceV18893,\r\n    setStoredEventPosterReviewDeclinedV188100,\r\n    replaceStoredImagePathEverywhereV18893,\r\n    isStartupPosterRepairV18877Complete,\r\n    markStartupPosterRepairV18877Complete,\r\n    isStartupMediaRepairV18883Complete,\r\n    markStartupMediaRepairV18883Complete,\r\n    repairQticketsSinglePosterV18885,\r\n    RUNTIME_DATA_DIRECTORY,\r\n} from '../infrastructure/database/index.js';\r\n\r\nimport {\r\n    PERSONALIZATION_STATE_DB_PATH,\r\n    getStyleBatchState,\r\n    saveStyleBatchState,\r\n    getCommunicationStyleExamples,\r\n    saveCommunicationStyleExamples,\r\n    getDossierCommandState,\r\n    saveDossierCommandState,\r\n    getDossierSourceStates,\r\n    saveDossierSourceState,\r\n    get"... 2212194 more characters,
+    expected: /if \(exactVkPost && exactVkHasDateEvidence\) \{[\s\S]{0,2200}linkData = \{/u,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\events\eventProposalSourceRefreshV140.test.mjs:34:1
+✖ V140 existing-source refresh does not wait for a full AI snapshot rebuild (0.8694ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /void rebuildVerifiedPartySnapshotQueued/u. Input:
+  
+  'async function refreshStoredEventsFromFreshSource({\r\n' +
+    '    sourceUrl,\r\n' +
+    '    freshEvents,\r\n' +
+    "    reason = 'source-refresh',\r\n" +
+    "    replacementSourceUrl = '',\r\n" +
+    '}) {\r\n' +
+    '    const canonical = canonicalEventSourceUrl(sourceUrl);\r\n' +
+    '    const replacementCanonical = canonicalEventSourceUrl(replacementSourceUrl) || canonical;\r\n' +
+    '    const storedEvents = getStoredEventsByCanonicalSourceUrl(canonical);\r\n' +
+    '    const fresh = Array.isArray(freshEvents) ? freshEvents.filter(Boolean) : [];\r\n' +
+    '    if (!canonical || !storedEvents.length || !fresh.length) {\r\n' +
+    '        return { matched: storedEvents.length, changed: 0, snapshot: null };\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    '    let changed = 0;\r\n' +
+    '    for (const stored of storedEvents) {\r\n' +
+    '        const selected = selectFreshEventForStoredEvent(stored, fresh);\r\n' +
+    '        if (!selected) continue;\r\n' +
+    '        const merged = mergeStoredEventWithFreshSource(stored, selected, {\r\n' +
+    '            sourceUrl: replacementCanonical,\r\n' +
+    '            parseMethod: `source_refresh_v147:${reason}`,\r\n' +
+    '        });\r\n' +
+    '        changed += updateStoredEventRecordFromReparse({\r\n' +
+    '            sourceType: stored.sourceType,\r\n' +
+    '            id: stored.id,\r\n' +
+    '            event: merged,\r\n' +
+    '        });\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    '    let snapshotQueued = false;\r\n' +
+    '    if (changed > 0) {\r\n' +
+    '        // Do not make the Telegram reply wait for the full verified-snapshot\r\n' +
+    '        // pipeline: that pipeline can legitimately run AI normalization and\r\n' +
+    '        // compact summaries for the whole database. The database rows are the\r\n' +
+    '        // source of truth, so invalidate the old snapshot immediately. Until\r\n' +
+    '        // the background rebuild completes, public party requests use the\r\n' +
+    '        // deterministic DB fallback and therefore already see the refreshed\r\n' +
+    '        // poster/info instead of the stale no-image card.\r\n' +
+    '        invalidateVerifiedPartySnapshot(`source-refresh:${reason}`);\r\n' +
+    '        snapshotQueued = true;\r\n' +
+    '        runDetachedSupervisedOperation({\r\n' +
+    '            name: `event-snapshot:source-refresh:${reason}`,\r\n' +
+    "            category: 'event-snapshot',\r\n" +
+    '            metadata: { reason },\r\n' +
+    '        }, () => rebuildVerifiedPartySnapshotQueued({\r\n' +
+    '            reason: `source-refresh:${reason}`,\r\n' +
+    '        }));\r\n' +
+    '    }\r\n' +
+    '    return { matched: storedEvents.length, changed, snapshot: null, snapshotQueued };\r\n' +
+    '}\r\n' +
+    '\r\n'
+  
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/events/eventProposalSourceRefreshV140.test.mjs:39:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "async function refreshStoredEventsFromFreshSource({\r\n    sourceUrl,\r\n    freshEvents,\r\n    reason = 'source-refresh',\r\n    replacementSourceUrl = '',\r\n}) {\r\n    const canonical = canonicalEventSourceUrl(sourceUrl);\r\n    const replacementCanonical = canonicalEventSourceUrl(replacementSourceUrl) || canonical;\r\n    const storedEvents = getStoredEventsByCanonicalSourceUrl(canonical);\r\n    const fresh = Array.isArray(freshEvents) ? freshEvents.filter(Boolean) : [];\r\n    if (!canonical || !storedEvents.length || !fresh.length) {\r\n        return { matched: storedEvents.length, changed: 0, snapshot: null };\r\n    }\r\n\r\n    let changed = 0;\r\n    for (const stored of storedEvents) {\r\n        const selected = selectFreshEventForStoredEvent(stored, fresh);\r\n        if (!selected) continue;\r\n        const merged = mergeStoredEventWithFreshSource(stored, selected, {\r\n            sourceUrl: replacementCanonical,\r\n            parseMethod: `source_refresh_v147:${reason}`,\r\n        });\r\n        changed += updateStoredEventRecordFromReparse({\r\n            sourceType: stored.sourceType,\r\n            id: stored.id,\r\n            event: merged,\r\n        });\r\n    }\r\n\r\n    let snapshotQueued = false;\r\n    if (changed > 0) {\r\n        // Do not make the Telegram reply wait for the full verified-snapshot\r\n        // pipeline: that pipeline can legitimately run AI normalization and\r\n        // compact summaries for the whole database. The database rows are the\r\n        // source of truth, so invalidate the old snapshot immediately. Until\r\n        // the background rebuild completes, public party requests use the\r\n        // deterministic DB fallback and therefore already see the refreshed\r\n        // poster/info instead of the stale no-image card.\r\n        invalidateVerifiedPartySnapshot(`source-refresh:${reason}`);\r\n        snapshotQueued = true;\r\n        runDetachedSupervisedOperation({\r\n            name: `event-snapshot:source-refresh:${reason}`,\r\n            category: 'event-snapshot',\r\n            metadata: { reason },\r\n        }, () => rebuildVerifiedPartySnapshotQueued({\r\n            reason: `source-refresh:${reason}`,\r\n        }));\r\n    }\r\n    return { matched: storedEvents.length, changed, snapshot: null, snapshotQueued };\r\n}\r\n\r\n",
+    expected: /void rebuildVerifiedPartySnapshotQueued/u,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\events\eventProposalVkBootstrapTemporalFusionV1886.test.mjs:1:1
+✖ tests\events\eventProposalVkBootstrapTemporalFusionV1886.test.mjs (103.7029ms)
+  'test failed'
+
+test at tests\events\eventProposalVkOpenPostRecoveryV1885.test.mjs:1:1
+✖ tests\events\eventProposalVkOpenPostRecoveryV1885.test.mjs (52.93ms)
+  'test failed'
+
+test at tests\events\eventProposalVkRawBootstrapV18811.test.mjs:106:1
+✖ V188.11 exact links do not ask GPT to select duplicate DOM containers and proposal AI is bounded (3.1782ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /maxCandidates:\s*2/u. Input:
+  
+  "import { resolveVkOriginalPosts, selectDeepestCapturedVkWall } from '../features/events/vkOriginalPost.js';\r\n" +
+    "import { explainEventAiAdmission } from '../features/events/eventAiAdmission.js';\r\n" +
+    '/**\r\n' +
+    ' * Главный оркестратор: связывает VK, Telegram, GPT, базу, события и фоновые задачи. Здесь должны оставаться только сценарии верхнего уровня; чистую логику выносим в features/shared.\r\n' +
+    ' */\r\n' +
+    'import {\r\n' +
+    '    copyFileSync,\r\n' +
+    '    createReadStream,\r\n' +
+    '    existsSync,\r\n' +
+    '    mkdirSync,\r\n' +
+    '    openSync,\r\n' +
+    '    closeSync,\r\n' +
+    '    fsyncSync,\r\n' +
+    '    openAsBlob,\r\n' +
+    '    readFileSync,\r\n' +
+    '    readdirSync,\r\n' +
+    '    renameSync,\r\n' +
+    '    statSync,\r\n' +
+    '    unlinkSync,\r\n' +
+    '    writeFileSync,\r\n' +
+    "} from 'node:fs';\r\n" +
+    "import { mkdir as mkdirAsync, open as openAsync, rename as renameAsync, unlink as unlinkAsync } from 'node:fs/promises';\r\n" +
+    "import { Agent } from 'node:https';\r\n" +
+    "import { Buffer } from 'node:buffer';\r\n" +
+    "import { AsyncLocalStorage } from 'node:async_hooks';\r\n" +
+    "import { createDateFreeParserPolicy, createParserAttemptPacer, formatDateFreePhaseReport } from '../features/ai/dateFreeParserPolicy.js';\r\n" +
+    "import { buildDateFreePhasePlan, serializeDateFreePhasePlan, restoreDateFreePhasePlan } from '../features/scrapers/parserPhasePlan.js';\r\n" +
+    'const dateFreeParserContext = new AsyncLocalStorage();\r\n' +
+    '// Separate from the date-free policy: phase one keeps its normal model ladder\r\n' +
+    '// while this context only spaces request starts for explicit turbo modes.\r\n' +
+    'const parserPacingContext = new AsyncLocalStorage();\r\n' +
+    "function parserTurboPacer(mode = '') {\r\n" +
+    "    return createParserAttemptPacer({ mode: String(mode || '').toLowerCase() || 'default' });\r\n" +
+    '}\r\n' +
+    'const parserAttemptPacer = parserTurboPacer();\r\n' +
+    'async function paceParserRequest(capability, options = {}) {\r\n' +
+    '    if (options?.dateFreePolicyAttempt || dateFreeParserContext.getStore()) return;\r\n' +
+    "    if (!/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) return;\r\n" +
+    '    const state = parserPacingContext.getStore();\r\n' +
+    "    if (typeof state?.beforeAttempt === 'function') await state.beforeAttempt(capability);\r\n" +
+    '}\r\n' +
+    'import {\r\n' +
+    '    DEFAULT_OPERATION_TIMEOUT_MS,\r\n' +
+    '    auditRuntimeEvent,\r\n' +
+    '    getCurrentOperation,\r\n' +
+    '    getCurrentOperationSignal,\r\n' +
+    '    getOperation,\r\n' +
+    '    installGlobalRuntimeAuditHandlers,\r\n' +
+    '    listActiveOperations,\r\n' +
+    '    registerOperationStopHandler,\r\n' +
+    '    requestOperationStop,\r\n' +
+    '    requestStopWhere,\r\n' +
+    '    runSupervisedOperation,\r\n' +
+    '    reconcileInterruptedOperationCheckpoints,\r\n' +
+    '    saveOperationCheckpoint as persistOperationCheckpoint,\r\n' +
+    '    updateOperationProgress,\r\n' +
+    "} from '../runtime/operationSupervisor.js';\r\n" +
+    "import { basename, dirname, extname, resolve, sep } from 'node:path';\r\n" +
+    "import { loadLatestParserAllRecovery, mergeParserAllCheckpoint, parserRecoveryCheckpointInputs, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand, claimParserAllRecovery, getParserPosterGateImage } from '../features/scrapers/parserAllRecovery.js';\r\n" +
+    "import { loadLatestParserAllRecoveryAsync } from '../features/scrapers/parserRecoveryAsync.js';\r\n" +
+    "import { BOT_PATCH_VERSION } from '../shared/buildVersion.js';\r\n" +
+    "import { eventPosterRevisionEvidence } from '../features/events/eventSourceRevisionEvidence.js';\r\n" +
+    "import { createProjectAuditStreamJournal } from '../features/audit/projectAuditStreamJournal.js';\r\n" +
+    "import { createAiResponseTrace } from '../features/audit/aiResponseTrace.js';\r\n" +
+    "import { appendPosterDeliveryForensic } from '../features/scrapers/parserPosterForensics.js';\r\n" +
+    "import { recoverTextResponseJobs, saveTextJobRecipient, markTextJobDelivered } from '../features/audit/astraTextResponseRecovery.js';\r\n" +
+    "import { appendTelegramTextTransferLog } from '../features/audit/telegramTextTransferLog.js';\r\n" +
+    "import { splitTelegramLongReply } from '../platforms/telegram/telegramLongReply.js';\r\n" +
+    "import { parseCfProbeCommand, handleCfProbeCommand } from '../features/diagnostics/cloudflareProbe.js';\r\n" +
+    'import { beginTelegramTextJob, getActiveTelegramTextJob, observeTelegramTextJob, finishTelegramTextJob,\r\n' +
+    '    resolveTelegramTextJobId, readTelegramTextJobLog, telegramTextJobStatus,\r\n' +
+    '    saveTelegramTextJobInput, loadTelegramTextJobInput, getTelegramTextJobDeliveryState,\r\n' +
+    "    markTelegramTextJobDelivery } from '../features/audit/telegramTextJobControl.js';\r\n" +
+    "import { auditStageInputHash, createAuditStageJournal } from '../features/audit/projectAuditStageJournal.js';\r\n" +
+    'import {\r\n' +
+    '    getRouterFileVariant,\r\n' +
+    '    loadRouterFileProbeCache,\r\n' +
+    '    saveRouterFileProbeCache,\r\n' +
+    '    buildRouterFileUploadRequest,\r\n' +
+    '    probeRouterFileUploads,\r\n' +
+    '    probeRouterInputFileOnce,\r\n' +
+    "} from '../features/ai/routerFileProbe.js';\r\n" +
+    "import { createHash, randomInt, randomUUID } from 'node:crypto';\r\n" +
+    "import { assertTrustedModelImageUrl } from './imageDownloadPolicy.js';\r\n" +
+    "import { VK } from 'vk-io';\r\n" +
+    "import { GigaChat, detectImage } from 'gigachat';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    getAllMessages,\r\n' +
+    '    getAllStoredMessages,\r\n' +
+    '    getStoredGroupPeerIds,\r\n' +
+    '    searchStoredMessagesByText,\r\n' +
+    '    getChatStats,\r\n' +
+    '    getDossierFacts,\r\n' +
+    '    getMessagesByCount,\r\n' +
+    '    getMessagesSince,\r\n' +
+    '    getMessagesBetween,\r\n' +
+    '    getParticipantMessagesBetween,\r\n' +
+    '    getParticipantPairsBetween,\r\n' +
+    '    getParticipantStyle,\r\n' +
+    '    getCommunicationSettings,\r\n' +
+    '    getCommunicationBanterState,\r\n' +
+    '    getAutoSummarySettings,\r\n' +
+    '    saveAutoSummarySettings,\r\n' +
+    '    getDueAutoSummarySettings,\r\n' +
+    '    getEnabledAutoSummarySettings,\r\n' +
+    '    getAllAutoSummarySettings,\r\n' +
+    '    getAutoSummaryStateDatabasePath,\r\n' +
+    '    getAutoSummaryStateMeta,\r\n' +
+    '    saveAutoSummaryStateMeta,\r\n' +
+    '    getAutoSummaryRun,\r\n' +
+    '    saveAutoSummaryRun,\r\n' +
+    '    getAutoSummaryHealth,\r\n' +
+    '    saveAutoSummaryHealth,\r\n' +
+    '    getDueCommunicationSettings,\r\n' +
+    '    getRecentCommunicationParticipants,\r\n' +
+    '    getRecentInteractions,\r\n' +
+    '    getRecentParticipantMessages,\r\n' +
+    '    getExplicitMemories,\r\n' +
+    '    getExplicitMemorySourceKeys,\r\n' +
+    '    deactivateExplicitMemories,\r\n' +
+    '    replaceDossierFacts,\r\n' +
+    '    saveIncomingMessage,\r\n' +
+    '    saveChatMembershipEvent,\r\n' +
+    '    getChatLeavers,\r\n' +
+    '    getChatExitEvents,\r\n' +
+    '    getChatLeaverAutoSettings,\r\n' +
+    '    saveChatLeaverAutoSettings,\r\n' +
+    '    getDueChatLeaverAutoSettings,\r\n' +
+    '    getEnabledChatLeaverAutoSettings,\r\n' +
+    '    getVkCachedUserNames,\r\n' +
+    '    getVkUserNamesAt,\r\n' +
+    '    getTelegramPostMeta,\r\n' +
+    '    getVkPostMeta,\r\n' +
+    '    saveVkUserNames,\r\n' +
+    '    saveVkMessageArchiveRecord,\r\n' +
+    '    getVkMessageArchiveStats,\r\n' +
+    '    getVkMessageArchiveMessages,\r\n' +
+    '    getVkServiceEventSummary,\r\n' +
+    '    getVkServiceEvents,\r\n' +
+    '    getVkMessageArchiveUserMessages,\r\n' +
+    '    getVkMessageArchiveParticipantIds,\r\n' +
+    '    recordBotRequestEvent,\r\n' +
+    '    getBotRequestStats,\r\n' +
+    '    saveInteraction,\r\n' +
+    '    saveExplicitMemory,\r\n' +
+    '    saveCommunicationSettings,\r\n' +
+    '    saveCommunicationBanterState,\r\n' +
+    '    saveManualEvent,\r\n' +
+    '    createEventProposal,\r\n' +
+    '    createEventProposalOnce,\r\n' +
+    '    getEventProposal,\r\n' +
+    '    getLatestPendingEventProposal,\r\n' +
+    '    getPendingEventProposals,\r\n' +
+    '    updatePendingEventProposal,\r\n' +
+    '    getDueEventProposals,\r\n' +
+    '    resolveEventProposal,\r\n' +
+    '    setParticipantStyle,\r\n' +
+    '    touchCommunicationParticipant,\r\n' +
+    '    updateCommunicationOutburstSchedule,\r\n' +
+    '    updateActiveCommunicationState,\r\n' +
+    '    clearCommunicationBanterState,\r\n' +
+    '    clearCommunicationBanterStatesForPeer,\r\n' +
+    '    auditInvalidEventRecords,\r\n' +
+    '    replaceEventDedupeRegistry,\r\n' +
+    '    getEventDedupeRegistryStats,\r\n' +
+    '    getEventDedupeDuplicateRefs,\r\n' +
+    '    updateStoredEventRecordFromReparse,\r\n' +
+    '    updateStoredEventSemanticFieldsByOwner,\r\n' +
+    '    consumeUserRateLimit,\r\n' +
+    '    refundUserRateLimit,\r\n' +
+    '    consumeGptModelDailyRateLimit,\r\n' +
+    '    refundGptModelDailyRateLimit,\r\n' +
+    '    consumeDmAiNotice,\r\n' +
+    '    getPermanentEventBlocks,\r\n' +
+    '    permanentlyDeleteStoredEvent,\r\n' +
+    '    permanentlyDeleteStoredEventByIdentity,\r\n' +
+    '    restorePermanentEventBlocks,\r\n' +
+    '    softDeleteMatchingStoredEvents,\r\n' +
+    '    softDeleteStoredEventByIdentity,\r\n' +
+    '    cleanupDisabledCommunicationAutonomy,\r\n' +
+    '    disableLegacyCommunicationOutburstAutomation,\r\n' +
+    '    getDmPartyFaqAnswers,\r\n' +
+    '    getCoordsOverrideSettings,\r\n' +
+    '    saveCoordsOverrideMessage,\r\n' +
+    '    setCoordsOverrideEnabled,\r\n' +
+    '    deleteCoordsOverrideMessage,\r\n' +
+    '    recordCoordsRequestRecipient,\r\n' +
+    '    getCoordsRequestRecipients,\r\n' +
+    '    clearCoordsRequestRecipients,\r\n' +
+    '    armPostEventFeedbackRecipients,\r\n' +
+    '    getPendingPostEventFeedbackRequest,\r\n' +
+    '    cancelPostEventFeedbackRequest,\r\n' +
+    '    getPostEventFeedbackReviews,\r\n' +
+    '    getPostEventFeedbackStats,\r\n' +
+    '    savePostEventFeedbackReview,\r\n' +
+    '    getQrCodeSettings,\r\n' +
+    '    updateQrCodeSettings,\r\n' +
+    '    getMaintenanceState,\r\n' +
+    '    setMaintenanceState,\r\n' +
+    '    getManualUpcomingEvents,\r\n' +
+    '    getManualEventsBySourceUrl,\r\n' +
+    '    ignoreManualEventsBySourceUrl,\r\n' +
+    '    getAllUpcomingEventRecordsForDedupe,\r\n' +
+    '    getQticketsUpcomingEvents,\r\n' +
+    '    replaceAllPartyMetadata,\r\n' +
+    '    getAllPartyMetadata,\r\n' +
+    '    getOrCreatePlatformIdentity,\r\n' +
+    '    getMostActiveStoredGroupPeer,\r\n' +
+    '    getBestStoredGroupPeerForHistoryRebind,\r\n' +
+    '    getPeerHistoryMigration,\r\n' +
+    '    migrateStoredGroupHistory,\r\n' +
+    '    resetAllRateLimits,\r\n' +
+    '    replaceAiRuntimeModes,\r\n' +
+    '    getAiRuntimeModes,\r\n' +
+    '    getAiRuntimeModePolicy,\r\n' +
+    '    replaceAiHealthRegistry,\r\n' +
+    '    getAiKeyHealthRows,\r\n' +
+    '    getAiModelHealthRows,\r\n' +
+    '    getAiModelHealthStatus,\r\n' +
+    '    getQualifiedDiscoveredAiModels,\r\n' +
+    '    getVoiceTranscriptCache,\r\n' +
+    '    saveVoiceTranscriptCache,\r\n' +
+    '    backfillCleanLegacyPosterBindingsV18868,\r\n' +
+    '    getStartupPosterRepairGroupsV18877,\r\n' +
+    '    getAllStoredSourceImageAuditGroupsV188100,\r\n' +
+    '    saveStartupPosterRepairVisionFactsV18877,\r\n' +
+    '    reconcileStoredEventPosterFromMetadataV18892,\r\n' +
+    '    saveManualPosterMetadataV18892,\r\n' +
+    '    getStoredPosterReviewEventsV18893,\r\n' +
+    '    setStoredEventPosterChoiceV18893,\r\n' +
+    '    setStoredEventPosterReviewDeclinedV188100,\r\n' +
+    '    replaceStoredImagePathEverywhereV18893,\r\n' +
+    '    isStartupPosterRepairV18877Complete,\r\n' +
+    '    markStartupPosterRepairV18877Complete,\r\n' +
+    '    isStartupMediaRepairV18883Complete,\r\n' +
+    '    markStartupMediaRepairV18883Complete,\r\n' +
+    '    repairQticketsSinglePosterV18885,\r\n' +
+    '    RUNTIME_DATA_DIRECTORY,\r\n' +
+    "} from '../infrastructure/database/index.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    PERSONALIZATION_STATE_DB_PATH,\r\n' +
+    '    getStyleBatchState,\r\n' +
+    '    saveStyleBatchState,\r\n' +
+    '    getCommunicationStyleExamples,\r\n' +
+    '    saveCommunicationStyleExamples,\r\n' +
+    '    getDossierCommandState,\r\n' +
+    '    saveDossierCommandState,\r\n' +
+    '    getDossierSourceStates,\r\n' +
+    '    saveDossierSourceState,\r\n' +
+    '    get'... 2212194 more characters
+  
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/events/eventProposalVkRawBootstrapV18811.test.mjs:112:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "import { resolveVkOriginalPosts, selectDeepestCapturedVkWall } from '../features/events/vkOriginalPost.js';\r\nimport { explainEventAiAdmission } from '../features/events/eventAiAdmission.js';\r\n/**\r\n * Главный оркестратор: связывает VK, Telegram, GPT, базу, события и фоновые задачи. Здесь должны оставаться только сценарии верхнего уровня; чистую логику выносим в features/shared.\r\n */\r\nimport {\r\n    copyFileSync,\r\n    createReadStream,\r\n    existsSync,\r\n    mkdirSync,\r\n    openSync,\r\n    closeSync,\r\n    fsyncSync,\r\n    openAsBlob,\r\n    readFileSync,\r\n    readdirSync,\r\n    renameSync,\r\n    statSync,\r\n    unlinkSync,\r\n    writeFileSync,\r\n} from 'node:fs';\r\nimport { mkdir as mkdirAsync, open as openAsync, rename as renameAsync, unlink as unlinkAsync } from 'node:fs/promises';\r\nimport { Agent } from 'node:https';\r\nimport { Buffer } from 'node:buffer';\r\nimport { AsyncLocalStorage } from 'node:async_hooks';\r\nimport { createDateFreeParserPolicy, createParserAttemptPacer, formatDateFreePhaseReport } from '../features/ai/dateFreeParserPolicy.js';\r\nimport { buildDateFreePhasePlan, serializeDateFreePhasePlan, restoreDateFreePhasePlan } from '../features/scrapers/parserPhasePlan.js';\r\nconst dateFreeParserContext = new AsyncLocalStorage();\r\n// Separate from the date-free policy: phase one keeps its normal model ladder\r\n// while this context only spaces request starts for explicit turbo modes.\r\nconst parserPacingContext = new AsyncLocalStorage();\r\nfunction parserTurboPacer(mode = '') {\r\n    return createParserAttemptPacer({ mode: String(mode || '').toLowerCase() || 'default' });\r\n}\r\nconst parserAttemptPacer = parserTurboPacer();\r\nasync function paceParserRequest(capability, options = {}) {\r\n    if (options?.dateFreePolicyAttempt || dateFreeParserContext.getStore()) return;\r\n    if (!/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) return;\r\n    const state = parserPacingContext.getStore();\r\n    if (typeof state?.beforeAttempt === 'function') await state.beforeAttempt(capability);\r\n}\r\nimport {\r\n    DEFAULT_OPERATION_TIMEOUT_MS,\r\n    auditRuntimeEvent,\r\n    getCurrentOperation,\r\n    getCurrentOperationSignal,\r\n    getOperation,\r\n    installGlobalRuntimeAuditHandlers,\r\n    listActiveOperations,\r\n    registerOperationStopHandler,\r\n    requestOperationStop,\r\n    requestStopWhere,\r\n    runSupervisedOperation,\r\n    reconcileInterruptedOperationCheckpoints,\r\n    saveOperationCheckpoint as persistOperationCheckpoint,\r\n    updateOperationProgress,\r\n} from '../runtime/operationSupervisor.js';\r\nimport { basename, dirname, extname, resolve, sep } from 'node:path';\r\nimport { loadLatestParserAllRecovery, mergeParserAllCheckpoint, parserRecoveryCheckpointInputs, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand, claimParserAllRecovery, getParserPosterGateImage } from '../features/scrapers/parserAllRecovery.js';\r\nimport { loadLatestParserAllRecoveryAsync } from '../features/scrapers/parserRecoveryAsync.js';\r\nimport { BOT_PATCH_VERSION } from '../shared/buildVersion.js';\r\nimport { eventPosterRevisionEvidence } from '../features/events/eventSourceRevisionEvidence.js';\r\nimport { createProjectAuditStreamJournal } from '../features/audit/projectAuditStreamJournal.js';\r\nimport { createAiResponseTrace } from '../features/audit/aiResponseTrace.js';\r\nimport { appendPosterDeliveryForensic } from '../features/scrapers/parserPosterForensics.js';\r\nimport { recoverTextResponseJobs, saveTextJobRecipient, markTextJobDelivered } from '../features/audit/astraTextResponseRecovery.js';\r\nimport { appendTelegramTextTransferLog } from '../features/audit/telegramTextTransferLog.js';\r\nimport { splitTelegramLongReply } from '../platforms/telegram/telegramLongReply.js';\r\nimport { parseCfProbeCommand, handleCfProbeCommand } from '../features/diagnostics/cloudflareProbe.js';\r\nimport { beginTelegramTextJob, getActiveTelegramTextJob, observeTelegramTextJob, finishTelegramTextJob,\r\n    resolveTelegramTextJobId, readTelegramTextJobLog, telegramTextJobStatus,\r\n    saveTelegramTextJobInput, loadTelegramTextJobInput, getTelegramTextJobDeliveryState,\r\n    markTelegramTextJobDelivery } from '../features/audit/telegramTextJobControl.js';\r\nimport { auditStageInputHash, createAuditStageJournal } from '../features/audit/projectAuditStageJournal.js';\r\nimport {\r\n    getRouterFileVariant,\r\n    loadRouterFileProbeCache,\r\n    saveRouterFileProbeCache,\r\n    buildRouterFileUploadRequest,\r\n    probeRouterFileUploads,\r\n    probeRouterInputFileOnce,\r\n} from '../features/ai/routerFileProbe.js';\r\nimport { createHash, randomInt, randomUUID } from 'node:crypto';\r\nimport { assertTrustedModelImageUrl } from './imageDownloadPolicy.js';\r\nimport { VK } from 'vk-io';\r\nimport { GigaChat, detectImage } from 'gigachat';\r\n\r\nimport {\r\n    getAllMessages,\r\n    getAllStoredMessages,\r\n    getStoredGroupPeerIds,\r\n    searchStoredMessagesByText,\r\n    getChatStats,\r\n    getDossierFacts,\r\n    getMessagesByCount,\r\n    getMessagesSince,\r\n    getMessagesBetween,\r\n    getParticipantMessagesBetween,\r\n    getParticipantPairsBetween,\r\n    getParticipantStyle,\r\n    getCommunicationSettings,\r\n    getCommunicationBanterState,\r\n    getAutoSummarySettings,\r\n    saveAutoSummarySettings,\r\n    getDueAutoSummarySettings,\r\n    getEnabledAutoSummarySettings,\r\n    getAllAutoSummarySettings,\r\n    getAutoSummaryStateDatabasePath,\r\n    getAutoSummaryStateMeta,\r\n    saveAutoSummaryStateMeta,\r\n    getAutoSummaryRun,\r\n    saveAutoSummaryRun,\r\n    getAutoSummaryHealth,\r\n    saveAutoSummaryHealth,\r\n    getDueCommunicationSettings,\r\n    getRecentCommunicationParticipants,\r\n    getRecentInteractions,\r\n    getRecentParticipantMessages,\r\n    getExplicitMemories,\r\n    getExplicitMemorySourceKeys,\r\n    deactivateExplicitMemories,\r\n    replaceDossierFacts,\r\n    saveIncomingMessage,\r\n    saveChatMembershipEvent,\r\n    getChatLeavers,\r\n    getChatExitEvents,\r\n    getChatLeaverAutoSettings,\r\n    saveChatLeaverAutoSettings,\r\n    getDueChatLeaverAutoSettings,\r\n    getEnabledChatLeaverAutoSettings,\r\n    getVkCachedUserNames,\r\n    getVkUserNamesAt,\r\n    getTelegramPostMeta,\r\n    getVkPostMeta,\r\n    saveVkUserNames,\r\n    saveVkMessageArchiveRecord,\r\n    getVkMessageArchiveStats,\r\n    getVkMessageArchiveMessages,\r\n    getVkServiceEventSummary,\r\n    getVkServiceEvents,\r\n    getVkMessageArchiveUserMessages,\r\n    getVkMessageArchiveParticipantIds,\r\n    recordBotRequestEvent,\r\n    getBotRequestStats,\r\n    saveInteraction,\r\n    saveExplicitMemory,\r\n    saveCommunicationSettings,\r\n    saveCommunicationBanterState,\r\n    saveManualEvent,\r\n    createEventProposal,\r\n    createEventProposalOnce,\r\n    getEventProposal,\r\n    getLatestPendingEventProposal,\r\n    getPendingEventProposals,\r\n    updatePendingEventProposal,\r\n    getDueEventProposals,\r\n    resolveEventProposal,\r\n    setParticipantStyle,\r\n    touchCommunicationParticipant,\r\n    updateCommunicationOutburstSchedule,\r\n    updateActiveCommunicationState,\r\n    clearCommunicationBanterState,\r\n    clearCommunicationBanterStatesForPeer,\r\n    auditInvalidEventRecords,\r\n    replaceEventDedupeRegistry,\r\n    getEventDedupeRegistryStats,\r\n    getEventDedupeDuplicateRefs,\r\n    updateStoredEventRecordFromReparse,\r\n    updateStoredEventSemanticFieldsByOwner,\r\n    consumeUserRateLimit,\r\n    refundUserRateLimit,\r\n    consumeGptModelDailyRateLimit,\r\n    refundGptModelDailyRateLimit,\r\n    consumeDmAiNotice,\r\n    getPermanentEventBlocks,\r\n    permanentlyDeleteStoredEvent,\r\n    permanentlyDeleteStoredEventByIdentity,\r\n    restorePermanentEventBlocks,\r\n    softDeleteMatchingStoredEvents,\r\n    softDeleteStoredEventByIdentity,\r\n    cleanupDisabledCommunicationAutonomy,\r\n    disableLegacyCommunicationOutburstAutomation,\r\n    getDmPartyFaqAnswers,\r\n    getCoordsOverrideSettings,\r\n    saveCoordsOverrideMessage,\r\n    setCoordsOverrideEnabled,\r\n    deleteCoordsOverrideMessage,\r\n    recordCoordsRequestRecipient,\r\n    getCoordsRequestRecipients,\r\n    clearCoordsRequestRecipients,\r\n    armPostEventFeedbackRecipients,\r\n    getPendingPostEventFeedbackRequest,\r\n    cancelPostEventFeedbackRequest,\r\n    getPostEventFeedbackReviews,\r\n    getPostEventFeedbackStats,\r\n    savePostEventFeedbackReview,\r\n    getQrCodeSettings,\r\n    updateQrCodeSettings,\r\n    getMaintenanceState,\r\n    setMaintenanceState,\r\n    getManualUpcomingEvents,\r\n    getManualEventsBySourceUrl,\r\n    ignoreManualEventsBySourceUrl,\r\n    getAllUpcomingEventRecordsForDedupe,\r\n    getQticketsUpcomingEvents,\r\n    replaceAllPartyMetadata,\r\n    getAllPartyMetadata,\r\n    getOrCreatePlatformIdentity,\r\n    getMostActiveStoredGroupPeer,\r\n    getBestStoredGroupPeerForHistoryRebind,\r\n    getPeerHistoryMigration,\r\n    migrateStoredGroupHistory,\r\n    resetAllRateLimits,\r\n    replaceAiRuntimeModes,\r\n    getAiRuntimeModes,\r\n    getAiRuntimeModePolicy,\r\n    replaceAiHealthRegistry,\r\n    getAiKeyHealthRows,\r\n    getAiModelHealthRows,\r\n    getAiModelHealthStatus,\r\n    getQualifiedDiscoveredAiModels,\r\n    getVoiceTranscriptCache,\r\n    saveVoiceTranscriptCache,\r\n    backfillCleanLegacyPosterBindingsV18868,\r\n    getStartupPosterRepairGroupsV18877,\r\n    getAllStoredSourceImageAuditGroupsV188100,\r\n    saveStartupPosterRepairVisionFactsV18877,\r\n    reconcileStoredEventPosterFromMetadataV18892,\r\n    saveManualPosterMetadataV18892,\r\n    getStoredPosterReviewEventsV18893,\r\n    setStoredEventPosterChoiceV18893,\r\n    setStoredEventPosterReviewDeclinedV188100,\r\n    replaceStoredImagePathEverywhereV18893,\r\n    isStartupPosterRepairV18877Complete,\r\n    markStartupPosterRepairV18877Complete,\r\n    isStartupMediaRepairV18883Complete,\r\n    markStartupMediaRepairV18883Complete,\r\n    repairQticketsSinglePosterV18885,\r\n    RUNTIME_DATA_DIRECTORY,\r\n} from '../infrastructure/database/index.js';\r\n\r\nimport {\r\n    PERSONALIZATION_STATE_DB_PATH,\r\n    getStyleBatchState,\r\n    saveStyleBatchState,\r\n    getCommunicationStyleExamples,\r\n    saveCommunicationStyleExamples,\r\n    getDossierCommandState,\r\n    saveDossierCommandState,\r\n    getDossierSourceStates,\r\n    saveDossierSourceState,\r\n    get"... 2212194 more characters,
+    expected: /maxCandidates:\s*2/u,
+    operator: 'match',
+    diff: 'simple'
+  }

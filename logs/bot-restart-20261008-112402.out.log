@@ -1,0 +1,1190 @@
+[DB PREFLIGHT] healthy backup current=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-08T02-40-40-403Z.sqlite
+[DB HEALTHY BACKUP SCHEDULER] intervalHours=6 retained=15
+[LIVE MESSAGE JOURNAL REPLAY] parsed=87 replayed=87 invalid=0
+[VK MESSAGE ARCHIVE JOURNAL REPLAY] parsed=87 replayed=87 invalid=0
+[PROJECT AUDIT CONFIG] mode=multipass inputMode=text transport=stream concurrency=1
+[BOT BUILD] V188.146
+[BOT PATCH] V188.146
+[STRICT EVENT AUDIT NON-DESTRUCTIVE] telegram=0 vk=0 vkChat=0 manual=0 orphanSources=36
+Проверяю необязательное подключение к GigaChat…
+[EVENT DEDUPE PERSISTENT FAST REBUILD] reason=startup-v147-db-repair raw=65 canonical=65 groups=0 duplicates=0
+Имя бота: гигорейв
+ID основного VK-сообщества: 233007447
+Часовой пояс: Europe/Moscow
+Сессия участника в каждой конфе: 2 часа.
+ЛС включены без обязательного обращения; содержимое ЛС не сохраняется и не логируется.
+Запускаю VK Long Poll: 1 сообществ(а)…
+[VK LONG POLL STARTED] role=primary groupId=233007447
+Бот запущен: оба VK-сообщества и настроенные дополнительные платформы активны.
+[BOT READY] historyRecoveryDelayedMs=5000 commands=available-now
+[LEGACY EVENT STARTUP REPAIRS] disabled=v18892 mode=explicit-owner-command-only
+[SCRAPER MODE] Основной пул: новые раз в 3 дня, в пятницу после 2 дней. Второстепенный: раз в неделю и в пятницу. Только ночью 02:00–06:00 без пересечения операций. timeZone=Europe/Moscow nextSecondaryAutoAt=1791594000 manualFull=«тусы быдлячьи парсер все» manualClean=«тусы быдлячьи парсер все чисто»
+[PERSONALIZATION V187] database=C:\Users\Adm\AppData\Local\Gigorave\state\personalization-v187.sqlite dossier=command-only styleBatch=500 startupBackfill=disabled
+[SUMMARY V188 CACHE] database=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite contextTokens=128000 rawInputBudget~=24000 pruned=0
+[HIERARCHY V188] database=C:\Users\Adm\AppData\Local\Gigorave\state\hierarchical-summary-v188.sqlite peers=2000000001,2000000004,2000000006,8138353801,8138961901,8141076491,8196547900,8196547901,8196547902,8196547903,8202627500,8202627501,8202627502,8202627503,8223773400,8223773401,8223773402,8223773403,2000000022 daily=23:59-local+tail-22:30-23:59 weekly=Sunday-24:00/Monday-00:00-local monthly=last-day-20:00-local slices=03:00,09:00,12:00,15:00,18:00,21:00,22:30,23:59 pipeline=raw-once>intraday-batch>daily>week-segment>month rawLeafBudget~=32000 late=immutable-delta auto=default-on
+[AUTO SUMMARY LEGACY SCHEDULER DISABLED] calendar rollup owns scheduled summaries; set LEGACY_AUTO_SUMMARY_SCHEDULER_ENABLED=1 only for rollback compatibility
+[CHAT LEAVERS AUTO STATE] enabled=1 repaired=0
+[COMMUNICATION STATE RESTORED FROM SQLITE] restart-safe=true legacyOutburstsCleared=0 legacyBanterCleared=0
+[TELEGRAM CONNECT ATTEMPT] reason=startup attempt=1/3
+GPT router подключён. Текстовые GPT-модели: grok-4.6, gpt-6-sol, grok-4.5, gpt-5.6-terra, gpt-5.6-luna, gpt-6-astra, gpt-6-luna, gpt-5.5, gpt-6.1-sol, grok-4.7, gpt-5.6-sol
+GPT image-модели: gpt-image-2, gpt-image-2.5, gpt-image-2.5-sunburst, gpt-image-2.5-flare
+[VK LONG POLL ACTIVE] role=primary groupId=233007447
+[TELEGRAM BOT STARTED] id=8965960830 username=@Gigorave_bot offset=813863127
+[TELEGRAM CONNECTED] reason=startup username=@Gigorave_bot
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-08T02-40-40-403Z.sqlite rows=124257 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-07T20-40-40-391Z.sqlite rows=124230 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-07T14-40-39-116Z.sqlite rows=123545 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-07T08-40-39-103Z.sqlite rows=123019 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-07T02-40-39-095Z.sqlite rows=122595 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-06T20-40-39-083Z.sqlite rows=122324 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-06T14-40-39-073Z.sqlite rows=120533 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-06T08-40-39-067Z.sqlite rows=118761 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-06T02-05-35-357Z.sqlite rows=118436 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-05T20-05-35-347Z.sqlite rows=118109 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-05T14-05-35-334Z.sqlite rows=116390 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-05T08-05-35-320Z.sqlite rows=115228 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-05T02-05-35-310Z.sqlite rows=113736 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-04T13-24-15-914Z.sqlite rows=112556 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-04T07-24-15-900Z.sqlite rows=112063 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-shared-multi-image-repair-20260929-161322.sqlite rows=96203 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-no-poster-delete-20260925.sqlite rows=91933 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-no-poster-purge-2026-09-25T08-43-31-878Z.sqlite rows=91933 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-no-poster-purge-2026-09-25T08-44-45-833Z.sqlite rows=91933 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-configured-registry-20260924-135409.sqlite rows=88476 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-dedupe-apply-2026-09-24.sqlite rows=87534 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-mono-image-restore-2026-09-24.sqlite rows=87523 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-targeted-audit-2026-09-24.sqlite rows=87467 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-pre-poster-repair-2026-09-23T124500.sqlite rows=85496 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-pre-poster-repair-2026-09-23.sqlite rows=85392 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\bot_debug_copy.sqlite rows=60585 target=2000000006
+[VK HISTORY LOCAL SQLITE READ COPY] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T12-11-57-845Z\readable-salvage.sqlite copy=C:\Users\Adm\AppData\Local\Temp\gigorave-history-snapshot-tmzIox\readable-salvage.sqlite
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T12-11-57-845Z\readable-salvage.sqlite rows=25066 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T12-11-57-845Z\bot.sqlite rows=52530 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-v170-20260907-000244\bot.sqlite rows=21 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\db-manual\bot — копия.sqlite rows=748 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\bot-before-history-link-1787835274725.sqlite rows=9022 target=2000000006
+[VK HISTORY LOCAL SQLITE DONE] peer=2000000006 files=36 readable=31 rows=2827644 checkpointRows=124334 coverageMaxCmid=210111 coverageRows=124334 checkpoint=v2
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791361836 max=3500 reason=startup
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130288-130387
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=0 existing=90 cmid=130288-130387
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130188-130287
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130088-130187
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129988-130087
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129888-129987
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129788-129887
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129688-129787
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129588-129687
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129488-129587
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129388-129487
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=129443 type=left member=353708724 actor=353708724
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=988 new=0 existing=957 cmid=129388-129487
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129288-129387
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129188-129287
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129088-129187
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=128988-129087
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1387 new=0 existing=1337 cmid=128988-129087
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1387 new=0 existing=1337 cutoff=1791361836 limit=3500
+[DB HEALTHY BACKUP] created=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-08T08-41-40-223Z.sqlite retained=15 intervalHours=6
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Мем вышел из под контроля"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=144/150 target=128
+Telegram подключён: @Gigorave_bot
+[TEXT RECOVERY STARTUP] method=GET-only legacyJobId=d0e42598-b6f5-4c34-8e8b-c7e51877b144
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Чет какой то ленивый день , хочется ножки на руль закинуть, лечь на рюкзак и на солнышке греться попивая энергосик"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=145/150 target=128
+[VK MESSAGE] peerId=2000000006 senderId=456319058 isChat=true text="А ты курой катаешься??"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=146/150 target=128
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791363252 max=3500 reason=periodic
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ну со складов ушел как бить по ним начали, пока да)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=147/150 target=128
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130295-130394
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=3 existing=88 cmid=130295-130394
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130195-130294
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130095-130194
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129995-130094
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129895-129994
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129795-129894
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129695-129794
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129595-129694
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129495-129594
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129395-129494
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=129443 type=left member=353708724 actor=353708724
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=988 new=3 existing=954 cmid=129395-129494
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129295-129394
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129195-129294
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129095-129194
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=128995-129094
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1387 new=3 existing=1292 cmid=128995-129094
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1387 new=3 existing=1292 cutoff=1791363252 limit=3500
+[SUMMARY V188 PLAN] messages=59 batches=1 batchMaxMessages=3000 inputTokenBudget~=32000 context=128000 ratio=0.9 cache=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite
+[AI RUNTIME TRANSPORT] requestId=muzb3by3-80dfe56b model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Любимый муж"
+[VK MESSAGE] peerId=2000000006 senderId=456319058 isChat=true text="Ебать того рот"
+[VK MESSAGE] peerId=2000000006 senderId=456319058 isChat=true text="Что с ней"
+[VK MESSAGE] peerId=2000000006 senderId=751671150 isChat=true text="Сильно."
+[VK MESSAGE] peerId=2000000006 senderId=456319058 isChat=true text="Ты гвазданул?"
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Ахахахах ну там прикол"
+[VK MESSAGE] peerId=2000000006 senderId=456319058 isChat=true text="Надо под второй глаз уебать для симметрии"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Защищала Солода от хулиганов"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=148/150 target=128
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=149/150 target=128
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=0/150 target=137
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=1/150 target=137
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=2/150 target=137
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=3/150 target=137
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=4/150 target=137
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=5/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=456319058 isChat=true text="Интересно а если к власовой сзади подбежать и с размаху от самой пятки ниждануть, покатится кубарем или просто как мешок цемента упадет"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=6/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Хулиганы кстати имели место быть"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=7/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Да там мы дураки власову с тележки перевернули"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=8/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Ну и она там тоже решила ебальником тормозить а не руками"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=9/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ты ногу сломаешь скорее всешо"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=10/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А потом на тебя еще сядут сверху, но приятного мало"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=11/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Или засосёт внутрь"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=12/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Машина припаркована"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=13/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text="Вы что, на почте работаете?🤣"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=14/150 target=137
+[SUMMARY V188 PLAN] messages=59 batches=1 batchMaxMessages=3000 inputTokenBudget~=32000 context=128000 ratio=0.9 cache=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite
+[AI RUNTIME TRANSPORT] requestId=muzbel9n-4a9883c5 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh
+[VK MESSAGE] peerId=2000000006 senderId=187252679 isChat=true text="Они не работают, они пьют"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=15/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Сень в поликлинике был утром, оказывается трещина в пальце была, отправили в больничку в день оригами (((((((((("
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=16/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Надеюсь успею на нмх"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=17/150 target=137
+[SCRAPER COMMAND ABSOLUTE FASTPATH] platform=telegram
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=2402 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=2402 messageId=12347 sent=-
+[EVENT VERIFIED SNAPSHOT MARKED STALE] reason=parser-all-start-v18836
+[PARSER ALL SOURCES CONFIGURED] count=25 expected=25 ids=tg:xlam_bar,tg:onibarvrn,tg:vinzavodproo,tg:arena_hall_vrn,tg:pintahausvrn,tg:auraclubvrn,tg:poneslosbar_vrn,tg:barak_omama,tg:cenzurabar,tg:naryadnyrest,tg:kommunavrn,vk:12bpg,vk:xlambar,vk:onibar,vk:vinzavodpro,vk:rest1900,vk:arena_voronez,vk:balagan.city,vk:pinta_haus,vk:literabar,vk:poneslosbar_vrn,vk:barakomama,vk:zhivoikontakt_vrn,vk:naryadny.rest,vk:koptilnyarest
+[PARSER ALL SOURCE OPEN START] source=tg:xlam_bar index=1/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=1 reason=manual-source:tg:xlam_bar
+[PARSER ALL SOURCE OPEN START] source=tg:onibarvrn index=2/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=2 reason=manual-source:tg:onibarvrn
+[PARSER ALL SOURCE OPEN START] source=tg:vinzavodproo index=3/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=3 reason=manual-source:tg:vinzavodproo
+[PARSER ALL SOURCE OPEN START] source=tg:arena_hall_vrn index=4/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=4 reason=manual-source:tg:arena_hall_vrn
+[PARSER ALL SOURCE OPEN START] source=tg:pintahausvrn index=5/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=5 reason=manual-source:tg:pintahausvrn
+[PARSER ALL SOURCE OPEN START] source=tg:auraclubvrn index=6/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=6 reason=manual-source:tg:auraclubvrn
+[PARSER ALL SOURCE OPEN START] source=tg:poneslosbar_vrn index=7/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=7 reason=manual-source:tg:poneslosbar_vrn
+[PARSER ALL SOURCE OPEN START] source=tg:barak_omama index=8/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=8 reason=manual-source:tg:barak_omama
+[PARSER ALL SOURCE OPEN START] source=tg:cenzurabar index=9/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=9 reason=manual-source:tg:cenzurabar
+[PARSER ALL SOURCE OPEN START] source=tg:naryadnyrest index=10/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=10 reason=manual-source:tg:naryadnyrest
+[PARSER ALL SOURCE OPEN START] source=tg:kommunavrn index=11/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=11 reason=manual-source:tg:kommunavrn
+[PARSER ALL SOURCE OPEN START] source=vk:12bpg index=12/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=12 reason=manual-source:vk:12bpg
+[PARSER ALL SOURCE OPEN START] source=vk:xlambar index=13/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=13 reason=manual-source:vk:xlambar
+[PARSER ALL SOURCE OPEN START] source=vk:onibar index=14/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=14 reason=manual-source:vk:onibar
+[PARSER ALL SOURCE OPEN START] source=vk:vinzavodpro index=15/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=15 reason=manual-source:vk:vinzavodpro
+[PARSER ALL SOURCE OPEN START] source=vk:rest1900 index=16/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=16 reason=manual-source:vk:rest1900
+[PARSER ALL SOURCE OPEN START] source=vk:arena_voronez index=17/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=17 reason=manual-source:vk:arena_voronez
+[PARSER ALL SOURCE OPEN START] source=vk:balagan.city index=18/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=18 reason=manual-source:vk:balagan.city
+[PARSER ALL SOURCE OPEN START] source=vk:pinta_haus index=19/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=19 reason=manual-source:vk:pinta_haus
+[PARSER ALL SOURCE OPEN START] source=vk:literabar index=20/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=20 reason=manual-source:vk:literabar
+[PARSER ALL SOURCE OPEN START] source=vk:poneslosbar_vrn index=21/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=21 reason=manual-source:vk:poneslosbar_vrn
+[PARSER ALL SOURCE OPEN START] source=vk:barakomama index=22/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=22 reason=manual-source:vk:barakomama
+[PARSER ALL SOURCE OPEN START] source=vk:zhivoikontakt_vrn index=23/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=23 reason=manual-source:vk:zhivoikontakt_vrn
+[PARSER ALL SOURCE OPEN START] source=vk:naryadny.rest index=24/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=24 reason=manual-source:vk:naryadny.rest
+[PARSER ALL SOURCE OPEN START] source=vk:koptilnyarest index=25/25
+[SCRAPER BROWSER LEASE ACQUIRE] active=25 reason=manual-source:vk:koptilnyarest
+[SCRAPER COMMAND ABSOLUTE FASTPATH] platform=telegram
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=536 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=121 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=536 messageId=12349 sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=121 messageId=12350 sent=-
+[POSTER GATE CACHE REUSED] image=1 source=https://vk.ru/wall-170377932_2711
+[POSTER GATE CACHE REUSED] image=1 source=https://vk.ru/wall-25597588_17111
+[TG HTML SCRAPER] channel=@xlam_bar mode=daily fetched=10 changed=0 events=0 lastMessageId=14162
+[TG HTML SCRAPER] channel=@onibarvrn mode=daily fetched=10 changed=0 events=0 lastMessageId=301
+[TG HTML SCRAPER] channel=@vinzavodproo mode=daily fetched=10 changed=0 events=0 lastMessageId=3315
+[TG HTML SCRAPER] channel=@arena_hall_vrn mode=daily fetched=10 changed=0 events=0 lastMessageId=8470
+[TG HTML SCRAPER] channel=@pintahausvrn mode=daily fetched=10 changed=0 events=0 lastMessageId=452
+[TG HTML SCRAPER] channel=@auraclubvrn mode=daily fetched=10 changed=0 events=0 lastMessageId=2428
+[TG HTML SCRAPER] channel=@poneslosbar_vrn mode=daily fetched=10 changed=0 events=0 lastMessageId=1300
+[TG HTML SCRAPER] channel=@barak_omama mode=daily fetched=10 changed=0 events=0 lastMessageId=246
+[TG HTML SCRAPER] channel=@cenzurabar mode=daily fetched=10 changed=0 events=0 lastMessageId=2451
+[TG HTML SCRAPER] channel=@naryadnyrest mode=daily fetched=10 changed=0 events=0 lastMessageId=461
+[TG HTML SCRAPER] channel=@kommunavrn mode=daily fetched=10 changed=0 events=0 lastMessageId=877
+[VK HTML SCRAPER] source=vk.ru/12bpg mode=daily fetched=10 changed=0 events=0 lastPostId=12697
+[VK HTML SCRAPER] source=vk.ru/xlambar mode=daily fetched=10 changed=0 events=0 lastPostId=16114
+[VK HTML SCRAPER] source=vk.ru/onibar mode=daily fetched=10 changed=0 events=0 lastPostId=6154
+[VK HTML SCRAPER] source=vk.ru/rest1900 mode=daily fetched=10 changed=0 events=0 lastPostId=888
+[VK HTML SCRAPER] source=vk.ru/arena_voronez mode=daily fetched=10 changed=0 events=0 lastPostId=76287
+[VK HTML SCRAPER] source=vk.ru/pinta_haus mode=daily fetched=10 changed=0 events=0 lastPostId=7790
+[VK HTML SCRAPER] source=vk.ru/literabar mode=daily fetched=10 changed=0 events=0 lastPostId=8799
+[VK HTML SCRAPER] source=vk.ru/poneslosbar_vrn mode=daily fetched=10 changed=0 events=0 lastPostId=23325
+[VK HTML SCRAPER] source=vk.ru/barakomama mode=initial fetched=10 changed=0 events=0 lastPostId=9514
+[VK HTML SCRAPER] source=vk.ru/zhivoikontakt_vrn mode=daily fetched=10 changed=0 events=0 lastPostId=4295
+[VK HTML SCRAPER] source=vk.ru/naryadny.rest mode=daily fetched=10 changed=0 events=0 lastPostId=226
+[VK HTML SCRAPER] source=vk.ru/koptilnyarest mode=daily fetched=10 changed=0 events=0 lastPostId=929
+[SCRAPER BROWSER LEASE RELEASE] active=24 reason=manual-source:tg:xlam_bar
+[SCRAPER BROWSER LEASE RELEASE] active=23 reason=manual-source:tg:onibarvrn
+[SCRAPER BROWSER LEASE RELEASE] active=22 reason=manual-source:tg:vinzavodproo
+[SCRAPER BROWSER LEASE RELEASE] active=21 reason=manual-source:tg:arena_hall_vrn
+[SCRAPER BROWSER LEASE RELEASE] active=20 reason=manual-source:tg:pintahausvrn
+[SCRAPER BROWSER LEASE RELEASE] active=19 reason=manual-source:tg:auraclubvrn
+[SCRAPER BROWSER LEASE RELEASE] active=18 reason=manual-source:tg:poneslosbar_vrn
+[SCRAPER BROWSER LEASE RELEASE] active=17 reason=manual-source:tg:barak_omama
+[SCRAPER BROWSER LEASE RELEASE] active=16 reason=manual-source:tg:cenzurabar
+[SCRAPER BROWSER LEASE RELEASE] active=15 reason=manual-source:tg:naryadnyrest
+[SCRAPER BROWSER LEASE RELEASE] active=14 reason=manual-source:tg:kommunavrn
+[SCRAPER BROWSER LEASE RELEASE] active=13 reason=manual-source:vk:12bpg
+[SCRAPER BROWSER LEASE RELEASE] active=12 reason=manual-source:vk:xlambar
+[SCRAPER BROWSER LEASE RELEASE] active=11 reason=manual-source:vk:onibar
+[SCRAPER BROWSER LEASE RELEASE] active=10 reason=manual-source:vk:rest1900
+[SCRAPER BROWSER LEASE RELEASE] active=9 reason=manual-source:vk:arena_voronez
+[SCRAPER BROWSER LEASE RELEASE] active=8 reason=manual-source:vk:pinta_haus
+[SCRAPER BROWSER LEASE RELEASE] active=7 reason=manual-source:vk:literabar
+[SCRAPER BROWSER LEASE RELEASE] active=6 reason=manual-source:vk:poneslosbar_vrn
+[SCRAPER BROWSER LEASE RELEASE] active=5 reason=manual-source:vk:barakomama
+[SCRAPER BROWSER LEASE RELEASE] active=4 reason=manual-source:vk:zhivoikontakt_vrn
+[SCRAPER BROWSER LEASE RELEASE] active=3 reason=manual-source:vk:naryadny.rest
+[SCRAPER BROWSER LEASE RELEASE] active=2 reason=manual-source:vk:koptilnyarest
+[PARSER ALL SOURCE FINISHED] source=tg:xlam_bar ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=tg:onibarvrn ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=tg:vinzavodproo ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=tg:arena_hall_vrn ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=tg:pintahausvrn ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=tg:auraclubvrn ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=tg:poneslosbar_vrn ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=tg:barak_omama ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=tg:cenzurabar ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=tg:naryadnyrest ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=tg:kommunavrn ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:12bpg ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:xlambar ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:onibar ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:rest1900 ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:arena_voronez ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:pinta_haus ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:literabar ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:poneslosbar_vrn ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:barakomama ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:zhivoikontakt_vrn ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:naryadny.rest ok=true timedOut=false
+[PARSER ALL SOURCE FINISHED] source=vk:koptilnyarest ok=true timedOut=false
+[EVENT PROVENANCE] source=vk:vinzavodpro/2711 origin=direct-wall url=https://vk.ru/wall-170377932_2711
+[EVENT PROVENANCE] source=vk:balagan.city/17111 origin=direct-wall url=https://vk.ru/wall-25597588_17111
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=1573 messageId=- sent=-
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=1573 messageId=12351 sent=-
+[SCRAPER OWNER STOP] generation=1 persistent browser context was closed outside scraper cleanup
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 7028,
+  completion_tokens: 1714,
+  total_tokens: 8742,
+  prompt_tokens_details: { cached_tokens: 6426 },
+  completion_tokens_details: { reasoning_tokens: 1325 }
+}
+[AI TOKEN USAGE] requestId=muzbo1jt-05eae56c operationId=muzbo1jt-05eae56c operation=event-parser:public-text provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-stream source=provider input=7028 output=1714 total=8742 cached=6426 reasoning=1325 estimatedText=0 durationMs=68968
+[AI TOKEN TOTAL] requestId=muzbo1jt-05eae56c operationId=muzbo1jt-05eae56c operation=event-parser:public-text provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=7028 output=1714 total=8742 cached=6426 reasoning=1325 estimatedText=0
+[EVENT POSTER MATCH] 2026-10-10 HANTU, BARNI, XWILL image=1 accepted:date+title-majority score=287
+[EVENT POSTER BINDING] event=vk_events:470 image=none rejected:no-safe-poster
+[EVENT PROVENANCE STORED] event=vk_events:470 origin=direct-wall url=https://vk.ru/wall-170377932_2711
+[VK HTML SCRAPER] source=vk.ru/vinzavodpro mode=daily fetched=10 changed=1 events=1 lastPostId=2711
+[SCRAPER BROWSER LEASE RELEASE] active=1 reason=manual-source:vk:vinzavodpro
+[PARSER ALL SOURCE FINISHED] source=vk:vinzavodpro ok=true timedOut=false
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="В школу не пойдем"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=18/150 target=137
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-5.6-terra capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-5.6-sol capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-6.1-sol capability=text reasoning_requested=low reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=419 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-failed part=1/1 chars=- messageId=- sent=0
+[VK MESSAGE] peerId=2000000006 senderId=187252679 isChat=true text="А в альтернативу ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=19/150 target=137
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-6.1-sol capability=text reasoning_requested=low reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791365052 max=3500 reason=periodic
+[SUMMARY V188 PLAN] messages=59 batches=1 batchMaxMessages=3000 inputTokenBudget~=32000 context=128000 ratio=0.9 cache=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite
+[AI RUNTIME TRANSPORT] requestId=muzbxvpp-226880b4 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-6.1-sol capability=text reasoning_requested=low reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130326-130425
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=4 existing=88 cmid=130326-130425
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130226-130325
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130126-130225
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130026-130125
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129926-130025
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129826-129925
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129726-129825
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129626-129725
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129526-129625
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129426-129525
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=129443 type=left member=353708724 actor=353708724
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=988 new=4 existing=953 cmid=129426-129525
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129326-129425
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129226-129325
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129126-129225
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129026-129125
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1387 new=4 existing=1292 cmid=129026-129125
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1387 new=4 existing=1292 cutoff=1791365052 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=751671150 isChat=true text="я ещё совсем малышка-мелюзга….\nна моих зубах железки, больно целовать"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=20/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="зая моя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=21/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=751671150 isChat=true text="Писят четыре кста."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=22/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=751671150 isChat=true text="Прям ща"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=23/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="54."
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=363 messageId=- sent=-
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="оч сильно писят читыри"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=24/150 target=137
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 7194,
+  completion_tokens: 936,
+  total_tokens: 8130,
+  prompt_tokens_details: {
+    cached_tokens: 6762,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 417
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=muzbxvpp-226880b4 operationId=muzbxvpp-226880b4 operation=calendar-batch-summary:leaf provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=7194 output=936 total=8130 cached=6762 reasoning=417 estimatedText=0 durationMs=81036
+[AI TOKEN TOTAL] requestId=muzbxvpp-226880b4 operationId=muzbxvpp-226880b4 operation=calendar-batch-summary:leaf provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=7194 output=936 total=8130 cached=6762 reasoning=417 estimatedText=0
+[SUMMARY CACHE STORE] stage=leaf inputs=59 key=75697f78b8e2
+[SUMMARY V188 LEAF] batch=1/1 messages=59 outputs=1
+[SUMMARY V188 COMPLETE] messages=59 gptCalls=1 cacheHits=0
+[CALENDAR BATCH STORE] peer=2000000006 slice=2026-10-08@12:00 revision=1 messages=59 rawHardLimitPerLeaf=3000
+[TELEGRAM LONG REPLY] part-failed part=1/1 chars=- messageId=- sent=0
+[CALENDAR SUMMARY MAINTENANCE] reason=maintenance peer=2000000006 batches=1 daily=0 weekly=0 monthly=0 aliases=0
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=25/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="честно"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=26/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="я бы драл."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=27/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="эрик?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=28/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Улица разбитых фонарей"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=29/150 target=137
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-6-astra capability=text reasoning_requested=low reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT ASTRA RESPONSES] requestId=muzbo1jt-05eae56c model=gpt-6-astra files=0 bytes=0 stream=true background=false generatedFileRelay=false transport=responses-astra-stream
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="[id90087925|@smoke_131]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=30/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Добавочка"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=31/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="Как жизнь, Лиечка милая?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=32/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="кукамака меня из друзей удалила"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=33/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="сука замолчи она моя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=34/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="Алиса твоя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=35/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="а Лия моя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=36/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Наша"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=37/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Алиса наша с Владом"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=38/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="и алиса и линочка и лиечка"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=39/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="и кукамака моя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=40/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="даааааа"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=41/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="общественное достояние"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=42/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ты то на святое не выебывайся"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=43/150 target=137
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-6-astra capability=text reasoning_requested=low reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT ASTRA RESPONSES] requestId=muzbo1jt-05eae56c model=gpt-6-astra files=0 bytes=0 stream=true background=false generatedFileRelay=false transport=responses-astra-stream
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="она меня из друзей удалили"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=44/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Общественная помойка \nТвоя комната"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=45/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А алиса новое чудо света"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=46/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="[id100053616|Кар]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=47/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="егор"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=48/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="трахал бы?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=49/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="У тя по-любому есть"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=50/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Не вынимая"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=51/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="Войска-камикадзе"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=52/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="И я в нее спустил"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=53/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="я бы сам себя ебал честно"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=54/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ТЫ ЧТО БЛЯДЬ?!"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=55/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="27"
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="кар керкир куркур"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=56/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Ну"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=57/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Куркума"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=58/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="СУКА ЗАТКНИСЬ МРАЗЬ СУКА ЗАТКНИСЬ ЗАТКНИСЬ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=59/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="54."
+[EVENT PROVENANCE] source=vk:balagan.city/17111 origin=direct-wall url=https://vk.ru/wall-25597588_17111
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="помянем"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=60/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Конь стул двадцать восемь"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=61/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="е54ть"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=62/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ща сладко колоться буду"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=63/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="КОМУ НИБУДЬ НУЖЕН ПИЗДОСТРАДАЛЕЦ ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=64/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="У меня мемы вроде классные"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=65/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Я куколд кста"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=66/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="мнееееее"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=67/150 target=137
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=363 messageId=- sent=-
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="пиши мне всегда егор"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=68/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text="Осеннее обострение у вас"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=69/150 target=137
+[TELEGRAM LONG REPLY] part-failed part=1/1 chars=- messageId=- sent=0
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="[id100053616|Кар] э хуй найди"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=70/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Меня из дома выгнали сле"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=71/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Где там Алиса Харченко"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=72/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Саша харченко ......"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=73/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Легенда"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=74/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="113"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ток улицу не помню"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=75/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="блять тоже забыл…"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=76/150 target=137
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-5.6-terra capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="бс20б."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=77/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Хользунова 113"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=78/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Закрыт"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=79/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="точно"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=80/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="хз113"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=81/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Никто не вернёт МП197"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=82/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Со всеми рофлами"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=83/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="проспект труда 20"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=84/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=90087925 isChat=true text="."
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Как мы на лаваше судили человека....."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=85/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="будьте здоровы"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=86/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="[id751671150|@nmphleah] бейби будешь моей любовью?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=87/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="я тебе подарю все о чем ты мечтала"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=88/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="любовь и себя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=89/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="поему у меня эту дуру не отмесает?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=90/150 target=137
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-5.6-sol capability=text reasoning_requested=none reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="я убью тебя сука"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=91/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="СУКА БОЯТЬ БЛЯДЬ СУКА УБЕОК"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=92/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="НЕНАВИЖУ СУКУ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=93/150 target=137
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=363 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-failed part=1/1 chars=- messageId=- sent=0
+[VK MESSAGE] peerId=2000000006 senderId=13991776 isChat=true text=""
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-6.1-sol capability=text reasoning_requested=low reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=494464822 isChat=true text=""
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-6.1-sol capability=text reasoning_requested=low reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=363 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-failed part=1/1 chars=- messageId=- sent=0
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-6.1-sol capability=text reasoning_requested=low reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ДУРА ЗАКРОЙ ПИЗДУ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=94/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ГАНТЕЛЯ СОВСЕМ СКОРО НАГРЯНЕТ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=95/150 target=137
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-6-astra capability=text reasoning_requested=low reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT ASTRA RESPONSES] requestId=muzbo1jt-05eae56c model=gpt-6-astra files=0 bytes=0 stream=true background=false generatedFileRelay=false transport=responses-astra-stream
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=363 messageId=- sent=-
+[AI RUNTIME TRANSPORT] requestId=muzbo1jt-05eae56c model=gpt-6-astra capability=text reasoning_requested=low reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT ASTRA RESPONSES] requestId=muzbo1jt-05eae56c model=gpt-6-astra files=0 bytes=0 stream=true background=false generatedFileRelay=false transport=responses-astra-stream
+[TELEGRAM LONG REPLY] part-failed part=1/1 chars=- messageId=- sent=0
+[VK HTML SCRAPER] source=vk.ru/balagan.city mode=daily fetched=10 changed=2 events=0 lastPostId=17111
+[SCRAPER BROWSER LEASE RELEASE] active=0 reason=manual-source:vk:balagan.city
+[PARSER ALL SOURCE FINISHED] source=vk:balagan.city ok=false timedOut=false
+[SCRAPER BLANK TAB CLEANUP] closed=1 activeLeases=0 reason=post-capture-processing
+[SCRAPER BROWSER IDLE CLOSE] idleMs=1500 no active scraper lease or meaningful source page remains
+[TELEGRAM LONG REPLY] part-start part=1/2 chars=3437 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-failed part=1/2 chars=- messageId=- sent=0
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=134 messageId=- sent=-
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Вадима..."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=96/150 target=137
+[TELEGRAM LONG REPLY] part-failed part=1/1 chars=- messageId=- sent=0
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=120 messageId=- sent=-
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="[id5478448|@vip36]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=97/150 target=137
+[TELEGRAM LONG REPLY] part-failed part=1/1 chars=- messageId=- sent=0
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Мож у тя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=98/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Я давно эту фотку с улицей разбитых фонарей не видел"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=99/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Вот туда власову над"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=100/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text="Вы там что, каждый день пьете и сходите с ума?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=101/150 target=137
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791366852 max=3500 reason=periodic
+[VK MESSAGE] peerId=2000000006 senderId=482257781 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=102/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Да"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Но я ЗОЖ"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="До 10 числа"
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text="Мы тоже"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=103/150 target=137
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=104/150 target=137
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=105/150 target=137
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=106/150 target=137
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130430-130529
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=130527 type=joined member=629632872 actor=16296974
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=9 existing=90 cmid=130430-130529
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130330-130429
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130230-130329
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130130-130229
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130030-130129
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129930-130029
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129830-129929
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129730-129829
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129630-129729
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129530-129629
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=992 new=13 existing=948 cmid=129530-129629
+[STYLE PERSONALIZATION SEED] peerId=2000000006 userId=629632872 cursor=1791453338:130536 gpt=0
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129430-129529
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=129443 type=left member=353708724 actor=353708724
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129330-129429
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129230-129329
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129130-129229
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1387 new=13 existing=1300 cmid=129130-129229
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1387 new=13 existing=1300 cutoff=1791366852 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Тяжёлые нркт"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=107/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=494464822 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="я тебя щас сковородкой отпизжу"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=108/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="Охуеть я 70 кг вешу оказывается"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=109/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="Щас в ветеринарке взвесился"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=110/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=111/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Почти как власова"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=112/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="Я весил 57-60"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=113/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text="60 в военкомате был"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=114/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Я б тя порвал в постели"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=115/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="кого"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=116/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="тимасина?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=117/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text="Меня"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=118/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="сделай видеоотчет"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=119/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="Ды я столько же весил чувак"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=120/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ЕБАЛО РАЗБИЛИ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=121/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="До корейца..."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=122/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="асфальт"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=123/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="А ГДЕ ИРА МОТОР?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=124/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Скок надо габы на собаку 70 кг"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=125/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Мы с ней не общаемся"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=126/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Плохо себя повела"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=127/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Под солью щасб"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=128/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="под героином"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=129/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Ща уколоть"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=130/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Слабо"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=131/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Лучше под 🧂🤙🤙🤙🤙"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=132/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Аня а у тебя есть парень?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=133/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Вашей маме зять не нужен?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=134/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text="Меф"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=135/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text="А что"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=136/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="0.3 в баян?"
+[AI RUNTIME TRANSPORT] requestId=d47c40b9-e947-4de6-99fe-115dc20d9ee0 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Да вот Аню хочу поближе узнать"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=138/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А как не ближе чем под веществами"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=139/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text="По кубу"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=140/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Слабо"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=141/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="[id405204381|@neanyaya]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=142/150 target=137
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6839,
+  completion_tokens: 373,
+  total_tokens: 7212,
+  prompt_tokens_details: {
+    cached_tokens: 6240,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 351
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=d47c40b9-e947-4de6-99fe-115dc20d9ee0 operationId=muzdg9x7-453af4b1 operation=active-communication provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=6839 output=373 total=7212 cached=6240 reasoning=351 estimatedText=0 durationMs=56529
+[AI TOKEN TOTAL] requestId=d47c40b9-e947-4de6-99fe-115dc20d9ee0 operationId=muzdg9x7-453af4b1 operation=active-communication provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=6839 output=373 total=7212 cached=6240 reasoning=351 estimatedText=0
+[ACTIVE COMMUNICATION REPLY] peer=2000000006 sender=54679441 persona=situational modelMode=default model=gpt-5.6-luna frequency=1/150 chars=42
+[VK MESSAGE] peerId=2000000006 senderId=755496806 isChat=true text="Какие у меня выводы по gpt и по claude.\nУмеют писать дохуя сложный и продуманский код , но ошибаются в хуйне. \n\nВсе как и при генерации картинок: все пиздато в целом, но вечные бесячие глюки.\n\nПока что крайне сложно полностью доверить им сложный проект, даже при совместной оркестрации, то есть отдавать код одной модели на аудит и ревью другой и т.п.\n\nИ это я говорю про старшие модели на интеллекте high и выше."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=143/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=755496806 isChat=true text="А хуек тебе в ротик"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=755496806 mention=false replyOrQuote=true request="А хуек тебе в ротик" expiresAt=2026-10-08T12:08:02.105Z
+[COMMAND ROUTE] selected=default reason=no-explicit-command candidates=default explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[AI RUNTIME TRANSPORT] requestId=617fc65d-0bee-4120-89b0-d52e89f8d83d model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Моя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=144/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="вы че ебанулись"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=145/150 target=137
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4782,
+  completion_tokens: 373,
+  total_tokens: 5155,
+  prompt_tokens_details: {
+    cached_tokens: 4433,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 295
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=617fc65d-0bee-4120-89b0-d52e89f8d83d operationId=muzdi8fm-f3fe450f operation=active-communication provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4782 output=373 total=5155 cached=4433 reasoning=295 estimatedText=0 durationMs=37679
+[AI TOKEN TOTAL] requestId=617fc65d-0bee-4120-89b0-d52e89f8d83d operationId=muzdi8fm-f3fe450f operation=active-communication provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=11621 output=746 total=12367 cached=10673 reasoning=646 estimatedText=0
+[PERSONA PROVOCATION REPLY] peer=2000000006 sender=755496806 persona=bydlo modelMode=default model=gpt-5.6-luna
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="дядя сева"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=146/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Аня"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=147/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Давай поближе познакомимся"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=148/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Чё ты игноришь"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=149/150 target=137
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="конечно давай"
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Это я жинку отпиздил"
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="мы вообще все дерёмся"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Давай с самого базового"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Расскажи о себе\nНо сначала я"
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Блять у Иры по-моему нет фотки с фонарями"
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="ну"
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Ну щас думаю есть но я не там"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Я безработный наркоман \nМеня выгнали из дома \nШляюсь по хатам друзей \nИ чё со шкурю то ебашим"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Щас пьяный кста"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="И на отходах"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А ты о себе"
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="ооо ну самое то"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="У меня ещё карты заблокированы"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=0/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=1/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=2/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=3/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=4/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=5/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=6/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=7/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=8/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=9/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=10/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=11/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=12/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=13/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ань \nА тебе говорили что ты красивая )"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=14/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="я безработная наркоманка\nменя выгнало из дома\nшляюсь по хатам друзей\nи че сошкурю то ебашим"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=15/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="ОГО"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=16/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="У нас так много общего"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=17/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А у тебя друзья скоро кончатся ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=18/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А то меня уже по второму кругу идут"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=19/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Скоро нахуй пошлют"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=20/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="ну ещё 1,5 осталось"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=21/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Мб состыкуемся"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=22/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Так в два раза дольше наркотиков будет"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=23/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=24/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А ты в/в часто делаешь?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=25/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="сегодня да"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=26/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Значит мало"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=27/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="че это…"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=28/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ты красивая"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=29/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ну внутривенно"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=30/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Часто?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=31/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="а"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=32/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="раз в пол часа"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=33/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Это хорошо"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=34/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ну я чтобы сразу знать"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=35/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Гепарин и бинты носить ли мне"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=36/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А то я люблю с пустым портфелем ходить"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=37/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А тут наконецто нужен будет"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=38/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="гепатит и менты"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=39/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А у тебя полная семья ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=40/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="У тебя гепатит ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=41/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="У меня ВИЧ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=42/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="худая"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=43/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Обменяемся?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=44/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Меняю свою ВИЧ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=45/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="На твой гепатит"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=46/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="ок согласна"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=47/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Аня"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=48/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А ты где щас"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=49/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Может приеду...."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=50/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="....."
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Похуй"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=51/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Я кста куколд Ань"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=52/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=755496806 isChat=true text="Вань, ну не заменишь ты нам Богдана, можешь не стараться."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=53/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А это твой парень ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=54/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=55/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="я его уже ебнула"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=56/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="о эт Алена"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=57/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="да"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=58/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="сученька моя проснулась маленькая принцесска милая улыбается так малышечка грязнулька моя так бы и пошлепал тебя по сочной попке"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=59/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="По вене ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=60/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А ты ну это"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=61/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text="Он?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=62/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Профи по уколам?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=63/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Да"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=64/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="бандан."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=65/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А то у меня вены убежали"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=66/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Если кто то попадет"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=67/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="То сразу"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=68/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="я колоться щас пойду"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=69/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="слава богу"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=70/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="это мне?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=71/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Пока картинкой"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=72/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Надо в живую увидеться"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=73/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Под 💉 поговорить"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=74/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Как тебе план?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=75/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=751671150 isChat=true text="Сори бэйб, шихи ты не переплюнешь 😔👋"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=76/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="блин а если синяк спадёт то как общаться то"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=77/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Какой синяк"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=78/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="От инъекций ? У тебя?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=79/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А ты в пах делала?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=80/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="не я в глаз кололась"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=81/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=629632872 isChat=true text="Удачи"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=82/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Она не первая"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=83/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="И не последняя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=84/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="В этой беседе много таких"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=85/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Как Бодя ?\nЧернилами"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=86/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="[id405204381|@neanyaya] \nМы ?\nИли [id1116443034|Влад]  [id270419787|@kuroakiyama]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=87/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=405204381 isChat=true text="как асман"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=88/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Это кто?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=89/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А правда что у вас с солодом было?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=90/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="ты моя нежная сучка моя любимая блядинка я без тебя никогда не смогу жить ты просто моя проституточка нежная такая ночная бабочка которую я ебу по ночам и нежно постанываю на ушко мне так нравится когда ты лижешь мою попку и кушаешь каждый мой баребушек сученька моя моя девочка моя любимая прилюбимая профурсетка как ты берешь в рот мой член я просто даже не могу описать словами в каком я восторге вторгаешься в мою нежную уретру своим язычком ммммммм я не могу жить без этих ощущений вернись ко мне моя любимая"
+[AI RUNTIME TRANSPORT] requestId=3b50e152-22de-414a-81ae-1a9743f161de model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791368652 max=3500 reason=periodic
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А карандаш в уретре бывает?"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Да."
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="конечно бывает!"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Отлично"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Случайно с карандашом шел \nИ Урал"
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="а вы когда нибудь пробовали"
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="сахаром головку посыпать"
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="и ждать пока мухи сядут"
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="чтобы лапками так щекотали"
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="мне кажется что у меня обострение."
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="помогите"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Мефом головку посыпать , что бы все парни с тусы усиками щекотали"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=92/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=93/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=94/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=95/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=96/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=97/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=98/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=99/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=100/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=101/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=102/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=103/150 target=91
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130596-130695
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=2 existing=98 cmid=130596-130695
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130496-130595
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=130527 type=joined member=629632872 actor=16296974
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130396-130495
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130296-130395
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130196-130295
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130096-130195
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129996-130095
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129896-129995
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="любимая давалочка эрик"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=104/150 target=91
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129796-129895
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129696-129795
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=998 new=2 existing=969 cmid=129696-129795
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129596-129695
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129496-129595
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129396-129495
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=129443 type=left member=353708724 actor=353708724
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129296-129395
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129196-129295
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=15 requested=1500 received=1487 new=2 existing=1385 cmid=129196-129295
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1500 received=1487 new=2 existing=1385 cutoff=1791368652 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ты про это?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=105/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="никогда"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=106/150 target=91
+[AI RUNTIME TRANSPORT] requestId=3b50e152-22de-414a-81ae-1a9743f161de model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="!!!!"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=107/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="ирен женщина боевая"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=108/150 target=91
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 7282,
+  completion_tokens: 234,
+  total_tokens: 7516,
+  prompt_tokens_details: {
+    cached_tokens: 6836,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 208
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=3b50e152-22de-414a-81ae-1a9743f161de operationId=muze3101-3e714489 operation=active-communication provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=7282 output=234 total=7516 cached=6836 reasoning=208 estimatedText=0 durationMs=43149
+[AI TOKEN TOTAL] requestId=3b50e152-22de-414a-81ae-1a9743f161de operationId=muze3101-3e714489 operation=active-communication provider=compat model=gpt-5.6-luna requests=3 providerRequests=3 input=18903 output=980 total=19883 cached=17509 reasoning=854 estimatedText=0
+[ACTIVE COMMUNICATION REPLY] peer=2000000006 sender=1116443034 persona=situational modelMode=pro3 model=gpt-5.6-luna frequency=1/150 chars=62
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="а кто папа?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=109/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="ооочень интересует"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=110/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Евгений Филиппов"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=111/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Разве не?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=112/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1116443034 isChat=true text="кукамака"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=113/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Аня пропала("
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=114/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Мб от передоза....."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=115/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="ее съели"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=116/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="[id250200838|@pplluugg] \n[id5478448|@vip36]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=117/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="АХХАХАХАХАХАХА"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=118/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=456319058 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Вооооо"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=119/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Бля я так заорал)))"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=120/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="А ЗАКЛАДЧИКОМ РАБОТАЛ, МАГАЗЫ КИДАЛ, В ДОЛГ У ДРУЗЕЙ ЛЮБИШЬ БРАТЬ????"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=121/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="😄😄😄😄😄"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Да и зовут меня Антон"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=122/150 target=91
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791370452 max=3500 reason=periodic
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="АХАХАХАХАХХА"
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text="Тема"
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text="+++"
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text="Орно"
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="притоновская проза"
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="браво"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=123/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=124/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=125/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=126/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=127/150 target=91
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=128/150 target=91
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130640-130739
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=130726 type=joined member=403284195 actor=403284195
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=130727 type=left member=403284195 actor=403284195
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=4 existing=95 cmid=130640-130739
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130540-130639
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130440-130539
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=130527 type=joined member=629632872 actor=16296974
+[STYLE PERSONALIZATION SEED] peerId=2000000006 userId=403284195 cursor=1791455903:130727 gpt=0
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130340-130439
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130240-130339
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130140-130239
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=130040-130139
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129940-130039
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129840-129939
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129740-129839
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=999 new=4 existing=968 cmid=129740-129839
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129640-129739
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129540-129639
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129440-129539
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=129443 type=left member=353708724 actor=353708724
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=129340-129439
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1387 new=4 existing=1316 cmid=129340-129439
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1387 new=4 existing=1316 cutoff=1791370452 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=250200838 isChat=true text="Я так смотрю ты все время около мп доставляешь?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=129/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Мп, арена, пам, антошка, бп , берека"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=130/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Аксиома"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=131/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="он через забор ещё от меня живёт"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=132/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="пздц"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=133/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="до сих пор хуею"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=134/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="На на березку отменяю, нахуй надо. Туда ехать с заказом, обратно плестись в пустую"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=135/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А ты все никак в гости не зайдешь..."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=136/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Я в азуи"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=137/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Там парни бравые\nХорошо борются"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=138/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="[id405204381|@neanyaya] \nЯ себе нашел хату на 3 дня"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=139/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=456319058 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=140/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Приедешь?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=141/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Я один \nНужны ты.... изолента...шприц"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=142/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ну раз вам наркотики не нужны, я заберу, ок ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=143/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Складки жира ногу в 3х местах сломают"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=144/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=324525010 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="[id405204381|@neanyaya]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=145/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="туда присядете с ней?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=146/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="Интересно это ИИ или рил чей то архитектурный гений?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=147/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Да"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=148/150 target=91
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=403284195 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="[id161009133|@arirangda]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=149/150 target=91
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="КАК ЖЕ ВПАДЛУ СЕНЬ РАБОТАТЬ БЛЯТТ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=0/150 target=19
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="[id405204381|@neanyaya] \nДавай сдадим в ломбард"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=1/150 target=19
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Царев, отдай акк Егорке"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=2/150 target=19
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А зачем я тогда тебя поджидаю в падике...."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=3/150 target=19
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ты когда дома будешь?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=4/150 target=19
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="блять как я ору"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=5/150 target=19
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="через полчасика"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=6/150 target=19
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="[id673887791|@timasin228]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=7/150 target=19

@@ -1,0 +1,462 @@
+{
+  "version": 1,
+  "enabled": false,
+  "peerId": 2000000022,
+  "description": "Ручные ответы участникам беседы вместо AI. active=true включает конкретного участника. username содержит screen_name VK, а для профиля без screen_name используется fallback id<userId>.",
+  "triggers": [
+    "bot_mention",
+    "reply_to_bot"
+  ],
+  "participants": [
+    {
+      "userId": 1042072356,
+      "username": "id1042072356",
+      "name": "Денис Хомяков",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/id1042072356",
+      "messageCount": 65,
+      "lastSeenAt": 1791980187
+    },
+    {
+      "userId": 894718589,
+      "username": "id894718589",
+      "name": "Дима Кончаков",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/id894718589",
+      "messageCount": 18,
+      "lastSeenAt": 1791814776
+    },
+    {
+      "userId": 177054012,
+      "username": "nick_more",
+      "name": "Ник Море",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/nick_more",
+      "messageCount": 16,
+      "lastSeenAt": 1789850045
+    },
+    {
+      "userId": 240527238,
+      "username": "botsan_r",
+      "name": "Роман Боцан",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/botsan_r",
+      "messageCount": 14,
+      "lastSeenAt": 1791167838
+    },
+    {
+      "userId": 5669746,
+      "username": "freedancing",
+      "name": "Юлия Ляшенко",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/freedancing",
+      "messageCount": 6,
+      "lastSeenAt": 1791545969
+    },
+    {
+      "userId": 395104,
+      "username": "nastyona_m",
+      "name": "Настёна Матузова",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/nastyona_m",
+      "messageCount": 6,
+      "lastSeenAt": 1789849854
+    },
+    {
+      "userId": 12373773,
+      "username": "stanislav_afro",
+      "name": "Стас Афро",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/stanislav_afro",
+      "messageCount": 4,
+      "lastSeenAt": 1788801786
+    },
+    {
+      "userId": 660395101,
+      "username": "pashocheksmel",
+      "name": "Паха Шмель",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/pashocheksmel",
+      "messageCount": 3,
+      "lastSeenAt": 1791884485
+    },
+    {
+      "userId": 565749617,
+      "username": "id565749617",
+      "name": "Вадим Смирнов",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/id565749617",
+      "messageCount": 3,
+      "lastSeenAt": 1791168073
+    },
+    {
+      "userId": 302646047,
+      "username": "inka_efimenko",
+      "name": "Inka Efimenko",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/inka_efimenko",
+      "messageCount": 3,
+      "lastSeenAt": 1789321289
+    },
+    {
+      "userId": 277134503,
+      "username": "dragomir88",
+      "name": "Дмитрий Колесниченко",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/dragomir88",
+      "messageCount": 3,
+      "lastSeenAt": 1791958424
+    },
+    {
+      "userId": 11061719,
+      "username": "hank_hobson",
+      "name": "Данил Душкин",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/hank_hobson",
+      "messageCount": 3,
+      "lastSeenAt": 1790673910
+    },
+    {
+      "userId": 341880618,
+      "username": "jekson36",
+      "name": "Евгений Сапронов",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/jekson36",
+      "messageCount": 2,
+      "lastSeenAt": 1791384874
+    },
+    {
+      "userId": 81953410,
+      "username": "haikuhishka",
+      "name": "Айкуи Хумарян",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/haikuhishka",
+      "messageCount": 2,
+      "lastSeenAt": 1789320173
+    },
+    {
+      "userId": 33266017,
+      "username": "julia_art_decor",
+      "name": "Юлия Искусство-Живопись",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/julia_art_decor",
+      "messageCount": 2,
+      "lastSeenAt": 1791172166
+    },
+    {
+      "userId": 1020829289,
+      "username": "kamburalexandr",
+      "name": "Александр Камбур",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/kamburalexandr",
+      "messageCount": 1,
+      "lastSeenAt": 1789042558
+    },
+    {
+      "userId": 854989090,
+      "username": "vikinikib",
+      "name": "Виктория Баринова",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/vikinikib",
+      "messageCount": 1,
+      "lastSeenAt": 1788794650
+    },
+    {
+      "userId": 326764166,
+      "username": "grnms",
+      "name": "Ольга Русинова",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/grnms",
+      "messageCount": 1,
+      "lastSeenAt": 1791517570
+    },
+    {
+      "userId": 301605053,
+      "username": "etwasneues",
+      "name": "Алёна Исаева",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/etwasneues",
+      "messageCount": 1,
+      "lastSeenAt": 1789046125
+    },
+    {
+      "userId": 201690012,
+      "username": "eva_owsen",
+      "name": "Эвелина Овсеньян",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/eva_owsen",
+      "messageCount": 1,
+      "lastSeenAt": 1790673907
+    },
+    {
+      "userId": 81723528,
+      "username": "id81723528",
+      "name": "Юлия Лысякова",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/id81723528",
+      "messageCount": 1,
+      "lastSeenAt": 1789326654
+    },
+    {
+      "userId": 47477746,
+      "username": "natalia.azarova",
+      "name": "Наталия Азарова",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/natalia.azarova",
+      "messageCount": 1,
+      "lastSeenAt": 1789326962
+    },
+    {
+      "userId": 45360845,
+      "username": "id45360845",
+      "name": "Александр Власов",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/id45360845",
+      "messageCount": 1,
+      "lastSeenAt": 1788950215
+    },
+    {
+      "userId": 39192145,
+      "username": "sergeiv47",
+      "name": "Владимир Сорокин",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/sergeiv47",
+      "messageCount": 1,
+      "lastSeenAt": 1789047948
+    },
+    {
+      "userId": 35982337,
+      "username": "mc_razor",
+      "name": "Женя Разинский",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/mc_razor",
+      "messageCount": 1,
+      "lastSeenAt": 1791384551
+    },
+    {
+      "userId": 15421383,
+      "username": "osobennost",
+      "name": "Дарья Опря",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/osobennost",
+      "messageCount": 1,
+      "lastSeenAt": 1789028536
+    },
+    {
+      "userId": 14181716,
+      "username": "barbarisova",
+      "name": "Ольга Барбакадзе",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/barbarisova",
+      "messageCount": 1,
+      "lastSeenAt": 1789321470
+    },
+    {
+      "userId": 11235943,
+      "username": "clown6",
+      "name": "Михаил Сухачёв",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/clown6",
+      "messageCount": 1,
+      "lastSeenAt": 1789326541
+    },
+    {
+      "userId": 6240969,
+      "username": "i_skazitel",
+      "name": "Илья Беломытцев",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/i_skazitel",
+      "messageCount": 1,
+      "lastSeenAt": 1791377528
+    },
+    {
+      "userId": 3275790,
+      "username": "olenka_kudesnica",
+      "name": "Ольга Воронеж",
+      "active": false,
+      "phrases": [],
+      "requestInterval": {
+        "min": 2,
+        "max": 5,
+        "unit": "bot_requests"
+      },
+      "profileUrl": "https://vk.ru/olenka_kudesnica",
+      "messageCount": 1,
+      "lastSeenAt": 1789052724
+    }
+  ]
+}

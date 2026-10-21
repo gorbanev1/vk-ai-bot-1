@@ -5,12 +5,29 @@ import { readFileSync } from 'node:fs';
 import {
     evaluatePosterFactForEvent,
     parseIndexedImageFacts,
+    serializeIndexedImageFacts,
     selectBestCompatiblePosterFact,
 } from '../../src/features/events/eventPosterMatching.js';
 import {
     buildSequentialAnnouncementBlocks,
 } from '../../src/features/events/eventMultiAnnouncementBlocks.js';
 import { parseEventModerationCommand } from '../../src/features/events/eventModerationRouting.js';
+import { pendingVisionImageIndexes } from '../../src/features/events/eventVisionPolicy.js';
+
+test('Vision retries only images without a successful metadata outcome', () => {
+    const facts = [
+        { index: 1, visionStatus: 'metadata_found', title: 'Event' },
+        { index: 2, visionStatus: 'metadata_not_found', visionInspected: true, text: '[IMAGE 2]\nТип изображения: ordinary-photo\nЭто афиша события: нет\nРаспознанный текст: Текст на изображении отсутствует' },
+        { index: 3, visionStatus: 'error' },
+        { index: 4, visionStatus: 'not_run' },
+    ];
+    assert.deepEqual(pendingVisionImageIndexes(5, facts), [3, 4, 5]);
+    assert.deepEqual(pendingVisionImageIndexes(3, facts.slice(0, 2)), [3]);
+    assert.deepEqual(pendingVisionImageIndexes(2, [
+        { index: 1, visionStatus: 'metadata_found' },
+        { index: 2, visionStatus: 'metadata_not_found' },
+    ]), [1, 2]);
+});
 
 test('V18892 rejects an old gallery poster for a newer event and accepts the real poster', () => {
     const event = {
@@ -53,6 +70,28 @@ test('V18892 parses extended poster metadata', () => {
     assert.equal(facts[0].city, 'Воронеж');
     assert.equal(facts[0].address, 'Плехановская, 10');
     assert.match(facts[0].recognizedText, /36 Пятниц/u);
+    const noText = parseIndexedImageFacts('[IMAGE 1]\nЭто афиша события: нет\nРаспознанный текст: Текст на изображении отсутствует');
+    assert.equal(noText[0].visionInspected, true);
+    assert.equal(noText[0].visionStatus, 'metadata_not_found');
+    const markerOnly = parseIndexedImageFacts('[IMAGE 2]');
+    assert.deepEqual(markerOnly, []);
+    const malformed = parseIndexedImageFacts('[IMAGE 3]\nНазвание:');
+    assert.equal(malformed[0].visionStatus, 'error');
+    const explicitFailure = parseIndexedImageFacts('[IMAGE 4]\nТип изображения: other\nПричина: Vision error: upstream timeout');
+    assert.equal(explicitFailure[0].visionStatus, 'error');
+});
+
+test('V18892 durable Vision facts keep image markers when replayed', () => {
+    const stored = [{
+        index: 2,
+        text: 'Тип изображения: poster\nЭто афиша события: да\nНазвание: Replay me',
+        visionStatus: 'metadata_found',
+        visionInspected: true,
+    }];
+    const replay = serializeIndexedImageFacts(stored);
+    assert.match(replay, /^\[IMAGE 2\]/u);
+    assert.equal(parseIndexedImageFacts(replay)[0].index, 2);
+    assert.equal(parseIndexedImageFacts(replay)[0].title, 'Replay me');
 });
 
 test('V18892 sequential text blocks are split by date and ignore Vision fact lines', () => {
@@ -66,6 +105,25 @@ test('V18892 sequential text blocks are split by date and ignore Vision fact lin
 test('V18892 owner routes expose metadata review and explicit backfill', () => {
     assert.equal(parseEventModerationCommand('тусы метаданные картинок')?.action, 'image-metadata-report');
     assert.equal(parseEventModerationCommand('тусы метаданные картинок заполнить')?.action, 'image-metadata-backfill');
+});
+
+test('V18892 full image audit really rechecks the archived/source-only inventory', () => {
+    const app = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
+    const begin = app.indexOf("if (command.action === 'image-metadata-full-audit')");
+    const end = app.indexOf("if (command.action === 'source-image-vision-audit')", begin);
+    assert.ok(begin >= 0 && end > begin);
+    const branch = app.slice(begin, end);
+    assert.match(branch, /recheckEveryImage:\s*true/u);
+    assert.match(branch, /архивные события и source-only/u);
+});
+
+test('V18892 source Vision command forces a fresh pass for stored future images', () => {
+    const app = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
+    const begin = app.indexOf("if (command.action === 'source-image-vision-audit')");
+    const end = app.indexOf("if (command.action === 'image-metadata-backfill')", begin);
+    assert.ok(begin >= 0 && end > begin);
+    const branch = app.slice(begin, end);
+    assert.match(branch, /forceVision:\s*true/u);
 });
 
 test('V18892 startup no longer schedules legacy media repair or import-time backfill', () => {

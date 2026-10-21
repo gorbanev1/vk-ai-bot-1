@@ -1,0 +1,270 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=307865 scanned=5000 skipped=302865
+[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS] [{"id":"mvb1mqy7-d025f002","name":"startup-telegram-connect","phase":"","tracePath":""}]
+(node:29152) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:50486:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=147218 cutoff=1792073496 max=3500 reason=startup
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Уютный вечер с тыквами, свечами и волшебной музыкой" date=2026-10-30 source=https://vk.ru/wall-10482390_8749
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter" date=2026-11-14 source=https://vk.ru/wall-227219886_186
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=147225 cutoff=1792075289 max=3500 reason=periodic
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[EVENT LINK DOM SNAPSHOT RECOVERY] reason=page-closed-after-dom textChars=3002
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[AI KEY ATTEMPT FAILED] requestId=bd9c16e2-0438-45ae-85eb-c0a70463f6e1 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'GPT vision stream produced no bytes for 60000 ms',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=bd9c16e2-0438-45ae-85eb-c0a70463f6e1 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI KEY ATTEMPT FAILED] requestId=bd9c16e2-0438-45ae-85eb-c0a70463f6e1 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=bd9c16e2-0438-45ae-85eb-c0a70463f6e1 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=bd9c16e2-0438-45ae-85eb-c0a70463f6e1 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=bd9c16e2-0438-45ae-85eb-c0a70463f6e1 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI KEY ATTEMPT FAILED] requestId=bd9c16e2-0438-45ae-85eb-c0a70463f6e1 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=bd9c16e2-0438-45ae-85eb-c0a70463f6e1 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[TELEGRAM MESSAGE HANDLER ERROR][DM] requestId=ddc20dcf-5f53-4e84-8529-62c2e7ac4e2c peerId=-3000000004 senderId=3000000004 messageId=14393 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Уютный вечер с тыквами, свечами и волшебной музыкой" date=2026-10-30 source=https://vk.ru/wall-10482390_8749
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=147297 cutoff=1792077090 max=3500 reason=periodic
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter" date=2026-11-14 source=https://vk.ru/wall-227219886_186
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter — концерт в поддержку альбома «ШРАМЫ»" date=2026-11-14 source=https://vk.ru/wall-227219886_138
+[OPERATION CHECKPOINT WRITE ERROR] id=mvb471jt-ae2b682a EPERM EPERM: operation not permitted, rename 'C:\Users\Adm\WebstormProjects\vk-ai-bot\data\operation-checkpoints\mvb471jt-ae2b682a.json.tmp-29152-64f79389-0ade-42a1-99c3-9dfe836647b3' -> 'C:\Users\Adm\WebstormProjects\vk-ai-bot\data\operation-checkpoints\mvb471jt-ae2b682a.json'
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=e092e7dcae99ae1d currentRevision=f57f7d38f6ba1d81 snapshotRaw=111 currentRaw=110 fallback=sqlite
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Уютный вечер с тыквами, свечами и волшебной музыкой" date=2026-10-30 source=https://vk.ru/wall-10482390_8749
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter — концерт в поддержку альбома «ШРАМЫ»" date=2026-11-14 source=https://vk.ru/wall-227219886_138
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=e092e7dcae99ae1d currentRevision=f57f7d38f6ba1d81 snapshotRaw=111 currentRaw=110 fallback=sqlite
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Уютный вечер с тыквами, свечами и волшебной музыкой" date=2026-10-30 source=https://vk.ru/wall-10482390_8749
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter — концерт в поддержку альбома «ШРАМЫ»" date=2026-11-14 source=https://vk.ru/wall-227219886_138
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=147416 cutoff=1792078890 max=3500 reason=periodic
+[OPERATION CHECKPOINT WRITE ERROR] id=mvb5bl1k-735e853e EPERM EPERM: operation not permitted, rename 'C:\Users\Adm\WebstormProjects\vk-ai-bot\data\operation-checkpoints\mvb5bl1k-735e853e.json.tmp-29152-4e3a3b0c-dd38-48df-9a5a-994bdb894439' -> 'C:\Users\Adm\WebstormProjects\vk-ai-bot\data\operation-checkpoints\mvb5bl1k-735e853e.json'
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=147506 cutoff=1792080690 max=3500 reason=periodic
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=f57f7d38f6ba1d81 currentRevision=afc87f2a63e5bc6a snapshotRaw=110 currentRaw=109 fallback=sqlite
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[TELEGRAM MESSAGE HANDLER ERROR][DM] requestId=5830e767-1f6e-4c88-a8af-b442fc1ae906 peerId=-3000000004 senderId=3000000004 messageId=14629 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Уютный вечер с тыквами, свечами и волшебной музыкой" date=2026-10-30 source=https://vk.ru/wall-10482390_8749
+[INACTIVE VK MEMBERS DATABASE FALLBACK] peer=2000000006 {
+  name: 'APIError',
+  message: "Code №917 - You don't have access to this chat",
+  code: 917,
+  status: null
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter — концерт в поддержку альбома «ШРАМЫ»" date=2026-11-14 source=https://vk.ru/wall-227219886_138
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=147530 cutoff=1792082490 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Звуковая медитация с поющими чашами" date=2026-10-18 source=https://vk.ru/wall172618669_8879
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Лаборатория по пьесам воронежских драматургов" date=2026-10-18 source=https://vk.ru/im?sel=c22
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Уютный вечер с тыквами, свечами и волшебной музыкой" date=2026-10-30 source=https://vk.ru/wall-10482390_8749
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter — концерт в поддержку альбома «ШРАМЫ»" date=2026-11-14 source=https://vk.ru/wall-227219886_138
+[EVENT POSTER REJECTED] event="Побег из Города" date=2026-11-21 images=1 status=verified_single_event_source_media reason=no-date-match
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Побег из Города" date=2026-11-21 source=https://vk.ru/wall-226451277_3641

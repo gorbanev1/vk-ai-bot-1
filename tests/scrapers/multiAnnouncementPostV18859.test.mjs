@@ -54,6 +54,7 @@ test('V188.59: poster vision reports batch completeness and public extraction ha
     const publicEnd = app.indexOf('\nfunction ', publicStart + 20);
     const publicBody = app.slice(publicStart, publicEnd > publicStart ? publicEnd : publicStart + 20_000);
     assert.match(publicBody, /maxTokens:\s*6000/u);
-    assert.match(publicBody, /не ограничивай ответ первым событием/u);
+    assert.match(publicBody, /сначала сам реши структуру по смыслу исходника/iu);
+    assert.match(publicBody, /ошибку\/исправление даты/u);
     assert.match(app, /events-v188(?:59-multi-announcement-media|60-parser-all-poster-refresh)/u);
 });

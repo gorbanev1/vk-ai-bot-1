@@ -3,6 +3,7 @@ const TICKET_CONTEXT = /(?:билет|tickets?|купить|касс|регис�
 const PLATFORM_LINK = /^https?:\/\/(?:www\.)?(?:vk\.(?:ru|com)|t\.me|telegram\.me)\//iu;
 const GIVEAWAY_NOISE = /(?:розыгрыш|конкурс|репост|репостом|вступить\s+во\s+встречу|точно\s+пойду|хочу\s+на\s+концерт|итоги\s+конкурса|призов|призовое\s+место|победител|разыгра|услови[яе]\s+(?:розыгрыша|конкурса))/iu;
 const SERVICE_NOISE = /(?:полный\s+текст\s+сообщения|view\s+in\s+telegram|please\s+open\s+telegram|действия\s*:|источник\s*:)/iu;
+const RAW_PLATFORM_NOISE = /(?:\bпоказать\s+ещ[её]\s+\d+|выбор\s+реакции|отправить\s+реакцию|пожаловаться|ответить|поделиться|прикрепить\s+фотографию|добавить\s+эмодзи|отправить\s*$|\b\d+\s+ч\s+назад|\b\d+\s+дн(?:я|ей)\s+назад)/iu;
 
 function normalizeSpaces(value) {
     return String(value ?? '')
@@ -16,6 +17,18 @@ function cleanUrl(value) {
     return String(value ?? '')
         .trim()
         .replace(/[),.;!?]+$/u, '');
+}
+
+function isQticketsListingRoot(value) {
+    try {
+        const url = new URL(String(value || ''));
+        const host = url.hostname.toLowerCase().replace(/^www\./u, '');
+        if (!host.endsWith('qtickets.events')) return false;
+        const path = url.pathname.replace(/^\/+|\/+$/gu, '').toLowerCase();
+        return !path || ['events', 'afisha', 'poster', 'catalog'].includes(path);
+    } catch {
+        return false;
+    }
 }
 
 
@@ -66,7 +79,7 @@ export function extractTicketLink(event) {
         event?.bookingUrl,
     ]
         .map(cleanUrl)
-        .find((url) => /^https?:\/\//iu.test(url));
+        .find((url) => /^https?:\/\//iu.test(url) && !isQticketsListingRoot(url));
 
     if (explicit) return explicit;
 
@@ -105,7 +118,7 @@ export function normalizeCompactSummary(value, maxChars = 300) {
         .match(/[^.!?]+[.!?]+|[^.!?]+$/gu)
         ?.map((sentence) => sentence.trim())
         .filter(Boolean)
-        .slice(0, 3) ?? [];
+        .slice(0, 4) ?? [];
     let result = sentences.join(' ').trim();
     const safeLimit = Math.max(90, Number(maxChars) || 300);
 
@@ -114,6 +127,15 @@ export function normalizeCompactSummary(value, maxChars = 300) {
     }
 
     return result;
+}
+
+export function isCompactSummaryUsable(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw || RAW_PLATFORM_NOISE.test(raw) || /(?:^|\n)\s*(?:когда|где|кто|поч[её]м|встреча|анонс|билеты)\s*[:：]/iu.test(raw)) return false;
+    const normalized = normalizeCompactSummary(raw, 1000);
+    if (!normalized) return false;
+    const sentenceCount = normalized.match(/[^.!?]+[.!?]+|[^.!?]+$/gu)?.length ?? 0;
+    return sentenceCount >= 2 && sentenceCount <= 4 && normalized.length >= 45;
 }
 
 export function buildCompactPartyPayload(events) {
@@ -138,10 +160,10 @@ export function buildCompactPartySummarySystemPrompt(maxSummaryChars = 260) {
         'Используй только sourceText и структурированные поля входа. Ничего не выдумывай.',
         'Верни только JSON без Markdown вида {"events":[{"key":"0","summary":"..."}]}.',
         'Для каждого входного key верни ровно один объект с тем же key и в том же порядке.',
-        'summary — 2–3 очень коротких предложения о сути события: формат, музыка/программа/особенность. Не повторяй дату, время, цену, место, ссылку и список участников, если они уже есть отдельными полями.',
+        'summary — 2–4 максимально коротких предложения, полностью передающие суть события: формат, что будет происходить, программа и важные особенности. Сохраняй конкретные детали из sourceText, не ограничивайся общими словами. Не повторяй дату, время, цену, место и ссылку, уже вынесенные отдельными полями. Список участников упоминай только если это важно для понимания события.',
         'Полностью игнорируй конкурсы и розыгрыши: условия репоста, "Точно пойду", "Хочу на концерт", итоги конкурса, призы, победителей и просьбы вступить во встречу. Это не описание мероприятия.',
         'Не пиши служебные фразы "Полный текст сообщения", "Источник", кнопки платформ и технические подписи.',
         `Каждый summary не длиннее ${limit} символов. Пиши по-русски, сжато, без рекламного пафоса и служебного текста.`,
-        'Если sourceText почти пуст, summary может быть одной короткой фразой из имеющихся фактов.',
+        'Не добавляй фактов, которых нет во входе. Если подробностей мало, составь 2 коротких предложения только из достоверных фактов о формате события и его участниках.',
     ].join(' ');
 }

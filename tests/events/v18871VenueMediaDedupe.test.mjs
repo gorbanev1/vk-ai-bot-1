@@ -3,11 +3,12 @@ import test from 'node:test';
 import {
     EVENT_DEDUPE_ALGORITHM_VERSION,
     compareEventsDeterministic,
+    deduplicateEventsTwoContour,
     eventVenueSimilarity,
     mergeDuplicateEvents,
 } from '../../src/features/events/eventDuplicateResolution.js';
 
-test('V188.71 venue type words do not affect partial venue identity', () => {
+test('V188.71 venue type words do not affect partial venue identity', async () => {
     assert.equal(eventVenueSimilarity('Бар «Крылья»', 'Клуб Крылья'), 1);
     assert.ok(eventVenueSimilarity('Diesel Hall', 'DIESEL Bar') <= 0.18);
 
@@ -41,10 +42,19 @@ test('V188.71 venue type words do not affect partial venue identity', () => {
     };
 
     const comparison = compareEventsDeterministic(left, right);
-    assert.equal(comparison.verdict, 'same');
+    assert.equal(comparison.verdict, 'ambiguous');
     assert.ok(!comparison.hardConflicts.includes('different-venue'));
 
-    const merged = mergeDuplicateEvents(left, right, comparison);
+    let reviewed = 0;
+    const result = await deduplicateEventsTwoContour([left, right], {
+        arbitrateAmbiguous: async (pairs) => {
+            reviewed += pairs.length;
+            return new Map(pairs.map((pair) => [pair.key, { verdict: 'same', confidence: 0.99, reason: 'same event' }]));
+        },
+    });
+    assert.equal(reviewed, 1);
+    assert.equal(result.events.length, 1);
+    const [merged] = result.events;
     // V188.86: a card renders exactly one proven real source poster. The
     // alternate verified source remains in lineage/posterCandidates only.
     assert.deepEqual(merged.verifiedImagePaths, [
@@ -61,8 +71,9 @@ test('V188.71 conflicting address numbers remain a real venue conflict', () => {
         { title: 'Крыльевые романы', eventDate: '2026-09-26', venue: 'Бар Крылья, Ленина 10' },
         { title: 'Крыльевые романы', eventDate: '2026-09-26', venue: 'Клуб Крылья, Ленина 22' },
     );
-    assert.equal(comparison.verdict, 'different');
-    assert.ok(comparison.hardConflicts.includes('different-venue'));
+    assert.equal(comparison.verdict, 'ambiguous');
+    assert.ok(!comparison.hardConflicts.includes('different-venue'));
+    assert.equal(comparison.factors.venueConflict, 1);
 });
 
 
@@ -73,8 +84,9 @@ test('V188.75 DIESEL Bar and DIESEL Hall are protected distinct physical venues 
                 { title: 'Одинаковое событие', eventDate: '2026-09-26', venue: bar },
                 { title: 'Одинаковое событие', eventDate: '2026-09-26', venue: hall },
             );
-            assert.equal(comparison.verdict, 'different', `${bar} vs ${hall}`);
-            assert.ok(comparison.hardConflicts.includes('different-venue'), `${bar} vs ${hall}`);
+            assert.equal(comparison.verdict, 'ambiguous', `${bar} vs ${hall}`);
+            assert.ok(!comparison.hardConflicts.includes('different-venue'), `${bar} vs ${hall}`);
+            assert.equal(comparison.factors.venueConflict, 1, `${bar} vs ${hall}`);
         }
     }
     // For every other brand generic type words still do not participate.

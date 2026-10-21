@@ -1,0 +1,1 @@
+import { DatabaseSync } from "node:sqlite"; const db=new DatabaseSync("data/bot.sqlite"); const rows=db.prepare("select task_key,details_json from maintenance_state").all(); console.log(JSON.stringify(rows.filter(row => String(row.details_json).includes("5.6") || String(row.task_key).includes("ladder")),null,2));

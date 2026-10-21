@@ -1,13 +1,19 @@
 import {
     appendFileSync,
+    existsSync,
+    readdirSync,
     mkdirSync,
+    renameSync,
+    statSync,
     writeFileSync,
 } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { rm as rmAsync } from 'node:fs/promises';
+import { join, relative, resolve } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { createParserPosterForensics } from './parserPosterForensics.js';
 import { createVkDomFixtureCapture } from './vkDomFixtureCapture.js';
 import { createVkFinalDomCapture } from './vkDomFinalSnapshot.js';
+import { archiveParserErrorRun, recordParserError, refreshParserErrorEvidence } from './parserErrorStore.js';
 
 function safeSlug(value, fallback = 'source') {
     const normalized = String(value ?? '')
@@ -18,15 +24,60 @@ function safeSlug(value, fallback = 'source') {
     return normalized || fallback;
 }
 
+export async function pruneParserForensicArchives({
+    dataDirectory = './data',
+    keepPerLabel = 3,
+} = {}) {
+    const root = resolve(dataDirectory, 'parser-forensic-archives');
+    if (!existsSync(root)) return { removed: [], kept: 0 };
+    const limit = Math.max(1, Math.trunc(Number(keepPerLabel) || 3));
+    const groups = new Map();
+    for (const name of readdirSync(root)) {
+        const directory = resolve(root, name);
+        if (directory === root || !directory.startsWith(`${root}${process.platform === 'win32' ? '\\' : '/'}`)) continue;
+        let info;
+        try { info = statSync(directory); } catch { continue; }
+        if (!info.isDirectory()) continue;
+        const parsed = name.match(/^\d{4}-\d{2}-\d{2}T[^_]+_(.+)_[0-9a-f]{6}$/u);
+        if (!parsed) continue;
+        const label = parsed[1];
+        const rows = groups.get(label) || [];
+        rows.push({ name, directory, mtimeMs: info.mtimeMs });
+        groups.set(label, rows);
+    }
+    const removed = [];
+    const deletions = [];
+    for (const rows of groups.values()) {
+        rows.sort((a, b) => b.name.localeCompare(a.name) || b.mtimeMs - a.mtimeMs);
+        for (const [index, row] of rows.entries()) {
+            if (index < limit) continue;
+            // Recheck the resolved parent immediately before removal.
+            if (resolve(row.directory, '..') !== root) continue;
+            deletions.push(row);
+        }
+    }
+    const concurrency = 8;
+    for (let index = 0; index < deletions.length; index += concurrency) {
+        const batch = deletions.slice(index, index + concurrency);
+        const results = await Promise.allSettled(batch.map((row) => rmAsync(row.directory, { recursive: true, force: false, maxRetries: 3, retryDelay: 500 })));
+        results.forEach((result, offset) => {
+            if (result.status === 'fulfilled') removed.push(batch[offset].name);
+            else if (result.reason?.code !== 'ENOENT') throw result.reason;
+        });
+    }
+    return { removed, kept: [...groups.values()].reduce((sum, rows) => sum + rows.length, 0) - removed.length };
+}
+
 function safeJson(value) {
-    const seen = new WeakSet();
-    return JSON.stringify(value, (key, item) => {
+    const ancestors = [];
+    return JSON.stringify(value, function (key, item) {
         if (/token|cookie|authorization|password|secret|api[_-]?key/iu.test(String(key))) {
             return '[REDACTED]';
         }
         if (item && typeof item === 'object') {
-            if (seen.has(item)) return '[CIRCULAR]';
-            seen.add(item);
+            while (ancestors.length && ancestors.at(-1) !== this) ancestors.pop();
+            if (ancestors.includes(item)) return '[CIRCULAR]';
+            ancestors.push(item);
         }
         if (typeof item === 'bigint') return String(item);
         if (item instanceof Error) {
@@ -44,19 +95,33 @@ function safeJson(value) {
 export function createManualParserDiagnostics({
     dataDirectory = './data',
     label = 'manual-parser',
+    onParserItemError = null,
 } = {}) {
     const stamp = new Date().toISOString().replace(/[:.]/gu, '-');
     const suffix = randomBytes(3).toString('hex');
     const runId = `${stamp}_${safeSlug(label, 'manual-parser')}_${suffix}`;
     const directory = resolve(dataDirectory, 'parser-forensic-archives', runId);
     mkdirSync(directory, { recursive: true });
+    try {
+        void pruneParserForensicArchives({ dataDirectory, keepPerLabel: 3 }).then((pruned) => {
+            if (pruned.removed.length) console.info('[PARSER ARCHIVE RETENTION]', `removed=${pruned.removed.length}`, 'limit=3', 'perLabel=true');
+        }).catch((error) => {
+            console.warn('[PARSER ARCHIVE RETENTION ERROR]', String(error?.message ?? error));
+        });
+    } catch (error) {
+        console.warn('[PARSER ARCHIVE RETENTION ERROR]', String(error?.message ?? error));
+    }
     const logPath = join(directory, 'trace.jsonl');
     writeFileSync(logPath, '', 'utf8');
     let sequence = 0;
     const sourceCounters = new Map();
     const artifacts = { domSnapshots: [], domStates: [], rawCaches: [], parserReports: [], textReports: [] };
     const posterForensics = createParserPosterForensics({ dataDirectory, runDirectory: directory });
-    const finalOnlyVk = /^parser-all(?:-secondary)?$/u.test(label);
+    // parser-all-clean is also a final/raw-cache pass. Persisting every
+    // intermediate DOM for it duplicates the already captured source and
+    // makes recovery/audit archives much larger without changing processing
+    // input. Keep the same one-final-DOM policy for all parser-all variants.
+    const finalOnlyVk = /^parser-all(?:-secondary)?(?:-clean)?$/u.test(label);
     const vkFinalDom = createVkFinalDomCapture({ runDirectory: directory, runId,
         onPersist: (record) => log('vk.final-fixture.persisted', record),
     });
@@ -209,6 +274,7 @@ export function createManualParserDiagnostics({
         const path = join(directory, `${sourceSlug}.raw-cache.json`);
         const payload = {
             cachedAt: new Date().toISOString(),
+            runId,
             sourceId,
             kind,
             itemCount: Array.isArray(items) ? items.length : 0,
@@ -216,7 +282,9 @@ export function createManualParserDiagnostics({
             items: Array.isArray(items) ? items : [],
         };
         const json = safeJson(payload);
-        writeFileSync(path, `${json}\n`, 'utf8');
+        const temporary = `${path}.tmp-${process.pid}`;
+        writeFileSync(temporary, `${json}\n`, 'utf8');
+        renameSync(temporary, path);
         // All configured VK/TG source capture rows, including items later rejected
         // by prefilter. Remote image URLs are logged; only already stored files can
         // be copied into the forensic images folder (no extra network requests).
@@ -295,6 +363,9 @@ export function createManualParserDiagnostics({
     return {
         runId,
         directory,
+        archiveRun(extra = {}) {
+            return archiveParserErrorRun({ dataDirectory, runDirectory: directory, runId, extra });
+        },
         logPath,
         relativeLogPath: `data/parser-forensic-archives/${runId}/trace.jsonl`,
         log,
@@ -344,6 +415,36 @@ export function createManualParserDiagnostics({
         },
         finalDomOnly: finalOnlyVk,
         cacheSource,
+        async onParserItemError({ sourceId = '', itemId = '', sourceKind = '', item = null, error = null, stage = 'processing', sourceLabel = '', sourceUrl = '', partyPool = 'primary' } = {}) {
+            const rawCache = [...artifacts.rawCaches].reverse().find((entry) => entry.sourceId === sourceId);
+            const domSnapshots = artifacts.domSnapshots.filter((entry) => entry.sourceId === sourceId);
+            const domPath = domSnapshots.at(-1)?.path || '';
+            const nativeDomPath = join(directory, 'vk-dom-final-snapshots');
+            const rawCachePath = rawCache?.path || '';
+            const record = recordParserError({
+                dataDirectory, runDirectory: directory, runId, tracePath: logPath,
+                sourceId, sourceLabel, sourceKind, partyPool, itemId, item, sourceUrl, stage, error,
+                contentHash: String(item?.contentHash || item?.fingerprint || ''),
+                details: {
+                    rawCachePath, domPath: domPath || (existsSync(nativeDomPath) ? nativeDomPath : ''),
+                    rawCacheRelativePath: rawCachePath ? relative(directory, rawCachePath) : '',
+                    domRelativePath: domPath ? relative(directory, domPath) : '',
+                    domPaths: domSnapshots.map((entry) => entry.path),
+                    traceRelativePath: relative(directory, logPath),
+                    runDirectory: directory,
+                },
+            });
+            log('parser.item.error.persisted', { sourceId, itemId, stage, error, recordId: record.id, rawCachePath, domPath, domPaths: domSnapshots.map((entry) => entry.path) });
+            archiveParserErrorRun({ dataDirectory, runDirectory: directory, runId });
+            try {
+                await onParserItemError?.(record);
+            } catch (notificationError) {
+                // Owner notifications are best effort; never convert an
+                // already persisted parser error into an unhandled rejection.
+                log('owner.error-notice.failed', { recordId: record.id, error: notificationError });
+            }
+            return record;
+        },
         saveParserReport,
         saveTextReport,
         writeRunManifest,
@@ -367,6 +468,7 @@ export function createManualParserDiagnostics({
             const record = log('run.finish', data);
             const manifestPath = writeRunManifest({ finish: data });
             log('run.manifest.saved', { path: manifestPath });
+            refreshParserErrorEvidence({ dataDirectory, runDirectory: directory, runId });
             return record;
         },
     };

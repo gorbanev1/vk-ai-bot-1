@@ -1,0 +1,687 @@
+[DB PREFLIGHT] healthy backup current=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-20T07-33-22-215Z.sqlite
+[DB HEALTHY BACKUP SCHEDULER] intervalHours=6 retained=15
+[LIVE MESSAGE JOURNAL REPLAY] parsed=326 replayed=326 invalid=0
+[VK MESSAGE ARCHIVE JOURNAL REPLAY] parsed=329 replayed=329 invalid=0
+[PROJECT AUDIT CONFIG] mode=multipass inputMode=text transport=stream concurrency=1
+[BOT BUILD] V188.146
+[BOT PATCH] V188.146
+[STRICT EVENT AUDIT NON-DESTRUCTIVE] telegram=0 vk=0 vkChat=0 manual=0 orphanSources=87
+Проверяю необязательное подключение к GigaChat…
+[EVENT DEDUPE PERSISTENT FAST REBUILD] reason=startup-v147-db-repair raw=100 canonical=100 groups=0 duplicates=0
+Имя бота: гигорейв
+ID основного VK-сообщества: 233007447
+Часовой пояс: Europe/Moscow
+Сессия участника в каждой конфе: 2 часа.
+ЛС включены без обязательного обращения; содержимое ЛС не сохраняется и не логируется.
+Запускаю VK Long Poll: 1 сообществ(а)…
+[VK LONG POLL STARTED] role=primary groupId=233007447
+Бот запущен: оба VK-сообщества и настроенные дополнительные платформы активны.
+[BOT READY] historyRecoveryDelayedMs=5000 commands=available-now
+[LEGACY EVENT STARTUP REPAIRS] disabled=v18892 mode=explicit-owner-command-only
+[SCRAPER MODE] Основной пул: новые раз в 3 дня, в пятницу после 2 дней. Второстепенный: раз в неделю и в пятницу. Только ночью 02:00–06:00 без пересечения операций. timeZone=Europe/Moscow nextSecondaryAutoAt=1792198800 manualFull=«тусы быдлячьи парсер все» manualClean=«тусы быдлячьи парсер все чисто»
+[PERSONALIZATION V187] database=C:\Users\Adm\AppData\Local\Gigorave\state\personalization-v187.sqlite dossier=command-only styleBatch=500 startupBackfill=disabled
+[SUMMARY V188 CACHE] database=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite contextTokens=128000 rawInputBudget~=24000 pruned=0
+[HIERARCHY V188] database=C:\Users\Adm\AppData\Local\Gigorave\state\hierarchical-summary-v188.sqlite peers=2000000001,2000000004,2000000006,2000000007,8138353801,8138961901,8141076491,8196547900,8196547901,8196547902,8196547903,8202627500,8202627501,8202627502,8202627503,8223773400,8223773401,8223773402,8223773403,2000000022 daily=23:59-local+tail-22:30-23:59 weekly=Sunday-24:00/Monday-00:00-local monthly=first-day-11:00-local seasonal=first-day-new-season-11:00-local yearly=January-1-12:00-local slices=03:00,09:00,12:00,15:00,18:00,21:00,22:30,23:59 pipeline=raw-once>intraday-batch>daily>week-segment>month rawLeafBudget~=32000 late=immutable-delta auto=default-on
+[AUTO SUMMARY LEGACY SCHEDULER DISABLED] calendar rollup owns scheduled summaries; set LEGACY_AUTO_SUMMARY_SCHEDULER_ENABLED=1 only for rollback compatibility
+[CHAT LEAVERS AUTO STATE] enabled=1 repaired=0
+[COMMUNICATION STATE RESTORED FROM SQLITE] restart-safe=true legacyOutburstsCleared=0 legacyBanterCleared=0
+[TELEGRAM CONNECT ATTEMPT] reason=startup attempt=1/3
+GPT router подключён. Текстовые GPT-модели: grok-4.6, gpt-6-sol, grok-4.5, gpt-5.6-terra, gpt-5.6-luna, gpt-6-astra, gpt-6-luna, gpt-5.5, gpt-6.1-sol, grok-4.7, gpt-5.6-sol
+GPT image-модели: grok-imagine-image-2.0, gpt-image-2.5-flare-4k, gpt-image-2.5-sunburst-4k, gpt-image-2, gpt-image-2.5, gpt-image-2.5-flare-2k, gpt-image-2.5-sunburst, gpt-image-2.5-sunburst-2k, gpt-image-2.5-flare
+[TELEGRAM BOT STARTED] id=8965960830 username=@Gigorave_bot offset=813863554
+[TELEGRAM CONNECTED] reason=startup username=@Gigorave_bot
+[VK LONG POLL ACTIVE] role=primary groupId=233007447
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-20T07-33-22-215Z.sqlite rows=146632 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-20T01-32-46-297Z.sqlite rows=146278 target=2000000006
+Telegram подключён: @Gigorave_bot
+[TEXT RECOVERY STARTUP] method=GET-only legacyJobId=d0e42598-b6f5-4c34-8e8b-c7e51877b144
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=1812 quality=high
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-19T19-32-46-294Z.sqlite rows=146204 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-19T13-31-17-041Z.sqlite rows=145941 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-19T07-30-58-252Z.sqlite rows=145310 target=2000000006
+[GPT IMAGE USAGE] {
+  input_tokens: 502,
+  output_tokens: 6354,
+  total_tokens: 6856,
+  input_tokens_details: { text_tokens: 502, image_tokens: 0, cached_tokens: 0 },
+  output_tokens_details: { text_tokens: 0, image_tokens: 6354, reasoning_tokens: 0 }
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=502 output=6354 total=6856 cached=0 reasoning=0 estimatedText=0 durationMs=40268
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=1 providerRequests=1 input=502 output=6354 total=6856 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=success durationMs=40273 
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-19T01-30-58-250Z.sqlite rows=144666 target=2000000006
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=2217769 mime=image/png attachment=photo-233007447_457239956_2ea6e919263be6956a
+[AUTO SUMMARY IMAGE SENT] peer=2000000001 model=gpt-image-2.5 textChars=1364
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=729 quality=high
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-18T19-30-58-243Z.sqlite rows=144200 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-18T12-23-01-617Z.sqlite rows=143987 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-18T03-36-01-135Z.sqlite rows=143628 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-17T21-36-01-125Z.sqlite rows=143481 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-17T15-36-01-122Z.sqlite rows=142540 target=2000000006
+[GPT IMAGE USAGE] {
+  completion_tokens: 1613,
+  completion_tokens_details: { image_tokens: 1613, reasoning_tokens: 0, text_tokens: 0 },
+  estimated: true,
+  input_tokens: 364,
+  input_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 364 },
+  output_tokens: 1613,
+  output_tokens_details: { image_tokens: 1613, reasoning_tokens: 0, text_tokens: 0 },
+  prompt_tokens: 364,
+  prompt_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 364 },
+  total_tokens: 1977
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=364 output=1613 total=1977 cached=0 reasoning=0 estimatedText=0 durationMs=78053
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=2 providerRequests=2 input=866 output=7967 total=8833 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=success durationMs=78057 
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=2231639 mime=image/png attachment=photo-233007447_457239957_763349bf06015a14c9
+[AUTO SUMMARY IMAGE SENT] peer=2000000001 model=gpt-image-2.5 textChars=281
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=782 quality=high
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-17T09-36-01-119Z.sqlite rows=141767 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-17T03-36-01-107Z.sqlite rows=141406 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-16T21-36-01-102Z.sqlite rows=141193 target=2000000006
+[GPT IMAGE USAGE] {
+  input_tokens: 234,
+  output_tokens: 6354,
+  total_tokens: 6588,
+  input_tokens_details: { text_tokens: 234, image_tokens: 0, cached_tokens: 0 },
+  output_tokens_details: { text_tokens: 0, image_tokens: 6354, reasoning_tokens: 0 }
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=234 output=6354 total=6588 cached=0 reasoning=0 estimatedText=0 durationMs=38823
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=3 providerRequests=3 input=1100 output=14321 total=15421 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=success durationMs=38825 
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\bot.sqlite.before-targeted-browser-reparse-20261016.sqlite rows=140917 target=2000000006
+[VK IMAGE UPLOAD] method=direct-multipart file=auto-summary.png bytes=1876549 mime=image/png attachment=photo-233007447_457239958_9f6b7120f3871e6cdc
+[AUTO SUMMARY IMAGE SENT] peer=2000000001 model=gpt-image-2.5 textChars=334
+[AI RUNTIME TRANSPORT] requestId=mvgg08yy-67f53f1c model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\bot.sqlite.before-no-poster-force-reparse-20261016.sqlite rows=140763 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-16T15-36-01-098Z.sqlite rows=140712 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\poster-recovery-2026-10-13.sqlite rows=134080 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-10-12T12-00-07-161Z\bot.sqlite rows=132135 target=2000000006
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5378,
+  completion_tokens: 189,
+  total_tokens: 5567,
+  prompt_tokens_details: {
+    cached_tokens: 2450,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=mvgg08yy-67f53f1c operationId=mvgg08yy-67f53f1c operation=calendar-week-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=5378 output=189 total=5567 cached=2450 reasoning=0 estimatedText=0 durationMs=54495
+[AI TOKEN TOTAL] requestId=mvgg08yy-67f53f1c operationId=mvgg08yy-67f53f1c operation=calendar-week-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=5378 output=189 total=5567 cached=2450 reasoning=0 estimatedText=0
+[SUMMARY CACHE STORE] stage=calendar-week-p1 inputs=5 key=3188d720527d
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=1304 quality=high
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-shared-multi-image-repair-20260929-161322.sqlite rows=96203 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Теща привезла \nВарить буду и есть \nНорм?"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-no-poster-delete-20260925.sqlite rows=91933 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-no-poster-purge-2026-09-25T08-43-31-878Z.sqlite rows=91933 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-no-poster-purge-2026-09-25T08-44-45-833Z.sqlite rows=91933 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-configured-registry-20260924-135409.sqlite rows=88476 target=2000000006
+[GPT IMAGE USAGE] {
+  input_tokens: 383,
+  output_tokens: 6330,
+  total_tokens: 6713,
+  input_tokens_details: { text_tokens: 383, image_tokens: 0, cached_tokens: 0 },
+  output_tokens_details: { text_tokens: 0, image_tokens: 6330, reasoning_tokens: 0 }
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=383 output=6330 total=6713 cached=0 reasoning=0 estimatedText=0 durationMs=50639
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=4 providerRequests=4 input=1483 output=20651 total=22134 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=success durationMs=50641 
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=2017938 mime=image/png attachment=photo-233007447_457239959_bedef9da93d8862e92
+[AUTO SUMMARY IMAGE SENT] peer=2000000001 model=gpt-image-2.5 textChars=753
+[AI RUNTIME TRANSPORT] requestId=mvgg08yy-67f53f1c model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-dedupe-apply-2026-09-24.sqlite rows=87534 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-mono-image-restore-2026-09-24.sqlite rows=87523 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-targeted-audit-2026-09-24.sqlite rows=87467 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-pre-poster-repair-2026-09-23T124500.sqlite rows=85496 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Тимасин"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-pre-poster-repair-2026-09-23.sqlite rows=85392 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\bot_debug_copy.sqlite rows=60585 target=2000000006
+[VK HISTORY LOCAL SQLITE READ COPY] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T12-11-57-845Z\readable-salvage.sqlite copy=C:\Users\Adm\AppData\Local\Temp\gigorave-history-snapshot-qpAu69\readable-salvage.sqlite
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T12-11-57-845Z\readable-salvage.sqlite rows=25066 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T12-11-57-845Z\bot.sqlite rows=52530 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-v170-20260907-000244\bot.sqlite rows=21 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\db-manual\bot — копия.sqlite rows=748 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\bot-before-history-link-1787835274725.sqlite rows=9022 target=2000000006
+[VK HISTORY LOCAL SQLITE DONE] peer=2000000006 files=42 readable=36 rows=3747702 checkpointRows=146694 coverageMaxCmid=210111 coverageRows=146694 checkpoint=v2
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1792400183 max=3500 reason=startup
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153444-153543
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=2 existing=92 cmid=153444-153543
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153344-153443
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153244-153343
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153144-153243
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153044-153143
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152944-153043
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=152986 type=kicked member=746894229 actor=89921228
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152844-152943
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152744-152843
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152644-152743
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152544-152643
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=996 new=2 existing=937 cmid=152544-152643
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152444-152543
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=152503 type=left member=138842074 actor=138842074
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ирина?"
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152344-152443
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152244-152343
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=152316 type=left member=137426455 actor=137426455
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152144-152243
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1394 new=2 existing=1303 cmid=152144-152243
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1394 new=2 existing=1303 cutoff=1792400183 limit=3500
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5133,
+  completion_tokens: 69,
+  total_tokens: 5202,
+  prompt_tokens_details: { audio_tokens: 0, cached_tokens: 2576 },
+  completion_tokens_details: {
+    audio_tokens: 0,
+    reasoning_tokens: 0,
+    accepted_prediction_tokens: 0,
+    rejected_prediction_tokens: 0
+  }
+}
+[AI TOKEN USAGE] requestId=mvgg08yy-67f53f1c operationId=mvgg08yy-67f53f1c operation=calendar-range-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-stream source=provider input=5133 output=69 total=5202 cached=2576 reasoning=0 estimatedText=0 durationMs=32682
+[AI TOKEN TOTAL] requestId=mvgg08yy-67f53f1c operationId=mvgg08yy-67f53f1c operation=calendar-range-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=5133 output=69 total=5202 cached=2576 reasoning=0 estimatedText=0
+[SUMMARY CACHE STORE] stage=calendar-range-p1 inputs=3 key=ce8d83c5320b
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=866 quality=high
+[GPT IMAGE USAGE] {
+  completion_tokens: 1607,
+  completion_tokens_details: { image_tokens: 1607, reasoning_tokens: 0, text_tokens: 0 },
+  estimated: true,
+  input_tokens: 432,
+  input_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 432 },
+  output_tokens: 1607,
+  output_tokens_details: { image_tokens: 1607, reasoning_tokens: 0, text_tokens: 0 },
+  prompt_tokens: 432,
+  prompt_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 432 },
+  total_tokens: 2039
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=432 output=1607 total=2039 cached=0 reasoning=0 estimatedText=0 durationMs=31731
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=5 providerRequests=5 input=1915 output=22258 total=24173 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=success durationMs=31733 
+[VK IMAGE UPLOAD] method=vk-io-buffer-retry file=auto-summary.png attachment=photo-233007447_457239960_00711f177a8e5d8de7
+[AUTO SUMMARY IMAGE SENT] peer=2000000001 model=gpt-image-2.5 textChars=313
+[AI RUNTIME TRANSPORT] requestId=mvgg08yy-67f53f1c model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5503,
+  completion_tokens: 203,
+  total_tokens: 5706,
+  prompt_tokens_details: {
+    cached_tokens: 2492,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=mvgg08yy-67f53f1c operationId=mvgg08yy-67f53f1c operation=calendar-week-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=5503 output=203 total=5706 cached=2492 reasoning=0 estimatedText=0 durationMs=14834
+[AI TOKEN TOTAL] requestId=mvgg08yy-67f53f1c operationId=mvgg08yy-67f53f1c operation=calendar-week-summary provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=10881 output=392 total=11273 cached=4942 reasoning=0 estimatedText=0
+[SUMMARY CACHE STORE] stage=calendar-week-p1 inputs=5 key=9e74d923b625
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=1354 quality=high
+[GPT IMAGE USAGE] {
+  input_tokens: 397,
+  output_tokens: 6330,
+  total_tokens: 6727,
+  input_tokens_details: { text_tokens: 397, image_tokens: 0, cached_tokens: 0 },
+  output_tokens_details: { text_tokens: 0, image_tokens: 6330, reasoning_tokens: 0 }
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=397 output=6330 total=6727 cached=0 reasoning=0 estimatedText=0 durationMs=39605
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=6 providerRequests=6 input=2312 output=28588 total=30900 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000001 model=gpt-image-2.5 attempt=1/2 status=success durationMs=39606 
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=1925816 mime=image/png attachment=photo-233007447_457239961_2ea0072566e87dac94
+[AUTO SUMMARY IMAGE SENT] peer=2000000001 model=gpt-image-2.5 textChars=808
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2523 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=70528 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610200902201375058138268d9d6NuLYFQ98)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2523 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Вообще не работает моб инет"
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=12124 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610200903301705247438268d9d6clqCluwM)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2523 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Пиздец"
+[VK MEMBERSHIP ARCHIVE REBUILD] peer=2000000006 scanned=444 restored=402
+[CHAT LEAVERS AUTO SENT] peer=2000000006 days=7 events=22 next=1793091828
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Гигорейв"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=prompt peerId=2000000006 senderId=16296974 expiresAt=2026-10-20T11:04:03.260Z
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=29765 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610200903422865792908268d9d6P5IXYYYS)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2523 quality=high
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=137426455 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Сериал нужен на домашнем про моих жен"
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=27986 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610200904117442776168268d9d6yn0aXbZi)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2523 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=30955 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610200904401321629518268d9d6q6m49wRm)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY TEXT SENT IMAGE FALLBACK] peer=2000000006 textChars=2075
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=1939 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=33677 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610200905117456424628268d9d6KDyjyjzx)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=1939 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=29437 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610200905453303415948268d9d6gMxf0pcb)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=1939 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=20248 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610200906149997843538268d9d6ec86xjng)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=1939 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=45478 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610200906354250109818268d9d60YV2BxHw)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=1939 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=31654 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610200907205244305868268d9d6x4KdW0Jt)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY TEXT SENT IMAGE FALLBACK] peer=2000000006 textChars=1491
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2344 quality=high
+[GPT IMAGE USAGE] {
+  input_tokens: 704,
+  output_tokens: 6500,
+  total_tokens: 7204,
+  input_tokens_details: { text_tokens: 704, image_tokens: 0, cached_tokens: 0 },
+  output_tokens_details: { text_tokens: 0, image_tokens: 6500, reasoning_tokens: 0 }
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=704 output=6500 total=7204 cached=0 reasoning=0 estimatedText=0 durationMs=41091
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=7 providerRequests=7 input=3016 output=35088 total=38104 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=success durationMs=41092 
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=2486096 mime=image/png attachment=photo-233007447_457239962_6b22c4cecaba76ce45
+[AUTO SUMMARY IMAGE SENT] peer=2000000006 model=gpt-image-2.5 textChars=1896
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=1165 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Хахаха а че эту irene кикнули"
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Было чет смешное?"
+[GPT IMAGE USAGE] {
+  input_tokens: 353,
+  output_tokens: 6330,
+  total_tokens: 6683,
+  input_tokens_details: { text_tokens: 353, image_tokens: 0, cached_tokens: 0 },
+  output_tokens_details: { text_tokens: 0, image_tokens: 6330, reasoning_tokens: 0 }
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=353 output=6330 total=6683 cached=0 reasoning=0 estimatedText=0 durationMs=42860
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=8 providerRequests=8 input=3369 output=41418 total=44787 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=success durationMs=42861 
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Pirate station эт не из reverse 1999"
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=2264736 mime=image/png attachment=photo-233007447_457239963_de0840128269703040
+[AUTO SUMMARY IMAGE SENT] peer=2000000006 model=gpt-image-2.5 textChars=717
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=1093 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Поиграл буквально 30 мин"
+[GPT IMAGE USAGE] {
+  completion_tokens: 1650,
+  completion_tokens_details: { image_tokens: 1650, reasoning_tokens: 0, text_tokens: 0 },
+  estimated: true,
+  input_tokens: 546,
+  input_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 546 },
+  output_tokens: 1650,
+  output_tokens_details: { image_tokens: 1650, reasoning_tokens: 0, text_tokens: 0 },
+  prompt_tokens: 546,
+  prompt_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 546 },
+  total_tokens: 2196
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=546 output=1650 total=2196 cached=0 reasoning=0 estimatedText=0 durationMs=41256
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=9 providerRequests=9 input=3915 output=43068 total=46983 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=success durationMs=41256 
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=1930685 mime=image/png attachment=photo-233007447_457239964_d9beff8dac9c116802
+[AUTO SUMMARY IMAGE SENT] peer=2000000006 model=gpt-image-2.5 textChars=645
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2483 quality=high
+[GPT IMAGE USAGE] {
+  completion_tokens: 1607,
+  completion_tokens_details: { image_tokens: 1607, reasoning_tokens: 0, text_tokens: 0 },
+  estimated: true,
+  input_tokens: 1241,
+  input_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 1241 },
+  output_tokens: 1607,
+  output_tokens_details: { image_tokens: 1607, reasoning_tokens: 0, text_tokens: 0 },
+  prompt_tokens: 1241,
+  prompt_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 1241 },
+  total_tokens: 2848
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=1241 output=1607 total=2848 cached=0 reasoning=0 estimatedText=0 durationMs=49555
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=10 providerRequests=10 input=5156 output=44675 total=49831 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=success durationMs=49557 
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=2342772 mime=image/png attachment=photo-233007447_457239965_d3ca637bc0d797404c
+[AUTO SUMMARY IMAGE SENT] peer=2000000006 model=gpt-image-2.5 textChars=2035
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=4027 quality=high
+[GPT IMAGE USAGE] {
+  completion_tokens: 1650,
+  completion_tokens_details: { image_tokens: 1650, reasoning_tokens: 0, text_tokens: 0 },
+  estimated: true,
+  input_tokens: 2013,
+  input_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 2013 },
+  output_tokens: 1650,
+  output_tokens_details: { image_tokens: 1650, reasoning_tokens: 0, text_tokens: 0 },
+  prompt_tokens: 2013,
+  prompt_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 2013 },
+  total_tokens: 3663
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=2013 output=1650 total=3663 cached=0 reasoning=0 estimatedText=0 durationMs=39715
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=11 providerRequests=11 input=7169 output=46325 total=53494 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=success durationMs=39716 
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=2616600 mime=image/png attachment=photo-233007447_457239966_642b76b85bfeddb8e3
+[AUTO SUMMARY IMAGE SENT] peer=2000000006 model=gpt-image-2.5 textChars=3579
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=5317 quality=high
+[GPT IMAGE USAGE] {
+  input_tokens: 1530,
+  output_tokens: 6354,
+  total_tokens: 7884,
+  input_tokens_details: { text_tokens: 1530, image_tokens: 0, cached_tokens: 0 },
+  output_tokens_details: { text_tokens: 0, image_tokens: 6354, reasoning_tokens: 0 }
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=1530 output=6354 total=7884 cached=0 reasoning=0 estimatedText=0 durationMs=45970
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=12 providerRequests=12 input=8699 output=52679 total=61378 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=success durationMs=45971 
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=2555393 mime=image/png attachment=photo-233007447_457239967_1f17e38d27937a1376
+[AUTO SUMMARY IMAGE SENT] peer=2000000006 model=gpt-image-2.5 textChars=4869
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=3915 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Гигорейв что лучше присесть по 105 или полежать в орловке много лет"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[ACTIVE REQUEST] peerId=2000000006 senderId=16296974 mention=true reply=false replyOrQuote=false request="что лучше присесть по 105 или полежать в орловке много лет"
+[COMMAND ROUTE] selected=default reason=no-explicit-command candidates=default explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=implicit astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=no packet=none
+[AI RUNTIME TRANSPORT] requestId=2980f0e8-1555-45bd-84d7-d33b227f3466 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT IMAGE USAGE] {
+  completion_tokens: 1607,
+  completion_tokens_details: { image_tokens: 1607, reasoning_tokens: 0, text_tokens: 0 },
+  estimated: true,
+  input_tokens: 1957,
+  input_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 1957 },
+  output_tokens: 1607,
+  output_tokens_details: { image_tokens: 1607, reasoning_tokens: 0, text_tokens: 0 },
+  prompt_tokens: 1957,
+  prompt_tokens_details: { cached_tokens: 0, image_tokens: 0, text_tokens: 1957 },
+  total_tokens: 3564
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=1957 output=1607 total=3564 cached=0 reasoning=0 estimatedText=0 durationMs=40803
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=13 providerRequests=13 input=10656 output=54286 total=64942 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=success durationMs=40804 
+[AUTO SUMMARY TEXT SENT IMAGE FALLBACK] peer=2000000006 textChars=3467
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=4447 quality=high
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4766,
+  completion_tokens: 13,
+  total_tokens: 4779,
+  prompt_tokens_details: {
+    cached_tokens: 2576,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=2980f0e8-1555-45bd-84d7-d33b227f3466 operationId=mvggu7gx-0f1c74d3 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4766 output=13 total=4779 cached=2576 reasoning=0 estimatedText=0 durationMs=23993
+[AI TOKEN TOTAL] requestId=2980f0e8-1555-45bd-84d7-d33b227f3466 operationId=mvggu7gx-0f1c74d3 operation=manual-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=4766 output=13 total=4779 cached=2576 reasoning=0 estimatedText=0
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=1 matches=0
+[GPT UNKNOWN TERMS] terms=1 resolved=0 unresolved=1 values=в Орловке
+[GPT ROUTE RESOLVED] requestedMode=default effectiveMode=default model=gpt-6-luna packet=none
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=7 matches=0
+[DIRECT GPT CHAT CONTEXT] peer=2000000006 sender=16296974 name="Денис Солодовников" messages=38 chars=2833
+[AI RUNTIME TRANSPORT] requestId=2980f0e8-1555-45bd-84d7-d33b227f3466 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 8481,
+  completion_tokens: 28,
+  total_tokens: 8509,
+  prompt_tokens_details: {
+    cached_tokens: 2576,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=2980f0e8-1555-45bd-84d7-d33b227f3466 operationId=mvggu7gx-0f1c74d3 operation=chat-reply provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=8481 output=28 total=8509 cached=2576 reasoning=0 estimatedText=0 durationMs=8299
+[AI TOKEN TOTAL] requestId=2980f0e8-1555-45bd-84d7-d33b227f3466 operationId=mvggu7gx-0f1c74d3 operation=chat-reply provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=8481 output=28 total=8509 cached=2576 reasoning=0 estimatedText=0
+[GPT ANSWER] mode=default model=gpt-5.6-luna length=standard paragraphs=1 chars=74  
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Сесть за 228"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Орловка психбольница"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=54679441 mention=false replyOrQuote=true request="Орловка психбольница" expiresAt=2026-10-20T11:14:11.255Z
+[COMMAND ROUTE] selected=default reason=no-explicit-command candidates=default explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=implicit astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=no packet=none
+[AI RUNTIME TRANSPORT] requestId=58a796d4-ed9c-454a-890a-8493ea445537 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4757,
+  completion_tokens: 11,
+  total_tokens: 4768,
+  prompt_tokens_details: {
+    cached_tokens: 2450,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=58a796d4-ed9c-454a-890a-8493ea445537 operationId=mvggv7hn-546008e9 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4757 output=11 total=4768 cached=2450 reasoning=0 estimatedText=0 durationMs=10497
+[AI TOKEN TOTAL] requestId=58a796d4-ed9c-454a-890a-8493ea445537 operationId=mvggv7hn-546008e9 operation=manual-summary provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=9523 output=24 total=9547 cached=5026 reasoning=0 estimatedText=0
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=1 matches=1 ids=19 scores=17
+[GPT UNKNOWN TERMS] terms=1 resolved=1 unresolved=0 values=Орловка
+[GPT ROUTE RESOLVED] requestedMode=default effectiveMode=default model=gpt-6-luna packet=none
+[GPT IMAGE USAGE] {
+  input_tokens: 1246,
+  output_tokens: 6330,
+  total_tokens: 7576,
+  input_tokens_details: { text_tokens: 1246, image_tokens: 0, cached_tokens: 0 },
+  output_tokens_details: { text_tokens: 0, image_tokens: 6330, reasoning_tokens: 0 }
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 capability=image transport=images-generations-json source=provider input=1246 output=6330 total=7576 cached=0 reasoning=0 estimatedText=0 durationMs=44881
+[AI TOKEN TOTAL] requestId=- operationId=- operation=auto-summary-image provider=compat model=gpt-image-2.5 requests=14 providerRequests=14 input=11902 output=60616 total=72518 cached=0 reasoning=0 estimatedText=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=success durationMs=44882 
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=2 matches=1 ids=19 scores=10
+[DIRECT GPT CHAT CONTEXT] peer=2000000006 sender=54679441 name="Егор Котлубаев" messages=38 chars=2988
+[AI RUNTIME TRANSPORT] requestId=58a796d4-ed9c-454a-890a-8493ea445537 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK IMAGE UPLOAD] method=vk-io-buffer file=auto-summary.png bytes=2582327 mime=image/png attachment=photo-233007447_457239968_3926d582a2a1a9b964
+[AUTO SUMMARY IMAGE SENT] peer=2000000006 model=gpt-image-2.5 textChars=3999
+[AI RUNTIME TRANSPORT] requestId=mvgg08yy-67f53f1c model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 10222,
+  completion_tokens: 42,
+  total_tokens: 10264,
+  prompt_tokens_details: {
+    cached_tokens: 2534,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=58a796d4-ed9c-454a-890a-8493ea445537 operationId=mvggv7hn-546008e9 operation=chat-reply provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=10222 output=42 total=10264 cached=2534 reasoning=0 estimatedText=0 durationMs=17948
+[AI TOKEN TOTAL] requestId=58a796d4-ed9c-454a-890a-8493ea445537 operationId=mvggv7hn-546008e9 operation=chat-reply provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=18703 output=70 total=18773 cached=5110 reasoning=0 estimatedText=0
+[GPT ANSWER] mode=default model=gpt-5.6-luna length=standard paragraphs=1 chars=119  
+[VK MESSAGE] peerId=2000000006 senderId=755496806 isChat=true text="А Егор Колтубаев там главный орел"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=755496806 mention=false replyOrQuote=true request="А Егор Колтубаев там главный орел" expiresAt=2026-10-20T11:15:03.376Z
+[COMMAND ROUTE] selected=default reason=no-explicit-command candidates=default explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=implicit astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=no packet=none
+[AI RUNTIME TRANSPORT] requestId=a014b66d-b231-44e6-a8c9-7ac1fe5d957d model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4762,
+  completion_tokens: 14,
+  total_tokens: 4776,
+  prompt_tokens_details: {
+    cached_tokens: 2492,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=a014b66d-b231-44e6-a8c9-7ac1fe5d957d operationId=mvggwbp7-f3c81129 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4762 output=14 total=4776 cached=2492 reasoning=0 estimatedText=0 durationMs=20558
+[AI TOKEN TOTAL] requestId=a014b66d-b231-44e6-a8c9-7ac1fe5d957d operationId=mvggwbp7-f3c81129 operation=manual-summary provider=compat model=gpt-5.6-luna requests=3 providerRequests=3 input=14285 output=38 total=14323 cached=7518 reasoning=0 estimatedText=0
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=1 matches=0
+[GPT UNKNOWN TERMS] terms=1 resolved=0 unresolved=1 values=Колтубаев
+[GPT ROUTE RESOLVED] requestedMode=default effectiveMode=default model=gpt-6-luna packet=none
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=4 matches=0
+[DIRECT GPT CHAT CONTEXT] peer=2000000006 sender=755496806 name="Uncle Seva" messages=38 chars=3118
+[AI RUNTIME TRANSPORT] requestId=a014b66d-b231-44e6-a8c9-7ac1fe5d957d model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 10614,
+  completion_tokens: 20,
+  total_tokens: 10634,
+  prompt_tokens_details: {
+    cached_tokens: 2492,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=a014b66d-b231-44e6-a8c9-7ac1fe5d957d operationId=mvggwbp7-f3c81129 operation=chat-reply provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=10614 output=20 total=10634 cached=2492 reasoning=0 estimatedText=0 durationMs=10585
+[AI TOKEN TOTAL] requestId=a014b66d-b231-44e6-a8c9-7ac1fe5d957d operationId=mvggwbp7-f3c81129 operation=chat-reply provider=compat model=gpt-5.6-luna requests=3 providerRequests=3 input=29317 output=90 total=29407 cached=7602 reasoning=0 estimatedText=0
+[GPT ANSWER] mode=default model=gpt-5.6-luna length=standard paragraphs=1 chars=51  

@@ -37,11 +37,12 @@ import { parseCoordsOverrideCommand } from '../coords/coordsOverrideRouting.js';
 import { parseQticketsCommand } from '../events/qticketsRouting.js';
 import { parseAllPartiesRequest } from '../events/allPartyDedupe.js';
 
-const IMAGE_GENERATION_PREFIX = /^(?:image|img|картин(?:ка|ку|ки|кой)?|изображени(?:е|я|ю|ем)?|нарисуй|рисуй|нарисовать|рисовать|сгенерируй\s+(?:картинку|изображение)|создай\s+(?:картинку|изображение)|сделай\s+(?:картинку|изображение))(?=$|\s)/iu;
+const IMAGE_GENERATION_PREFIX = /^(?:(?:gpt[\s-]*image[\s-]*(?:2(?:\.5)?(?:[\s-]*(?:flare|sunburst))?)|image[\s-]*2(?:\.5)?(?:[\s-]*(?:flare|sunburst))?|image25(?:flare|sunburst)|flare|sunburst)\s+)?(?:image|img|картин(?:ка|ку|ки|кой)?|изображени(?:е|я|ю|ем)?|нарисуй|рисуй|нарисовать|рисовать|изобрази|изображай|сгенерируй(?:\s+(?:картинку|изображение))?|создай(?:\s+(?:картинку|изображение))?|сделай(?:\s+(?:картинку|изображение))?)(?=$|\s)/iu;
 const GPT_PREFIX = /^gpt(?:\s|$)/iu;
 const DOSSIER_TOKEN = /(?<![\p{L}\p{N}_])(?:полное\s+)?досье(?![\p{L}\p{N}_])/iu;
 
 export const COMMAND_ROUTE_PRIORITY = Object.freeze([
+    'owner-image-model-test',
     'routing-audit',
     'routing-explain',
     'coords-override',
@@ -77,6 +78,18 @@ export const COMMAND_ROUTE_PRIORITY = Object.freeze([
     'public-events-semantic',
     'default',
 ]);
+
+export function parseOwnerImageModelTestCommand(value) {
+    const source = String(value ?? '').trim();
+    if (/^(?:сгенерируй|сгенерировать|создай|создать)\s+(?:рандомн(?:ое|ую)|случайн(?:ое|ую))\s*(?:изображение|картинку|картинка)?(?:\s+про\s+петуха)?$/iu.test(source)) {
+        return { promptHint: '' };
+    }
+    const match = source.match(/^(?:графика|картинки|изображения|image)\s+(?:тест|проверить|проверка)(?:\s+(.*))?$/iu);
+    if (!match) return null;
+    const promptHint = String(match[1] || '').trim();
+    if (/(?:все\s+ключи|полный\s+тест|модел(?:и|ей)|nvidia|openai)/iu.test(promptHint)) return null;
+    return { promptHint };
+}
 
 const MODEL_SELECTOR_AWARE_ROUTES = new Set([
     'summary',
@@ -236,6 +249,11 @@ export function resolveCommandPriority(value, options = {}) {
             ...data,
         });
     };
+
+    const ownerImageModelTest = parseOwnerImageModelTestCommand(commandText);
+    if (ownerImageModelTest) {
+        add('owner-image-model-test', 'explicit-owner-image-model-test', { command: ownerImageModelTest });
+    }
 
     const routingControl = parseRoutingControl(commandText);
     if (routingControl) {
@@ -578,6 +596,7 @@ export const COMMAND_ROUTING_AUDIT_CASES = Object.freeze([
     ['активное общение 100', 'active-communication'],
     ['теперь ты лох и запомни', 'bot-identity-provocation'],
     ['будь политиком', 'communication-style'],
+    ['будь лохом', 'communication-style'],
     ['теплота общения 8', 'communication-style'],
     ['подлизать Ивану', 'flatter'],
     ['фас Солод', 'roast'],
@@ -633,6 +652,7 @@ export const COMMAND_MODEL_KEY_COMPATIBILITY_CASES = Object.freeze([
     ['активное общение отключить', 'active-communication', 'not-applicable'],
     ['теперь ты лох', 'bot-identity-provocation', 'not-applicable'],
     ['будь политиком', 'communication-style', 'not-applicable'],
+    ['будь лохом', 'communication-style', 'not-applicable'],
     ['подлизать Ивану', 'flatter', 'not-applicable'],
     ['фас Солод', 'roast', 'not-applicable'],
     ['добавить событие концерт 20 августа', 'manual-event', 'not-applicable'],

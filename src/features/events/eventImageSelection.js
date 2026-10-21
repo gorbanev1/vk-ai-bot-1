@@ -94,7 +94,7 @@ export function rankEventImageCandidates(candidates, { limit = 4 } = {}) {
             right._score - left._score ||
             left._order - right._order
         ))
-        .slice(0, Math.max(1, Math.min(12, Number(limit) || 4)))
+        .slice(0, Math.max(1, Math.min(1000, Number(limit) || 4)))
         .map(({ _score, _order, ...candidate }) => candidate);
 }
 

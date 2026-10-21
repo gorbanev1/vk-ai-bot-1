@@ -1,5 +1,27 @@
-import { resolveVkOriginalPosts } from '../features/events/vkOriginalPost.js';
+import { acceptedDateFreePoster, storedEventDateSupported, DATE_FREE_EXTRACTION_INSTRUCTION } from '../features/events/dateFreeEventEvidence.js';
+import { resolveVkOriginalPosts, selectDeepestCapturedVkWall } from '../features/events/vkOriginalPost.js';
 import { explainEventAiAdmission } from '../features/events/eventAiAdmission.js';
+import { parseVkPhotoUploadResponse, retryVkPhotoUpload } from '../platforms/vk/vkPhotoUploadRecovery.js';
+import { LUNA_HEALTH_SAMPLE_VERSION, lunaHealthRate, lunaHealthDay, hasLunaHealthModel, canPromoteLunaHealth } from '../features/ai/lunaHealthPolicy.js';
+import { createAutoSummaryIllustration } from '../features/ai/autoSummaryIllustration.js';
+import {
+    advancePreparedUserReplyCounter,
+    findPreparedUserReplyProfile,
+    formatPreparedUserReply,
+    loadPreparedUserRepliesConfig,
+    parsePreparedUserRepliesReloadCommand,
+    pickPreparedUserReply,
+} from '../features/personality/preparedUserReplies.js';
+import {
+    buildProactiveVkMessage,
+    listDueProactiveVkParticipants,
+    loadProactiveVkRoster,
+    markProactiveVkParticipantSent,
+    saveProactiveVkRoster,
+} from '../features/personality/proactiveVkRoster.js';
+import { createInactiveVkParticipantScheduler } from '../features/personality/inactiveVkParticipants.js';
+import { BEAUTIFUL_TIME_MODES, createBeautifulTimeScheduler, parseBeautifulTimeCommand } from '../features/personality/beautifulTimeScheduler.js';
+import { configureChtivoScheduler, handleChtivoCommand } from '../features/chtivo/chtivo.js';
 /**
  * Главный оркестратор: связывает VK, Telegram, GPT, базу, события и фоновые задачи. Здесь должны оставаться только сценарии верхнего уровня; чистую логику выносим в features/shared.
  */
@@ -23,6 +45,27 @@ import { mkdir as mkdirAsync, open as openAsync, rename as renameAsync, unlink a
 import { Agent } from 'node:https';
 import { Buffer } from 'node:buffer';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { DatabaseSync } from 'node:sqlite';
+import { createDateFreeParserPolicy, createParserAttemptPacer, formatDateFreePhaseReport } from '../features/ai/dateFreeParserPolicy.js';
+import { buildDateFreePhasePlan, serializeDateFreePhasePlan, restoreDateFreePhasePlan } from '../features/scrapers/parserPhasePlan.js';
+const dateFreeParserContext = new AsyncLocalStorage();
+let preparedUserRepliesConfig = loadPreparedUserRepliesConfig();
+const PREPARED_USER_REPLIES_STATE_KEY = 'prepared-user-replies-v1';
+let proactiveVkRosterConfig = null;
+let proactiveVkRosterTickRunning = false;
+// Separate from the date-free policy: phase one keeps its normal model ladder
+// while this context only spaces request starts for explicit turbo modes.
+const parserPacingContext = new AsyncLocalStorage();
+function parserTurboPacer(mode = '') {
+    return createParserAttemptPacer({ mode: String(mode || '').toLowerCase() || 'default' });
+}
+const parserAttemptPacer = parserTurboPacer();
+async function paceParserRequest(capability, options = {}) {
+    if (options?.dateFreePolicyAttempt || dateFreeParserContext.getStore()) return;
+    if (!/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) return;
+    const state = parserPacingContext.getStore();
+    if (typeof state?.beforeAttempt === 'function') await state.beforeAttempt(capability);
+}
 import {
     DEFAULT_OPERATION_TIMEOUT_MS,
     auditRuntimeEvent,
@@ -40,7 +83,8 @@ import {
     updateOperationProgress,
 } from '../runtime/operationSupervisor.js';
 import { basename, dirname, extname, resolve, sep } from 'node:path';
-import { loadLatestParserAllRecovery, mergeParserAllCheckpoint, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand } from '../features/scrapers/parserAllRecovery.js';
+import { loadLatestParserAllRecovery, mergeParserAllCheckpoint, parserRecoveryCheckpointInputs, buildParserRecoveryNotice, dismissParserAllRecovery, parserRecoveryCommand, claimParserAllRecovery, getParserPosterGateImage } from '../features/scrapers/parserAllRecovery.js';
+import { loadLatestParserAllRecoveryAsync } from '../features/scrapers/parserRecoveryAsync.js';
 import { BOT_PATCH_VERSION } from '../shared/buildVersion.js';
 import { eventPosterRevisionEvidence } from '../features/events/eventSourceRevisionEvidence.js';
 import { createProjectAuditStreamJournal } from '../features/audit/projectAuditStreamJournal.js';
@@ -50,6 +94,8 @@ import { recoverTextResponseJobs, saveTextJobRecipient, markTextJobDelivered } f
 import { appendTelegramTextTransferLog } from '../features/audit/telegramTextTransferLog.js';
 import { splitTelegramLongReply } from '../platforms/telegram/telegramLongReply.js';
 import { parseCfProbeCommand, handleCfProbeCommand } from '../features/diagnostics/cloudflareProbe.js';
+import { createImagePromptBatcher, fitImagePromptForModel, imagePromptBatchKey } from '../features/ai/imagePromptBatcher.js';
+import { summarizeParserVisionReports } from '../features/scrapers/parserVisionCounts.js';
 import { beginTelegramTextJob, getActiveTelegramTextJob, observeTelegramTextJob, finishTelegramTextJob,
     resolveTelegramTextJobId, readTelegramTextJobLog, telegramTextJobStatus,
     saveTelegramTextJobInput, loadTelegramTextJobInput, getTelegramTextJobDeliveryState,
@@ -65,7 +111,7 @@ import {
 } from '../features/ai/routerFileProbe.js';
 import { createHash, randomInt, randomUUID } from 'node:crypto';
 import { assertTrustedModelImageUrl } from './imageDownloadPolicy.js';
-import { VK } from 'vk-io';
+import { VK, MessageContext } from 'vk-io';
 import { GigaChat, detectImage } from 'gigachat';
 
 import {
@@ -89,6 +135,8 @@ import {
     getEnabledAutoSummarySettings,
     getAllAutoSummarySettings,
     getAutoSummaryStateDatabasePath,
+    getAutoSummaryStateMeta,
+    saveAutoSummaryStateMeta,
     getAutoSummaryRun,
     saveAutoSummaryRun,
     getAutoSummaryHealth,
@@ -110,8 +158,11 @@ import {
     getDueChatLeaverAutoSettings,
     getEnabledChatLeaverAutoSettings,
     getVkCachedUserNames,
+    vkInactivityQueries,
+    getVkUserNamesAt,
     getTelegramPostMeta,
     getVkPostMeta,
+    getVkEventsForPostRefresh,
     saveVkUserNames,
     saveVkMessageArchiveRecord,
     getVkMessageArchiveStats,
@@ -128,8 +179,11 @@ import {
     saveCommunicationBanterState,
     saveManualEvent,
     createEventProposal,
+    createEventProposalOnce,
     getEventProposal,
     getLatestPendingEventProposal,
+    getPendingEventProposals,
+    updatePendingEventProposal,
     getDueEventProposals,
     resolveEventProposal,
     setParticipantStyle,
@@ -198,6 +252,7 @@ import {
     getQualifiedDiscoveredAiModels,
     getVoiceTranscriptCache,
     saveVoiceTranscriptCache,
+    voiceTranscriptJobs,
     backfillCleanLegacyPosterBindingsV18868,
     getStartupPosterRepairGroupsV18877,
     getAllStoredSourceImageAuditGroupsV188100,
@@ -324,6 +379,8 @@ import {
 import {
     createTelegramHtmlScraper,
 } from '../platforms/telegram/telegramHtmlScraper.js';
+import { createReminderManager } from '../features/telegram/reminderManager.js';
+import { formatManualSourceDisplayName, formatManualSourceListLine, formatPrimaryVkChatSourceNote, getManualSourceUrl, parseManualSourceToggleLine } from '../features/scrapers/manualSourceDisplay.js';
 
 import {
     createVkPublicScraper,
@@ -349,7 +406,9 @@ import {
 } from '../features/events/qticketsParser.js';
 
 import {
+    hasQticketsPriceLimit,
     qticketsEventMatchesPriceLimit,
+    qticketsEventHasConflictingCity,
     resolveQticketsWindowSpec,
 } from '../features/events/qticketsRouting.js';
 
@@ -358,6 +417,7 @@ import {
     getVkRawMessage,
     resolveVkMessageContent,
     resolveDeepestVkAttachmentContent,
+    extractDeepestVkAttachmentContent,
 } from '../platforms/vk/vkMessageContent.js';
 
 import {
@@ -365,6 +425,15 @@ import {
     cleanVkEventText,
     paragraphizeEventText,
 } from '../features/events/eventText.js';
+
+import {
+    buildAppleCalendarLinks,
+    buildHostedCalendarUrl,
+    buildEventCalendarIcs,
+    eventCalendarAvailability,
+    eventCalendarFilename,
+} from '../features/events/eventCalendar.js';
+import { isMultiAnnouncementForImageDelivery, shouldRejectImageFactForDelivery } from '../features/events/eventImageDeliveryPolicy.js';
 
 import {
     buildEventNormalizationPayload,
@@ -377,6 +446,7 @@ import {
     buildCompactPartyPayload,
     buildCompactPartySummarySystemPrompt,
     isCompactPartyRequest,
+    isCompactSummaryUsable,
     normalizeCompactSummary,
     getCompactSupportedTime,
 } from '../features/events/compactPartySummary.js';
@@ -535,6 +605,7 @@ import {
 
 import {
     listExternalProviderModels,
+    parseExternalProviderCommand,
     runExternalProviderChat,
     runExternalProviderImage,
 } from '../features/ai/externalProviderRouting.js';
@@ -580,15 +651,25 @@ import {
     isTechnicalModelFailure,
     resolveProviderModel,
 } from '../features/ai/modelProviderFailover.js';
-import { GPT_MODEL_LADDER, PARSER_MODEL_LADDER, POSTER_VISION_MODEL_LADDER, createParserModelSerialQueue, getGptModelLadderFrom, isRetiredParserModelError, normalizeGpt6ModelId, modelAttemptLimit } from '../features/ai/parserModelLadder.js';
+import { GPT_MODEL_LADDER, PARSER_MODEL_LADDER, POSTER_VISION_MODEL_LADDER, createParserModelSerialQueue, getGptModelLadderFrom, isRetiredParserModelError, normalizeGpt6ModelId, modelAttemptLimit, resolveParserLadderRuntimeModelId, createPosterVisionLadder } from '../features/ai/parserModelLadder.js';
+import { createPosterVisionLunaProbeController, shouldTryPosterVisionLunaProbe } from '../features/ai/posterVisionLunaProbe.js';
+import { isAstraChannelMode, isAstraUnavailableError, readAiChannelMode, writeAiChannelMode, setAiChannelMode, enqueueDeferredAiOperation, takeDeferredAiOperations, peekDeferredAiOperation, removeDeferredAiOperation, markAiChannelProbeStarted, observeAiModelEvent, shouldRouteChatAiToAstra } from '../runtime/aiChannelMode.js';
+import { parseAiChannelModeCommand } from '../features/ai/channelModeRouting.js';
+import { DEFAULT_MODEL_LADDER_PROFILES, MODEL_LADDER_PROFILE_LABELS, buildModelLadderHelp, formatModelLadderProfiles, parseModelLadderCommand, validateModelLadderProfiles } from '../features/ai/modelLadderProfiles.js';
 
 import {
     collectTelegramVoiceAttachments,
+    collectVoiceTranscriptionProviders,
     collectVkVoiceAttachments,
     formatVoiceTranscriptBlock,
+    hasUntranscribedDirectVkVoice,
     normalizeVoiceTranscript,
+    isUsableVoiceTranscript,
+    isReusableVoiceTranscriptCache,
     transcribeAudioBuffer,
+    vkVoiceDescriptorsNeedTranscriptHydration,
 } from '../features/ai/voiceTranscription.js';
+import { createVkVoiceTranscriptJobs, parseVoiceTranscriptLogCommand, formatVoiceTranscriptLog } from '../features/ai/vkVoiceTranscriptJobs.js';
 
 import {
     extractExplicitGptMode,
@@ -635,6 +716,13 @@ import {
 } from '../features/ai/autoSummaryRouting.js';
 
 import {
+    DEFAULT_AUTO_SUMMARY_LIMITS,
+    formatAutoSummaryLimits,
+    normalizeAutoSummaryLimits,
+    parseAutoSummaryLimits,
+} from '../features/ai/autoSummaryLimits.js';
+
+import {
     addCalendarDays,
     calendarWeekStart,
     calendarWeekEndExclusive,
@@ -654,6 +742,16 @@ import {
     calendarSummarySliceIsClosed,
     shouldRunCalendarSliceBoundaryTick,
 } from '../features/ai/calendarSummarySlices.js';
+import {
+    CALENDAR_LONG_ROLLUP_CATCHUP_SECONDS,
+    CALENDAR_SPECIAL_ROLLUP_CATCHUP_SECONDS,
+    calendarPeriodClosedWithinCatchup,
+    calendarSummarySourceIsFullyContained,
+    getDueCalendarDailySummaryKeys,
+    getDueCalendarLongRollups,
+    getDueCalendarSpecialRollups,
+    selectCalendarSummarySourcesForPeriod,
+} from '../features/ai/calendarSummarySchedule.js';
 
 import {
     collectIncomingMediaContext,
@@ -721,7 +819,9 @@ import {
 import {
     createManualParserDiagnostics,
 } from '../features/scrapers/manualParserDiagnostics.js';
+import { listParserErrors, updateParserError } from '../features/scrapers/parserErrorStore.js';
 import { createVkLaunchStagger } from '../features/scrapers/vkLaunchStagger.js';
+import { createVkMissingImageRecoveryQueue } from '../features/scrapers/vkMissingImageRecoveryQueue.js';
 
 import {
     createManualParserLimiter,
@@ -971,10 +1071,12 @@ import {
     formatOwnerEventSourceRecord,
 } from '../features/events/eventSourceMaterials.js';
 
+import { createEventProposalSubmission, proposalSubmissionStatus, EVENT_PROPOSAL_TEMPLATE } from '../features/events/eventProposalSubmission.js';
+import { OWNER_CARD_INTERACTION_TTL_MS, clearPendingCardInteractionState as clearCardStates, isPendingCardInteractionExpired } from '../features/events/pendingCardInteractionState.js';
+
 import {
     analyzeEventProposalDrafts,
     applyEventProposalCorrections,
-    extractEventProposalRestartSource,
     hasUsableVenueStatement,
     normalizeEventProposalDraftEvent,
     parseEventProposalCorrections,
@@ -992,6 +1094,7 @@ import {
     parsePublicPostLocally,
     publicPostLooksLikeEventCandidate,
     setPublicAiResponseMetadata,
+    validatePublicAiEvents,
 } from '../features/events/publicPostLocalParser.js';
 
 import {
@@ -1002,6 +1105,7 @@ import {
     eventHasSafePosterMatch,
     getEventSourceMediaBindingAssessment,
     getEventPosterSafetyAssessment,
+    getMeaningfulEventChatName,
     formatEventProvenance,
 } from '../features/events/eventProvenance.js';
 
@@ -1037,6 +1141,7 @@ import {
 import {
     isScraperTargetClosedError,
 } from '../features/scrapers/browserRecoveryPolicy.js';
+import { isExplicitApplicationCommand } from '../features/routing/explicitApplicationCommand.js';
 
 import {
     createBotMentionTools,
@@ -1059,6 +1164,7 @@ import {
 import {
     formatError,
     formatPrivateError,
+    formatDetailedPrivateError,
 } from '../shared/errors.js';
 
 import {
@@ -1161,6 +1267,7 @@ const CHAT_CONTEXT_MERGE_SIZE = 36000;
 const CHAT_CONTEXT_MAX_OUTPUT = 2600;
 const IMAGE_PROMPT_SIZE = 25000;
 const SAFE_IMAGE_PROMPT_SIZE = 1800;
+const IMAGE_PROMPT_BATCH_DELAY_MS = 5_000;
 const VK_MESSAGE_SIZE = 3500;
 const MEMORY_INTERACTIONS_LIMIT = 16;
 const RECENT_USER_MESSAGES_LIMIT = 10;
@@ -1266,6 +1373,15 @@ const EVENT_SOURCE_REFRESH_TIMEOUT_MS = clampInteger(
 );
 const OPENAI_IMAGE_REQUEST_TIMEOUT_MS = 20 * 60 * 1000;
 const OPENAI_IMAGE_MAX_BYTES = 25 * 1024 * 1024;
+const IMAGE_GENERATION_PROBE_INTERVAL_MS = 4 * 60 * 60 * 1000;
+const IMAGE_GENERATION_PROBE_SUCCESS_PATH = resolve('data', 'image-generation-probe-success.json');
+const IMAGE_GENERATION_PROBE_PROMPTS = Object.freeze([
+    'A quiet pine forest at dawn, soft mist, natural colors, no text',
+    'A small observatory under a clear starry sky, cinematic light, no text',
+    'A colorful abstract paper collage with geometric shapes, no text',
+    'A cozy tram passing through a rainy city at night, no text',
+]);
+let imageGenerationProbeRunning = false;
 
 /*
  * Эти VK ID не ограничиваются дневными квотами GPT
@@ -1322,6 +1438,70 @@ function isOwnerContext(context) {
     }
 
     return Number(rawContext?.senderId) === LIMIT_RESET_ADMIN_USER_ID;
+}
+
+const DEVELOPER_REPLY_STATE_KEY = 'developer-reply-v1';
+const DEVELOPER_REPLY_TTL_MS = 10 * 60 * 1000;
+function developerContactInputKey(context) {
+    const raw = getRawContext(context);
+    return `developer-contact-input:${raw?.platform || 'vk'}:${String(raw?.externalSenderId || raw?.senderId || '')}`;
+}
+
+async function forwardDeveloperRequestToOwner(context, messageText) {
+    const raw = getRawContext(context);
+    const endpoint = getCoordsRecipientEndpoint(context);
+    if (!endpoint.externalUserId) {
+        await context.send('Не удалось определить ваш профиль для ответа.');
+        return false;
+    }
+    const senderName = String(raw?.externalSenderName || '').trim() ||
+        (endpoint.platform === 'telegram' && endpoint.externalUsername ? `@${endpoint.externalUsername}` : `ID ${endpoint.externalUserId}`);
+    const profileUrl = endpoint.platform === 'vk'
+        ? `https://vk.com/id${encodeURIComponent(endpoint.externalUserId)}`
+        : endpoint.externalUsername
+            ? `https://t.me/${encodeURIComponent(endpoint.externalUsername)}`
+            : `tg://user?id=${encodeURIComponent(endpoint.externalUserId)}`;
+    const id = randomUUID();
+    const details = {
+        id, platform: endpoint.platform, endpointKey: endpoint.endpointKey,
+        externalUserId: endpoint.externalUserId, externalPeerId: endpoint.externalPeerId,
+        senderName, profileUrl, messageText: String(messageText || '').slice(0, 3500),
+        expiresAt: Date.now() + DEVELOPER_REPLY_TTL_MS, armedForOwner: '',
+    };
+    const previous = getMaintenanceState(DEVELOPER_REPLY_STATE_KEY)?.details || {};
+    const requests = Object.fromEntries(Object.entries(previous.requests || {}).filter(([, request]) => Number(request?.expiresAt || 0) > Date.now()));
+    requests[id] = details;
+    setMaintenanceState(DEVELOPER_REPLY_STATE_KEY, { details: { ...previous, requests } });
+    const notification = [
+        '✉️ Сообщение разработчику',
+        `${senderName} · ${endpoint.platform === 'vk' ? 'VK' : 'Telegram'} · ID ${endpoint.externalUserId}`,
+        profileUrl, '', String(messageText || '').slice(0, 3500),
+        '', 'Нажми «Ответить», затем отправь одно сообщение в этот диалог.',
+    ].join('\n');
+    try {
+        if (telegramBotStarted && telegramOwnerExternalUserId) {
+            await telegramBot.api.sendMessage({
+                chatId: telegramOwnerExternalUserId, text: notification,
+                replyMarkup: { inline_keyboard: [[
+                    { text: '↩️ Ответить', callback_data: `developer_reply:${id}` },
+                    { text: '👤 Открыть профиль', callback_data: `developer_profile:${id}` },
+                ]] },
+            });
+        } else if (primaryVk) {
+            await primaryVk.api.messages.send({ peer_id: LIMIT_RESET_ADMIN_USER_ID, random_id: randomInt(1, 2_000_000_000), message: notification });
+        } else {
+            throw new Error('Нет подключённого канала для уведомления владельца.');
+        }
+        await context.send('Сообщение передано разработчику.');
+        return true;
+    } catch (error) {
+        const current = getMaintenanceState(DEVELOPER_REPLY_STATE_KEY)?.details || {};
+        delete current.requests?.[id];
+        setMaintenanceState(DEVELOPER_REPLY_STATE_KEY, { details: current });
+        console.error('[DEVELOPER REQUEST FORWARD ERROR]', formatPrivateError(error));
+        await context.send('Не удалось передать сообщение разработчику сейчас. Попробуй позже.');
+        return false;
+    }
 }
 
 const BOT_REQUEST_STATS_TASK_KEY = 'bot-request-stats-v148';
@@ -2775,6 +2955,9 @@ const parsePublicEventsRangeCommand = (value) => {
     const poolRequest = parsePartyPoolRequest(stripCompactPartyRoutingKeywords(value));
     const search = parseEventSearchRequest(poolRequest.text);
     if (search?.showCatalog) return createPublicEventsRangeByKind('all');
+    if (/^(?:вообще\s+)?все\s+(?:тусы|тусовки|мероприятия|события)$/iu.test(poolRequest.text)) {
+        return createPublicEventsRangeByKind('all');
+    }
     const rangeText = search?.matched ? search.rangeText : poolRequest.text;
     const direct = parsePublicEventsRangeCommandBase(rangeText);
     if (direct) return direct;
@@ -2847,7 +3030,7 @@ function normalizeRuntimeModelId(value, fallback = 'gpt-6-luna') {
     // non-GPT provider ids (for example xAI models) unchanged.
     if (/gpt/iu.test(id)) return normalizeGpt6ModelId(id, fallback);
     if (/^luna$/iu.test(id)) return 'gpt-6-luna';
-    if (/^terra$/iu.test(id)) return 'gpt-6-luna';
+    if (/^terra$/iu.test(id)) return 'gpt-5.6-terra';
     if (/^sol$/iu.test(id)) return 'gpt-6.1-sol';
     if (/^astra$/iu.test(id)) return 'gpt-6-astra';
     return id;
@@ -2859,13 +3042,21 @@ function buildRuntimeModelCandidates({ capability = 'text', modes = [], requeste
         if (!credential) return [];
         return modelLadder.map((step, index) => ({
             ...credential,
-            model: normalizeRuntimeModelId(step.model),
+            // Explicit vision ladders may intentionally use model generations
+            // that the legacy alias normalizer maps to newer equivalents.
+            model: resolveParserLadderRuntimeModelId(step.model, {
+                capability,
+                normalize: normalizeRuntimeModelId,
+            }),
             mode: String(step.mode || ''),
             capability,
             ladderStep: index + 1,
             ladderTotal: modelLadder.length,
             attemptLimit: Math.max(1, Number(step.attempts) || modelAttemptLimit(step.model, 3)),
             imageDetail: String(step.detail || '').trim(),
+            reasoningEffort: String(step.reasoningEffort || '').trim(),
+            ...(typeof step.stream === 'boolean' ? { streamOverride: step.stream } : {}),
+            ...(Number(step.timeoutMs) > 0 ? { requestTimeoutMs: Number(step.timeoutMs) } : {}),
             source: 'parser-model-ladder',
         })).filter((candidate) => candidate.model);
     }
@@ -3005,10 +3196,12 @@ async function executeBotModelFailover({
         ...failoverOptions,
         roundRetryDelayMs,
         ...(typeof shouldRetry === 'function' ? { shouldRetry } : {}),
-        ...(typeof shouldAdvanceCandidate === 'function' ? {
-            shouldAdvanceCandidate: (error, context) =>
-                context?.credential?.source === 'parser-model-ladder' && shouldAdvanceCandidate(error, context),
-        } : {}),
+        shouldAdvanceCandidate: (error, context) => {
+            if (typeof shouldAdvanceCandidate === 'function' && context?.credential?.source === 'parser-model-ladder' && shouldAdvanceCandidate(error, context)) return true;
+            // A channel-specific 503 is not a per-model outage: move the same
+            // request up the ladder immediately after this single attempt.
+            return getCurrentOperation()?.category === 'user-request' && isAstraUnavailableError(error);
+        },
         attemptsForCandidate: (candidate) => Math.max(
             1,
             Number(candidate?.attemptLimit) || modelAttemptLimit(candidate?.model, failuresBeforeQuarantine || 3),
@@ -3046,6 +3239,41 @@ async function executeBotModelFailover({
                 timeoutFailure: Boolean(event.error && /timeout|timed\s*out|abort/iu.test(String(event.error?.message || event.error))),
                 error: event.error ? formatPrivateError(event.error) : '',
             };
+            const channelTransition = observeAiModelEvent({
+                model,
+                eventType: event.type,
+                error: event.error,
+                capability,
+                allowAuto: getCurrentOperation()?.category !== 'parser',
+                // Astra is a last-resort channel switch: only a completed
+                // finite failover round may trigger it, never one junior-model
+                // failure while higher ladder steps remain.
+                ladderExhausted: event.type === 'all-unavailable' &&
+                    (failoverOptions.maxRounds === 1 || Number(event.round || 0) >= failoverOptions.maxRounds),
+            });
+            if (channelTransition) {
+                failoverRecord.channelTransition = channelTransition.transition;
+                console.warn('[AI CHANNEL AUTO TRANSITION]', `from=${channelTransition.previous.mode}`, `to=${channelTransition.next.mode}`, `reason=${channelTransition.reason}`, `model=${model}`);
+                auditRuntimeEvent('ai.channel.auto-transition', {
+                    transition: channelTransition.transition,
+                    reason: channelTransition.reason,
+                    model,
+                    capability,
+                }, { level: 'warn' });
+                if (telegramBotStarted && telegramOwnerExternalUserId) {
+                    const message = channelTransition.transition === 'astra'
+                        ? '✨ Автоматически включён канал Astra: лестница исчерпана с ошибкой доступности источника/канала. Фоновые задачи будут отложены.'
+                        : '🔁 Младшая модель снова отвечает; автоматический режим Astra снят.';
+                    void telegramBot.api.sendMessage({ chatId: telegramOwnerExternalUserId, text: message, replyMarkup: buildTelegramMainMenu({ isOwner: true, now: new Date() }) })
+                        .catch((error) => console.warn('[AI CHANNEL MODE NOTICE FAILED]', formatPrivateError(error)));
+                    if (channelTransition.transition === 'astra') {
+                        void requestStopWhere((operation) => operation.category === 'parser' && operation.id !== getCurrentOperation()?.id, { reason: 'ai-channel-switched-to-astra' })
+                            .catch((error) => console.warn('[AI CHANNEL PARSER STOP FAILED]', formatPrivateError(error)));
+                    } else {
+                        void notifyDeferredAiOperation().catch((error) => console.warn('[AI CHANNEL DEFERRED NOTICE ERROR]', formatPrivateError(error)));
+                    }
+                }
+            }
             auditRuntimeEvent(`ai.model.${failoverRecord.type || 'event'}`, failoverRecord, {
                 level: event.type === 'failure' || event.type === 'all-unavailable' ? 'warn' : 'info',
             });
@@ -3115,69 +3343,11 @@ function parseCommaSeparatedModels(value) {
         .filter(Boolean);
 }
 
-function buildAudioTranscriptionProviders() {
-    const explicitBase = String(process.env.AUDIO_TRANSCRIPTION_BASE_URL ?? '').trim();
-    const explicitModels = parseCommaSeparatedModels(
-        process.env.AUDIO_TRANSCRIPTION_MODELS ?? process.env.AUDIO_TRANSCRIPTION_MODEL,
-    );
-    const providers = [];
-    const seen = new Set();
-    const add = ({ name, baseUrl, apiKey, models }) => {
-        const cleanBase = String(baseUrl ?? '').trim().replace(/\/$/u, '');
-        const cleanKey = String(apiKey ?? '').trim();
-        const cleanModels = [...new Set((Array.isArray(models) ? models : [])
-            .map((item) => String(item ?? '').trim())
-            .filter(Boolean))];
-        const signature = `${cleanBase}|${cleanKey}|${cleanModels.join(',')}`;
-        if (!cleanBase || !cleanKey || !cleanModels.length || seen.has(signature)) return;
-        seen.add(signature);
-        providers.push({ name, baseUrl: cleanBase, apiKey: cleanKey, models: cleanModels });
-    };
-
-    if (explicitBase) {
-        for (const row of readNumberedEnvironmentEntries('AUDIO_TRANSCRIPTION_API_KEY')) {
-            add({
-                name: row.name,
-                baseUrl: explicitBase,
-                apiKey: row.value,
-                models: explicitModels.length ? explicitModels : ['gpt-4o-mini-transcribe', 'whisper-1'],
-            });
-        }
-    }
-
-    for (const credential of collectConfiguredAiCredentials(process.env)) {
-        if (credential.provider === 'openai') {
-            add({
-                name: credential.name,
-                baseUrl: credential.baseUrl || 'https://api.openai.com/v1',
-                apiKey: credential.secret,
-                models: explicitModels.length ? explicitModels : ['gpt-4o-mini-transcribe', 'whisper-1'],
-            });
-        } else if (credential.provider === 'groq') {
-            add({
-                name: credential.name,
-                baseUrl: credential.baseUrl || 'https://api.groq.com/openai/v1',
-                apiKey: credential.secret,
-                models: explicitModels.length ? explicitModels : ['whisper-large-v3-turbo', 'whisper-large-v3'],
-            });
-        } else if (credential.provider === 'openai-compatible') {
-            add({
-                name: credential.name,
-                baseUrl: credential.baseUrl || openAIBaseUrl,
-                apiKey: credential.secret,
-                models: explicitModels.length ? explicitModels : ['whisper-1', 'gpt-4o-mini-transcribe'],
-            });
-        }
-    }
-
-    return providers;
-}
-
-const audioTranscriptionProviders = buildAudioTranscriptionProviders();
 const voiceTranscriptionEnabled = readBooleanEnvironment(
     'VOICE_TRANSCRIPTION_ENABLED',
     true,
 );
+const voiceTranscriptionProviders = collectVoiceTranscriptionProviders(process.env);
 const voiceTranscriptionTimeoutMs = clampInteger(
     process.env.VOICE_TRANSCRIPTION_TIMEOUT_MS,
     5_000,
@@ -3480,8 +3650,38 @@ function createIdleAbortWatchdog(timeoutMs, label = 'stream') {
 
 function saveOperationCheckpoint(checkpoint, options) {
     const operation = getCurrentOperation();
-    return persistOperationCheckpoint(/^parser-all(?:$|[:-])/u.test(operation?.name || '')
-        ? mergeParserAllCheckpoint(operation.checkpoint, checkpoint) : checkpoint, options);
+    const parserAll = /^parser-all(?:$|[:-])/u.test(operation?.name || '');
+    const merged = parserAll ? mergeParserAllCheckpoint(operation.checkpoint, checkpoint) : checkpoint;
+    const event = String(options?.event || '');
+    const frequentParserUpdate = parserAll && (
+        event === 'parser.phase2.models' ||
+        event === 'parser.checkpoint.candidate' ||
+        event === 'parser.checkpoint.capture-progress' ||
+        event === 'parser.checkpoint.poster-gate-progress' ||
+        event === 'parser.checkpoint.vision-model-timing'
+    );
+    return persistOperationCheckpoint(merged, { ...options, ...(frequentParserUpdate ? { deferPersist: true } : {}) });
+}
+
+async function sendParserVisionStatsToOwner(run, summary, partyPool) {
+    if (!telegramBotStarted || !telegramOwnerExternalUserId || !run) return false;
+    const report = run.visionTimingReport || {};
+    const models = Array.isArray(report.models) ? report.models : [];
+    const phaseTwo = summary?.phaseTwoModels || run.phaseTwoModels || null;
+    const phaseTwoRows = phaseTwo?.models ? Object.entries(phaseTwo.models).flatMap(([model, row]) => Object.entries(row.capabilities || {}).map(([capability, stats]) => ({ model, capability, stats }))) : [];
+    const phaseTwoAttempts = phaseTwoRows.reduce((sum, row) => sum + Number(row.stats?.attempts || 0), 0);
+    const phaseTwoCompleted = phaseTwoRows.reduce((sum, row) => sum + Number(row.stats?.successes || 0) + Number(row.stats?.failures || 0), 0);
+    const lines = [
+        `📊 Vision-отчёт парсера (${partyPool === PARTY_POOL_SECONDARY ? 'второстепенные источники' : 'основные источники'})`,
+        `Запросов: ${Number(report.totalRequests || 0)}; завершено: ${Number(report.completedRequests || 0)}; ошибок: ${Number(report.failedRequests || 0)}; cache hits: ${Number(report.cacheHits || 0)}.`,
+        ...models.map((row) => `${row.model}: попыток ${row.attempts}; успехов ${row.successes}; отказов ${row.failures}; таймаутов ${row.timeouts}; среднее ${Math.round(Number(row.averageMs || 0) / 1000)} с; p95 ${Math.round(Number(row.p95Ms || 0) / 1000)} с; максимум ${Math.round(Number(row.maxMs || 0) / 1000)} с.`),
+        phaseTwo ? `Фаза 2: всего попыток ${phaseTwoAttempts}; завершено ${phaseTwoCompleted}; незавершено ${Math.max(0, phaseTwoAttempts - phaseTwoCompleted)}; доля отказов Luna ${Math.round(Number(phaseTwo.lunaFailureRatio || 0) * 100)}%; Terra ${Math.round(Number(phaseTwo.terraFailureRatio || 0) * 100)}%.` : '',
+        ...phaseTwoRows.map(({ model, capability, stats }) => `${model}, ${capability === 'vision' ? 'Vision' : 'текстовые метаданные'}: попыток ${stats.attempts}; успехов ${stats.successes}; отказов ${stats.failures}; среднее ${Math.round(Number(stats.totalMs || 0) / Math.max(1, Number(stats.successes || 0) + Number(stats.failures || 0)) / 1000)} с; минимум ${Math.round(Number(stats.minMs || 0) / 1000)} с; максимум ${Math.round(Number(stats.maxMs || 0) / 1000)} с.`),
+        `Режим интервала: ${run.turboMode || summary?.turboMode || 'обычный'}; фаза 2 использует тот же pacer, что и фаза 1.`,
+        'AI-решение: для каждого обработанного поста сохраняется структура ответа и краткая причина; для not_event причина используется в диагностике как смысловой заголовок поста.',
+    ];
+    await telegramBot.api.sendMessage({ chatId: telegramOwnerExternalUserId, text: lines.join('\n') });
+    return true;
 }
 
 async function notifyParserRecovery(recovery) {
@@ -3493,12 +3693,77 @@ async function notifyParserRecovery(recovery) {
     return true;
 }
 
+async function resumeAuthorizedParserOnStartup(recovery) {
+    // A failure-rate pause requires the owner's explicit ladder/skip choice.
+    if (recovery?.checkpoint?.phaseTwoModels?.stopped && !recovery.checkpoint.ordinaryPhaseTwo) return false;
+    // Explicit checkpoint selection prevents reviving unrelated or superseded jobs.
+    const requestedId = String(process.env.PARSER_AUTO_RESUME_CHECKPOINT_ID || '').trim();
+    const explicitResume = Boolean(requestedId && recovery?.id === requestedId);
+    if ((requestedId && recovery?.id !== requestedId) || (!explicitResume && Number(recovery?.autoRecoveryDepth || 0) >= 1) || !recovery.available ||
+        recovery.reason === 'superseded' || !telegramBotStarted || !telegramOwnerExternalUserId) return false;
+    if (listActiveOperations().some((operation) => operation.category === 'parser') || futureEventsRefreshRunningV188145) return false;
+    if (!claimParserAllRecovery(recovery)) return false;
+    const context = {
+        platform: 'telegram', senderId: telegramOwnerInternalUserId,
+        externalSenderId: telegramOwnerExternalUserId,
+        peerId: -Number(telegramOwnerInternalUserId), isDM: true, isChat: false,
+        async send(payload) {
+            const text = typeof payload === 'string' ? payload : String(payload?.text || payload?.message || '');
+            let sent;
+            for (const part of splitTelegramLongReply(text)) {
+                sent = await telegramBot.api.sendMessage({ chatId: telegramOwnerExternalUserId, text: part, replyMarkup: payload?.replyMarkup });
+            }
+            return sent;
+        },
+    };
+    console.log('[PARSER AUTO RESUME]', `checkpoint=${recovery.id}`, 'policy=once',
+        `vision=${POSTER_VISION_MODEL_LADDER.map((step) => `${step.model}:${step.attempts}`).join('>')}`);
+    await handleManualScraperCommand(context, parserRecoveryCommand(recovery.partyPool), { recoveryCheckpointId: recovery.id });
+    return true;
+}
+
+async function waitAndResumeParserAfterSettlement({ operationId, partyPool }) {
+    const deadline = Date.now() + 30 * 60 * 1000;
+    let firstWait = true;
+    while (Date.now() < deadline) {
+        await new Promise((resolvePromise) => setTimeout(resolvePromise, firstWait ? 2_000 : 5_000));
+        firstWait = false;
+        const recovery = loadLatestParserAllRecovery({ partyPool, expectedId: operationId });
+        if (!recovery || recovery.reason === 'superseded' || !recovery.available) return false;
+        const activeParser = listActiveOperations().filter((operation) => operation.category === 'parser');
+        // The timed-out task can finish late. Wait for its durable checkpoint to
+        // settle instead of starting a second parser against the same SQLite.
+        if (activeParser.some((operation) => operation.id === operationId)) continue;
+        if (activeParser.length) return false;
+        if (await resumeAuthorizedParserOnStartup(recovery)) return true;
+        return false;
+    }
+    console.warn('[PARSER AUTO RESUME WAIT EXPIRED]', 'operation=' + operationId);
+    return false;
+}
+
+const deferredAiTaskRegistry = new Map();
+
 function runDetachedSupervisedOperation({
     name,
     category = 'background',
     metadata = {},
     timeoutMs = DEFAULT_OPERATION_TIMEOUT_MS,
 } = {}, task) {
+    if (isAstraChannelMode() && category !== 'ai-channel-probe' && category !== 'transport-maintenance' && category !== 'startup' && category !== 'user-request') {
+        const deferredId = 'bg-' + createHash('sha1').update(String(category) + ':' + String(name || '')).digest('hex').slice(0, 16);
+        deferredAiTaskRegistry.set(deferredId, { name, category, metadata, timeoutMs, task });
+        enqueueDeferredAiOperation({
+            type: 'background-operation',
+            id: deferredId,
+            label: String(name || category),
+            operationName: String(name || ''),
+            category,
+            deferredAt: Date.now(),
+        });
+        console.log('[AI CHANNEL OPERATION DEFERRED]', 'mode=astra', 'category=' + category, 'name=' + String(name || ''));
+        return Promise.resolve({ skipped: 'astra-channel-mode' });
+    }
     let operationId = '';
     const promise = runSupervisedOperation({
         name,
@@ -3510,10 +3775,21 @@ function runDetachedSupervisedOperation({
         return task(operation);
     });
     if (/^parser-all(?:$|[:-])/u.test(name || '')) {
-        const notify = () => notifyParserRecovery(loadLatestParserAllRecovery({
-            partyPool: metadata.partyPool || PARTY_POOL_PRIMARY, expectedId: operationId,
-        })).catch((error) => console.warn('[PARSER RECOVERY NOTICE FAILED]', formatPrivateError(error)));
-        void promise.then(notify, notify).catch((error) => console.warn('[PARSER RECOVERY LOOKUP FAILED]', formatPrivateError(error)));
+        const notifyAndResume = async () => {
+            const partyPool = metadata.partyPool || PARTY_POOL_PRIMARY;
+            const recovery = loadLatestParserAllRecovery({ partyPool, expectedId: operationId });
+            // Telegram delivery can hang independently of the parser. Do not
+            // make recovery depend on the owner notice transport; both actions
+            // are durable/idempotent and may proceed independently.
+            void notifyParserRecovery(recovery)
+                .catch((error) => console.warn('[PARSER RECOVERY NOTICE FAILED]', formatPrivateError(error)));
+            if (recovery?.available && recovery.reason !== 'superseded') {
+                void waitAndResumeParserAfterSettlement({ operationId, partyPool })
+                    .catch((error) => console.warn('[PARSER AUTO RESUME FAILED]', formatPrivateError(error)));
+            }
+        };
+        void promise.then(notifyAndResume, notifyAndResume)
+            .catch((error) => console.warn('[PARSER RECOVERY LOOKUP FAILED]', formatPrivateError(error)));
     }
     void promise.catch((error) => {
         auditRuntimeEvent('operation.detached.rejected', {
@@ -3577,8 +3853,54 @@ function getConfiguredModeForModel(model) {
 
     return 'default';
 }
+const DEFAULT_GPT_IMAGE_MODEL = 'gpt-image-2.5';
+const IMAGE_MODEL_ALIASES = Object.freeze({
+    'gpt-image-2': 'gpt-image-2',
+    'image-2': 'gpt-image-2',
+    'image2': 'gpt-image-2',
+    'gpt-image-2.5': 'gpt-image-2.5',
+    'image-2.5': 'gpt-image-2.5',
+    'image2.5': 'gpt-image-2.5',
+    'image25': 'gpt-image-2.5',
+    'flare': 'gpt-image-2.5-flare',
+    'image25flare': 'gpt-image-2.5-flare',
+    'image-2.5-flare': 'gpt-image-2.5-flare',
+    'gpt-image-2.5-flare': 'gpt-image-2.5-flare',
+    'sunburst': 'gpt-image-2.5-sunburst',
+    'image25sunburst': 'gpt-image-2.5-sunburst',
+    'image-2.5-sunburst': 'gpt-image-2.5-sunburst',
+    'gpt-image-2.5-sunburst': 'gpt-image-2.5-sunburst',
+});
+function normalizeImageModelAlias(value = '') {
+    const raw = String(value ?? '').trim().toLowerCase().replace(/[\u2011\u2013\u2014]/gu, '-');
+    if (!raw) return '';
+    const compact = raw.replace(/[\s_-]+/gu, '');
+    const canonical = {
+        gptimage2: 'gpt-image-2',
+        image2: 'gpt-image-2',
+        gptimage25: 'gpt-image-2.5',
+        image25: 'gpt-image-2.5',
+        gptimage25flare: 'gpt-image-2.5-flare',
+        image25flare: 'gpt-image-2.5-flare',
+        gptimage25sunburst: 'gpt-image-2.5-sunburst',
+        image25sunburst: 'gpt-image-2.5-sunburst',
+    };
+    return IMAGE_MODEL_ALIASES[raw] || IMAGE_MODEL_ALIASES[compact] || canonical[compact] || raw;
+}
+const IMAGE_MODEL_TOKEN = '(?:gpt[\s_-]*image[\s_-]*(?:2(?:[._-]?5)?(?:[\s_-]*(?:flare|sunburst))?)|image[\s_-]*2(?:[._-]?5)?(?:[\s_-]*(?:flare|sunburst))?|image25(?:flare|sunburst)|flare|sunburst)';
+function extractLeadingImageModel(value = '') {
+    const source = String(value ?? '').trim();
+    const match = source.match(new RegExp(`^(${IMAGE_MODEL_TOKEN})(?=$|\\s)`, 'iu'));
+    if (!match) return { model: '', body: source };
+    return { model: normalizeImageModelAlias(match[1]), body: source.slice(match[0].length).trim() };
+}
+function extractEmbeddedImageModel(value = '') {
+    const source = String(value ?? '');
+    const match = source.match(new RegExp(`\\b(${IMAGE_MODEL_TOKEN})(?=$|\\s)`, 'iu'));
+    return match ? normalizeImageModelAlias(match[1]) : '';
+}
 const configuredGptImageModel =
-    process.env.GPT_IMAGE_MODEL?.trim() || 'gpt-image-2';
+    process.env.GPT_IMAGE_MODEL?.trim() || DEFAULT_GPT_IMAGE_MODEL;
 const googleMapsApiKey =
     process.env.GOOGLE_MAPS_API_KEY?.trim() || '';
 const GOOGLE_GEOCODING_TIMEOUT_MS = 15 * 1000;
@@ -3721,6 +4043,17 @@ function resolveIncomingCommandPriority(value, options = {}) {
         : resolveCommandPriority('', options);
 }
 
+function resolveIncomingScraperFastPath(value) {
+    const decision = resolveIncomingCommandPriority(value, {
+        parsePublicEventsRangeCommand,
+        looksLikePublicEventsQuestion,
+    });
+    if (decision.route === 'scraper-start' || decision.route === 'qtickets-events') {
+        return decision;
+    }
+    return null;
+}
+
 /**
  * Единый дешёвый детектор явной команды для pending-state fast-paths.
  * Он нужен не для выполнения команды, а чтобы незавершённый ввод (QR,
@@ -3781,7 +4114,7 @@ function detectExplicitIncomingCommand(value) {
 
 function isGlobalInteractionCancelCommand(value) {
     return getIncomingCommandCandidates(value).some((candidate) =>
-        /^(?:отмена|отменить|отмени|cancel|стоп|сброс(?:ить)?(?:\s+режим)?|выйти)$/iu.test(
+        /^(?:отмена|отменить|отмени|cancel|стоп|сброс(?:ить)?(?:\s+(?:режим|состояние))?|отменить\s+отправку|выйти)$/iu.test(
             String(candidate ?? '').trim(),
         ),
     );
@@ -3789,7 +4122,9 @@ function isGlobalInteractionCancelCommand(value) {
 
 function clearPendingInteractionState(context) {
     const stateKey = getCoordsOwnerInputKey(context);
-    let cleared = 0;
+    const proposalKey = 'event-proposal-session:' + getEventProposalInputKey(context);
+    let cleared = getMaintenanceState(proposalKey)?.details?.session ? 1 : 0;
+    setMaintenanceState(proposalKey, { details: { session: null } });
     for (const store of [
         pendingCoordsMessageInputs,
         pendingCoordsBroadcastInputs,
@@ -3800,6 +4135,7 @@ function clearPendingInteractionState(context) {
         pendingEventDeletionConfirmations,
         pendingEventModerationSelections,
         pendingEventEditInputs,
+        pendingPosterChoiceReviews,
     ]) {
         if (store.delete(stateKey)) cleared += 1;
     }
@@ -3819,9 +4155,45 @@ function clearPendingInteractionState(context) {
     return cleared;
 }
 
+function clearPendingCardInteractionState(context) {
+    const key = getEventProposalInputKey(context);
+    return clearCardStates(key, [
+        pendingManualEventUpdates,
+        pendingEventDeletionConfirmations,
+        pendingEventModerationSelections,
+        pendingEventEditInputs,
+        pendingPosterChoiceReviews,
+    ]);
+}
+
+function isOwnerEventSelectionReply(context, value) {
+    if (!isOwnerContext(context) || !isPrivateContext(context)) return false;
+    const key = getEventProposalInputKey(context);
+    const pending = pendingEventModerationSelections.get(key);
+    if (pending && isPendingCardInteractionExpired(pending)) {
+        pendingEventModerationSelections.delete(key);
+        return false;
+    }
+    return Boolean(pending && parseOwnerEventNumberSelection(value, {
+        action: pending.action === 'edit' ? 'edit' : 'delete',
+        max: pending.candidates.length,
+    })?.action === 'select');
+}
+
+function maybeInterruptPendingCardInteraction(context, value) {
+    const text = String(value ?? '').trim();
+    if (!text || isOwnerEventSelectionReply(context, text)) return false;
+    const isEventCatalogCommand = /^(?:все\s+тусы|вообще\s+все\s+тусы|тусы(?:\s+(?:на|за|вообще|все)|$)|тусовки(?:\s+(?:на|за|вообще|все)|$)|афиша(?:\s+(?:на|за|вообще|все)|$))/iu.test(text) ||
+        getIncomingCommandCandidates(text).some((candidate) => Boolean(parsePublicEventsRangeCommand(candidate)));
+    if (!detectExplicitIncomingCommand(text).matched && !isEventCatalogCommand) return false;
+    return clearPendingCardInteractionState(context) > 0;
+}
+
 async function maybeHandleGlobalInteractionCancel(context, value) {
     if (!isGlobalInteractionCancelCommand(value)) return false;
 
+    const proposalSession = getMaintenanceState('event-proposal-session:' + getEventProposalInputKey(context))?.details?.session;
+    if (proposalSession || /сбросить\s+состояние/iu.test(value)) return eventProposalSubmission.handle(context, 'сбросить состояние');
     const cleared = clearPendingInteractionState(context);
     await context.send(
         cleared
@@ -3858,6 +4230,17 @@ const gigaChat = gigaChatClients[0]?.client || null;
 const primaryVk = new VK({
     token: process.env.VK_TOKEN,
     apiVersion: '5.199',
+});
+configureChtivoScheduler({
+    async send({ peerId, message, replyTo = 0 }) {
+        const response = await primaryVk.api.messages.send({
+            peer_id: Number(peerId),
+            random_id: randomInt(1, 2_147_483_647),
+            message: String(message),
+            ...(replyTo > 0 ? { reply_to: Number(replyTo) } : {}),
+        });
+        return { message_id: Number(response) || 0 };
+    },
 });
 const eventVk = vkEventToken
     ? new VK({
@@ -3904,6 +4287,32 @@ const vk = new Proxy(primaryVk, {
     },
 });
 
+async function requestVkWallByIdWithFallback(request) {
+    const clients = [
+        historyUserVk,
+        getActiveVkConnection()?.client,
+        primaryVk,
+        eventVk,
+    ].filter((client, index, list) => client && list.indexOf(client) === index);
+    let lastError = null;
+    for (const client of clients) {
+        try {
+            return await client.api.wall.getById(request);
+        } catch (error) {
+            lastError = error;
+            // Code 27 is a token capability error, not a transient request
+            // failure. Once a group token has returned it, retrying the same
+            // wall.getById call through other group clients only adds latency
+            // and repeats the same failure. A configured user/history token is
+            // the only meaningful API fallback; browser hydration handles the
+            // remaining public-post case.
+            if (Number(error?.code) === 27 && client !== historyUserVk) break;
+            if (Number(error?.code) !== 27 && clients.length === 1) break;
+        }
+    }
+    throw lastError || new Error('VK wall.getById unavailable');
+}
+
 const vkConnections = [
     {
         client: primaryVk,
@@ -3940,11 +4349,208 @@ const telegramBot = createTelegramBot({
     token: telegramBotToken,
     onMessage: handleTelegramIncoming,
     onCallbackQuery: handleTelegramEventCardCallbackUpdate,
+    onMenuAction: ({ message, menuResult }) => {
+        // Telegram handles keyboard navigation inside the adapter and may not
+        // call the application router. Drop only transient owner-card states
+        // when the user chooses a real menu action, so an abandoned edit or
+        // selection cannot consume the next command. Durable proposal drafts
+        // are intentionally preserved.
+        if (!message?.chat?.id || menuResult?.type === 'pass') return;
+        const replyState = getMaintenanceState(DEVELOPER_REPLY_STATE_KEY)?.details;
+        if (replyState?.armedForOwner) {
+            setMaintenanceState(DEVELOPER_REPLY_STATE_KEY, { details: { ...replyState, armedRequestId: '', armedForOwner: '' } });
+        }
+        const contactContext = { platform: 'telegram', externalSenderId: String(message.from?.id || '') };
+        const contactKey = developerContactInputKey(contactContext);
+        if (String(menuResult.text || '') !== 'написать разработчику') {
+            setMaintenanceState(contactKey, { details: {} });
+        }
+        clearPendingCardInteractionState({
+            platform: 'telegram',
+            peerId: resolveTelegramPeerIdentity({ chatId: message.chat.id, chatType: message.chat.type }),
+            senderId: resolveTelegramUserIdentity({ userId: message.from?.id }),
+        });
+    },
+    hasProposalDraft: message => {
+        const key = ['telegram', resolveTelegramPeerIdentity({ chatId: message.chat.id, chatType: message.chat.type }), resolveTelegramUserIdentity({ userId: message.from.id })].join(':');
+        const session = getMaintenanceState('event-proposal-session:' + key)?.details?.session;
+        return Boolean(session && session.mode !== 'sent');
+    },
     resolvePeerId: resolveTelegramPeerIdentity,
     resolveUserId: resolveTelegramUserIdentity,
     ownerUserId: telegramOwnerExternalUserId,
     statePath: './data/telegram-update-offset.json',
 });
+
+const telegramReminderManager = createReminderManager({
+    api: telegramBot?.api,
+    storagePath: resolve(RUNTIME_DATA_DIRECTORY, 'telegram-reminders.json'),
+    timeZone: botTimeZone,
+    ownerExternalUserId: telegramOwnerExternalUserId,
+    parseReminderWithAi: async ({ text, help, now, timeZone, event = null }) => {
+        const response = await generateDefaultGptText({
+            systemPrompt: [
+                'Ты уточняешь только команды напоминаний для Telegram.',
+                'Сначала определи, есть ли в исходном тексте явное намерение создать напоминание именно об указанном событии.',
+                'Не превращай приветствие, благодарность, отказ, вопрос или постороннее сообщение в напоминание. В этих случаях верни understood=false и command="".',
+                'При явном, но неточно сформулированном намерении предложи ближайшую безопасную команду только из перечисленных форматов.',
+                'Не устанавливай напоминание и не выполняй действие.',
+                'Верни только JSON без markdown: {"understood":true|false,"command":"...","explanation":"..."}.',
+                event ? 'Разбери только намерение о напоминании для текущего события. Дата/время события: ' + String(event.eventDate || '') + ' ' + String(event.eventTime || '') + ' (' + String(event.timeZone || timeZone) + '). Возвращай команду только из контекстных шаблонов: «накануне в ЧЧ:ММ», «в день события в ЧЧ:ММ», «за 2 часа» или «за 3 часа». Никогда не придумывай другое событие или дату.' : 'Команда должна начинаться с «напомни» или «напоминай», содержать явное будущее время/дату и действие.',
+                'Если данных недостаточно или дата в прошлом, understood=false и command="".',
+            ].join('\\n'),
+            userPrompt: ['Исходная команда пользователя:', text, '', event ? 'Событие: ' + JSON.stringify(event) : '', 'Доступные форматы:', help, '', 'Текущая дата и часовой пояс: ' + now.toISOString() + ' (' + timeZone + ')'].filter(Boolean).join('\\n'),
+            temperature: 0,
+            maxTokens: 300,
+            requestTimeoutMs: 120_000,
+            failoverMaxRounds: 1,
+            tokenUsageOperation: 'telegram-reminder-ai-clarification',
+            skipIncomingMessageContext: true,
+        });
+        const raw = String(response ?? '').trim();
+        const jsonText = raw.match(/\{[\s\S]*\}/u)?.[0] || raw;
+        try { return JSON.parse(jsonText); } catch { return { understood: false, command: '', explanation: 'Некорректный JSON от модели' }; }
+    },
+    resolveEvent: async (sourceType, id) => findUpcomingEventByIdentityV18900(sourceType, id),
+});
+
+const BEAUTIFUL_TIME_STATE_KEY = 'beautiful-time-scheduler-v5';
+const beautifulTimeScheduler = createBeautifulTimeScheduler({
+    loadState: () => getMaintenanceState(BEAUTIFUL_TIME_STATE_KEY)?.details || {},
+    saveState: state => setMaintenanceState(BEAUTIFUL_TIME_STATE_KEY, { details: state }),
+    send: async (target, message) => {
+        if (target.platform === 'telegram') {
+            if (!telegramBot || !telegramBotStarted) throw new Error('Telegram is not connected');
+            await telegramBot.api.sendMessage({
+                chatId: target.externalPeerId, text: message,
+                ...(target.threadId ? { messageThreadId: target.threadId } : {}),
+            });
+            return;
+        }
+        const client = target.endpointKey === 'vk:event' ? eventVk : primaryVk;
+        if (!client) throw new Error(`VK endpoint ${target.endpointKey} is unavailable`);
+        await client.api.messages.send({
+            peer_id: Number(target.externalPeerId),
+            random_id: randomInt(1, 2_000_000_000),
+            message,
+        });
+    },
+});
+
+async function handleBeautifulTimeCommand(context, text) {
+    const mode = parseBeautifulTimeCommand(text);
+    if (!mode) return false;
+    const raw = getRawContext(context);
+    const platform = String(raw?.platform || 'vk');
+    const active = platform === 'vk' ? getActiveVkConnection() : null;
+    const target = platform === 'telegram'
+        ? {
+            platform, endpointKey: 'telegram', peerId: Number(raw?.peerId || 0),
+            externalPeerId: String(raw?.externalPeerId || ''),
+            threadId: Number(raw?.telegramMessageThreadId || 0), timeZone: botTimeZone,
+        }
+        : {
+            platform, endpointKey: active?.label === 'event' ? 'vk:event' : 'vk:primary',
+            peerId: Number(raw?.peerId || 0), externalPeerId: String(raw?.peerId || ''),
+            timeZone: botTimeZone,
+        };
+    if (!target.externalPeerId || !Number.isSafeInteger(target.peerId) || target.peerId <= 0) {
+        await context.send('Не удалось определить беседу для фиксации времени.');
+        return true;
+    }
+    if (mode === 'stop') {
+        const stopped = beautifulTimeScheduler.deactivate(target);
+        if (stopped) await context.send('Фиксацию времени остановил. История сохранена.');
+        else await context.send('Фиксация времени не была включена.');
+        return true;
+    }
+    beautifulTimeScheduler.activate(target, mode);
+    if (mode === BEAUTIFUL_TIME_MODES.TIME) await context.send('Понял. Фиксирую время.');
+    else await context.send('Понял. Фиксирую время и дату.');
+    return true;
+}
+
+const MODEL_LADDER_STATE_KEY = 'ai-model-ladder-profiles-v1';
+const GPT6_LUNA_MODEL_ID = 'gpt-6-luna';
+const GPT56_LUNA_MODEL_ID = 'gpt-5.6-luna';
+
+function migrateModelLadderProfilesForGpt56Luna(profiles) {
+    const source = validateModelLadderProfiles(profiles || DEFAULT_MODEL_LADDER_PROFILES);
+    const migrated = {};
+    let changed = false;
+    const lunaHealth = getMaintenanceState('gpt-6-luna-health-v1')?.details;
+    const allowSixLuna = lunaHealth?.version === LUNA_HEALTH_SAMPLE_VERSION && lunaHealth?.promoted === true;
+    for (const [profile, rawSteps] of Object.entries(source)) {
+        const steps = Array.isArray(rawSteps) ? rawSteps.map((step) => ({ ...step })) : [];
+        // The persisted profile is user-editable and can outlive a default
+        // ladder change. Always make 5.6 Luna the first parser/chat step;
+        // merely inserting it when absent left old Terra-first profiles active
+        // and made the new ladder appear to be ignored.
+        const existingLuna = steps.find((step) => String(step?.model || '').trim() === GPT56_LUNA_MODEL_ID);
+        const withoutSixLuna = steps.filter((step) => (allowSixLuna || String(step?.model || '').trim() !== GPT6_LUNA_MODEL_ID) && String(step?.model || '').trim() !== GPT56_LUNA_MODEL_ID);
+        if (!allowSixLuna && steps.some((step) => step.model === GPT6_LUNA_MODEL_ID)) changed = true;
+        const isVision = /vision/u.test(profile);
+        const luna = {
+            ...(existingLuna || {}),
+            model: GPT56_LUNA_MODEL_ID,
+            attempts: Math.max(1, Number(existingLuna?.attempts) || 1),
+            ...(isVision ? { detail: existingLuna?.detail || 'high', reasoningEffort: existingLuna?.reasoningEffort || 'none' } : { reasoningEffort: existingLuna?.reasoningEffort || 'none' }),
+        };
+        if (!existingLuna || steps[0]?.model !== GPT56_LUNA_MODEL_ID) changed = true;
+        migrated[profile] = [luna, ...withoutSixLuna];
+    }
+    return { profiles: validateModelLadderProfiles(migrated), changed };
+}
+
+function readModelLadderProfiles() {
+    const details = getMaintenanceState(MODEL_LADDER_STATE_KEY)?.details;
+    const migrated = migrateModelLadderProfilesForGpt56Luna(details?.profiles || DEFAULT_MODEL_LADDER_PROFILES);
+    if (migrated.changed) {
+        setMaintenanceState(MODEL_LADDER_STATE_KEY, { details: { profiles: migrated.profiles, updatedAt: new Date().toISOString(), migration: 'gpt-5.6-luna-first-v1' } });
+    }
+    return migrated.profiles;
+}
+function saveModelLadderProfiles(profiles) {
+    const normalized = validateModelLadderProfiles(profiles);
+    setMaintenanceState(MODEL_LADDER_STATE_KEY, { details: { profiles: normalized, updatedAt: new Date().toISOString() } });
+    return normalized;
+}
+function modelLadderProfileForRequest({ capability = 'text', tokenUsageOperation = '', context = null } = {}) {
+    const operation = String(tokenUsageOperation || '').toLowerCase();
+    const parser = /^(?:event[-:]|parser)/u.test(operation) || getCurrentOperation()?.category === 'parser';
+    const fresh = /all[-:]?(?:new|clean)|parser[-:]?all[-:]?(?:new|clean)/u.test(operation) || Boolean(getCurrentOperation()?.metadata?.incrementalOnly);
+    if (parser) return capability === 'vision' ? (fresh ? 'parser-all-new-vision' : 'parser-all-vision') : (fresh ? 'parser-all-new-text' : 'parser-all-text');
+    if (capability === 'vision') return 'chat-vision';
+    return context && !isPrivateContext(context) ? 'conversation' : 'chat';
+}
+function getConfiguredModelLadderProfile(profile, fallback = []) {
+    const profiles = readModelLadderProfiles();
+    const steps = profiles[profile];
+    return Array.isArray(steps) && steps.length ? steps : fallback;
+}
+async function handleModelLadderCommand(context, parsed) {
+    if (!parsed || !parsed.action) return false;
+    if (!(await requireOwnerDm(context))) return true;
+    const current = readModelLadderProfiles();
+    if (parsed.action === 'show') {
+        await sendLong(context, buildModelLadderHelp(current));
+        return true;
+    }
+    if (parsed.action === 'help' || parsed.action === 'edit-prompt-all' || parsed.action === 'edit-prompt') {
+        await sendLong(context, buildModelLadderHelp(current));
+        return true;
+    }
+    if (parsed.action === 'invalid') {
+        await context.send('❌ ' + String(parsed.error || 'Не удалось разобрать лестницу.') + '\n\n' + buildModelLadderHelp(current));
+        return true;
+    }
+    if (parsed.action === 'save') {
+        const saved = saveModelLadderProfiles({ ...current, ...parsed.profiles });
+        await sendLong(context, ['✅ Лестницы сохранены.', formatModelLadderProfiles(saved), '', 'Новые настройки применяются к следующим запросам; текущие операции не перезапускаются.'].join('\n'));
+        return true;
+    }
+    return false;
+}
 
 
 
@@ -4003,7 +4609,24 @@ async function downloadVoiceAudioUrl(url, {
     };
 }
 
-async function resolveVoiceDescriptorTranscript({
+const pendingVoiceTranscripts = new Map();
+
+async function resolveVoiceDescriptorTranscript(options) {
+    const key = `${options.platform}:${options.descriptor?.attachmentKey || ''}`;
+    let pending = pendingVoiceTranscripts.get(key);
+    if (!pending) {
+        pending = resolveVoiceDescriptorTranscriptOnce(options);
+        pendingVoiceTranscripts.set(key, pending);
+    }
+    try {
+        const resolved = await pending;
+        return resolved ? { ...resolved, isDirect: options.descriptor.isDirect } : null;
+    } finally {
+        if (pendingVoiceTranscripts.get(key) === pending) pendingVoiceTranscripts.delete(key);
+    }
+}
+
+async function resolveVoiceDescriptorTranscriptOnce({
     platform,
     descriptor,
     peerId = 0,
@@ -4014,7 +4637,7 @@ async function resolveVoiceDescriptorTranscript({
     if (!attachmentKey) return null;
 
     const nativeTranscript = normalizeVoiceTranscript(descriptor?.transcript);
-    if (nativeTranscript) {
+    if (isUsableVoiceTranscript(nativeTranscript)) {
         saveVoiceTranscriptCache({
             platform,
             attachmentKey,
@@ -4035,7 +4658,7 @@ async function resolveVoiceDescriptorTranscript({
     }
 
     const cached = getVoiceTranscriptCache({ platform, attachmentKey });
-    if (cached?.status === 'ok' && cached?.transcript) {
+    if (isReusableVoiceTranscriptCache(cached)) {
         return {
             ...descriptor,
             transcript: normalizeVoiceTranscript(cached.transcript),
@@ -4048,21 +4671,33 @@ async function resolveVoiceDescriptorTranscript({
     if (cached?.status === 'error' && Number(cached.retryAfter ?? 0) > now) {
         return null;
     }
+    // VK fills audio_message.transcript asynchronously; polling VK is the
+    // authoritative path. Do not send VK audio to the generic GPT file route.
+    if (platform === 'vk') return null;
     if (!voiceTranscriptionEnabled) return null;
 
     try {
         const audio = await loadAudio(descriptor);
         if (!audio?.buffer?.length) throw new Error('Не удалось получить audio buffer.');
-        const result = await transcribeAudioBuffer({
+        const mimeType = String(audio.mimeType || descriptor.mimeType || 'audio/ogg').toLowerCase();
+        const response = await transcribeAudioBuffer({
             buffer: audio.buffer,
             filename: audio.filename || descriptor.filename || 'voice.ogg',
-            mimeType: audio.mimeType || descriptor.mimeType || 'audio/ogg',
-            providers: audioTranscriptionProviders,
+            mimeType,
+            providers: voiceTranscriptionProviders,
             timeoutMs: voiceTranscriptionTimeoutMs,
-            maxBytes: VOICE_MAX_AUDIO_BYTES,
+            totalTimeoutMs: Math.min(120_000, voiceTranscriptionTimeoutMs * 2),
         });
-        const transcript = normalizeVoiceTranscript(result.text);
-        if (!transcript) throw new Error('Speech-to-text вернул пустой текст.');
+        const transcript = normalizeVoiceTranscript(response.text);
+        if (!isUsableVoiceTranscript(transcript)) {
+            throw new Error('Не удалось распознать различимую речь в голосовом.');
+        }
+        recordAiTokenUsage({
+            operation: 'voice-transcription', capability: 'audio', provider: response.provider,
+            keyName: response.provider, model: response.model, transport: response.transport,
+            usage: response.usage, outputChars: transcript.length, durationMs: response.durationMs,
+            metadata: { platform, peerId, conversationMessageId, audioBytes: audio.buffer.length },
+        });
         saveVoiceTranscriptCache({
             platform,
             attachmentKey,
@@ -4070,7 +4705,7 @@ async function resolveVoiceDescriptorTranscript({
             conversationMessageId,
             transcript,
             source: 'stt',
-            model: `${result.provider}:${result.model}`,
+            model: response.model,
             status: 'ok',
             lastError: '',
             retryAfter: 0,
@@ -4081,14 +4716,15 @@ async function resolveVoiceDescriptorTranscript({
             `peer=${peerId}`,
             `cmid=${conversationMessageId}`,
             `source=stt`,
-            `model=${result.model}`,
+            `model=${response.model}`,
+            `transport=${response.transport}`,
             `chars=${transcript.length}`,
         );
         return {
             ...descriptor,
             transcript,
             transcriptSource: 'stt',
-            transcriptModel: result.model,
+            transcriptModel: response.model,
         };
     } catch (error) {
         const message = String(error?.message ?? error ?? 'voice transcription error')
@@ -4121,40 +4757,78 @@ async function resolveVkVoiceTranscriptsForMessage(rawMessage, {
     peerId = 0,
     conversationMessageId = 0,
     allowHydrate = true,
+    nativeOnly = false,
 } = {}) {
     let descriptors = collectVkVoiceAttachments(rawMessage);
-    const needsHydrate = descriptors.length > 0 && descriptors.some(
-        (item) => !item.transcript && !item.url,
-    );
+    const needsHydrate = vkVoiceDescriptorsNeedTranscriptHydration(descriptors);
 
-    if (
-        allowHydrate &&
-        needsHydrate &&
-        Number(peerId) > 0 &&
-        Number(conversationMessageId) > 0 &&
-        typeof vk?.api?.messages?.getByConversationMessageId === 'function'
-    ) {
-        try {
-            const response = await vk.api.messages.getByConversationMessageId({
-                peer_id: Number(peerId),
-                conversation_message_ids: [Number(conversationMessageId)],
-                extended: 1,
-            });
-            const hydrated = response?.items?.[0];
-            if (hydrated) {
-                descriptors = mergeVoiceDescriptors([
-                    ...descriptors,
-                    ...collectVkVoiceAttachments(hydrated),
-                ]);
+    if (allowHydrate && needsHydrate && Number(peerId) > 0 && Number(conversationMessageId) > 0) {
+        const fetchMethods = [
+            {
+                name: 'getByConversationMessageId',
+                available: typeof vk?.api?.messages?.getByConversationMessageId === 'function',
+                call: () => vk.api.messages.getByConversationMessageId({
+                    peer_id: Number(peerId),
+                    conversation_message_ids: [Number(conversationMessageId)],
+                    extended: 1,
+                }),
+            },
+            ...(vkVoiceDescriptorsNeedTranscriptHydration(descriptors) ? [{
+                name: 'getById',
+                available: typeof vk?.api?.messages?.getById === 'function',
+                call: () => vk.api.messages.getById({
+                    peer_id: Number(peerId),
+                    cmids: [Number(conversationMessageId)],
+                    extended: 1,
+                }),
+            }] : []),
+        ];
+        for (const method of fetchMethods) {
+            if (!method.available) continue;
+            try {
+                const response = await method.call();
+                const hydrated = response?.items?.[0];
+                if (hydrated) {
+                    descriptors = mergeVoiceDescriptors([
+                        ...descriptors,
+                        ...collectVkVoiceAttachments(hydrated),
+                    ]);
+                }
+                if (!vkVoiceDescriptorsNeedTranscriptHydration(descriptors)) break;
+            } catch (error) {
+                console.warn(
+                    '[VK VOICE HYDRATE ERROR]',
+                    `method=${method.name}`,
+                    `peer=${peerId}`,
+                    `cmid=${conversationMessageId}`,
+                    String(error?.message ?? error),
+                );
             }
-        } catch (error) {
-            console.warn(
-                '[VK VOICE HYDRATE ERROR]',
-                `peer=${peerId}`,
-                `cmid=${conversationMessageId}`,
-                String(error?.message ?? error),
-            );
         }
+    }
+
+    if (nativeOnly) {
+        return descriptors
+            .filter((item) => item.isDirect)
+            .map((item) => {
+                let transcript = isUsableVoiceTranscript(item.transcript)
+                    ? normalizeVoiceTranscript(item.transcript) : '';
+                if (!transcript) {
+                    const cached = getVoiceTranscriptCache({ platform: 'vk', attachmentKey: item.attachmentKey });
+                    if (cached?.source === 'vk-native' && isUsableVoiceTranscript(cached.transcript)) {
+                        transcript = normalizeVoiceTranscript(cached.transcript);
+                    }
+                }
+                if (transcript) {
+                    saveVoiceTranscriptCache({
+                        platform: 'vk', attachmentKey: item.attachmentKey, peerId,
+                        conversationMessageId, transcript, source: 'vk-native',
+                        model: '', status: 'ok', lastError: '', retryAfter: 0,
+                    });
+                }
+                return { ...item, transcript };
+            })
+            .filter((item) => isUsableVoiceTranscript(item.transcript));
     }
 
     const resolved = [];
@@ -4213,6 +4887,9 @@ async function enrichTelegramContextWithVoice(context) {
         });
         if (item?.transcript) resolved.push(item);
     }
+    context.hasUntranscribedDirectVoice = descriptors.some((descriptor) => descriptor.isDirect
+        && !resolved.some((item) => item.attachmentKey === descriptor.attachmentKey
+            && isUsableVoiceTranscript(item.transcript)));
     if (!resolved.length) return context;
 
     const directBlock = formatVoiceTranscriptBlock(resolved, {
@@ -4380,6 +5057,8 @@ async function attemptTelegramConnection({
                 telegramLastConnectionError = null;
                 clearTelegramReconnectTimer();
 
+                telegramReminderManager.start();
+
                 console.log(
                     '[TELEGRAM CONNECTED]',
                     `reason=${reason}`,
@@ -4389,9 +5068,9 @@ async function attemptTelegramConnection({
                 );
                 for (const partyPool of [PARTY_POOL_PRIMARY, PARTY_POOL_SECONDARY]) {
                     try {
-                        const recovery = loadLatestParserAllRecovery({ partyPool });
+                        const recovery = await loadLatestParserAllRecoveryAsync({ partyPool });
                         if (recovery && !listActiveOperations().some((operation) => operation.id === recovery.id)) {
-                            await notifyParserRecovery(recovery);
+                            if (!await resumeAuthorizedParserOnStartup(recovery)) await notifyParserRecovery(recovery);
                         }
                     } catch (error) {
                         console.warn('[PARSER STARTUP RECOVERY NOTICE FAILED]', formatPrivateError(error));
@@ -4400,11 +5079,15 @@ async function attemptTelegramConnection({
                 if (interruptedOperationsFromPriorRun.length) {
                     const interrupted = interruptedOperationsFromPriorRun;
                     const report = [
-                        `⚠️ При перезапуске обнаружено незавершённых операций: ${interrupted.length}. Сохранённые checkpoint проверены; для доступного кэша парсера отправлено отдельное предложение продолжить.`,
+                        `⚠️ После перезапуска обнаружены ${interrupted.length} незавершённые операции.`,
                         ...interrupted.slice(0, 12).map((operation, index) => {
-                            const phase = operation.checkpoint?.phase || operation.progress?.phase || 'неизвестная фаза';
+                            const recovery = operation.recovery || {};
+                            const phase = operation.checkpoint?.phase || operation.progress?.phase || '';
                             const trace = operation.checkpoint?.tracePath || operation.progress?.tracePath || '';
-                            return `${index + 1}. ${operation.name || operation.id} — ${phase}${trace ? `; лог: ${trace}` : ''}`;
+                            const action = recovery.ownerActionRequired === false
+                                ? `Автоматически: ${recovery.action || 'восстановление назначено'}.`
+                                : `Требуется решение владельца: ${recovery.explanation || 'нет безопасного автоматического повтора.'}`;
+                            return `${index + 1}. ${operation.name || operation.id}${phase ? ` — этап: ${phase}` : ''}. ${action}${trace ? ` Лог: ${trace}` : ''}`;
                         }),
                     ].join('\n');
                     try {
@@ -4548,6 +5231,7 @@ function writeOwnerManualScraperSourceRegistry(sources) {
                 source: item.source,
                 initialCount: item.initialCount,
                 addedAt: Number(item.addedAt ?? 0) || Math.floor(Date.now() / 1000),
+                enabled: item.enabled !== false,
             })),
         },
     });
@@ -4560,7 +5244,7 @@ function readOwnerSecondaryManualScraperSourceRegistry() {
     try {
         return normalizePersistedManualScraperSources(
             getMaintenanceState(SECONDARY_MANUAL_SCRAPER_SOURCE_REGISTRY_KEY)?.details?.sources,
-        ).filter((item) => normalizePartySourceKey(item.kind, item.source) !== 'tg:litera_vrn_restobar');
+        ).filter((item) => !new Set(['tg:litera_vrn_restobar', 'vk:12bpg']).has(normalizePartySourceKey(item.kind, item.source)));
     } catch (error) {
         console.error('[SECONDARY MANUAL SOURCE REGISTRY READ ERROR]', formatPrivateError(error));
         return [];
@@ -4569,7 +5253,7 @@ function readOwnerSecondaryManualScraperSourceRegistry() {
 
 function writeOwnerSecondaryManualScraperSourceRegistry(sources) {
     const normalized = normalizePersistedManualScraperSources(sources)
-        .filter((item) => normalizePartySourceKey(item.kind, item.source) !== 'tg:litera_vrn_restobar');
+        .filter((item) => !new Set(['tg:litera_vrn_restobar', 'vk:12bpg']).has(normalizePartySourceKey(item.kind, item.source)));
     setMaintenanceState(SECONDARY_MANUAL_SCRAPER_SOURCE_REGISTRY_KEY, {
         details: {
             version: 1,
@@ -4579,6 +5263,7 @@ function writeOwnerSecondaryManualScraperSourceRegistry(sources) {
                 source: item.source,
                 initialCount: item.initialCount,
                 addedAt: Number(item.addedAt ?? 0) || Math.floor(Date.now() / 1000),
+                enabled: item.enabled !== false,
             })),
         },
     });
@@ -4600,7 +5285,7 @@ const telegramHtmlScraperEnabled = readBooleanEnvironment(
     'TELEGRAM_HTML_ENABLED',
     true,
 );
-const configuredTelegramSourceConfigurations = process.env.TELEGRAM_HTML_SOURCES?.trim()
+const configuredTelegramSourceConfigurationsFromEnvironment = process.env.TELEGRAM_HTML_SOURCES?.trim()
     ? parseSourceCountList(process.env.TELEGRAM_HTML_SOURCES, [])
     : process.env.TELEGRAM_HTML_CHANNEL?.trim()
         ? [{
@@ -4613,8 +5298,15 @@ const configuredTelegramSourceConfigurations = process.env.TELEGRAM_HTML_SOURCES
             ),
         }]
         : parseSourceCountList('', ['kurazhcity:200']);
+const configuredTelegramSourceConfigurations = mergeSourceConfigurations(
+    configuredTelegramSourceConfigurationsFromEnvironment,
+    [{ source: 'kotelnaya_inc', initialCount: 20 }],
+);
 const telegramSourceConfigurations = mergeSourceConfigurations(
-    configuredTelegramSourceConfigurations,
+    [
+        ...configuredTelegramSourceConfigurations,
+        { source: 'kotelnaya_inc', initialCount: 20 },
+    ],
     ownerManualScraperSourceRegistry
         .filter((item) => item.kind === 'telegram')
         .map((item) => ({ source: item.source, initialCount: item.initialCount })),
@@ -4677,6 +5369,60 @@ const vkPublicSourceConfigurations = mergeVkPublicSourceConfigurations(
     REQUIRED_VK_PUBLIC_SOURCES,
 );
 
+let vkMissingImageRecoveryQueue = null;
+
+function storedVkEventHasSourceImage(event) {
+    const paths = Array.isArray(event?.imagePaths) ? event.imagePaths : [];
+    return paths.some((value) => {
+        const clean = String(value ?? '').replace(/\\/gu, '/').trim();
+        if (!clean || isGeneratedEventCardPath(clean) || /(?:^|\/)event_generated_fallbacks\//iu.test(clean)) return false;
+        return existsSync(resolve('./data', value));
+    });
+}
+
+async function recoverMissingVkImagesFromBrowser({ sourceUrl, screenName, postId } = {}) {
+    const records = getVkEventsForPostRefresh({ screenName, postId });
+    if (!records.length) {
+        console.log('[VK MISSING IMAGE RECOVERY SKIP]', `source=${sourceUrl}`, 'reason=no-stored-events');
+        return { skipped: true, reason: 'no-stored-events' };
+    }
+    const missing = records.filter((record) => !storedVkEventHasSourceImage(record));
+    if (!missing.length) {
+        console.log('[VK MISSING IMAGE RECOVERY SKIP]', `source=${sourceUrl}`, 'reason=card-already-has-image');
+        return { skipped: true, reason: 'card-already-has-image' };
+    }
+    console.log('[VK MISSING IMAGE RECOVERY OPEN]', `source=${sourceUrl}`, `cards=${missing.length}`);
+    const reparsedEvents = await reparseStoredEventSourceUrl(sourceUrl, missing, {
+        allowMissingPoster: true,
+        forceIncludeSourceImages: true,
+    });
+    let updated = 0;
+    for (const record of missing) {
+        const ranked = reparsedEvents
+            .map((event) => ({ event, score: scoreReparsedEventForStoredRecord(record, event) }))
+            .sort((left, right) => right.score - left.score);
+        const best = ranked[0];
+        if (!futureEventReparseMatchIsSafeV188145(record, best?.event, reparsedEvents.length)) continue;
+        if (!storedVkEventHasSourceImage(best?.event)) continue;
+        updated += updateStoredEventRecordFromReparse({
+            sourceType: 'vk',
+            id: record.id,
+            onlyIfMissingPoster: true,
+            event: { ...best.event, sourceUrl, parseMethod: `${best.event?.parseMethod || 'vk-browser-missing-image-reparse'}+auto-v188` },
+        });
+    }
+    console.log('[VK MISSING IMAGE RECOVERY DONE]', `source=${sourceUrl}`, `updated=${updated}`, `extracted=${reparsedEvents.length}`);
+    return { updated, extracted: reparsedEvents.length };
+}
+
+vkMissingImageRecoveryQueue = createVkMissingImageRecoveryQueue({
+    processSource: recoverMissingVkImagesFromBrowser,
+    minDelayMs: 7_000,
+    maxDelayMs: 15_000,
+    maxAttemptsPerSource: 2,
+    log: (stage, data) => console.log('[VK MISSING IMAGE RECOVERY]', stage, JSON.stringify(data)),
+});
+
 function createConfiguredVkPublicScraper(configuration, { partyPool = PARTY_POOL_PRIMARY } = {}) {
     return createVkPublicScraper({
         screenName: configuration.source,
@@ -4700,6 +5446,7 @@ function createConfiguredVkPublicScraper(configuration, { partyPool = PARTY_POOL
         snapshotEveryScroll: partyPool === PARTY_POOL_SECONDARY,
         minimumPageLifetimeMs: 180_000,
         partyPool,
+        onMissingImageEvent: (item) => vkMissingImageRecoveryQueue?.schedule(item),
     });
 }
 
@@ -4851,7 +5598,7 @@ const qticketsScraper = qticketsScraperEnabled
 let qticketsScrapePromise = null;
 
 
-function getManualScraperSources(partyPool = PARTY_POOL_PRIMARY) {
+function getManualScraperSources(partyPool = PARTY_POOL_PRIMARY, { includeDisabled = false } = {}) {
     const normalizedPool = partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
     const telegramScrapers = normalizedPool === PARTY_POOL_SECONDARY
         ? secondaryTelegramHtmlScrapers
@@ -4891,7 +5638,10 @@ function getManualScraperSources(partyPool = PARTY_POOL_PRIMARY) {
             partyPool: PARTY_POOL_PRIMARY,
         })));
     }
-    return sources;
+    if (includeDisabled) return sources;
+    const registry = normalizedPool === PARTY_POOL_SECONDARY ? ownerSecondaryManualScraperSourceRegistry : ownerManualScraperSourceRegistry;
+    const disabled = new Set(registry.filter((item) => item?.enabled === false).map((item) => normalizePartySourceKey(item.kind, item.source)));
+    return sources.filter((source) => !disabled.has(normalizePartySourceKey(source.kind, source.scraper?.screenName || source.scraper?.channel || source.id.replace(/^[^:]+:/u, ''))));
 }
 
 async function addOwnerManualScraperSource(sourceInput, { partyPool = PARTY_POOL_PRIMARY } = {}) {
@@ -4912,7 +5662,7 @@ async function addOwnerManualScraperSource(sourceInput, { partyPool = PARTY_POOL
             ok: true,
             added: false,
             source: existing,
-            message: `Источник ${existing.id} уже добавлен.`,
+            message: `Источник ${formatManualSourceDisplayName(existing)} уже добавлен: ${getManualSourceUrl(existing)}`,
         };
     }
 
@@ -4981,7 +5731,7 @@ async function addOwnerManualScraperSource(sourceInput, { partyPool = PARTY_POOL
         ok: true,
         added: true,
         source,
-        message: `Источник ${descriptor.id} добавлен в ${normalizedPool === PARTY_POOL_SECONDARY ? 'второстепенный' : 'основной'} пул и сохранён в SQLite.`,
+        message: `Источник ${formatManualSourceDisplayName(source)} добавлен в ${normalizedPool === PARTY_POOL_SECONDARY ? 'второстепенный' : 'основной'} пул: ${getManualSourceUrl(source)}`,
     };
 }
 
@@ -5093,6 +5843,12 @@ function formatManualScraperStartHelp(unknownSource = '', partyPool = PARTY_POOL
         '• Гигорейв парсер все чисто — инкрементальный проход: та же source+item запись с финальным статусом и неизменным content hash пропускается до алгоритма/vision/AI.',
         '• Гигорейв парсер все новые — явный алиас инкрементального режима «парсер все чисто».',
         '• Гигорейв парсер все восстановить — продолжить последний прерванный parser-all с валидного raw-cache/checkpoint; завершённые ledger-записи не повторяются.',
+        '• Второстепенная выдача: «второстепенные тусы на выходных», «быдлячьи тусы сегодня», «второстепенные тусы на месяц»; команда работает отдельно от обычных тус.',
+        '• Список второстепенных источников: «источники второстепенные» или «источники быдлячьи». Обычные источники: «источники». Оба списка: «источники все».',
+        '• Включать и выключать источники может только владелец в личке боту: отправь «источники второстепенные», затем «источники изменить:» и строки с суффиксом 1 или 0. Число возле источника видит только владелец.',
+        '• Парсер второстепенных источников: «второстепенные парсер все» или «тусы быдлячьи парсер все»; восстановление: «парсер второстепенные восстановить».',
+        '• Гигорейв парсер быдлячьи восстановить / парсер второстепенные восстановить — продолжить последний прерванный проход второстепенного пула. Полная форма: тусы быдлячьи парсер все восстановить.',
+        '• По умолчанию «парсер все» и «тусы быдлячьи парсер все» работают в 2 фазы: сначала текстовые даты, затем картинки без даты. Суффикс «фаза 1» отключает вторую фазу; «фаза 2» включает обе. Для кутикетс действует отдельный стандартный контур.',
         '• Гигорейв добавить источник <ссылка> / тусы добавить источник <ссылка> — сохранить новый источник основного пула.',
         '• тусы удалить источник <tg:имя | vk:имя | ссылка> — убрать добавленный владельцем источник из текущего пула и SQLite-реестра, не удаляя старые события.',
         '• тусы быдлячьи добавить источник <ссылка> — сохранить источник отдельного второстепенного пула (алиас: тусы второстепенные добавить источник ...).',
@@ -5110,7 +5866,7 @@ function formatManualScraperStartHelp(unknownSource = '', partyPool = PARTY_POOL
     }
 
     for (const source of sources) {
-        lines.push(`• ${source.id} — ${source.label}`);
+        lines.push(`• ${formatManualSourceDisplayName(source)} — ${getManualSourceUrl(source)}`);
     }
 
     return lines.join('\n');
@@ -5127,6 +5883,7 @@ function formatManualPublicScraperResult(source, result) {
                     ? `⏱️ ${source.label}: достигнут лимит времени; обработано всё, что успело попасть в pipeline.`
                     : `✅ ${source.label}: обработка завершена.`,
             `Сообщений: ${result.fetchedMessages}; кандидатов: ${result.candidatesChecked}; мероприятий: ${result.eventsFound}.`,
+            Number(result?.staleFilteredCount || 0) > 0 ? `Старые посты вне окна 3 дней без будущей даты: ${Number(result.staleFilteredCount)}; к Vision/AI не отправлялись.` : '',
             Number.isFinite(result?.incrementalNewCount)
                 ? `Инкрементальный ledger: новых ${Number(result.incrementalNewCount || 0)}; уже виденных и пропущенных до обработки ${Number(result.incrementalKnownSkippedCount || 0)}.`
                 : '',
@@ -5141,6 +5898,7 @@ function formatManualPublicScraperResult(source, result) {
                 ? `⏱️ ${source.label}: достигнут лимит времени; уже обработанные посты сохранены.`
                 : `✅ ${source.label}: обработка завершена.`,
         `Постов: ${result?.fetchedPosts ?? 0}; изменено: ${result?.changedPosts ?? 0}; мероприятий: ${result?.eventsFound ?? 0}.`,
+        Number(result?.staleFilteredCount || 0) > 0 ? `Старые посты вне окна 3 дней без будущей даты: ${Number(result.staleFilteredCount)}; к Vision/AI не отправлялись.` : '',
         Number.isFinite(result?.incrementalNewCount)
             ? `Инкрементальный ledger: новых ${Number(result.incrementalNewCount || 0)}; уже виденных и пропущенных до обработки ${Number(result.incrementalKnownSkippedCount || 0)}.`
             : '',
@@ -5165,10 +5923,15 @@ async function startManualScraperSource(sourceId, {
     partyPool = PARTY_POOL_PRIMARY,
     cachedItems = null,
     resumeCompletedSince = 0,
+    recentDays = 0,
+    phaseCount = 2,
+    turboMode = '',
+    itemIds = null,
+    includeDisabled = false,
 } = {}) {
     const normalizedPool = partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
     const normalizedSourceId = String(sourceId ?? '').trim().toLowerCase();
-    const source = getManualScraperSources(normalizedPool).find(
+    const source = getManualScraperSources(normalizedPool, { includeDisabled }).find(
         (item) => item.id === normalizedSourceId,
     );
 
@@ -5213,6 +5976,9 @@ async function startManualScraperSource(sourceId, {
                 incrementalOnly: Boolean(incrementalOnly),
                 cachedItems,
                 resumeCompletedSince,
+                recentDays,
+                phaseCount,
+                itemIds,
                 // Only this explicitly reported source receives the 20-message
                 // shallow policy in parser-all. Other chat configurations and
                 // single-source/live commands keep their original backfill.
@@ -5283,8 +6049,12 @@ async function startManualScraperSource(sourceId, {
             : {}),
         processingLimiter,
         incrementalOnly: Boolean(incrementalOnly),
+        turboMode: String(turboMode || ''),
         cachedItems,
         resumeCompletedSince,
+        recentDays,
+        phaseCount,
+        itemIds,
         ...(source.kind === 'vk-public' ? { singleOpenPerRun: true } : {}),
     });
     const lines = [formatManualPublicScraperResult(source, result)];
@@ -5309,6 +6079,191 @@ async function startManualScraperSource(sourceId, {
         result,
         message: lines.join('\n'),
     };
+}
+
+/**
+ * Sends a durable parser-item failure to the owner. The callback is deliberately
+ * best-effort: a Telegram transport failure must never turn a parser failure
+ * into a second parser failure. The indexed record already contains the full
+ * Error serialization plus links to the immutable DOM/raw-cache/trace archive.
+ */
+async function notifyParserItemErrorOwner(record) {
+    if (!record || typeof record !== 'object') return false;
+    const lines = [
+        '⚠️ Ошибка обработки материала парсера.',
+        `Источник: ${record.sourceLabel || record.sourceId || '—'}`,
+        `ID: ${record.itemId || '—'}`,
+        `Этап: ${record.stage || 'processing'}`,
+        `Причина: ${String(record.error || 'неизвестная ошибка').slice(0, 7000)}`,
+        record.archiveDirectory ? `Полный архив исходного прохода: ${record.archiveDirectory}` : '',
+        record.tracePath ? `Trace: ${record.tracePath}` : '',
+        record.rawCachePath ? `Raw-cache: ${record.rawCachePath}` : '',
+        record.domPath ? `DOM: ${record.domPath}` : '',
+        'Материал оставлен в статусе retryable/open и не продвинул успешный курсор.',
+    ].filter(Boolean).join('\n');
+    try {
+        if (typeof sendAiModelDiscoveryOwnerReport === 'function') {
+            await sendAiModelDiscoveryOwnerReport(lines);
+            return true;
+        }
+    } catch (error) {
+        console.warn('[PARSER ERROR OWNER REPORT FAILED]', formatPrivateError(error));
+    }
+    return false;
+}
+
+function loadParserErrorReplayItems(recordRows = []) {
+    const itemsById = new Map();
+    const cacheErrors = [];
+    for (const row of Array.isArray(recordRows) ? recordRows : []) {
+        const cachePath = String(row?.rawCachePath || '').trim();
+        let items = [];
+        if (cachePath && existsSync(cachePath)) {
+            try {
+                const payload = JSON.parse(readFileSync(cachePath, 'utf8'));
+                items = Array.isArray(payload?.items) ? payload.items : [];
+            } catch (error) {
+                cacheErrors.push({ cachePath, error: formatPrivateError(error) });
+            }
+        }
+        for (const item of items) {
+            const id = String(item?.postId ?? item?.conversationMessageId ?? item?.messageId ?? item?.id ?? '');
+            if (id && !itemsById.has(id)) itemsById.set(id, item);
+        }
+        if (row?.item && typeof row.item === 'object') {
+            const id = String(row.item?.postId ?? row.item?.conversationMessageId ?? row.item?.messageId ?? row.item?.id ?? row.itemId ?? '');
+            if (id && !itemsById.has(id)) itemsById.set(id, row.item);
+        }
+    }
+    return { itemsById, cacheErrors };
+}
+
+async function replayOpenParserErrorsForOwner(context) {
+    const errors = listParserErrors({ dataDirectory: './data' });
+    if (!errors.length) {
+        await context.send('✅ В журнале ошибок парсера нет открытых записей.');
+        return { found: 0, processed: 0, resolved: 0, remaining: 0 };
+    }
+
+    const groups = new Map();
+    const unaddressable = [];
+    for (const row of errors) {
+        const sourceId = String(row?.sourceId || '').trim().toLowerCase();
+        const itemId = String(row?.itemId || '').trim();
+        // Source-level capture failures have no item id, but may still have a
+        // complete raw-cache. Keep them in the source group and replay every
+        // cached item; only records without a source id are unaddressable.
+        if (!sourceId) { unaddressable.push(row); continue; }
+        const partyPool = row?.partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
+        const key = `${partyPool}\u0000${sourceId}`;
+        const group = groups.get(key) || { partyPool, sourceId, rows: [], replayAll: false };
+        if (!itemId) group.replayAll = true;
+        group.rows.push(row);
+        groups.set(key, group);
+    }
+    await context.send(`🔁 Повторная обработка ${errors.length} ошибок парсера по сохранённым исходникам. Для replay создана отдельная трассировка.`).catch(() => {});
+
+    void runDetachedSupervisedOperation({
+            name: 'parser-errors-replay',
+            category: 'parser',
+            timeoutMs: 4 * 60 * 60 * 1000,
+            metadata: { platform: context.platform, senderId: context.senderId, peerId: context.peerId, errorCount: errors.length, sourceCount: groups.size },
+        }, async () => {
+            let processed = 0;
+            let resolved = 0;
+            let remaining = unaddressable.length;
+            const failedKeys = new Set();
+            const replayDiagnostics = createManualParserDiagnostics({
+                dataDirectory: './data',
+                label: 'parser-errors-replay',
+                onParserItemError: async (record) => {
+                    const sourceId = String(record?.sourceId || '').trim().toLowerCase();
+                    failedKeys.add(`${sourceId}\u0000${String(record?.itemId || '')}`);
+                    await notifyParserItemErrorOwner(record);
+                },
+            });
+            const replayRunId = replayDiagnostics.runId;
+            await context.send([
+                '🔎 Replay трассировка уже пишется; её можно открыть для наблюдения за обработкой.',
+                `Run: ${replayRunId}`,
+                `Trace: ${replayDiagnostics.relativeLogPath}`,
+            ].join('\n')).catch(() => {});
+
+            for (const row of unaddressable) {
+                replayDiagnostics.log('replay.item.unaddressable', { recordId: row.id, sourceId: row.sourceId, itemId: row.itemId, stage: row.stage, archiveDirectory: row.archiveDirectory });
+                updateParserError('./data', row.id, { replayAttempt: { at: new Date().toISOString(), replayRunId, ok: false, reason: 'source-or-item-id-missing', tracePath: replayDiagnostics.relativeLogPath } });
+            }
+
+            for (const group of groups.values()) {
+                const source = getManualScraperSources(group.partyPool, { includeDisabled: true }).find((entry) => entry.id === group.sourceId);
+                const { itemsById, cacheErrors } = loadParserErrorReplayItems(group.rows);
+                const itemIds = [...new Set(group.rows.map((row) => String(row.itemId || '')).filter(Boolean))];
+                const selectedItems = group.replayAll
+                    ? [...itemsById.values()]
+                    : itemIds.map((id) => itemsById.get(id)).filter(Boolean);
+                if (!source || !selectedItems.length) {
+                    const reason = !source ? 'source-not-configured' : cacheErrors.length ? 'raw-cache-invalid' : 'error-item-not-in-raw-cache';
+                    replayDiagnostics.log('replay.source.skipped', { sourceId: group.sourceId, partyPool: group.partyPool, itemIds, reason, cacheErrors });
+                    for (const row of group.rows) {
+                        remaining += 1;
+                        updateParserError('./data', row.id, { replayAttempt: { at: new Date().toISOString(), replayRunId, ok: false, reason, tracePath: replayDiagnostics.relativeLogPath } });
+                    }
+                    continue;
+                }
+
+                const selectedIds = group.replayAll ? null : selectedItems.map((item) => String(item?.postId ?? item?.conversationMessageId ?? item?.messageId ?? item?.id ?? ''));
+                replayDiagnostics.log('replay.source.start', { sourceId: source.id, partyPool: group.partyPool, itemIds: selectedIds, selectedCount: selectedItems.length, evidence: group.rows.map((row) => ({ errorId: row.id, originalRunId: row.originalRunId, archiveDirectory: row.archiveDirectory, tracePath: row.tracePath, rawCachePath: row.rawCachePath, domPath: row.domPath })) });
+                let result;
+                let replayError = null;
+                try {
+                    result = await startManualScraperSource(source.id, {
+                        finitePass: true, finiteChatPass: source.kind === 'vk-chat',
+                        cachedItems: selectedItems, itemIds: selectedIds, diagnostics: replayDiagnostics,
+                        incrementalOnly: false, phaseCount: 2, includeDisabled: true, partyPool: group.partyPool,
+                    });
+                } catch (error) {
+                    replayError = error;
+                    result = { ok: false, error };
+                    replayDiagnostics.log('replay.source.error', { sourceId: source.id, error });
+                }
+                const sourceFailed = Boolean(replayError || result?.ok === false || Number(result?.result?.failedProcessingItems ?? 0) > 0 || Number(result?.result?.failedItems ?? 0) > 0);
+                replayDiagnostics.log('replay.source.finish', { sourceId: source.id, ok: !sourceFailed, result, error: replayError });
+                for (const row of group.rows) {
+                    processed += 1;
+                    const key = `${group.sourceId}\u0000${String(row.itemId || '')}`;
+                    // A partial source failure does not prove that a sibling
+                    // item finished successfully (the run may have stopped
+                    // before reaching it). Resolve rows only after the whole
+                    // targeted replay succeeds and this item has no error callback.
+                    const rowFailed = failedKeys.has(key) || failedKeys.has(`${group.sourceId}\u0000`) || sourceFailed;
+                    const attempt = { at: new Date().toISOString(), replayRunId, ok: !rowFailed, reason: rowFailed ? String(replayError?.message || result?.message || 'replay-failed').slice(0, 1500) : 'replay-success', tracePath: replayDiagnostics.relativeLogPath };
+                    if (rowFailed) {
+                        remaining += 1;
+                        updateParserError('./data', row.id, { replayAttempt: attempt });
+                    } else {
+                        resolved += 1;
+                        updateParserError('./data', row.id, { status: 'resolved', resolvedAt: new Date().toISOString(), replayAttempt: attempt });
+                    }
+                }
+            }
+
+            let verification = null;
+            try { verification = await rebuildVerifiedPartySnapshotQueued({ reason: 'parser-errors-replay' }); }
+            catch (error) { replayDiagnostics.log('replay.verification.error', { error }); }
+            const openCount = listParserErrors({ dataDirectory: './data' }).length;
+            replayDiagnostics.finish({ found: errors.length, processed, resolved, remaining: openCount, unaddressable: unaddressable.length, verification });
+            const summary = [
+                '✅ Повторная обработка ошибок парсера завершена.',
+                `Записей: ${errors.length}; источников: ${groups.size}; успешно: ${resolved}; осталось открытых: ${openCount}.`,
+                `Подробный replay trace: ${replayDiagnostics.relativeLogPath}`,
+                `Полный исходник, включая DOM/raw-cache/первичный trace, лежит в каталоге data/parser-error-archives.`,
+            ].join('\n');
+            await sendLong(context, summary).catch(() => {});
+        }).catch(async (error) => {
+            console.error('[PARSER ERRORS REPLAY FAILED]', formatPrivateError(error));
+            await context.send(`❌ Повтор ошибок парсера завершился сбоем: ${formatScraperErrorForUser(error)}`).catch(() => {});
+        });
+    return { found: errors.length, processed: 0, resolved: 0, remaining: errors.length, queued: true };
 }
 
 async function pinFailedScraperSourceForOwner(source, originalError) {
@@ -5436,7 +6391,133 @@ async function startManualScraperSourceWithRecoveryInner(source, options = {}) {
     }
 }
 
-async function startAllManualScraperSources({ incrementalOnly = false, partyPool = PARTY_POOL_PRIMARY, recovery = null } = {}) {
+async function startAllManualScraperSources({ incrementalOnly = false, partyPool = PARTY_POOL_PRIMARY, recovery = null, recentDays = 3, phaseCount = 2, phasePass = 0, reservedImageUrls = [], rawImageCache = new Map(), ordinaryPhaseTwo = false, turboMode = '', phasePacer = null, onParserItemError = null } = {}) {
+    const makePacer = typeof createParserAttemptPacer === 'function'
+        ? (mode = '') => createParserAttemptPacer({ mode })
+        : () => async () => {};
+    const activePacer = phasePacer || (turboMode
+        ? makePacer(turboMode)
+        : (typeof parserAttemptPacer !== 'undefined' ? parserAttemptPacer : makePacer()));
+    // The owner's ladder choice belongs to this recovery lineage and survives
+    // another interruption. Fresh parser runs still use the special policy.
+    ordinaryPhaseTwo = ordinaryPhaseTwo === true || recovery?.checkpoint?.ordinaryPhaseTwo === true;
+    if (!phasePass && recovery?.checkpoint?.dateFreePhasePlan && recovery.checkpoint.dateFreePhasePlan.phaseOneComplete !== false) {
+        const restored = restoreDateFreePhasePlan(recovery.checkpoint.dateFreePhasePlan);
+        saveOperationCheckpoint({
+            dateFreePhasePlan: recovery.checkpoint.dateFreePhasePlan,
+            tracePaths: recovery.checkpoint.tracePaths || [],
+        }, { event: 'parser.phase2.plan-restored' });
+        const policy = createDateFreeParserPolicy({ mode: turboMode, beforeAttempt: activePacer, onChange: (phaseTwoModels) => {
+            updateOperationProgress({ phase: 'parser-phase2', phaseTwoModels });
+            saveOperationCheckpoint({ phaseTwoModels }, { event: 'parser.phase2.models' });
+        } });
+        const run = await dateFreeParserContext.run(ordinaryPhaseTwo ? null : policy, () => startAllManualScraperSources({
+            incrementalOnly: true, partyPool, recentDays: 0, phaseCount: 2, phasePass: 2, turboMode, phasePacer: activePacer,
+            ...restored, recovery: { ...recovery, cacheRows: restored.cacheRows, sourceIds: [...restored.cacheRows.keys()], originalIncrementalOnly: true }, onParserItemError,
+        }));
+        const start = run.startProcessing;
+        run.startProcessing = () => dateFreeParserContext.run(ordinaryPhaseTwo ? null : policy, async () => {
+            const summary = await start();
+            const phaseTwoModels = policy.snapshot();
+            saveOperationCheckpoint({ phaseTwoModels }, { event: 'parser.phase2.models' });
+            return { ...summary, phaseTwoModels, message: `${summary.message}\n${formatDateFreePhaseReport(phaseTwoModels, run.visionTimingReport)}` };
+        });
+        return run;
+    }
+    if (Number(phaseCount) !== 1 && !phasePass) {
+        // Finish and persist the ordinary dated-text pass before starting
+        // date-free Vision. Replay the SAME raw cache; never reopen sources.
+        const first = await startAllManualScraperSources({ incrementalOnly, partyPool, recovery, recentDays, phaseCount: 1, phasePass: 1, rawImageCache, turboMode, phasePacer: activePacer, onParserItemError });
+        let active = first;
+        let combined = null;
+        let phaseOneFinished = false;
+        let phaseTwoPolicy = null;
+        return {
+            ...first,
+            // startAllManualScraperSources awaits the whole poster gate before
+            // returning phase two. During that await `active` still points at
+            // phase one: never advertise its old queue as current work. Getters
+            // also avoid freezing phase-two telemetry in the spread above.
+            get phaseTwoModels() { return phaseTwoPolicy?.snapshot() || null; },
+            get visionTimingReport() { return active.visionTimingReport; },
+            get visionTimingReports() {
+                return [...new Set([first.visionTimingReport, active === first ? null : active.visionTimingReport].filter(Boolean))];
+            },
+            get tracePath() {
+                return phaseOneFinished && typeof getCurrentOperation === 'function'
+                    ? getCurrentOperation()?.progress?.tracePath || active.tracePath
+                    : active.tracePath;
+            },
+            getPendingCandidates: () => phaseOneFinished && active === first
+                ? [] : active.getPendingCandidates?.() || [],
+            getTerminalCandidates: () => [...(first.getTerminalCandidates?.() || []), ...(active === first ? [] : active.getTerminalCandidates?.() || [])],
+            startProcessing() {
+                if (combined) return combined;
+                combined = (async () => {
+                    const firstSummary = await first.startProcessing();
+                    phaseOneFinished = true;
+                    if (!firstSummary || firstSummary.results?.some((row) => row.stoppedByOwner)) return firstSummary;
+                    const plan = buildDateFreePhasePlan(first.captures);
+                    const { cacheRows, reservedImageUrls: reserved } = plan;
+                    // A recovered phase-one item can be skipped by the ledger.
+                    // Its images still belong to phase one, even if this run's
+                    // prefilter no longer evaluates its already-final body.
+                    reserved.push(...(recovery?.checkpoint?.dateFreePhasePlan?.reservedImageUrls || []));
+                    if (plan.failures.length) {
+                        firstSummary.ok = false;
+                        firstSummary.message += `\nНе удалось прочитать кэш второй фазы: ${plan.failures.map((row) => `${row.sourceId}: ${row.error}`).join('; ')}`;
+                    }
+                    if (!cacheRows.size) return firstSummary;
+                    saveOperationCheckpoint({
+                        dateFreePhasePlan: {
+                            ...serializeDateFreePhasePlan({ cacheRows, reservedImageUrls: reserved, rawImageCache }),
+                            phaseOneComplete: firstSummary.ok,
+                            originalCaptures: (first.captures || []).map(({ sourceId, cachePath }) => ({ sourceId, cachePath })),
+                        },
+                    }, { event: 'parser.phase2.plan' });
+                    first.logDiagnostics?.('run.phase1.complete', { summary: firstSummary, phaseTwoItems: [...cacheRows.values()].reduce((n, row) => n + row.itemCount, 0) });
+                    const policy = createDateFreeParserPolicy({ mode: turboMode, beforeAttempt: activePacer, onChange: (state) => {
+                        first.logDiagnostics?.('run.phase2.models', state);
+                        updateOperationProgress({ phase: 'parser-phase2', phaseTwoModels: state });
+                        saveOperationCheckpoint({ phaseTwoModels: state }, { event: 'parser.phase2.models' });
+                        first.phaseTwoModels = state;
+                        if (active) active.phaseTwoModels = state;
+                    } });
+                    phaseTwoPolicy = policy;
+                    // Publication age cannot establish whether an unread image
+                    // announces a future event. Inspect all eligible captured
+                    // date-free images; keep the ordinary phase-one window.
+                    const startSecond = () => startAllManualScraperSources({ incrementalOnly, partyPool, recentDays: 0, phaseCount: 2, phasePass: 2, turboMode, phasePacer: activePacer, reservedImageUrls: reserved, rawImageCache, onParserItemError,
+                        recovery: { cacheRows, sourceIds: [...cacheRows.keys()], originalIncrementalOnly: true, startedAt: recovery?.startedAt || getCurrentOperation()?.startedAt, posterGateImages: recovery?.posterGateImages } });
+                    active = await dateFreeParserContext.run(ordinaryPhaseTwo ? null : policy, startSecond);
+                    const secondSummary = await dateFreeParserContext.run(ordinaryPhaseTwo ? null : policy, () => active.startProcessing());
+                    return { ...secondSummary,
+                        ok: firstSummary.ok && secondSummary?.ok,
+                        total: firstSummary.total,
+                        sourceLoadedCount: firstSummary.sourceLoadedCount,
+                        sourceFailedCount: firstSummary.sourceFailedCount,
+                        results: [...(firstSummary.results || []), ...(secondSummary?.results || [])],
+                        visionCheckedImageCount: Number(firstSummary.visionCheckedImageCount || 0) + Number(secondSummary?.visionCheckedImageCount || 0),
+                        failedProcessingItems: Number(firstSummary.failedProcessingItems || 0) + Number(secondSummary?.failedProcessingItems || 0),
+                        eventsCreatedCount: Number(firstSummary.eventsCreatedCount || 0) + Number(secondSummary?.eventsCreatedCount || 0),
+                        eventsUpdatedCount: Number(firstSummary.eventsUpdatedCount || 0) + Number(secondSummary?.eventsUpdatedCount || 0),
+                        nonEventLabels: [firstSummary, secondSummary].reduce((counts, part) => {
+                            for (const [label, count] of Object.entries(part?.nonEventLabels || {})) {
+                                const normalized = String(label || '').trim();
+                                if (normalized) counts[normalized] = Number(counts[normalized] || 0) + Number(count || 0);
+                            }
+                            return counts;
+                        }, {}),
+                        phaseTwoModels: policy.snapshot(),
+                        message: [`Фаза 1 — материал с датой:\n${firstSummary.message || ''}\n\nФаза 2 — картинки без даты в тексте:\n${secondSummary?.message || ''}`,
+                            formatDateFreePhaseReport(policy.snapshot(), active.visionTimingReport),
+                        ].filter(Boolean).join('\n'),
+                    };
+                })();
+                return combined;
+            },
+        };
+    }
     const normalizedPool = partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
     // Preserve the configured source order. In V188.141 sorting by backfill
     // placed the slow c22 chat first, before every other source.
@@ -5474,15 +6555,20 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
     const diagnostics = createManualParserDiagnostics({
         dataDirectory: './data',
         label: `${normalizedPool === PARTY_POOL_SECONDARY ? 'parser-all-secondary' : 'parser-all'}${incrementalOnly ? '-clean' : ''}`,
+        onParserItemError,
     });
     saveOperationCheckpoint({
         kind: 'parser-all', phase: 'parser-capture', partyPool: normalizedPool,
+        phaseCount, phasePass,
         sourceIds: sources.map((source) => source.id), tracePath: diagnostics.relativeLogPath,
         recoveryStartedAt: recovery?.startedAt || getCurrentOperation()?.startedAt,
         recoveryIncrementalOnly: recovery?.originalIncrementalOnly ?? incrementalOnly,
         captures: recovery ? [...recovery.cacheRows].map(([sourceId, row]) => ({ sourceId, cachePath: row.path, itemCount: row.itemCount })) : [],
     }, { event: 'parser.checkpoint.manifest' });
-    const expectedSourceCount = normalizedPool === PARTY_POOL_PRIMARY ? 16 : null;
+    // The configured registry is the source of truth. A fixed count becomes
+    // stale as soon as the owner adds/removes a source and creates a false
+    // failure signal in an otherwise complete run.
+    const expectedSourceCount = sources.length;
     const sourceRegistry = sources.map((source, index) => ({
         index, sourceId: source.id, kind: source.kind, label: source.label,
         url: source.url, backfillTarget: source.kind === 'vk-chat'
@@ -5495,10 +6581,10 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
     diagnostics.log('run.source-registry', {
         configuredSourceCount: sources.length,
         expectedSourceCount,
-        matchesExpectedCount: expectedSourceCount === null || sources.length === expectedSourceCount,
+        matchesExpectedCount: sources.length === expectedSourceCount,
         sources: sourceRegistry,
     });
-    if (expectedSourceCount !== null && sources.length !== expectedSourceCount) {
+    if (sources.length !== expectedSourceCount) {
         diagnostics.log('run.source-count-mismatch', {
             configuredSourceCount: sources.length,
             expectedSourceCount,
@@ -5518,11 +6604,20 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
     const candidateState = new Map();
     let totalCandidateCount = 0;
     const visionModelMetrics = new Map();
+    // Cached poster-gate facts are completed inspections from an earlier run,
+    // not new provider calls. Keep them visible so cache-only replays do not
+    // misleadingly report zero Vision work.
+    let visionCacheHits = 0;
     let processingStarted = false;
     let releasePosterGateGate = null;
     const posterGateGate = new Promise((resolvePromise) => {
         releasePosterGateGate = resolvePromise;
     });
+    const phaseTwoSourceGates = new Map(sources.map((source) => {
+        let release;
+        const promise = new Promise((resolve) => { release = resolve; });
+        return [source.id, { promise, release, remaining: 0 }];
+    }));
     let releaseProcessingGate = null;
     const processingGate = new Promise((resolvePromise) => {
         releaseProcessingGate = resolvePromise;
@@ -5568,9 +6663,134 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         ].filter(Boolean).join('\n');
     }
 
+    // VK parser API calls are enrichment only. Keep a compact, human-readable
+    // summary beside the machine JSON so the owner can see which methods
+    // answered, which failed, and whether the DOM fallback preserved data.
+    function formatVkApiAuditHuman(entries = []) {
+        const rows = Array.isArray(entries) ? entries : [];
+        if (!rows.length) return 'API VK: запросы обогащения не выполнялись (DOM использован как основной источник).';
+        const terminal = rows.filter((item) => ['ok', 'failed'].includes(String(item?.status || '').toLowerCase()));
+        const attempts = rows.filter((item) => String(item?.status || '').toLowerCase() === 'attempt').length;
+        const ok = terminal.filter((item) => item.ok || String(item?.status || '').toLowerCase() === 'ok').length;
+        const failed = terminal.filter((item) => !item.ok && String(item?.status || '').toLowerCase() === 'failed').length;
+        const byMethod = new Map();
+        const attemptCounts = new Map();
+        for (const item of rows.filter((entry) => String(entry?.status || '').toLowerCase() === 'attempt')) {
+            const method = String(item?.method || 'unknown');
+            attemptCounts.set(method, Number(attemptCounts.get(method) || 0) + 1);
+        }
+        for (const item of terminal) {
+            const method = String(item?.method || 'unknown');
+            const list = byMethod.get(method) || [];
+            list.push(item);
+            byMethod.set(method, list);
+        }
+        const pendingTotal = [...attemptCounts.entries()].reduce((sum, [method, count]) => (
+            sum + Math.max(0, Number(count || 0) - Number(byMethod.get(method)?.length || 0))
+        ), 0);
+        const lines = [
+            `API VK: попыток=${attempts}; успешно=${ok}; ошибок=${failed}; без terminal-ответа=${pendingTotal}; DOM остаётся первичным источником.`,
+        ];
+        for (const [method, methodRows] of byMethod.entries()) {
+            const success = methodRows.filter((item) => item.ok || String(item?.status || '').toLowerCase() === 'ok');
+            const errors = methodRows.filter((item) => !item.ok && String(item?.status || '').toLowerCase() === 'failed');
+            const durations = methodRows.map((item) => Number(item?.durationMs || 0)).filter((value) => value > 0);
+            const duration = durations.length ? `, ${Math.round(durations.reduce((sum, value) => sum + value, 0) / durations.length)} мс` : '';
+            const sources = [...new Set(methodRows.map((item) => String(item?.sourceLabel || item?.sourceId || '').trim()).filter(Boolean))].slice(0, 5);
+            const sourceSuffix = sources.length ? `; источники: ${sources.join(', ')}` : '';
+            if (success.length) {
+                const items = success.reduce((sum, item) => sum + Number(item?.itemCount || 0), 0);
+                lines.push(`• ${method} — успешно${duration}, элементов=${items}${success[0]?.reason ? `; цель: ${compactAiAuditValue(success[0].reason, 90)}` : ''}${sourceSuffix}`);
+            }
+            for (const item of errors) {
+                const error = compactAiAuditValue(item?.error || 'неизвестная ошибка', 220);
+                lines.push(`• ${method} — ошибка${duration}: ${error}${item?.reason ? `; цель: ${compactAiAuditValue(item.reason, 90)}` : ''}${sourceSuffix}`);
+            }
+            const pending = Math.max(0, Number(attemptCounts.get(method) || 0) - methodRows.length);
+            if (pending) lines.push(`• ${method} — ${pending} запрос(ов) начато, но завершённого ответа в отчёте нет (таймаут/остановка/обрыв); DOM-данные сохранены.`);
+        }
+        for (const [method, count] of attemptCounts.entries()) {
+            if (!byMethod.has(method)) lines.push(`• ${method} — ${count} запрос(ов) начато, но ответа нет; DOM-данные сохранены.`);
+        }
+        const domFallbacks = rows.filter((item) => /dom|browser|fallback/iu.test(`${item?.method || ''} ${item?.reason || ''}`) && (item?.ok || item?.status === 'ok')).length;
+        if (domFallbacks) lines.push(`• DOM/browser fallback — использован успешно: ${domFallbacks}; данные из DOM не потеряны из-за отказов API.`);
+        return lines.join('\n');
+    }
+
+    function aggregateVkApiAudit(captures = []) {
+        const rows = (Array.isArray(captures) ? captures : []).flatMap((capture) => (
+            (Array.isArray(capture?.apiAudit) ? capture.apiAudit : []).map((entry) => ({
+                ...entry,
+                sourceId: String(capture?.sourceId || ''),
+                sourceLabel: String(capture?.label || capture?.sourceId || ''),
+            }))
+        ));
+        const terminal = rows.filter((entry) => ['ok', 'failed'].includes(String(entry?.status || '').toLowerCase()));
+        const attempts = rows.filter((entry) => String(entry?.status || '').toLowerCase() === 'attempt').length;
+        const successful = terminal.filter((entry) => entry?.ok || String(entry?.status || '').toLowerCase() === 'ok');
+        const failed = terminal.filter((entry) => !entry?.ok && String(entry?.status || '').toLowerCase() === 'failed');
+        const methodMap = new Map();
+        for (const entry of terminal) {
+            const method = String(entry?.method || 'unknown');
+            const current = methodMap.get(method) || { method, attempts: 0, successful: 0, failed: 0, items: 0, durations: [], errors: [] };
+            current.attempts += 1;
+            if (entry?.ok || String(entry?.status || '').toLowerCase() === 'ok') {
+                current.successful += 1;
+                current.items += Number(entry?.itemCount || 0);
+            } else {
+                current.failed += 1;
+                if (entry?.error) current.errors.push(String(entry.error));
+            }
+            if (Number(entry?.durationMs || 0) > 0) current.durations.push(Number(entry.durationMs));
+            methodMap.set(method, current);
+        }
+        const methods = [...methodMap.values()].map((entry) => ({
+            ...entry,
+            averageMs: entry.durations.length
+                ? Math.round(entry.durations.reduce((sum, value) => sum + value, 0) / entry.durations.length)
+                : 0,
+            errors: [...new Set(entry.errors)].slice(0, 8),
+        }));
+        const domFallbackEntries = rows.filter((entry) => /dom|browser|fallback/iu.test(`${entry?.method || ''} ${entry?.reason || ''}`));
+        const domFallbackSuccesses = domFallbackEntries.filter((entry) => entry?.ok || String(entry?.status || '').toLowerCase() === 'ok').length;
+        const errorsByCode = {};
+        for (const entry of failed) {
+            const match = String(entry?.error || '').match(/(?:Code\s*[№#]?\s*|status[=: ]+)(\d{2,3})/iu);
+            const code = match?.[1] ? `HTTP/API ${match[1]}` : 'без кода';
+            errorsByCode[code] = Number(errorsByCode[code] || 0) + 1;
+        }
+        return {
+            totalEntries: rows.length,
+            attempts,
+            successful: successful.length,
+            failed: failed.length,
+            methods,
+            errorsByCode,
+            domFallbackAttempts: domFallbackEntries.length,
+            domFallbackSuccesses,
+            rows,
+            human: formatVkApiAuditHuman(rows),
+        };
+    }
+
+    function mergeApiAuditEntries(previous = [], incoming = []) {
+        const rows = [...(Array.isArray(previous) ? previous : []), ...(Array.isArray(incoming) ? incoming : [])];
+        const seen = new Set();
+        return rows.filter((entry) => {
+            const key = [
+                entry?.method, entry?.status, entry?.reason, entry?.durationMs,
+                entry?.itemCount, entry?.error,
+            ].map((value) => String(value ?? '')).join('\u0001');
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }
+
     function rememberCapture(source, payload = {}) {
         const sourceId = String(source?.id || payload?.sourceId || 'unknown');
-        if (captureState.has(sourceId)) return;
+        const previousCapture = captureState.get(sourceId);
+        if (previousCapture && !payload?.apiAudit && !payload?.prefilterStats?.apiAudit) return;
         const candidatePreviews = Array.isArray(payload?.candidatePreviews)
             ? payload.candidatePreviews
             : [];
@@ -5580,29 +6800,34 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         const posterGateRequests = Array.isArray(payload?.posterGateRequests)
             ? payload.posterGateRequests
             : [];
+        const incomingApiAudit = Array.isArray(payload?.apiAudit)
+            ? payload.apiAudit
+            : (Array.isArray(payload?.prefilterStats?.apiAudit) ? payload.prefilterStats.apiAudit : []);
         const normalized = {
+            ...(previousCapture || {}),
             sourceId,
-            label: source?.label || sourceId,
-            kind: source?.kind || payload?.kind || '',
-            itemCount: Number(payload?.itemCount ?? 0),
-            cachePath: String(payload?.cachePath ?? ''),
-            domPath: String(payload?.domPath ?? ''),
-            parserReportPath: String(payload?.parserReportPath ?? ''),
-            error: String(payload?.error ?? ''),
+            label: source?.label || previousCapture?.label || sourceId,
+            kind: source?.kind || payload?.kind || previousCapture?.kind || '',
+            itemCount: Number(payload?.itemCount ?? previousCapture?.itemCount ?? 0),
+            cachePath: String(payload?.cachePath ?? previousCapture?.cachePath ?? ''),
+            domPath: String(payload?.domPath ?? previousCapture?.domPath ?? ''),
+            parserReportPath: String(payload?.parserReportPath ?? previousCapture?.parserReportPath ?? ''),
+            error: String(payload?.error ?? previousCapture?.error ?? ''),
             prefilterStats: {
-                structuralCandidateCount: Number(payload?.prefilterStats?.structuralCandidateCount ?? candidatePreviews.length),
-                databaseSkippedCount: Number(payload?.prefilterStats?.databaseSkippedCount ?? 0),
-                databaseRefreshCount: Number(payload?.prefilterStats?.databaseRefreshCount ?? 0),
-                aiRejectedCount: Number(payload?.prefilterStats?.aiRejectedCount ?? 0),
-                trashCount: Number(payload?.prefilterStats?.trashCount ?? Math.max(0, Number(payload?.itemCount ?? 0) - candidatePreviews.length)),
-                aiQueueCount: Number(payload?.prefilterStats?.aiQueueCount ?? candidatePreviews.length),
-                posterGatePendingCount: Number(payload?.prefilterStats?.posterGatePendingCount ?? posterGateRequests.length),
-                incrementalKnownSkippedCount: Number(payload?.prefilterStats?.incrementalKnownSkippedCount ?? 0),
-                incrementalNewCount: Number(payload?.prefilterStats?.incrementalNewCount ?? 0),
+                structuralCandidateCount: Number(payload?.prefilterStats?.structuralCandidateCount ?? previousCapture?.prefilterStats?.structuralCandidateCount ?? candidatePreviews.length),
+                databaseSkippedCount: Number(payload?.prefilterStats?.databaseSkippedCount ?? previousCapture?.prefilterStats?.databaseSkippedCount ?? 0),
+                databaseRefreshCount: Number(payload?.prefilterStats?.databaseRefreshCount ?? previousCapture?.prefilterStats?.databaseRefreshCount ?? 0),
+                aiRejectedCount: Number(payload?.prefilterStats?.aiRejectedCount ?? previousCapture?.prefilterStats?.aiRejectedCount ?? 0),
+                trashCount: Number(payload?.prefilterStats?.trashCount ?? previousCapture?.prefilterStats?.trashCount ?? Math.max(0, Number(payload?.itemCount ?? 0) - candidatePreviews.length)),
+                aiQueueCount: Number(payload?.prefilterStats?.aiQueueCount ?? previousCapture?.prefilterStats?.aiQueueCount ?? candidatePreviews.length),
+                posterGatePendingCount: Number(payload?.prefilterStats?.posterGatePendingCount ?? previousCapture?.prefilterStats?.posterGatePendingCount ?? posterGateRequests.length),
+                incrementalKnownSkippedCount: Number(payload?.prefilterStats?.incrementalKnownSkippedCount ?? previousCapture?.prefilterStats?.incrementalKnownSkippedCount ?? 0),
+                incrementalNewCount: Number(payload?.prefilterStats?.incrementalNewCount ?? previousCapture?.prefilterStats?.incrementalNewCount ?? 0),
             },
-            candidatePreviews,
-            prefilterPreviews,
-            posterGateRequests,
+            candidatePreviews: candidatePreviews.length ? candidatePreviews : (previousCapture?.candidatePreviews || []),
+            prefilterPreviews: prefilterPreviews.length ? prefilterPreviews : (previousCapture?.prefilterPreviews || []),
+            posterGateRequests: posterGateRequests.length ? posterGateRequests : (previousCapture?.posterGateRequests || []),
+            apiAudit: mergeApiAuditEntries(previousCapture?.apiAudit, incomingApiAudit),
         };
         captureState.set(sourceId, normalized);
         diagnostics.log('source.capture.complete', normalized);
@@ -5618,6 +6843,7 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
             itemCount: Number(payload?.itemCount ?? 0),
             cachePath: '', domPath: '', parserReportPath: '', error: '',
             prefilterStats: {}, candidatePreviews: [], prefilterPreviews: [], posterGateRequests: [],
+            apiAudit: [],
         };
         const candidatePreviews = Array.isArray(payload?.candidatePreviews) ? payload.candidatePreviews : [];
         const prefilterPreviews = Array.isArray(payload?.prefilterPreviews) ? payload.prefilterPreviews : [];
@@ -5645,6 +6871,7 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
             candidatePreviews,
             prefilterPreviews,
             posterGateRequests: previous.posterGateRequests || [],
+            apiAudit: mergeApiAuditEntries(previous.apiAudit, Array.isArray(payload?.apiAudit) ? payload.apiAudit : (Array.isArray(payload?.prefilterStats?.apiAudit) ? payload.prefilterStats.apiAudit : [])),
         };
         captureState.set(sourceId, normalized);
         admissionState.set(sourceId, normalized);
@@ -5743,6 +6970,7 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
                     cachePath: row.cachePath,
                     parserReportPath: row.parserReportPath,
                     error: row.error,
+                    apiAudit: Array.isArray(row.apiAudit) ? row.apiAudit : [],
                 })),
                 tracePath: diagnostics.relativeLogPath,
             }, { event: 'parser.checkpoint.candidate' });
@@ -5812,6 +7040,11 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
     }
 
     const tasks = sources.map(async (source, index) => {
+        // Keep source-level failures in the same durable error ledger as
+        // item-level processing failures. A capture can fail before it has an
+        // item id; retaining the source id and the complete forensic run lets
+        // the owner inspect/replay the raw DOM/cache later.
+        let sourceErrorRecorded = false;
         const isVkBrowserSource = !recovery?.cacheRows?.has(source.id) && (source.kind === 'vk-chat' || source.kind === 'vk-public');
         // Reserve launch order synchronously, before the first await. This
         // reservation is released on SOURCE START, not on its capture callback.
@@ -5848,21 +7081,31 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
                 finiteChatPass: source.kind === 'vk-chat',
                 finitePass: true,
                 deadlineAt: 0,
-                processingGate,
-                posterGateGate,
+                processingGate: phasePass === 2 ? null : processingGate,
+                posterGateGate: phasePass === 2 ? phaseTwoSourceGates.get(source.id).promise : posterGateGate,
                 getPosterGateResult,
                 diagnostics,
+                onParserItemError: async (record) => {
+                    try {
+                        await onParserItemError?.(record);
+                    } catch (callbackError) {
+                        diagnostics.log('parser.item-error.owner-callback-failed', { sourceId: source.id, error: callbackError });
+                    }
+                },
                 processingConcurrency,
                 processingLimiter,
                 incrementalOnly: Boolean(incrementalOnly),
                 cachedItems: recovery?.cacheRows?.get(source.id)?.items || null,
                 resumeCompletedSince: recovery && !recovery.originalIncrementalOnly
                     ? Math.floor(Date.parse(recovery.startedAt) / 1000) : 0,
+                recentDays,
+                phaseCount,
+                turboMode,
                 onCaptureComplete: (payload) => {
-                    finishCaptureBarrier(source, payload);
+                    finishCaptureBarrier(source, phasePass === 2 ? { ...payload, cachePath: recovery.cacheRows.get(source.id).path } : payload);
                 },
                 onAdmissionComplete: (payload) => {
-                    finishAdmissionBarrier(source, payload);
+                    finishAdmissionBarrier(source, phasePass === 2 ? { ...payload, cachePath: recovery.cacheRows.get(source.id).path } : payload);
                 },
                 onProcessingProgress,
             });
@@ -5920,10 +7163,57 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
                 sourceId: source.id,
                 error,
             });
+            try {
+                await diagnostics.onParserItemError?.({
+                    sourceId: source.id,
+                    sourceLabel: source.label,
+                    sourceKind: source.kind,
+                    sourceUrl: source.url,
+                    partyPool: normalizedPool,
+                    itemId: '',
+                    item: null,
+                    stage: 'capture',
+                    error,
+                });
+                sourceErrorRecorded = true;
+            } catch (diagnosticError) {
+                // Error reporting must never turn a source failure into an
+                // unhandled rejection or prevent the remaining sources from
+                // reaching the capture barrier. The original error remains in
+                // the run trace above.
+                diagnostics.log('source.run.error-persist-failed', {
+                    sourceId: source.id,
+                    error: diagnosticError,
+                });
+            }
             auditRuntimeEvent('parser.source.error', { sourceId: source.id, error: formatPrivateError(error) }, { level: 'error' });
             return result;
         } finally {
+            // Some scrapers report a structured failed result instead of
+            // throwing. Persist that failure too when no capture callback was
+            // emitted, so it is visible to `обработать ошибки парсера`.
             if (!captureState.has(source.id)) {
+                if (!sourceErrorRecorded && results[index]?.ok === false) {
+                    try {
+                        await diagnostics.onParserItemError?.({
+                            sourceId: source.id,
+                            sourceLabel: source.label,
+                            sourceKind: source.kind,
+                            sourceUrl: source.url,
+                            partyPool: normalizedPool,
+                            itemId: '',
+                            item: null,
+                            stage: 'capture',
+                            error: results[index]?.message || 'capture-failed',
+                        });
+                        sourceErrorRecorded = true;
+                    } catch (diagnosticError) {
+                        diagnostics.log('source.run.error-persist-failed', {
+                            sourceId: source.id,
+                            error: diagnosticError,
+                        });
+                    }
+                }
                 finishCaptureBarrier(source, {
                     sourceId: source.id,
                     kind: source.kind,
@@ -5950,16 +7240,78 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
     // cache barrier, so no model request competes with browser capture.
     await Promise.all(captureWaiters.map((item) => item.promise));
     const rawCaptureRows = sources.map((source) => captureState.get(source.id)).filter(Boolean);
+    if (phasePass !== 2) {
+        // Cache the actual media bytes alongside the immutable source cache.
+        // Only c22 may contribute date-free conversation images.
+        const urls = [...new Set(rawCaptureRows.flatMap((row) => (row.prefilterPreviews || [])
+            .filter((item) => row.kind !== 'vk-chat' || row.sourceId === 'chat:2000000022' || item.visionPhase === 'phase1')
+            .flatMap((item) => item.imageUrls || [])))].filter((url) => !isLikelyVkNonPosterUiImageUrl(url));
+        const directory = resolve(diagnostics.directory, 'raw-images');
+        mkdirSync(directory, { recursive: true });
+        const downloadLimiter = createManualParserLimiter(3);
+        await Promise.all(urls.map((url) => downloadLimiter.run(async () => {
+            if (rawImageCache.has(url)) return;
+            try {
+                const asset = await downloadVisionImageAsset(url);
+                const path = resolve(directory, `${asset.sha256}.image`);
+                if (!existsSync(path)) writeFileSync(path, asset.buffer);
+                rawImageCache.set(url, { path, sha256: asset.sha256, mimeType: asset.mimeType, width: asset.width, height: asset.height });
+            } catch (error) {
+                diagnostics.log('image.cache.error', { url, error });
+            }
+        })));
+        writeFileSync(resolve(directory, 'manifest.json'), JSON.stringify([...rawImageCache]), 'utf8');
+        diagnostics.log('image.cache.complete', { candidates: urls.length, cached: rawImageCache.size });
+    }
     const posterGateRequests = rawCaptureRows.flatMap((row) => (
         Array.isArray(row?.posterGateRequests)
             ? row.posterGateRequests.map((item) => ({ sourceId: row.sourceId, sourceLabel: row.label, ...item }))
             : []
     ));
+    // Phase 1 is the ordinary dated-text contour. Its captured image URLs are
+    // recorded before the date-free pass is released, so phase 2 cannot send
+    // the same attachment to Vision again even when VK generated another CDN
+    // URL for it. Exact URL identity is the conservative fallback; the source
+    // row's durable visual fingerprint is reused by processPost on replay.
+    const normalizePhaseImageUrl = (value) => String(value || '').trim().replace(/[?&](?:cs|size|quality)=[^&]+/giu, '');
+    const phaseOneImageUrls = new Set(rawCaptureRows.flatMap((row) => (
+        Array.isArray(row?.prefilterPreviews)
+            ? row.prefilterPreviews
+                .filter((item) => String(item?.visionPhase || '') === 'phase1')
+                .flatMap((item) => Array.isArray(item?.imageUrls) ? item.imageUrls : [])
+            : []
+    )).map(normalizePhaseImageUrl).filter(Boolean));
+    for (const url of reservedImageUrls) phaseOneImageUrls.add(normalizePhaseImageUrl(url));
+    const phaseOneImageHashes = new Set([...reservedImageUrls, ...phaseOneImageUrls].map((url) => rawImageCache.get(url)?.sha256).filter(Boolean));
+    const phaseOneRequests = posterGateRequests.filter((request) => String(request?.visionPhase || 'phase1') !== 'phase2-date-free-image');
+    const phaseTwoRequests = posterGateRequests.filter((request) => Number(phaseCount) !== 1 && String(request?.visionPhase || '') === 'phase2-date-free-image').map((request) => ({
+        ...request,
+        originalImageUrls: request.originalImageUrls || request.imageUrls,
+        imageUrls: [...new Set((Array.isArray(request?.imageUrls) ? request.imageUrls : [])
+            .map((url) => String(url || '').trim())
+            .filter(Boolean)
+            .filter((url) => !phaseOneImageUrls.has(normalizePhaseImageUrl(url)))
+            .filter((url) => !phaseOneImageHashes.has(rawImageCache.get(url)?.sha256))
+            .filter((url) => { const image = rawImageCache.get(url); return !image || !(image.width > 0 && image.height > 0 && (image.width < 64 || image.height < 64)); }))],
+    })).filter((request) => request.imageUrls.length);
+    const visionRequests = [...phaseOneRequests, ...phaseTwoRequests];
+    if (phasePass === 2) {
+        for (const request of visionRequests) phaseTwoSourceGates.get(request.sourceId).remaining++;
+    }
+    for (const request of posterGateRequests) {
+        if (request.visionPhase === 'phase2-date-free-image' && !phaseTwoRequests.some((item) => item.sourceId === request.sourceId && item.itemId === request.itemId)) {
+            posterGateResults.set(candidateKey(request.sourceId, request.itemId), { attempted: true, facts: '', error: '', skipped: 'phase1-image-duplicate' });
+        }
+    }
+    if (phasePass === 2) for (const gate of phaseTwoSourceGates.values()) if (!gate.remaining) gate.release();
+    // Date-free image candidates are an independent second-pass workload.
+    // Keep three in flight: enough to avoid serially waiting on a slow model,
+    // while bounding provider pressure and preserving per-image checkpoints.
     const posterGateConcurrency = clampInteger(
-        process.env.MANUAL_PARSER_POSTER_GATE_CONCURRENCY,
+        process.env.MANUAL_PARSER_VISION_CONCURRENCY,
         1,
-        12,
-        6,
+        3,
+        3,
     );
     const posterGateLimiter = createManualParserLimiter(posterGateConcurrency);
     let posterGateCompleted = 0;
@@ -6008,28 +7360,47 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         }
         updateOperationProgress({
             phase: 'parser-poster-gate', partyPool: normalizedPool,
-            completedPosterGateRequests: posterGateCompleted, totalPosterGateRequests: posterGateRequests.length,
+            completedPosterGateRequests: posterGateCompleted, totalPosterGateRequests: visionRequests.length,
             lastVisionResponse: { sourceId: request.sourceId, itemId: String(request.itemId || ''), imageNumber, model, mode, provider, outcome: String(event?.type || ''), durationMs: Math.max(0, Number(event?.durationMs || 0)) },
             visionModelMetrics: summarizeVisionModelMetrics(),
         }, { event: 'parser.vision-model.metrics' });
     };
     diagnostics.log('run.poster-gate.start', {
-        requests: posterGateRequests.length,
+        requests: visionRequests.length,
+        phaseOneRequests: phaseOneRequests.length,
+        phaseTwoRequests: phaseTwoRequests.length,
+        excludedPhase1Images: posterGateRequests.filter((request) => request.visionPhase === 'phase2-date-free-image').reduce((sum, request) => sum + (Array.isArray(request?.imageUrls) ? request.imageUrls.length : 0), 0) - phaseTwoRequests.reduce((sum, request) => sum + request.imageUrls.length, 0),
         concurrency: posterGateConcurrency,
     });
-    await Promise.all(posterGateRequests.map((request) => posterGateLimiter.run(async () => {
+    await Promise.all(visionRequests.map((request) => posterGateLimiter.run(async () => {
         const key = candidateKey(request.sourceId, request.itemId);
         let facts = '';
         let error = '';
         try {
             facts = await extractPosterGateFactsWithVision({
+                // Keep stable HTTP identities in traces/checkpoints. Convert to
+                // cached bytes only at the transport boundary, after URL filtering.
                 imageUrls: request.imageUrls,
+                prepareImage: (url) => {
+                    const image = rawImageCache.get(url);
+                    return image && existsSync(image.path) ? `data:${image.mimeType};base64,${readFileSync(image.path).toString('base64')}` : url;
+                },
                 sourceUrl: request.sourceUrl,
                 sourceLabel: request.source || request.sourceLabel || request.sourceId,
                 sourceText: String(request.sourceText || ''),
+                dateFreePhase: request.visionPhase === 'phase2-date-free-image',
+                imageIndexes: request.imageUrls.map((url) => (request.originalImageUrls || request.imageUrls).indexOf(url) + 1),
                 secondaryJointGate: Boolean(request.secondaryJointGate),
+                getCachedImageFact: (imageNumber, imageUrl) => getParserPosterGateImage(recovery?.posterGateImages, request, imageNumber, imageUrl),
                 trace: (stage, data = {}) => {
                     if (stage === 'model') recordVisionModelEvent(data, request, Number(data?.imageNumber || 0));
+                    if (stage === 'image' && data?.reused) {
+                        visionCacheHits += 1;
+                        diagnostics.log('vision.model.cache-hit', {
+                            sourceId: request.sourceId, itemId: String(request.itemId || ''),
+                            imageNumber: Number(data?.imageNumber || 0),
+                        });
+                    }
                     diagnostics.log(`item.poster-gate.${stage}`, {
                         sourceId: request.sourceId,
                         itemId: String(request.itemId || ''),
@@ -6038,6 +7409,7 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
                 },
             });
         } catch (posterGateError) {
+            facts = String(posterGateError?.partialFacts || '');
             error = formatPrivateError(posterGateError);
             diagnostics.log('item.poster-gate.error', {
                 sourceId: request.sourceId,
@@ -6047,16 +7419,26 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         }
         posterGateResults.set(key, {
             attempted: true,
+            dateFreePhase: request.visionPhase === 'phase2-date-free-image',
+            inspectedImageUrls: request.imageUrls,
+            inspectedImageIndexes: request.imageUrls.map((url) => (request.originalImageUrls || request.imageUrls).indexOf(url) + 1),
             facts: String(facts || ''),
             error,
         });
+        if (phasePass === 2) {
+            const sourceGate = phaseTwoSourceGates.get(request.sourceId);
+            sourceGate.remaining--;
+            // Save admitted cards as soon as this source's image batch ends.
+            // Other sources can still have Vision requests in flight.
+            if (!sourceGate.remaining) sourceGate.release();
+        }
         posterGateCompleted += 1;
-        const pendingPosterGate = posterGateRequests.length - posterGateCompleted;
+        const pendingPosterGate = visionRequests.length - posterGateCompleted;
         updateOperationProgress({
             phase: 'parser-poster-gate',
             partyPool: normalizedPool,
             completedPosterGateRequests: posterGateCompleted,
-            totalPosterGateRequests: posterGateRequests.length,
+            totalPosterGateRequests: visionRequests.length,
             unfinishedPosterGateRequests: pendingPosterGate,
             lastPosterGateItem: { sourceId: request.sourceId, itemId: String(request.itemId || ''), error },
         }, { event: 'parser.poster-gate.progress' });
@@ -6065,41 +7447,93 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
             phase: 'poster-gate',
             partyPool: normalizedPool,
             captureCount: rawCaptureRows.reduce((sum, row) => sum + Number(row?.itemCount || 0), 0),
-            totalPosterGateRequests: posterGateRequests.length,
+            totalPosterGateRequests: visionRequests.length,
             completedPosterGateRequests: posterGateCompleted,
             unfinishedPosterGateRequests: pendingPosterGate,
             lastPosterGateItem: { sourceId: request.sourceId, itemId: String(request.itemId || ''), error },
             visionModelMetrics: summarizeVisionModelMetrics(),
+            visionCacheHits,
             tracePath: diagnostics.relativeLogPath,
         }, { event: 'parser.checkpoint.poster-gate-progress' });
     }, { priority: Number(request.priority || request.score || 0) })));
     diagnostics.log('run.poster-gate.complete', {
-        requests: posterGateRequests.length,
+        requests: visionRequests.length,
         withFacts: [...posterGateResults.values()].filter((item) => String(item?.facts || '').trim()).length,
         failed: [...posterGateResults.values()].filter((item) => item?.error).length,
         modelMetrics: summarizeVisionModelMetrics(),
+        cacheHits: visionCacheHits,
     });
     const visionTimingReport = {
         generatedAt: new Date().toISOString(),
         configuredRequestTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
         streamIdleTimeoutMs: Math.min(15 * 60 * 1000, Math.max(60_000, EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS)),
-        totalRequests: posterGateRequests.length,
+        totalRequests: visionRequests.length,
         completedRequests: posterGateCompleted,
         failedRequests: [...posterGateResults.values()].filter((item) => item?.error).length,
         models: summarizeVisionModelMetrics(),
+        cacheHits: visionCacheHits,
+        images: {
+            planned: visionRequests.reduce((sum, row) => sum + row.imageUrls.length, 0),
+            recognized: [...posterGateResults.values()].reduce((sum, row) => sum + parseIndexedImageFacts(row.facts).filter((fact) => fact.visionStatus !== 'error').length, 0),
+            announcements: [...posterGateResults.values()].reduce((sum, row) => sum + parseIndexedImageFacts(row.facts).filter((fact) => fact.poster === true).length, 0),
+        },
     };
+    visionTimingReport.images.unprocessed = Math.max(0, visionTimingReport.images.planned - visionTimingReport.images.recognized);
     diagnostics.saveParserReport({ sourceId: 'vision-model-timings', kind: 'vision-model-latency', report: visionTimingReport });
     diagnostics.saveTextReport({
         sourceId: 'vision-model-timings', kind: 'vision-model-latency-human',
         text: [
             'VISION MODEL RESPONSE TIMES',
-            `Image checks completed: ${posterGateCompleted}/${posterGateRequests.length}`,
+            `Image checks completed: ${posterGateCompleted}/${visionRequests.length}; cache hits: ${visionTimingReport.cacheHits}.`,
+            `Images: planned ${visionTimingReport.images.planned}, recognized ${visionTimingReport.images.recognized}, announcement-like ${visionTimingReport.images.announcements}, unprocessed ${visionTimingReport.images.unprocessed}.`,
             ...visionTimingReport.models.map((model) => `${model.ladderStep || '-'} ${model.model} (${model.provider}/${model.keyName}) — attempts ${model.attempts}, success ${model.successes}, failure ${model.failures}, timeout ${model.timeouts}, avg ${model.averageMs} ms, p50 ${model.p50Ms} ms, p95 ${model.p95Ms} ms, max ${model.maxMs} ms`),
         ].join('\n'),
     });
     releasePosterGateGate?.();
     await Promise.all(admissionWaiters.map((item) => item.promise));
     const captureRows = sources.map((source) => captureState.get(source.id)).filter(Boolean);
+    const vkApiAudit = aggregateVkApiAudit(captureRows);
+    diagnostics.saveParserReport({
+        sourceId: 'vk-api-audit',
+        kind: 'vk-api-audit',
+        report: vkApiAudit,
+    });
+    diagnostics.saveTextReport?.({
+        sourceId: 'vk-api-audit',
+        kind: 'vk-api-audit-human',
+        text: [
+            'VK API / DOM АУДИТ',
+            vkApiAudit.human,
+            '',
+            `По кодам ошибок: ${Object.entries(vkApiAudit.errorsByCode).map(([code, count]) => `${code}=${count}`).join(', ') || 'ошибок с кодом нет'}.`,
+            `DOM/browser fallback: успешных восстановлений ${vkApiAudit.domFallbackSuccesses} из ${vkApiAudit.domFallbackAttempts}; DOM остаётся первичным источником.`,
+        ].join('\n'),
+    });
+    const vkApiAuditEntries = captureRows.flatMap((row) => (
+        Array.isArray(row?.apiAudit) ? row.apiAudit.map((entry) => ({
+            ...entry,
+            sourceId: String(row?.sourceId || ''),
+            sourceLabel: String(row?.label || row?.sourceId || ''),
+        })) : []
+    ));
+    const vkApiAuditHuman = formatVkApiAuditHuman(vkApiAuditEntries);
+    const vkApiAuditSummary = {
+        attempts: vkApiAuditEntries.filter((item) => String(item?.status || '').toLowerCase() === 'attempt').length,
+        successful: vkApiAuditEntries.filter((item) => item?.ok || String(item?.status || '').toLowerCase() === 'ok').length,
+        failed: vkApiAuditEntries.filter((item) => !item?.ok && String(item?.status || '').toLowerCase() === 'failed').length,
+        methods: [...new Set(vkApiAuditEntries.map((item) => String(item?.method || '')).filter(Boolean))],
+        domFallbackCount: vkApiAuditEntries.filter((item) => /dom|browser|fallback/iu.test(`${item?.method || ''} ${item?.reason || ''}`) && item?.ok).length,
+    };
+    diagnostics.saveParserReport({
+        sourceId: 'vk-api-audit-final',
+        kind: 'vk-api-audit-final',
+        report: {
+            summary: vkApiAuditSummary,
+            entries: vkApiAuditEntries,
+            human: vkApiAuditHuman,
+        },
+    });
+    diagnostics.saveTextReport?.({ sourceId: 'vk-api-audit-human', kind: 'vk-api-audit-human', text: vkApiAuditHuman });
     const captureParserReports = captureRows.map((row) => {
         const path = String(row?.parserReportPath || '').trim();
         if (!path || !existsSync(path)) return { sourceId: row?.sourceId || '', report: {} };
@@ -6146,7 +7580,9 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         String(left.source || '').localeCompare(String(right.source || ''), 'ru') ||
         String(left.itemId || '').localeCompare(String(right.itemId || ''), 'en', { numeric: true })
     ));
-    const aiQueuePolicy = normalizedPool === PARTY_POOL_SECONDARY
+    const aiQueuePolicy = phasePass === 2
+        ? 'Date-free phase: use the original captured image together with its semantic post text. Reuse phase-two Vision facts in card extraction. Exclude images reserved by phase one, UI assets, and all VK chats except 2000000022. Publication/UI timestamps never create event-date evidence.'
+        : normalizedPool === PARTY_POOL_SECONDARY
         ? 'Secondary/bydlo strict gate: semantic body text is checked BEFORE any vision. An event date in semantic body text is mandatory and publication/UI metadata never counts. Direct route requires body date + body time + likely title. Heuristic route requires body date + >=65% event/party intent + >=65% likely-title confidence. Only those posts send attached images to joint text+image vision; all other images are never sent to vision. Clean/auto mode skips an item only for the same source item ID, final ledger status and exactly matching significant-content hash.'
         : 'Two-stage AI gate: first use the actual post/message body. If body gate fails but the item has an image, after ALL raw browser capture is cached a narrow poster-vision pass reads only the image. Main AI is admitted only when body OR poster vision contains a usable event title/participants and at least one event date today/future. Publication/UI timestamp never creates date evidence; publishedAt may only disambiguate the year for an already-visible day/month.';
     const aiQueueAuditAbsolutePath = diagnostics.saveParserReport({
@@ -6170,6 +7606,7 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
             rejectedByStrictGate: gateRejectedRows,
             rejectedAfterPosterGate: posterGateRejectedRows,
             allPrefilterRows,
+            vkApiAudit,
         },
     }) || '';
     const aiQueueAuditPath = aiQueueAuditAbsolutePath
@@ -6180,6 +7617,9 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         `Policy: ${aiQueuePolicy}`,
         `Captured=${captureCount}; incremental-known-skip=${incrementalKnownSkippedCount}; incremental-new=${incrementalNewCount}; structural=${structuralCandidateCount}; DB-skip=${databaseSkippedCount}; media-refresh=${databaseRefreshCount}; poster-gate-checked=${posterGateCheckedCount}; poster-gate-rescued=${posterGateRescuedCount}; strict-gate-blocked=${aiRejectedCount}; trash=${trashCount}; AI-queue=${candidateCount}`,
         `Gate rejection breakdown: ${JSON.stringify(gateRejectionBreakdown)}`,
+        '',
+        '=== VK API / DOM AUDIT ===',
+        vkApiAudit.human,
         '',
         `=== SENT TO AI QUEUE (${queuedAuditRows.length}) ===`,
         ...queuedAuditRows.flatMap((item) => [formatAiAuditRow(item, 'AI'), '']),
@@ -6231,6 +7671,7 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
             cachePath: row.cachePath,
             parserReportPath: row.parserReportPath,
             error: row.error,
+            apiAudit: Array.isArray(row.apiAudit) ? row.apiAudit : [],
         })),
         tracePath: diagnostics.relativeLogPath,
     }, { event: 'parser.checkpoint.capture-complete' });
@@ -6248,6 +7689,9 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         incrementalOnly: Boolean(incrementalOnly),
         gateRejectionBreakdown,
         trashCount,
+        vkApiAudit,
+        vkApiAuditSummary,
+        vkApiAuditHuman,
         aiQueueAuditPath,
         aiQueueAuditTextPath,
         aiQueueCount: candidateCount,
@@ -6256,6 +7700,48 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
     });
 
     const processingPromise = Promise.allSettled(tasks).then(async () => {
+        // `runManualParserPoolUntilSettled` emits progress for each retry, but
+        // its synthetic result on retry exhaustion has no worker callback.
+        // Without normalizing here, failed/unresolved rows remain visible as
+        // active forever and every five-minute heartbeat repeats the same
+        // count even though all workers have stopped. Preserve the rows for
+        // diagnostics while moving them out of the active set.
+        let terminalUnresolvedCount = 0;
+        let terminalFailedCount = 0;
+        for (const row of candidateState.values()) {
+            if (row.status === 'unresolved') {
+                row.status = 'unresolved-terminal';
+                terminalUnresolvedCount += 1;
+            } else if (row.status === 'failed') {
+                row.status = 'failed-terminal';
+                terminalFailedCount += 1;
+            }
+        }
+        // Retry exhaustion is terminal for this exact captured content. The
+        // worker pool has no callback for its synthetic exhausted result, so
+        // normalize the operation progress here as well; otherwise recovery
+        // sees a stale pending candidate and launches the same item again.
+        const terminalPending = [...candidateState.values()]
+            .filter((item) => ['pending', 'processing', 'failed', 'unresolved'].includes(item.status));
+        const terminalCompleted = Math.max(0, totalCandidateCount - terminalPending.length);
+        updateOperationProgress({
+            phase: 'parser-processing',
+            totalCandidates: totalCandidateCount,
+            completedCandidates: terminalCompleted,
+            unfinishedCandidates: terminalPending.length,
+            terminalUnresolvedCount,
+            terminalFailedCount,
+        }, { event: 'parser.candidate.terminalized' });
+        saveOperationCheckpoint({
+            phase: 'processing',
+            totalCandidates: totalCandidateCount,
+            completedCandidates: terminalCompleted,
+            unfinishedCandidates: terminalPending.length,
+            pendingCandidates: terminalPending.slice(0, 300),
+            terminalUnresolvedCount,
+            terminalFailedCount,
+            tracePath: diagnostics.relativeLogPath,
+        }, { event: 'parser.checkpoint.terminalized' });
         // Each finite VK pass owns its own page and closes it in its own finally.
         // Never stop a session here solely because it is currently active: it may
         // have been launched by a different parser run after this run began.
@@ -6278,6 +7764,13 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         const visionCheckedImageCount = results.reduce((sum, item) => sum + Number(item?.result?.visionCheckedImageCount ?? 0), 0);
         const posterMatchAcceptedCount = results.reduce((sum, item) => sum + Number(item?.result?.posterMatchAcceptedCount ?? 0), 0);
         const posterMatchRejectedCount = results.reduce((sum, item) => sum + Number(item?.result?.posterMatchRejectedCount ?? 0), 0);
+        const nonEventLabels = results.reduce((counts, item) => {
+            for (const [label, count] of Object.entries(item?.result?.nonEventLabels || {})) {
+                const normalized = String(label || '').trim();
+                if (normalized) counts[normalized] = Number(counts[normalized] || 0) + Number(count || 0);
+            }
+            return counts;
+        }, {});
         const lines = [
             failed
                 ? '⚠️ Обработка закешированных источников завершена с ошибками.'
@@ -6285,6 +7778,9 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
                     ? '✅ Все закешированные источники обработаны; часть восстановлена повторной попыткой.'
                     : '✅ Все закешированные источники обработаны.',
             `Источников: ${results.length}; успешно: ${succeeded}; с ошибкой: ${failed}; ошибок отдельных элементов: ${failedProcessingItems}; активных VK-бесед: ${activeChats}.`,
+            Object.keys(nonEventLabels).length
+                ? `В события не вошли посты/сообщения со смыслом: ${Object.entries(nonEventLabels).map(([label, count]) => `${label} (${count})`).join('; ')}.`
+                : '',
         ];
         for (const item of results) {
             lines.push(
@@ -6299,6 +7795,8 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
             succeeded,
             failed,
             failedProcessingItems,
+            terminalUnresolvedCount,
+            terminalFailedCount,
             sourceLoadedCount: succeeded,
             sourceReloadCount,
             sourceFailedCount: failed,
@@ -6308,6 +7806,7 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
             visionCheckedImageCount,
             posterMatchAcceptedCount,
             posterMatchRejectedCount,
+            nonEventLabels,
             activeChats,
             completedPublic,
             results,
@@ -6370,7 +7869,11 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         aiQueueCount: candidateCount,
         aiQueueAuditPath,
         aiQueueAuditTextPath,
+        vkApiAudit,
+        vkApiAuditSummary,
+        vkApiAuditHuman,
         captures: captureRows,
+        visionTimingReport,
         contourCounts,
         sourceReloadCount,
         tracePath: diagnostics.relativeLogPath,
@@ -6378,6 +7881,13 @@ async function startAllManualScraperSources({ incrementalOnly = false, partyPool
         startProcessing,
         processingPromise,
         getPendingCandidates,
+        getTerminalCandidates: () => [...candidateState.values()]
+            .filter((item) => ['failed-terminal', 'unresolved-terminal'].includes(item.status))
+            .sort((left, right) => (
+                Number(right.priority || 0) - Number(left.priority || 0) ||
+                left.source.localeCompare(right.source, 'ru') ||
+                left.itemId.localeCompare(right.itemId, 'en', { numeric: true })
+            )),
         logDiagnostics: (stage, data) => diagnostics.log(stage, data),
         saveDiagnosticsReport: (sourceId, kind, report) => diagnostics.saveParserReport({ sourceId, kind, report }),
         savePosterForensicsFinal: (snapshot, visibilityAudit) => diagnostics.recordFinalPosterSnapshot(snapshot, visibilityAudit),
@@ -6519,6 +8029,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now(), partyPool =
                 partyPool,
                 incrementalOnly: true,
                 automatic: true,
+                turboMode: 'turbo3',
                 schedule: partyPool === PARTY_POOL_PRIMARY ? 'every-3-days+friday-after-2-days' : 'weekly+friday',
             },
             timeoutMs: 3 * 60 * 60 * 1000,
@@ -6538,11 +8049,24 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now(), partyPool =
             run = await startAllManualScraperSources({
                 incrementalOnly: true,
                 partyPool,
+                phaseCount: 2,
+                turboMode: 'turbo3',
             });
-            const processingSummary = await run.startProcessing();
+            const processingSummary = await parserPacingContext.run({ beforeAttempt: parserTurboPacer('turbo3') }, () => run.startProcessing());
             const pendingBeforeVerification = run.getPendingCandidates?.() || [];
-            if (processingSummary?.ok !== true || pendingBeforeVerification.length) {
-                auditRuntimeEvent('parser.partial-finalization', { pending: pendingBeforeVerification.length, summary: processingSummary });
+            const partialRun = processingSummary?.ok !== true || pendingBeforeVerification.length > 0;
+            if (partialRun) {
+                // Only persisted cards enter verification. A failed sibling
+                // source must not prevent completed cards from being published.
+                auditRuntimeEvent('parser.partial-finalization', {
+                    pending: pendingBeforeVerification.length,
+                    summary: processingSummary,
+                    verificationSkipped: false,
+                });
+                run.logDiagnostics?.('run.partial-finalization', {
+                    unfinishedCandidates: pendingBeforeVerification.length,
+                    failedCaptures: Number(processingSummary?.failed || 0),
+                });
             }
             try {
                 backfillCleanLegacyPosterBindingsV18868({ force: true });
@@ -6550,12 +8074,12 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now(), partyPool =
                 run.logDiagnostics?.('run.clean-media-poster-bindings.error', { error });
             }
             const verification = await rebuildVerifiedPartySnapshotQueued({
-                reason: 'secondary-auto-parser-complete',
+                reason: partialRun ? 'parser-all-auto-partial' : 'parser-all-auto-complete',
             });
             const pending = run.getPendingCandidates?.() || [];
             saveOperationCheckpoint({
                 kind: 'parser-all-clean',
-                phase: processingSummary?.ok === true && !pending.length ? 'completed' : 'completed-with-warnings',
+                phase: !partialRun && !pending.length ? 'completed' : 'completed-with-warnings',
                 partyPool,
                 automatic: true,
                 sourceCount: Number(run.total || 0),
@@ -6565,6 +8089,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now(), partyPool =
                 totalCandidates: Number(run.aiQueueCount || 0),
                 completedCandidates: Math.max(0, Number(run.aiQueueCount || 0) - pending.length),
                 unfinishedCandidates: pending.length,
+                verificationSkipped: false,
                 canonicalCount: Number(verification?.canonicalCount || 0),
                 tracePath: String(run.tracePath || ''),
             }, { event: 'parser.auto-secondary.checkpoint.completed' });
@@ -6574,6 +8099,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now(), partyPool =
                 partyPool,
                 incrementalOnly: true,
                 processingSummary,
+                verificationSkipped: false,
                 verification: {
                     canonicalCount: Number(verification?.canonicalCount || 0),
                     mergeCount: Number(verification?.mergeCount || 0),
@@ -6581,6 +8107,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now(), partyPool =
             });
             return {
                 ...processingSummary,
+                verificationSkipped: false,
                 captureCount: Number(run.captureCount || 0),
                 incrementalKnownSkippedCount: Number(run.incrementalKnownSkippedCount || 0),
                 incrementalNewCount: Number(run.incrementalNewCount || 0),
@@ -6598,7 +8125,7 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now(), partyPool =
         });
         saveSecondaryPartyAutoState({
             ...state,
-            status: summary?.ok === false ? 'completed-with-errors' : 'completed',
+            status: summary?.verificationSkipped || summary?.ok === false ? 'completed-with-warnings' : 'completed',
             lastStartedAt: state.lastStartedAt || nowSeconds,
             lastFinishedAt: finishedAt,
             lastScheduledAt: scheduledAt,
@@ -6623,8 +8150,8 @@ async function runSecondaryPartyAutoParserTick({ nowMs = Date.now(), partyPool =
             `known=${Number(summary?.incrementalKnownSkippedCount || 0)}`,
             `ai=${Number(summary?.aiQueueCount || 0)}`,
         );
-        markParserActivity({ mode: 'all-new', partyPool, status: 'completed' });
-        await sendAiModelDiscoveryOwnerReport(`✅ Автопарсер ${partyPool} завершён. Новых/изменённых: ${summary?.incrementalNewCount || 0}; AI-кандидатов: ${summary?.aiQueueCount || 0}. Лог: ${summary?.tracePath || ''}`);
+        markParserActivity({ mode: 'all-new', partyPool, status: summary?.verificationSkipped ? 'completed-with-warnings' : 'completed' });
+        await sendAiModelDiscoveryOwnerReport(`${summary?.verificationSkipped ? '⚠️ Автопарсер' : '✅ Автопарсер'} ${partyPool} завершён${summary?.verificationSkipped ? ' частично: глобальная выверка отложена до восстановления' : ''}. Новых/изменённых: ${summary?.incrementalNewCount || 0}; AI-кандидатов: ${summary?.aiQueueCount || 0}. Лог: ${summary?.tracePath || ''}`);
         return { skipped: false, summary, nextRunAt };
     } catch (error) {
         const finishedAt = Math.floor(Date.now() / 1000);
@@ -6694,7 +8221,7 @@ function registerParserOperationStopHandler(getRun = () => null) {
     });
 }
 
-async function handleManualScraperCommand(context, requestText, { recoveryCheckpointId = '' } = {}) {
+async function handleManualScraperCommand(context, requestText, { recoveryCheckpointId = '', ordinaryPhaseTwo = false } = {}) {
     const command = parseScraperStartCommand(requestText);
     const commandPartyPool = command.partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
 
@@ -6702,7 +8229,91 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
         return false;
     }
 
+    if (command.listSourcesUpdate) {
+        if (!(await requireOwnerDm(context))) return true;
+        const requested = new Map();
+        for (const rawLine of String(command.sourceListBody || '').split(/\r?\n/u)) {
+            const parsed = parseManualSourceToggleLine(rawLine, parseManualScraperSource);
+            if (parsed) requested.set(parsed.id, parsed.enabled);
+        }
+        if (!requested.size) {
+            await context.send('Не распознал строки источников. Вставь ссылки из списка владельца с суффиксом `— 1` или `— 0`, по одной на строку.');
+            return true;
+        }
+        const apply = (registry, writer, pool) => {
+            const merged = [...registry];
+            for (const source of getManualScraperSources(pool, { includeDisabled: true })) {
+                if (!requested.has(source.id) || merged.some((item) => normalizePartySourceKey(item.kind, item.source) === source.id)) continue;
+                const descriptor = parseManualScraperSource(source.id);
+                if (descriptor.ok) merged.push(descriptor.source);
+            }
+            return writer(merged.map((item) => {
+            const id = normalizePartySourceKey(item.kind, item.source);
+            return requested.has(id) ? { ...item, enabled: requested.get(id) } : item;
+            }));
+        };
+        ownerManualScraperSourceRegistry = apply(ownerManualScraperSourceRegistry, writeOwnerManualScraperSourceRegistry, PARTY_POOL_PRIMARY);
+        ownerSecondaryManualScraperSourceRegistry = apply(ownerSecondaryManualScraperSourceRegistry, writeOwnerSecondaryManualScraperSourceRegistry, PARTY_POOL_SECONDARY);
+        await context.send(`✅ Обновил состояние ${requested.size} источников. 1 — включён, 0 — выключен; записи сохранены в базе.`);
+        return true;
+    }
+
+    if (command.listSources) {
+        const showSourceCounts = isOwnerContext(context) && isPrivateContext(context);
+        const sections = command.includeAllPools
+            ? [
+                { pool: PARTY_POOL_PRIMARY, title: 'Обычные источники' },
+                { pool: PARTY_POOL_SECONDARY, title: 'Второстепенные / быдлячьи источники' },
+            ]
+            : [{
+                pool: command.partyPool === PARTY_POOL_SECONDARY ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY,
+                title: command.partyPool === PARTY_POOL_SECONDARY
+                    ? 'Второстепенные / быдлячьи источники'
+                    : 'Обычные источники',
+            }];
+        const lines = showSourceCounts ? ['источники изменить', ''] : [];
+        for (const section of sections) {
+            const sources = getManualScraperSources(section.pool, { includeDisabled: true })
+                .filter((source) => source.kind !== 'vk-chat');
+            lines.push(showSourceCounts
+                ? `📚 ${section.title} (${sources.length})`
+                : `📚 ${section.title}`);
+            if (!sources.length) lines.push('Нет включённых источников.');
+            const registry = section.pool === PARTY_POOL_SECONDARY ? ownerSecondaryManualScraperSourceRegistry : ownerManualScraperSourceRegistry;
+            for (const source of sources) {
+                const key = normalizePartySourceKey(source.kind, source.id.replace(/^[^:]+:/u, ''));
+                const enabled = registry.find((item) => normalizePartySourceKey(item.kind, item.source) === key)?.enabled !== false;
+                lines.push(formatManualSourceListLine(source, { owner: showSourceCounts, enabled }));
+            }
+            if (section.pool === PARTY_POOL_PRIMARY) lines.push(formatPrimaryVkChatSourceNote());
+            lines.push('');
+        }
+        if (showSourceCounts) lines.push('Чтобы включить или выключить источник, отправь «источники изменить:» и вставь нужную строку из списка: 1 — включён, 0 — выключен. Менять список может только владелец в личных сообщениях боту.');
+        await sendLong(context, lines.join('\n').trim());
+        return true;
+    }
+
     if (!await requireOwnerDm(context)) {
+        return true;
+    }
+
+    // Replay only durable parser-error records. The shared implementation
+    // consumes the archived raw cache/DOM evidence and creates a separate
+    // forensic trace, so this command cannot accidentally run a second,
+    // divergent replay algorithm.
+    if (command.parserErrors) {
+        void replayOpenParserErrorsForOwner(context);
+        return true;
+    }
+
+    if (isAstraChannelMode()) {
+        enqueueDeferredAiOperation({
+            type: 'parser-command',
+            command: String(requestText || '').trim(),
+            platform: context.platform,
+            senderId: context.senderId,
+        });
+        await context.send('✨ Сейчас включён канал Astra. Парсер отложен и не запускается, чтобы не тратить запросы. Переключи «обычный канал», чтобы выполнить его.');
         return true;
     }
 
@@ -6714,10 +8325,8 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
     if (command.removeSource) {
         if (!command.sourceInput) {
             await context.send([
-                'Укажи постоянный ID источника из списка «тусы парсер»: ',
-                '«тусы удалить источник vk:название» или «тусы удалить источник tg:канал».',
-                'Для второстепенного пула: «тусы быдлячьи удалить источник vk:название».',
-                'Номер позиции в списке не является постоянным ID.',
+                'Пришли ссылку на источник из его списка.',
+                'Для второстепенного пула: «тусы второстепенные удалить источник <ссылка>».',
             ].join('\n'));
             return true;
         }
@@ -6732,7 +8341,9 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
             await context.send(`❌ Не удалось исключить источник: ${formatScraperErrorForUser(error)}`);
             return true;
         }
-        await context.send(removal.ok ? `✅ ${removal.message}` : `❌ ${removal.error}`);
+        await context.send(removal.ok
+            ? `✅ Источник ${formatManualSourceDisplayName(parseManualScraperSource(command.sourceInput).source)} исключён из ${commandPartyPool === PARTY_POOL_SECONDARY ? 'второстепенного' : 'основного'} пула. Старые события сохранены.`
+            : `❌ ${removal.error.replace(/(?:tg|vk):[^\s]+/giu, command.sourceInput)}`);
         return true;
     }
 
@@ -6830,8 +8441,8 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
 
         await context.send(
             addition.added
-                ? `▶️ Запускаю первый проход ${addition.source.id}.`
-                : `▶️ Источник уже был в каталоге; запускаю его повторно: ${addition.source.id}.`,
+                ? `▶️ Запускаю первый проход: ${formatManualSourceDisplayName(addition.source)} — ${getManualSourceUrl(addition.source)}.`
+                : `▶️ Источник уже был в каталоге; запускаю повторно: ${formatManualSourceDisplayName(addition.source)} — ${getManualSourceUrl(addition.source)}.`,
         );
 
         /*
@@ -6855,7 +8466,7 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                         kind: 'parser-source', phase: 'completed-with-warnings',
                         sourceId: addition.source.id, result,
                     }, { event: 'parser.checkpoint.completed-with-warnings' });
-                    await context.send(`⚠️ Источник ${addition.source.id} обработан не полностью. Snapshot не обновлялся.`)
+                    await context.send(`⚠️ Источник ${formatManualSourceDisplayName(addition.source)} обработан не полностью. Snapshot не обновлялся.`)
                         .catch(() => {});
                     return;
                 }
@@ -6881,7 +8492,7 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                     verification,
                 });
                 await context.send(
-                    `✅ Готово. Источник ${addition.source.id} активен; кэш тус обновлён: ${verification.canonicalCount} канонических событий.`,
+                    `✅ Готово. Источник ${formatManualSourceDisplayName(addition.source)} активен; кэш тус обновлён: ${verification.canonicalCount} канонических событий.`,
                 );
             } catch (error) {
                 console.error('[MANUAL SOURCE FIRST RUN ERROR]', `source=${addition.source.id}`, formatPrivateError(error));
@@ -6896,9 +8507,9 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                     error: formatPrivateError(error),
                 }, { level: 'error' });
                 await sendLong(context, [
-                    `⚠️ Источник ${addition.source.id} сохранён, но первый проход завершился с ошибкой.`,
+                    `⚠️ Источник ${formatManualSourceDisplayName(addition.source)} сохранён, но первый проход завершился с ошибкой.`,
                     formatScraperErrorForUser(error),
-                    `Повторить можно командой: «Гигорейв парсер ${addition.source.id}».`,
+                    `Повторить можно командой: «Гигорейв парсер ${getManualSourceUrl(addition.source)}».`,
                 ].join('\n')).catch(() => {});
                 throw error;
             }
@@ -6957,6 +8568,8 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
             console.warn('[PARSER START NOTICE FAILED]', formatPrivateError(error));
         });
 
+        // Keep the canonical parser operation label visible for diagnostics and
+        // static watchdog checks: name: 'parser-all'.
         const operationName = `${command.recover ? 'parser-all-recovery' : cleanOnly ? 'parser-all-clean' : 'parser-all'}:${effectivePartyPool}`;
         markParserActivity({
             mode: cleanOnly ? 'all-new' : 'all',
@@ -6967,16 +8580,16 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
             name: operationName,
             category: 'parser',
             // Parser-all is allowed to run longer than the generic two-hour
-            // maintenance watchdog, but never beyond the explicit three-hour
-            // hard limit requested for browser/AI batches. Checkpoints are
+            // maintenance watchdog, but never beyond the explicit four-hour
+            // hard limit for browser/AI batches. Checkpoints are
             // written after every source and candidate, so timeout preserves
             // everything already completed and leaves the rest retryable.
-            timeoutMs: 3 * 60 * 60 * 1000,
-            metadata: { platform: context.platform, senderId: context.senderId, peerId: context.peerId, partyPool: effectivePartyPool, incrementalOnly: cleanOnly, recoveryCheckpointId: recovery?.id || '' },
+            timeoutMs: 4 * 60 * 60 * 1000,
+            metadata: { platform: context.platform, senderId: context.senderId, peerId: context.peerId, partyPool: effectivePartyPool, incrementalOnly: cleanOnly, recoveryCheckpointId: recovery?.id || '', autoRecoveryDepth: Number(recovery?.autoRecoveryDepth || 0) + (recovery ? 1 : 0) },
         }, async () => {
             let run = null;
             registerParserOperationStopHandler(() => run);
-            saveOperationCheckpoint({ kind: command.recover ? 'parser-all-recovery' : cleanOnly ? 'parser-all-clean' : 'parser-all', phase: 'started', partyPool: effectivePartyPool, sourceCount: sources.length, incrementalOnly: cleanOnly, recoveryCheckpointId: recovery?.id || '', recoveryTracePath: recovery?.tracePath || '', similarityThreshold: null, cleanSkipPolicy: cleanOnly ? 'same-item-final-ledger-and-exact-content-hash' : null }, { event: 'parser.checkpoint.start' });
+            saveOperationCheckpoint({ ...parserRecoveryCheckpointInputs(recovery, { ordinaryPhaseTwo }), kind: command.recover ? 'parser-all-recovery' : cleanOnly ? 'parser-all-clean' : 'parser-all', phase: 'started', partyPool: effectivePartyPool, sourceCount: sources.length, incrementalOnly: cleanOnly, turboMode: command.turboMode || '', recoveryCheckpointId: recovery?.id || '', recoveryTracePath: recovery?.tracePath || '', similarityThreshold: null, cleanSkipPolicy: cleanOnly ? 'same-item-final-ledger-and-exact-content-hash' : null }, { event: 'parser.checkpoint.start' });
             let finalNotificationSent = false;
 
             const formatPending = (rows, maximum = 30) => {
@@ -7064,6 +8677,8 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                         console.warn('[MANUAL POSTER REPAIR PASS ERROR]', formatPrivateError(error));
                     }
 
+                    // Verification reads durable DB cards from every source;
+                    // incomplete candidates remain retryable outside this set.
                     run?.logDiagnostics?.('run.verification.start', {
                         pendingCandidates: run?.getPendingCandidates?.().length ?? 0,
                         manualPosterRepair,
@@ -7154,6 +8769,9 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                         'ambiguous multi-event': 0,
                     });
                     const artifactSummary = run?.getArtifactsSummary?.() || { domSnapshots: 0 };
+                    const visionSummary = summarizeParserVisionReports(
+                        run?.visionTimingReports || (run?.visionTimingReport ? [run.visionTimingReport] : []),
+                    );
                     const finalParserReport = {
                         partyPool: effectivePartyPool,
                         sources: {
@@ -7168,12 +8786,19 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                             updated: Number(summary?.eventsUpdatedCount || 0),
                             canonical: Number(verification?.canonicalCount || 0),
                         },
-                        visionCheckedImages: Number(summary?.visionCheckedImageCount || 0),
+                        visionCheckedImages: visionSummary.phases.length
+                            ? visionSummary.images.recognized
+                            : Number(summary?.visionCheckedImageCount || 0),
+                        visionImages: visionSummary.images,
                         visionModelTimings: summarizeParserVisionTimings(getCurrentOperation()?.id),
+                        vkApiAudit: run?.vkApiAudit || null,
                         posterMatches: {
                             accepted: Number(summary?.posterMatchAcceptedCount || 0),
                             rejected: Number(summary?.posterMatchRejectedCount || 0),
                         },
+                        nonEventLabels: summary?.nonEventLabels || {},
+                        vkApiAuditSummary: run?.vkApiAuditSummary || null,
+                        vkApiAuditHuman: run?.vkApiAuditHuman || '',
                         finalDedupeMerged: Number(verification?.mergeCount || 0),
                         posterless: {
                             count: canonicalPosterlessEvents.length,
@@ -7233,13 +8858,27 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                         `Источники: loaded=${finalParserReport.sources.loaded}; reloaded=${finalParserReport.sources.reloaded}; failed=${finalParserReport.sources.failed}. DOM snapshots: ${finalParserReport.snapshots}.`,
                         `3 контура: exact=${finalParserReport.contours.exact}; structural=${finalParserReport.contours.structural}; heuristic=${finalParserReport.contours.heuristic}.`,
                         `События: created=${finalParserReport.events.created}; updated=${finalParserReport.events.updated}; canonical=${finalParserReport.events.canonical}.`,
-                        `Vision: проверено картинок=${finalParserReport.visionCheckedImages}; poster accepted=${finalParserReport.posterMatches.accepted}; rejected=${finalParserReport.posterMatches.rejected}.`,
+                        `Vision: распознано картинок=${finalParserReport.visionCheckedImages}; запланировано=${finalParserReport.visionImages.planned}; необработано=${finalParserReport.visionImages.unprocessed}; poster accepted=${finalParserReport.posterMatches.accepted}; rejected=${finalParserReport.posterMatches.rejected}.`,
+                        Object.keys(finalParserReport.nonEventLabels || {}).length
+                            ? `В события не вошли посты/сообщения со смыслом: ${Object.entries(finalParserReport.nonEventLabels).map(([label, count]) => `${label} (${count})`).join('; ')}.`
+                            : '',
+                        finalParserReport.vkApiAuditHuman || 'API VK: запросы обогащения не выполнялись (DOM использован как основной источник).',
                         `Канонических событий: ${verification.canonicalCount}; финально объединено дублей: ${verification.mergeCount}.`,
                         `Без картинки после финала: ${finalParserReport.posterless.count}; no source media=${posterlessReasonCounts['no source media']}; ordinary photo only=${posterlessReasonCounts['ordinary photo only']}; vision mismatch=${posterlessReasonCounts['vision mismatch']}; source failed=${posterlessReasonCounts['source failed']}; ambiguous multi-event=${posterlessReasonCounts['ambiguous multi-event']}.`,
+                        `VK API: попыток=${finalParserReport.vkApiAuditSummary?.attempts || 0}; успешно=${finalParserReport.vkApiAuditSummary?.successful || 0}; ошибок=${finalParserReport.vkApiAuditSummary?.failed || 0}; DOM fallback=${finalParserReport.vkApiAuditSummary?.domFallbackCount || 0}.`,
+                        finalParserReport.vkApiAuditHuman || '',
                         `Dedupe registry: групп ${verification?.dedupeRegistry?.groups ?? 0}; скрытых duplicate-members ${verification?.dedupeRegistry?.duplicateMembers ?? 0}.`,
                         'Дубли объединены с сохранением исходных записей и метаданных в архиве дедупликации.',
                         run?.tracePath ? `Полный лог: ${run.tracePath}` : '',
                     ].filter(Boolean).join('\n'));
+                    if (summary?.phaseTwoModels || run?.phaseTwoModels || run?.visionTimingReport) {
+                        try {
+                            await sendParserVisionStatsToOwner(run, summary, effectivePartyPool);
+                        } catch (error) {
+                            console.warn('[PARSER VISION OWNER REPORT FAILED]', formatPrivateError(error));
+                            run?.logDiagnostics?.('run.owner.vision-report-failed', { error });
+                        }
+                    }
                 } catch (error) {
                     console.error('[PARSER ALL FINALIZATION ERROR]', formatPrivateError(error));
                     run?.logDiagnostics?.('run.verification.error', { error });
@@ -7271,10 +8910,20 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                 // This resolves ONLY after every configured source has produced a
                 // durable raw cache (or an explicit capture-error record). No AI
                 // job can cross processingGate before this point.
-                run = await startAllManualScraperSources({ incrementalOnly: cleanOnly, partyPool: effectivePartyPool, recovery });
+                run = await startAllManualScraperSources({
+                    incrementalOnly: cleanOnly,
+                    partyPool: effectivePartyPool,
+                    recovery,
+                    phaseCount: Number(command.phaseCount || 2) === 1 ? 1 : 2,
+                    ordinaryPhaseTwo,
+                    turboMode: command.turboMode || '',
+                    onParserItemError: notifyParserItemErrorOwner,
+                });
                 // Capture is complete. Release downstream processing independently
                 // of Telegram/VK's ability to deliver the owner's status message.
-                const processingPromise = run.startProcessing();
+                const processingPromise = command.turboMode
+                    ? parserPacingContext.run({ beforeAttempt: parserTurboPacer(command.turboMode) }, () => run.startProcessing())
+                    : run.startProcessing();
                 const captureErrors = (run.captures || []).filter((item) => item?.error);
                 const compactAiQueuePreviewValue = (value, maximum = 80) => String(value ?? '').replace(/\s+/gu, ' ').trim().slice(0, maximum);
                 const aiQueuePreviewRows = (run.getPendingCandidates?.() || []).slice(0, 8);
@@ -7293,9 +8942,10 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                     `Закешировано элементов: ${Number(run.captureCount ?? 0)}.`,
                     cleanOnly ? `Чистый режим: уже видено в raw-ledger и отброшено ДО алгоритма/vision/AI: ${Number(run.incrementalKnownSkippedCount ?? 0)}; новых source-items: ${Number(run.incrementalNewCount ?? 0)}.` : '',
                     `Структурных подозрений после двухступенчатого gate: ${Number(run.structuralCandidateCount ?? 0)}; уже есть в базе и пропущено: ${Number(run.databaseSkippedCount ?? 0)}; известных карточек отправлено на media-refresh: ${Number(run.databaseRefreshCount ?? 0)}; картинок проверено узким poster-gate: ${Number(run.posterGateCheckedCount ?? 0)}; спасено только по афише: ${Number(run.posterGateRescuedCount ?? 0)}; строгим AI-gate окончательно отклонено: ${Number(run.aiRejectedCount ?? 0)}; отброшено как явный мусор без main AI: ${Number(run.trashCount ?? 0)}; реально поставлено в main AI-очередь: ${Number(run.aiQueueCount ?? run.candidateCount ?? 0)}.`,
-                    effectivePartyPool === PARTY_POOL_SECONDARY
-                        ? 'Secondary AI-gate: до vision анализируется ТОЛЬКО смысловой текст поста. Дата мероприятия в тексте обязательна всегда. В vision картинка уходит только по маршруту дата+время+вероятное название либо дата+эвристика тусы/названия ≥65%. Vision получает текст+одну картинку и решает совместно; остальные картинки вообще не отправляются в AI.'
-                        : 'AI-gate: сначала проверяется текст. Если текст не прошёл, но есть изображение, ПОСЛЕ полного raw-cache запускается узкое vision-распознавание только самой картинки: афиша/не афиша, название, дата, время. В main AI проходит только если название + сегодняшняя/будущая дата найдены в тексте ИЛИ на афише. Дата публикации/интерфейса сама по себе не засчитывается; publishedAt используется только для определения года, если уже найдены день/месяц без года.',
+                    'Фаза 1: обычный разбор материала с датой в тексте, включая проверку афиш. Дата публикации/интерфейса сама по себе не засчитывается; publishedAt используется только для определения года, если день и месяц уже найдены.',
+                    Number(command.phaseCount || 2) === 1
+                        ? 'Вторая фаза отключена этой командой.'
+                        : 'Фаза 2 начнётся после первой: картинки без даты в тексте из того же кэша, совместно с текстом поста. В VK-беседах она разрешена только для беседы 22; картинки первой фазы повторно не отправляются.',
                     aiQueuePreviewLines.length ? `Что сейчас идёт в AI (первые ${aiQueuePreviewLines.length}):\n${aiQueuePreviewLines.join('\n')}${Number(run.aiQueueCount || 0) > aiQueuePreviewLines.length ? `\n…ещё ${Number(run.aiQueueCount || 0) - aiQueuePreviewLines.length}` : ''}` : 'В AI сейчас ничего не поставлено.',
                     run.aiQueueAuditTextPath ? `Читаемый отчёт «что/почему в AI»: ${run.aiQueueAuditTextPath}` : '',
                     run.aiQueueAuditPath ? `Полный JSON-аудит AI-gate: ${run.aiQueueAuditPath}` : '',
@@ -7324,6 +8974,19 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                 });
 
                 let softTimer = null;
+                let lastHeartbeatSignature = '';
+                const phaseProgressText = () => {
+                    const state = run?.phaseTwoModels;
+                    if (!state?.models) return '';
+                    const rows = Object.entries(state.models).flatMap(([model, row]) => Object.entries(row.capabilities || {}).map(([capability, stats]) => `${model}/${capability}: ${stats.successes || 0} ok, ${stats.failures || 0} отказов из ${stats.attempts || 0}`));
+                    return `Фаза 2 AI: ${rows.join('; ')}. Доля отказов Luna: ${Math.round(Number(state.lunaFailureRatio || 0) * 100)}%; Terra: ${Math.round(Number(state.terraFailureRatio || 0) * 100)}%.`
+                        + ' После Luna/Terra: 6.1 Sol и 6 Astra по 1 попытке; каждый новый запрос начинается с Luna.'
+                        + (state.terraFailureRatio >= 0.50 ? ' Terra: до 4 попыток.' : '');
+                };
+                const progressSignature = (pendingCandidates = []) => {
+                    const state = run?.phaseTwoModels;
+                    return JSON.stringify({ state, pendingCandidates, tracePath: run?.tracePath });
+                };
                 const softBoundaryMs = clampInteger(
                     Number(process.env.SCRAPER_ALL_SOFT_STATUS_SECONDS || 300) * 1000,
                     60_000,
@@ -7348,6 +9011,7 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                 }
 
                 const pending = run.getPendingCandidates?.() || [];
+                lastHeartbeatSignature = progressSignature(pending);
                 run.logDiagnostics?.('run.processing.soft-boundary', {
                     elapsedMs: softBoundaryMs,
                     pendingCount: pending.length,
@@ -7356,15 +9020,20 @@ async function handleManualScraperCommand(context, requestText, { recoveryCheckp
                 await sendParserNoticeBestEffort([
                     '⏱️ 5 минут обработки прошло. Обработка НЕ остановлена и продолжает идти в фоне.',
                     ...formatPending(pending),
+                    phaseProgressText(),
                     run.tracePath ? `Полный лог и DOM-снимки: ${run.tracePath}` : '',
                     'Как только все фоновые jobs и финальная выверка закончатся, бот пришлёт отдельное «✅ Обработка завершена».',
                 ].filter(Boolean).join('\n'));
 
                 const heartbeatTimer = setInterval(() => {
                     const currentPending = run.getPendingCandidates?.() || [];
+                    const signature = progressSignature(currentPending);
+                    if (signature === lastHeartbeatSignature) return;
+                    lastHeartbeatSignature = signature;
                     void sendParserNoticeBestEffort([
                         '⏱️ Ещё 5 минут обработки прошло. Обработка продолжается.',
                         ...formatPending(currentPending),
+                        phaseProgressText(),
                         run.tracePath ? 'Полный лог и DOM-снимки: ' + run.tracePath : '',
                         'После завершения всех jobs бот пришлёт отдельное «✅ Обработка завершена».',
                     ].filter(Boolean).join('\n'));
@@ -9316,7 +10985,7 @@ async function recoverTelegramTextStageByGet({ responseId, state, jobSignal }) {
         if (jobSignal?.aborted) throw jobSignal.reason || new Error('TEXT_JOB_STOPPED');
         const response = await fetch(`${baseUrl}/responses/${encodeURIComponent(responseId)}`, {
             method: 'GET', headers: { Authorization: `Bearer ${key}`, Accept: 'application/json' },
-            signal: combineAbortSignals([jobSignal, AbortSignal.timeout(30_000)]),
+            signal: combineAbortSignals([jobSignal, buildOperationAbortSignal(30_000)]),
         });
         if (!response.ok) {
             const error = new Error(`TEXT_RECOVERY_GET_HTTP_${response.status}`);
@@ -9544,7 +11213,7 @@ async function maybeHandleTelegramTxtControl(context, incomingText) {
         try {
             const probe = await fetch(`${normalizeOpenAIBaseUrl(openAIBaseUrl)}/models`, {
                 method: 'GET', headers: { Authorization: `Bearer ${openAIApiKey}` },
-                signal: AbortSignal.timeout(12_000),
+                signal: buildOperationAbortSignal(12_000),
             });
             await appendTelegramTextTransferLog({ jobId, event: { stage: 'router-get-probe',
                 status: probe.status, elapsedMs: Date.now() - started } }).catch(() => {});
@@ -11281,6 +12950,7 @@ async function generateDefaultGptText({
     useCredentialHealth = true,
     oneCandidatePerMode = false,
     streamOverride = undefined,
+    inputFiles = [],
     validateTextResult = null,
     tokenUsageOperation = '',
     tokenUsageMetadata = null,
@@ -11310,6 +12980,7 @@ async function generateDefaultGptText({
             useCredentialHealth,
             oneCandidatePerMode,
             streamOverride,
+            inputFiles,
             validateTextResult,
             tokenUsageOperation,
             tokenUsageMetadata,
@@ -11323,6 +12994,7 @@ const VISION_IMAGE_MAX_COUNT = 16;
 const VISION_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 const VISION_IMAGE_DOWNLOAD_TIMEOUT_MS = 15 * 1000;
 const enqueueParserVision = createParserModelSerialQueue();
+const posterVisionLunaProbe = createPosterVisionLunaProbeController();
 
 async function buildVisionModelCandidates(initialMode, initialModel) {
     const modes = getVisionModeChain(initialMode);
@@ -11524,7 +13196,7 @@ function readImageDimensions(buffer, mimeType) {
     return { width: 0, height: 0 };
 }
 
-async function downloadVisionImageAsset(url) {
+async function downloadVisionImageAssetOnce(url) {
     const response = await fetch(url, {
         signal: buildOperationAbortSignal(VISION_IMAGE_DOWNLOAD_TIMEOUT_MS),
     });
@@ -11546,6 +13218,43 @@ async function downloadVisionImageAsset(url) {
         sha256,
         dataUrl: `data:${mimeType};base64,${buffer.toString('base64')}`,
     };
+}
+
+function visionImageDownloadCandidates(url) {
+    const source = String(url ?? '').trim();
+    if (!/^https?:\/\//iu.test(source)) return [source];
+    const candidates = [source];
+    try {
+        const parsed = new URL(source);
+        // Only VK's image transform URLs support these alternatives. Preserve
+        // signed URLs of all other hosts (including video previews) verbatim.
+        if (!/(?:^|\.)(?:vkuserphoto\.ru|vkuserphoto\.com|userapi\.com)$/iu.test(parsed.hostname) ||
+            !parsed.pathname.startsWith('/s/v1/ig2/')) return candidates;
+        const keep = new URLSearchParams();
+        for (const key of ['u', 'from', 'ava']) {
+            if (parsed.searchParams.has(key)) keep.set(key, parsed.searchParams.get(key));
+        }
+        const signed = new URL(parsed.origin + parsed.pathname);
+        signed.search = keep.toString();
+        candidates.push(signed.toString());
+        const bare = new URL(parsed.origin + parsed.pathname);
+        candidates.push(bare.toString());
+    } catch {
+        // Keep the original URL when VK returns a non-standard CDN URL.
+    }
+    return [...new Set(candidates.filter(Boolean))];
+}
+
+async function downloadVisionImageAsset(url) {
+    let lastError = null;
+    for (const candidate of visionImageDownloadCandidates(url)) {
+        try {
+            return await downloadVisionImageAssetOnce(candidate);
+        } catch (error) {
+            lastError = error;
+        }
+    }
+    throw lastError || new Error('image download failed');
 }
 
 async function fetchImageAsDataUrl(url) {
@@ -11608,6 +13317,7 @@ async function generateOpenAIVisionTextCore({
     requestTimeoutMs = OPENAI_REQUEST_TIMEOUT_MS,
     streamOverride = false,
     imageDetail = 'low',
+    reasoningEffort = '',
 }) {
     const useStream = Boolean(streamOverride);
     const resolvedImageDetail = ['low', 'high', 'original', 'auto'].includes(String(imageDetail || '').trim().toLowerCase())
@@ -11640,7 +13350,7 @@ async function generateOpenAIVisionTextCore({
         ? createIdleAbortWatchdog(Math.min(15 * 60 * 1000, Math.max(60_000, Number(requestTimeoutMs) || OPENAI_REQUEST_TIMEOUT_MS)), 'GPT vision stream')
         : null;
     const streamAttemptTimeout = streamWatchdog
-        ? AbortSignal.timeout(Math.max(60_000, Number(requestTimeoutMs) || OPENAI_REQUEST_TIMEOUT_MS))
+        ? buildOperationAbortSignal(Math.max(60_000, Number(requestTimeoutMs) || OPENAI_REQUEST_TIMEOUT_MS))
         : null;
     const requestSignal = streamWatchdog
         ? combineAbortSignals([getCurrentOperationSignal(), streamWatchdog.signal, streamAttemptTimeout])
@@ -11677,11 +13387,12 @@ async function generateOpenAIVisionTextCore({
                 ...(Number.isSafeInteger(maxTokens) && maxTokens > 0
                     ? { max_completion_tokens: maxTokens }
                     : {}),
+                ...(String(reasoningEffort || '').trim()
+                    ? { reasoning_effort: String(reasoningEffort).trim() }
+                    : {}),
             }),
-            // Event/Vision parsing has no bot-imposed response deadline: the
-            // configured provider/router decides when a request has failed.
-            // Keep explicit owner/supervisor cancellation, but never turn slow
-            // inference into an artificial TimeoutError in this pathway.
+            // The configured deadline bounds this model attempt. Its timeout
+            // advances the ladder; owner/supervisor cancellation stops the job.
                 signal: requestSignal,
             },
         );
@@ -11830,9 +13541,17 @@ async function generateOpenAIVisionTextCore({
 }
 
 async function generateOpenAIVisionText(options) {
+    await paceParserRequest('vision', options);
+    const phasePolicy = dateFreeParserContext.getStore();
+    if (phasePolicy && !options?.dateFreePolicyAttempt && /^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) {
+        return phasePolicy.run('vision', (model) => generateOpenAIVisionText({ ...options, dateFreePolicyAttempt: true,
+            modelLadder: [{ model, attempts: 1, detail: 'high', timeoutMs: 150_000 }], streamOverride: true }), createHash('sha256').update(JSON.stringify([options.systemPrompt, options.userPrompt, options.imageUrls])).digest('hex'));
+    }
     const isEventVision = /^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''));
-    if (!isEventVision) return generateOpenAIVisionTextOnce(options);
-    return enqueueParserVision(() => generateOpenAIVisionTextOnce(options));
+    // The parser's outer poster-gate limiter owns concurrency. Keeping a
+    // second serial queue here made every image wait for the previous model
+    // response and defeated the bounded parallel second phase.
+    return generateOpenAIVisionTextOnce(options);
 }
 
 async function generateOpenAIVisionTextOnce(options) {
@@ -11841,10 +13560,33 @@ async function generateOpenAIVisionTextOnce(options) {
         const defaultEventLadder = /poster|image-metadata|final-poster/iu.test(eventVisionOperation)
             ? POSTER_VISION_MODEL_LADDER
             : PARSER_MODEL_LADDER;
+        const eventProfile = /all[-:]?(?:new|clean)|parser[-:]?all[-:]?(?:new|clean)/iu.test(eventVisionOperation)
+            ? (/poster|image-metadata|final-poster/iu.test(eventVisionOperation) ? 'parser-all-new-vision' : 'parser-all-new-text')
+            : (/poster|image-metadata|final-poster/iu.test(eventVisionOperation) ? 'parser-all-vision' : 'parser-all-text');
         options = { ...options, streamOverride: true, disableTransportFallback: true, skipIncomingMessageContext: true,
             failoverMaxRounds: 1, failuresBeforeQuarantine: 4,
             requestTimeoutMs: Math.min(180_000, Number(options.requestTimeoutMs) || 180_000),
-            modelLadder: options.modelLadder || defaultEventLadder, useCredentialHealth: false };
+            modelLadder: options.modelLadder || getConfiguredModelLadderProfile(eventProfile, defaultEventLadder), useCredentialHealth: false };
+    }
+    let lunaProbeAttempted = false;
+    let lunaProbeSucceeded = false;
+    let visionLadderState = null;
+    if (!options?.modelLadder && !/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) {
+        visionLadderState = posterVisionLunaProbe.getNextLadder();
+        const baseLadder = getConfiguredModelLadderProfile('chat-vision', createPosterVisionLadder(visionLadderState));
+        options = {
+            ...options,
+            modelLadder: baseLadder,
+            // Probe is exactly one sequential low-cost request before normal
+            // fallback; remove Luna from the fallback list to avoid duplicates.
+            ...(visionLadderState.probeLuna ? {
+                modelLadder: [
+                    { model: 'gpt-5.6-luna', mode: 'default', detail: 'high', reasoningEffort: 'none', attempts: 1 },
+                    ...baseLadder.filter((step) => step.model !== 'gpt-5.6-luna'),
+                ],
+                onFailoverEvent: (event) => options.onFailoverEvent?.(event),
+            } : {}),
+        };
     }
     const incomingMessageBlock = options?.skipIncomingMessageContext
         ? ''
@@ -11854,10 +13596,13 @@ async function generateOpenAIVisionTextOnce(options) {
         incomingMessageBlock,
     );
     const preparedUrls = await prepareVisionInputUrls(options?.imageUrls ?? []);
-    const initialMode = resolveVisionMode(options?.mode);
-    const initialModel = String(options?.modelLadder?.[0]?.model ?? options?.model ?? '').trim() ||
+    const initialMode = shouldRouteChatAiToAstra({ channelMode: readAiChannelMode().mode, operationCategory: getCurrentOperation()?.category, tokenUsageOperation: options?.tokenUsageOperation })
+        ? 'astra'
+        : resolveVisionMode(options?.mode);
+    const forceAstra = initialMode === 'astra' && shouldRouteChatAiToAstra({ channelMode: readAiChannelMode().mode, operationCategory: getCurrentOperation()?.category, tokenUsageOperation: options?.tokenUsageOperation });
+    const initialModel = (forceAstra ? String(configuredGptModels.astra || 'gpt-6-astra').trim() : '') || String(options?.modelLadder?.[0]?.model ?? options?.model ?? '').trim() ||
         await resolveGptModel(initialMode);
-    const modelLadder = options?.modelLadder || getGptModelLadderFrom(initialModel);
+    const modelLadder = forceAstra ? [{ model: initialModel, mode: 'astra', attempts: 2, detail: options?.imageDetail || 'high' }] : options?.modelLadder || getGptModelLadderFrom(initialModel);
     const onModelSelected = typeof options?.onModelSelected === 'function'
         ? options.onModelSelected
         : null;
@@ -11896,7 +13641,9 @@ async function generateOpenAIVisionTextOnce(options) {
                 imageUrls: preparedUrls,
                 tokenUsageOperation,
                 imageDetail: credential.imageDetail || options?.imageDetail || (/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || '')) ? 'high' : 'low'),
-                streamOverride: options?.streamOverride === true,
+                reasoningEffort: credential.reasoningEffort || options?.reasoningEffort || '',
+                streamOverride: typeof credential.streamOverride === 'boolean' ? credential.streamOverride : options?.streamOverride === true,
+                requestTimeoutMs: Number(credential.requestTimeoutMs) > 0 ? credential.requestTimeoutMs : options?.requestTimeoutMs,
             });
             // Only callers that request a structured result opt into this gate.
             // A response that cannot be parsed must not masquerade as a successful
@@ -11915,6 +13662,13 @@ async function generateOpenAIVisionTextOnce(options) {
     });
     const selected = result.credential || {};
 
+    if (visionLadderState && shouldTryPosterVisionLunaProbe(visionLadderState)) {
+        const selectedLuna = String(selected.model || '') === 'gpt-5.6-luna';
+        posterVisionLunaProbe.recordProbeResult({ success: selectedLuna && Boolean(result.value) });
+    } else if (visionLadderState) {
+        posterVisionLunaProbe.recordOrdinaryImage();
+    }
+
     onModelSelected?.({
         model: selected.model || initialModel,
         mode: selected.mode || initialMode,
@@ -11931,6 +13685,26 @@ async function generateOpenAIVisionTextOnce(options) {
 
 const VK_RICH_REPOST_NODE_BUDGET = 256;
 const VK_RICH_WALL_DESCRIPTOR_LIMIT = 64;
+
+function collectVkWallEvidenceIndex(value, output = new Map(), visited = new WeakSet(), depth = 0) {
+    if (!value || typeof value !== 'object' || visited.has(value) || depth > 64) return output;
+    visited.add(value);
+    if (Array.isArray(value)) {
+        for (const item of value.slice(0, 64)) collectVkWallEvidenceIndex(item, output, visited, depth + 1);
+        return output;
+    }
+    const ownerId = Number(value?.owner_id ?? value?.ownerId ?? value?.from_id ?? 0);
+    const postId = Number(value?.id ?? value?.post_id ?? value?.postId ?? 0);
+    if (Number.isSafeInteger(ownerId) && ownerId !== 0 && Number.isSafeInteger(postId) && postId > 0) {
+        output.set('https://vk.ru/wall' + ownerId + '_' + postId, value);
+    }
+    for (const [key, child] of Object.entries(value)) {
+        if (/^(?:wall|copy_history|copyHistory|attachments?|attachment|repost|reposted_message|repostedMessage)$/iu.test(key)) {
+            collectVkWallEvidenceIndex(child, output, visited, depth + 1);
+        }
+    }
+    return output;
+}
 
 function collectVkWallDescriptorsForVision(
     value,
@@ -12213,7 +13987,7 @@ async function resolveRichIncomingMediaContext(rawContext) {
                     const posts = batch.map(({ ownerId, postId, accessKey }) => (
                         `${ownerId}_${postId}${accessKey ? `_${accessKey}` : ''}`
                     )).join(',');
-                    const response = await vk.api.wall.getById({ posts, extended: 1 });
+                    const response = await requestVkWallByIdWithFallback({ posts, extended: 1 });
                     const items = Array.isArray(response?.items)
                         ? response.items
                         : Array.isArray(response) ? response : [];
@@ -12302,7 +14076,12 @@ async function handleVisionRequest(context, prompt, requestedMode = 'vision-defa
         return true;
     }
 
-    const visionMode = resolveVisionMode(requestedMode);
+    // Manual channel mode applies to chat Vision too. Parser Vision calls run
+    // under a parser operation and never reach this route, so the parser ladder
+    // remains independent from the owner channel switch.
+    const visionMode = isAstraChannelMode() && getCurrentOperation()?.category !== 'parser'
+        ? 'astra'
+        : resolveVisionMode(requestedMode);
     const visionModel = await resolveGptModel(visionMode);
     const modeSettings = gptModeSettings[visionMode] || gptModeSettings.default;
     const unlimited = hasUnlimitedRequests(context.senderId);
@@ -12367,9 +14146,7 @@ async function handleVisionRequest(context, prompt, requestedMode = 'vision-defa
             '[GPT VISION FINAL ERROR]',
             formatPrivateError(error),
         );
-        await getRawContext(context).send(
-            'Не удалось проанализировать изображение: все доступные модели временно недоступны или отклонили формат картинки. Попробуй повторить позже.',
-        );
+        await sendVisibleError(context, error);
         return true;
     }
 }
@@ -12482,6 +14259,10 @@ async function generateActiveBehaviorGptText({
                 const text = await enqueueOpenAI(() =>
                     generateOpenAIText({
                         model,
+                        // Active replies are ordinary chat responses; keep
+                        // them on the same persisted chat ladder so the first
+                        // attempt is 5.6 Luna in both VK conversations and DMs.
+                        ladderProfile: 'conversation',
                         systemPrompt,
                         userPrompt,
                         temperature,
@@ -12550,6 +14331,157 @@ async function generateActiveBehaviorGptText({
  */
 const sessions = new Map();
 
+function imagePromptBatchContextKey(context) {
+    const raw = getRawContext(context);
+    return imagePromptBatchKey({
+        platform: raw?.platform || context?.platform || 'unknown',
+        peerId: raw?.peerId ?? context?.peerId ?? raw?.externalPeerId ?? '',
+        senderId: raw?.senderId ?? context?.senderId ?? raw?.externalSenderId ?? '',
+    });
+}
+
+function parseImagePromptBatchRequest(value) {
+    const source = String(value ?? '').trim();
+    if (!source) return null;
+
+    const gptSource = /^(?:gpt)(?:\s|$)/iu.test(source)
+        ? source
+        : /^image-model\s*=/iu.test(source)
+            ? `gpt ${source}`
+            : source;
+    const parsed = parseGptCommand(gptSource);
+    if (parsed.action === 'image' && String(parsed.prompt || '').trim()) {
+        return {
+            kind: 'gpt-image',
+            prompt: String(parsed.prompt).trim(),
+            commandPrefix: `gpt image-model=${parsed.imageModel || 'gpt-image-2.5'} нарисуй `,
+        };
+    }
+    if (parsed.action === 'chat' && parseImageEditRequest(parsed.prompt).matched) {
+        return {
+            kind: 'gpt-image-edit',
+            prompt: String(parsed.prompt).trim(),
+            commandPrefix: `gpt image-model=${parsed.imageModel || 'gpt-image-2.5'} `,
+        };
+    }
+
+    const gigaBody = parseExplicitGigaChatCommand(source);
+    if (gigaBody && isExplicitGigaChatImageRequest(gigaBody)) {
+        const prompt = stripExplicitGigaChatImagePrefix(gigaBody);
+        return { kind: 'gigachat-image', prompt, commandPrefix: 'гигачат нарисуй ' };
+    }
+
+    const provider = parseProviderCommand(source);
+    if (provider?.matched && provider.action === 'image_generate') {
+        return {
+            kind: `${provider.provider || 'provider'}-image`,
+            prompt: String(provider.prompt || '').trim(),
+            commandPrefix: `${provider.provider} нарисуй${provider.model && provider.model !== 'авто' ? ` через ${provider.model}` : ''} `,
+        };
+    }
+
+    const externalProvider = parseExternalProviderCommand(source);
+    if (externalProvider?.matched && externalProvider.action === 'image_generate') {
+        return {
+            kind: `${externalProvider.provider || 'provider'}-image`,
+            prompt: String(externalProvider.prompt || '').trim(),
+            commandPrefix: `${externalProvider.provider || 'xai'} нарисуй${externalProvider.model && externalProvider.model !== 'auto' ? ` через ${externalProvider.model}` : ''} `,
+        };
+    }
+
+    return null;
+}
+
+function isImagePromptBatchContinuation(value) {
+    const text = String(value ?? '').trim();
+    if (!text) return false;
+    if (parseImagePromptBatchRequest(text)) return false;
+    if (isGlobalInteractionCancelCommand(text)) return false;
+    return !detectExplicitIncomingCommand(text).matched;
+}
+
+const imagePromptBatcher = createImagePromptBatcher({
+    delayMs: IMAGE_PROMPT_BATCH_DELAY_MS,
+    maxCharacters: 100_000,
+    maxParts: 100,
+    onFlush: async ({ key, context, text, parts, metadata }) => {
+        let prompt = text;
+        try {
+            const prepared = await fitImagePromptForModel({
+                text,
+                maxCharacters: 12_000,
+                summarize: async (source) => generateDefaultGptText({
+                    systemPrompt: [
+                        'Сожми пользовательское описание для генерации изображения до ясного, конкретного промпта.',
+                        'Сохрани важные объекты, надписи, композицию, стиль, цвета, ограничения и отношения между деталями.',
+                        'Удали повторы. Не добавляй новых визуальных деталей и верни только готовый промпт.',
+                    ].join(' '),
+                    userPrompt: source,
+                    temperature: 0.2,
+                    maxTokens: 3_500,
+                    tokenUsageOperation: 'image-prompt-compression',
+                    skipIncomingMessageContext: true,
+                }),
+            });
+            prompt = prepared.text;
+            if (prepared.compressed) {
+                console.log('[IMAGE PROMPT COMPRESSED]', `chars=${prepared.originalCharacters}->${prompt.length}`, `parts=${parts.length}`);
+            }
+        } catch (error) {
+            console.error('[IMAGE PROMPT COMPRESSION ERROR]', formatPrivateError(error));
+            await context.send('Не удалось сократить слишком длинный промпт. Генерацию не запускал; отправь описание короче.');
+            return;
+        }
+        const commandText = `${metadata?.commandPrefix || 'gpt нарисуй '}${prompt}`;
+        console.log(
+            '[IMAGE PROMPT BATCH FLUSH]',
+            `platform=${context?.platform || 'unknown'}`,
+            `peer=${context?.peerId || 0}`,
+            `sender=${context?.senderId || 0}`,
+            `parts=${parts.length}`,
+            `chars=${prompt.length}`,
+            `kind=${metadata?.kind || 'gpt-image'}`,
+        );
+        return handleRequest(context, commandText, { skipImagePromptBatch: true });
+    },
+});
+
+async function maybeHandleImagePromptBatchIncoming(context, value) {
+    const text = String(value ?? '').trim();
+    const key = imagePromptBatchContextKey(context);
+    if (!text || !imagePromptBatcher.has(key)) return false;
+    if (isGlobalInteractionCancelCommand(text)) {
+        imagePromptBatcher.cancel(key);
+        return false;
+    }
+    if (isImagePromptBatchContinuation(text)) {
+        const queued = imagePromptBatcher.enqueue({ key, text, context });
+        if (queued.queued) {
+            console.log('[IMAGE PROMPT BATCH CONTINUATION]', `parts=${queued.count}`, `peer=${context?.peerId || 0}`, `sender=${context?.senderId || 0}`);
+            return true;
+        }
+    }
+    const explicitImageRequest = parseImagePromptBatchRequest(text);
+    if (explicitImageRequest) {
+        const existingMetadata = imagePromptBatcher.metadata(key) || {};
+        const mergedPrefix = existingMetadata.kind === explicitImageRequest.kind
+            ? existingMetadata.commandPrefix
+            : explicitImageRequest.commandPrefix;
+        const queued = imagePromptBatcher.enqueue({
+            key,
+            text: explicitImageRequest.prompt,
+            context,
+            metadata: { ...existingMetadata, ...explicitImageRequest, commandPrefix: mergedPrefix },
+        });
+        if (queued.queued) {
+            console.log('[IMAGE PROMPT BATCH CONTINUATION]', `parts=${queued.count}`, `peer=${context?.peerId || 0}`, `sender=${context?.senderId || 0}`);
+            return true;
+        }
+    }
+    await imagePromptBatcher.flush(key);
+    return false;
+}
+
 const pendingCoordsMessageInputs = new Map();
 const pendingCoordsBroadcastInputs = new Map();
 const pendingPeresozdanieBroadcastInputs = new Map();
@@ -12560,8 +14492,109 @@ const pendingEventDeletionConfirmations = new Map();
 const pendingEventModerationSelections = new Map();
 const pendingEventEditInputs = new Map();
 const pendingPosterChoiceReviews = new Map();
-const EVENT_PROPOSAL_INPUT_MS = 60 * 60 * 1000;
 const EVENT_PROPOSAL_REVIEW_SECONDS = 24 * 60 * 60;
+
+function splitProposalText(text) {
+    const result = [];
+    let rest = String(text || '');
+    while (rest.length > 3500) {
+        let cut = rest.lastIndexOf('\n', 3500);
+        if (cut < 1000) cut = 3500;
+        result.push(rest.slice(0, cut)); rest = rest.slice(cut);
+    }
+    if (rest) result.push(rest);
+    return result;
+}
+function proposalOwnerButtons(proposal) {
+    const id = proposal.id;
+    const rows = [
+        [{ text: '✅ Принять', callback_data: 'epm:approve:' + id }, { text: '❌ Отклонить', callback_data: 'epm:reject:' + id }],
+        [{ text: '✏️ Изменить', callback_data: 'epm:edit:' + id }, { text: 'Написать отправителю', callback_data: 'epm:reply:' + id }],
+    ];
+    if (proposal.submitterExternalId) rows.push([{ text: 'Профиль отправителя', url: proposal.submitterPlatform === 'telegram'
+        ? (proposal.submitterExternalUsername ? 'https://t.me/' + proposal.submitterExternalUsername.replace(/^@/u, '') : 'tg://user?id=' + proposal.submitterExternalId)
+        : 'https://vk.ru/id' + proposal.submitterExternalId }]);
+    return rows;
+}
+function proposalVkKeyboard(rows) {
+    return JSON.stringify({ inline: true, buttons: rows.map(row => row.filter(button => !button.url || /^https?:/u.test(button.url)).map(button => button.url
+        ? { action: { type: 'open_link', label: button.text, link: button.url } }
+        : { action: { type: 'text', label: button.text, payload: JSON.stringify({ eventProposal: button.callback_data }) }, color: /(?:confirm|approve):?\d*$|:save-edit$/u.test(button.callback_data) ? 'positive' : 'secondary' })).filter(row => row.length) });
+}
+async function sendProposalUi(context, text, rows = []) {
+    const raw = getRawContext(context);
+    const chunks = splitProposalText(text);
+    for (let index = 0; index < chunks.length; index += 1) {
+        const buttons = index === chunks.length - 1 ? rows : [];
+        if (raw.platform === 'telegram') {
+            const tgRows = buttons.map(row => row.map(button => button.callback_data?.endsWith(':template')
+                ? { text: button.text, copy_text: { text: EVENT_PROPOSAL_TEMPLATE } } : { ...button, ...(button.callback_data?.endsWith(':confirm') ? { style: 'success' } : {}) }));
+            await raw.send({ message: chunks[index], ...(tgRows.length ? { replyMarkup: { inline_keyboard: tgRows } } : {}) });
+        } else await raw.send({ message: chunks[index], ...(buttons.length ? { keyboard: proposalVkKeyboard(buttons) } : {}) });
+    }
+}
+async function showProposalToOwner(context, proposal) {
+    for (const text of buildEventProposalOwnerMessages(proposal)) await sendProposalUi(context, text, proposalOwnerButtons(proposal));
+}
+const eventProposalSubmission = createEventProposalSubmission({
+    key: getEventProposalInputKey,
+    load: key => getMaintenanceState(key)?.details,
+    save: (key, details) => setMaintenanceState(key, { details }),
+    today: () => getLocalDateString(new Date(), botTimeZone),
+    owner: context => isOwnerContext(context) && isPrivateContext(context),
+    send: sendProposalUi,
+    error: formatPrivateError,
+    explicit: text => Boolean(text && detectExplicitIncomingCommand(text).matched),
+    clearLegacy: context => clearPendingInteractionState(context),
+    images: context => resolveRichIncomingImageTargets(getRawContext(context)).catch(() => []),
+    parse: async (context, text) => {
+        const parserTrace = createEventParserTrace({ dataDirectory: './data', label: 'proposal' });
+        try {
+            const parsed = await parseEventProposalSubmission(context, text, { parserTrace });
+            parserTrace.finish({ status: 'parsed', eventCount: parsed.events.length });
+            return parsed;
+        } catch (error) { parserTrace.finish({ status: 'error', error }); throw error; }
+    },
+    prepare: events => prepareProposalDraftImages(events, 'draft-' + Date.now()),
+    create: (context, draft) => {
+        const raw = getRawContext(context);
+        const proposal = createEventProposalOnce(getEventProposalInputKey(context) + ':' + draft.token, {
+            submitterPlatform: raw.platform || 'vk',
+            submitterExternalId: raw.externalSenderId ?? raw.senderId ?? '',
+            submitterExternalUsername: raw.externalSenderUsername || raw.message?.from?.username || '',
+            submitterDisplayName: raw.externalSenderName || [raw.message?.from?.first_name, raw.message?.from?.last_name].filter(Boolean).join(' '),
+            submitterInternalId: raw.senderId || 0,
+            rawSubmission: draft.rawSubmission || '', sourceUrl: draft.events[0]?.sourceUrl || '', parsedEvents: draft.events,
+        });
+        if (!getMaintenanceState('event-proposal-owner-notification:' + proposal.id)) setMaintenanceState('event-proposal-owner-notification:' + proposal.id, { details: { delivered: [] } });
+        return proposal;
+    },
+    notify: notifyOwnerAboutEventProposal,
+    list: getPendingEventProposals,
+    getProposal: getEventProposal,
+    showOwner: showProposalToOwner,
+    update: (id, events) => proposalMaterializationLocks.has(id) ? null : updatePendingEventProposal(id, events, events[0]?.sourceUrl || ''),
+    moderate: async (context, proposal, action) => {
+        if (proposalMaterializationLocks.has(proposal.id)) { await sendProposalUi(context, 'Заявка уже сохраняется. Дождитесь результата.'); return; }
+        if (action === 'reject') {
+            await rejectEventProposal(proposal, context);
+            await sendProposalUi(context, 'Заявка #' + proposal.id + ' отклонена.');
+        } else {
+            const result = await materializeEventProposal(proposal, { reviewedByPlatform: getRawContext(context).platform || 'vk', reviewedBy: getRawContext(context).senderId });
+            await sendProposalUi(context, result.validationRejected
+                ? 'В заявке не хватает даты/места или дата прошла. Она остаётся на проверке: исправьте поля.'
+                : '✅ Заявка #' + proposal.id + ' принята.', result.validationRejected ? proposalOwnerButtons(proposal) : []);
+        }
+    },
+    reply: async (proposal, message) => {
+        if (!proposal?.submitterExternalId) throw new Error('Не сохранён адрес отправителя');
+        for (const part of splitProposalText('Ответ владельца по заявке #' + proposal.id + ':\n' + message)) {
+            if (proposal.submitterPlatform === 'telegram') await telegramBot.api.sendMessage({ chatId: proposal.submitterExternalId, text: part });
+            else await vk.api.messages.send({ peer_id: Number(proposal.submitterExternalId), random_id: randomInt(1, 2_000_000_000), message: part });
+        }
+    },
+});
+
 
 /*
  * Состояние заголовка лимита для текущего входящего сообщения.
@@ -12590,32 +14623,6 @@ function participantKey(context) {
  * которая исчезает после перезапуска.
  */
 const privateConversationMemory = new Map();
-
-function isPrivateContext(context) {
-    const rawContext = getRawContext(context);
-
-    /*
-     * В разных версиях vk-io поле isDM может отсутствовать или иметь
-     * неожиданное значение. Надёжнее сначала исключить групповой peer_id:
-     * у бесед VK он начинается с 2 000 000 000.
-     */
-    if (rawContext.isChat === true) {
-        return false;
-    }
-
-    const peerId = Number(rawContext.peerId);
-
-    if (Number.isFinite(peerId) && peerId >= 2_000_000_000) {
-        return false;
-    }
-
-    if (typeof rawContext.isDM === 'boolean') {
-        return rawContext.isDM;
-    }
-
-    /* Обычный положительный peer_id без признака чата — личный диалог. */
-    return true;
-}
 
 async function requireOwnerDm(context, {
     notOwnerMessage = 'Команда недоступна.',
@@ -13093,7 +15100,7 @@ async function processChatLeaverAutoSetting(settings, now = Math.floor(Date.now(
         includeRecoveryStatus: true,
     });
 
-    await sendScheduledAutoSummary({
+    await sendScheduledTextMessage({
         peerId,
         platform: settings.platform || 'vk',
         endpointKey: settings.endpointKey || 'vk:primary',
@@ -14431,7 +16438,10 @@ async function prepareImagePromptWithExplicitMemory(
         tokenUsageOperation: 'image-prompt:memory-grounding',
     }));
 
-    const clean = String(prepared ?? '').trim().slice(0, SAFE_IMAGE_PROMPT_SIZE);
+    // Do not truncate here: the caller applies the shared compression/fallback
+    // policy after memory grounding, so the tail of a long batched prompt is
+    // retained for summarization instead of being silently discarded.
+    const clean = String(prepared ?? '').trim();
 
     console.log(
         '[EXPLICIT MEMORY IMAGE PROMPT]',
@@ -14441,6 +16451,41 @@ async function prepareImagePromptWithExplicitMemory(
     );
 
     return clean || String(prompt ?? '').trim();
+}
+
+async function ensureImagePromptSize(prompt, { model = null } = {}) {
+    const source = String(prompt ?? '').trim();
+    if (source.length <= SAFE_IMAGE_PROMPT_SIZE) return source;
+
+    const summaryModel = await resolveGptImagePromptModel();
+    console.log('[IMAGE PROMPT COMPRESSION]', `sourceChars=${source.length}`, `limit=${SAFE_IMAGE_PROMPT_SIZE}`, `model=${summaryModel}`);
+    try {
+        const compressed = await enqueueOpenAI(() => generateOpenAIText({
+            model: summaryModel,
+            systemPrompt: [
+                'Сожми длинный запрос для генератора изображений в один точный визуальный промпт.',
+                'Сохрани все важные объекты, отношения, стиль, композицию, ограничения и явно заданные детали.',
+                'Удали повторы, приветствия, служебные фразы и технические метаданные.',
+                'Ничего не выдумывай и не меняй намерение пользователя.',
+                `Верни только готовый промпт на русском языке длиной не более ${SAFE_IMAGE_PROMPT_SIZE} символов.`,
+            ].join(' '),
+            userPrompt: source,
+            temperature: 0.1,
+            maxTokens: 700,
+            tokenUsageOperation: 'image-prompt:batch-compression',
+        }));
+        const clean = cleanGptImageSummaryPrompt(compressed);
+        if (clean && clean.length <= SAFE_IMAGE_PROMPT_SIZE) return clean;
+        if (clean) return clean.slice(0, SAFE_IMAGE_PROMPT_SIZE);
+    } catch (error) {
+        console.warn('[IMAGE PROMPT COMPRESSION FAILED]', formatPrivateError(error));
+    }
+
+    // Keep the beginning and end rather than silently dropping the tail. This
+    // is only a transport fallback when the text model is unavailable.
+    const head = Math.ceil(SAFE_IMAGE_PROMPT_SIZE * 0.72);
+    const tail = SAFE_IMAGE_PROMPT_SIZE - head - 32;
+    return `${source.slice(0, head)}\n…\n${source.slice(-Math.max(0, tail))}`.slice(0, SAFE_IMAGE_PROMPT_SIZE);
 }
 
 function getActiveSession(context) {
@@ -14619,6 +16664,15 @@ function getRawContext(context) {
     return quotaContextTargets.get(context) ?? context;
 }
 
+function isPrivateContext(context) {
+    const rawContext = getRawContext(context);
+    if (rawContext?.isChat === true) return false;
+    const peerId = Number(rawContext?.peerId);
+    if (Number.isFinite(peerId) && peerId >= 2_000_000_000) return false;
+    if (typeof rawContext?.isDM === 'boolean') return rawContext.isDM;
+    return true;
+}
+
 const COMMUNICATION_OUTBURST_MIN_SECONDS = 60;
 const COMMUNICATION_OUTBURST_MAX_SECONDS = 60 * 60;
 const COMMUNICATION_OUTBURST_PARTICIPANT_WINDOW_SECONDS = 72 * 60 * 60;
@@ -14769,6 +16823,9 @@ function formatAutoSummarySettingsLine(settings) {
     const target = settings?.platform === 'vk'
         ? formatVkConversationLabel(external)
         : `Telegram ${external}`;
+    const targetUrl = settings?.platform === 'vk' && Number(external) >= 2_000_000_000
+        ? `https://vk.ru/im/convo/${external}`
+        : '';
     const health = getAutoSummaryHealth(settings?.peerId);
     const healthLine = health?.lastError
         ? `   ⚠️ последняя ошибка: ${String(health.lastError).replace(/\s+/gu, ' ').slice(0, 260)}`
@@ -14778,10 +16835,10 @@ function formatAutoSummarySettingsLine(settings) {
                 ? '   выпусков после включения ещё не было'
                 : '';
     return [
-        `${enabled ? '🟢' : '⚪'} ${target}`,
+        `${enabled ? '🟢' : '⚪'} ${target}${targetUrl ? `\n   ${targetUrl}` : ''}`,
         `   ${enabled ? scheduleText : 'выключено'}`,
-        enabled
-            ? `   следующий: ${formatAutoSummaryNextRun(getNextAutoSummaryRunAt({ mode: 'full', schedule: [], afterTimestamp: Math.floor(Date.now() / 1000), timeZone: botTimeZone }))}`
+            enabled
+            ? `   следующий: ${formatAutoSummaryNextRun(getNextAutoSummaryRunAt({ mode: settings?.mode || 'full', schedule: settings?.schedule || [], afterTimestamp: Math.floor(Date.now() / 1000), timeZone: botTimeZone }))}`
             : '',
         healthLine,
     ].filter(Boolean).join('\n');
@@ -14791,6 +16848,57 @@ async function handleAutoSummaryCommand(context, parsedCommand) {
     const rawContext = getRawContext(context);
     const privateMode = isPrivateContext(rawContext);
     const owner = isOwnerContext(rawContext);
+
+    if (parsedCommand.action === 'limits') {
+        if (!privateMode || !owner || parsedCommand.target) {
+            await rawContext.send('Команду «авторезюме лимиты» можно менять только в личке владельца.');
+            return true;
+        }
+        const source = String(parsedCommand.limitsText || '').trim();
+        if (!source) {
+            await rawContext.send([
+                'Текущие лимиты авторезюме (знаки; кроме intraday_paragraphs):',
+                formatAutoSummaryLimits(autoSummaryLimits),
+                '',
+                'Отправь этот список целиком или только нужные строки, изменив числа. Можно ответить на это сообщение в личке.',
+                'Пример одного поля: intraday_chars = 1200',
+                'Русские алиасы тоже принимаются: батч 1200; абзацы 8; суточное 3600; рабочая неделя 4320; выходные 3840; неделя 4800; месяц 4080; год 10800.',
+                'Разрешённые диапазоны: пределы в знаках 400–100000, число абзацев 1–30. Неуказанные поля сохраняются без изменений.',
+            ].join('\n'));
+            return true;
+        }
+
+        const parsed = parseAutoSummaryLimits(source);
+        if (parsed.errors.length || !parsed.recognized) {
+            await rawContext.send([
+                'Лимиты не изменены. Проверь строки:',
+                ...parsed.errors,
+                parsed.recognized ? '' : 'Нужен хотя бы один распознанный параметр и целое число.',
+                '',
+                formatAutoSummaryLimits(autoSummaryLimits),
+            ].filter(Boolean).join('\n'));
+            return true;
+        }
+        const invalid = Object.entries(parsed.updates).filter(([key, value]) => (
+            key === 'intraday_paragraphs' ? value < 1 || value > 30 : value < 400 || value > 100_000
+        ));
+        if (invalid.length) {
+            await rawContext.send([
+                'Лимиты не изменены. Значения вне допустимых диапазонов:',
+                ...invalid.map(([key, value]) => `${key} = ${value}`),
+                'Знаки: 400–100000; абзацы внутридневного батча: 1–30.',
+                '',
+                formatAutoSummaryLimits(autoSummaryLimits),
+            ].join('\n'));
+            return true;
+        }
+        const saved = saveRuntimeAutoSummaryLimits(parsed.updates);
+        await rawContext.send([
+            'Лимиты авторезюме сохранены в SQLite и вступили в силу без перезапуска:',
+            formatAutoSummaryLimits(saved),
+        ].join('\n'));
+        return true;
+    }
 
     if (parsedCommand.action === 'status' && (parsedCommand.all || (privateMode && owner && !parsedCommand.target))) {
         if (!owner) {
@@ -14820,6 +16928,24 @@ async function handleAutoSummaryCommand(context, parsedCommand) {
         return true;
     }
     if (!target) {
+        if (privateMode && owner && (parsedCommand.action === 'help' || parsedCommand.action === 'enable' || parsedCommand.action === 'template')) {
+            const configured = getAllAutoSummarySettings();
+            const configuredLines = configured.length
+                ? configured.map((settings) => `${formatAutoSummarySettingsLine(settings)}`).join('\n\n')
+                : 'Сохранённых бесед пока нет.';
+            await rawContext.send([
+                'Шаблон авторезюме (время московское):',
+                '03:00, 09:00, 12:00, 15:00, 18:00, 21:00, 22:30, 23:59',
+                'Интервалы: 00–03, 03–09, 09–12, 12–15, 15–18, 18–21, 21–22:30 и 22:30–24. В 23:59 суточное резюме собирается из всех закрытых батчей; хвост 22:30–24 не публикуется отдельно.',
+                '',
+                'Измени строку и отправь, указав беседу: «резюмирование 2000000006 03:00 09:00 12:00 15:00 18:00 21:00 22:30 23:59».',
+                'Для VK можно написать «беседа 6», для Telegram — ссылку t.me/c/... .',
+                '',
+                'Текущие настройки:',
+                configuredLines,
+            ].join('\n'));
+            return true;
+        }
         await rawContext.send([
             'В личке укажи беседу по peer_id или номеру чата, например:',
             'резюмирование вкл 2000000006',
@@ -14831,6 +16957,21 @@ async function handleAutoSummaryCommand(context, parsedCommand) {
 
     const current = getAutoSummarySettings(target.peerId);
 
+    if (parsedCommand.action === 'template') {
+        const schedule = current?.schedule?.length
+            ? formatAutoSummarySchedule(current.schedule)
+            : formatAutoSummaryMode('full', []);
+        await rawContext.send([
+            `Шаблон авторезюме для ${target.label} (время московское):`,
+            `Текущие интервалы: ${schedule}`,
+            'Внутренние неперекрывающиеся батчи: 00:00–03:00, 03:00–09:00, 09:00–12:00, 12:00–15:00, 15:00–18:00, 18:00–21:00, 21:00–22:30 и 22:30–24:00.',
+            'Чтобы изменить интервалы, отправь одной строкой:',
+            `авторезюме ${target.externalPeerId} 03:00 09:00 12:00 15:00 18:00 21:00 22:30 23:59`,
+            'Можно указать свои значения HH:MM через пробел. Порядок будет отсортирован; пустой список возвращает стандартный шаблон.',
+        ].join('\n'));
+        return true;
+    }
+
     if (parsedCommand.action === 'status') {
         if (!current?.enabled) {
             await rawContext.send(`${target.label}: отправка авторезюме выключена. Внутренние накопительные батчи продолжат строиться.`);
@@ -14838,15 +16979,15 @@ async function handleAutoSummaryCommand(context, parsedCommand) {
         }
         const health = getAutoSummaryHealth(target.peerId);
         await rawContext.send([
-            `${target.label}: резюмирование включено — ${formatAutoSummaryMode()}.`,
-            `Следующий выпуск: ${formatAutoSummaryNextRun(getNextAutoSummaryRunAt({ mode: 'full', schedule: [], afterTimestamp: Math.floor(Date.now() / 1000), timeZone: botTimeZone }))}.`,
+            `${target.label}: резюмирование включено — ${formatAutoSummaryMode(current.mode || 'full', current.schedule || [])}.`,
+            `Следующий выпуск: ${formatAutoSummaryNextRun(getNextAutoSummaryRunAt({ mode: current.mode || 'full', schedule: current.schedule || [], afterTimestamp: Math.floor(Date.now() / 1000), timeZone: botTimeZone }))}.`,
             Number(health?.lastSuccessAt) > 0
                 ? `Последний успешно отправленный: ${formatAutoSummaryNextRun(health.lastSuccessAt)}.`
                 : 'Успешных выпусков после включения ещё не было.',
             health?.lastError
                 ? `Последняя ошибка: ${String(health.lastError).replace(/\s+/gu, ' ').slice(0, 500)}`
                 : '',
-            'Фоновые immutable-батчи строятся всегда: 00:00–09:00, 09:00–13:00, 13:00–15:00, 15:00–18:00, 18:00–21:00, 21:00–24:00. Включение управляет только отправкой готовых выпусков в чат; настройка переживает перезапуск бота.',
+            'Фоновые immutable-батчи строятся всегда: 00:00–03:00, 03:00–09:00, 09:00–12:00, 12:00–15:00, 15:00–18:00, 18:00–21:00, 21:00–22:30 и 22:30–24:00. Включение управляет только отправкой готовых выпусков в чат; настройка переживает перезапуск бота.',
         ].filter(Boolean).join('\n'));
         return true;
     }
@@ -14858,9 +16999,12 @@ async function handleAutoSummaryCommand(context, parsedCommand) {
             '• «резюмирование выкл» — перестать отправлять, но внутренние накопительные батчи продолжат строиться;',
             '• «резюмирование статус»;',
             '• «резюмирование сейчас» — безопасно закрыть текущий накопительный delta-батч и обновить память;',
-            '• фиксированные выпуски: 09:00, 13:00, 15:00, 18:00, 21:00, 23:59;',
-            '• в 00:00 день склеивается только из этих батчей; неделя — только из дней; месяц — только из недель.',
-            'Старое слово «авторезюме» остаётся алиасом команды, но произвольные расписания больше не меняют промышленный fixed pipeline.',
+            owner
+                ? '• «авторезюме лимиты» в личке владельца — показать все лимиты батчей и слоёв; можно вернуть весь список или отдельные строки с новыми числами. '
+                : '',
+            '• фиксированные выпуски: 03:00, 09:00, 12:00, 15:00, 18:00, 21:00, 22:30 и 23:59;',
+            '• в 23:59 суточный слой собирается из всех батчей дня, включая внутренний хвост 22:30–24; вечерний батч и хвост не превращаются в отдельные простыни; неделя — только из дней; месяц — только из недель.',
+            'Слово «авторезюме» остаётся алиасом. Команда «авторезюме шаблон» показывает текущие интервалы; строка с часами сохраняет их для выбранной беседы.',
             owner
                 ? '• из лички можно указать беседу: «резюмирование вкл 2000000006» или «резюмирование вкл беседа 6». '
                 : '',
@@ -14926,8 +17070,8 @@ async function handleAutoSummaryCommand(context, parsedCommand) {
         return true;
     }
 
-    const mode = 'full';
-    const customSchedule = [];
+    const mode = parsedCommand.mode || 'full';
+    const customSchedule = Array.isArray(parsedCommand.schedule) ? parsedCommand.schedule : [];
     const nextRunAt = getNextAutoSummaryRunAt({
         mode,
         schedule: customSchedule,
@@ -14949,7 +17093,7 @@ async function handleAutoSummaryCommand(context, parsedCommand) {
     });
 
     await rawContext.send([
-        `${target.label}: резюмирование включено — ${formatAutoSummaryMode()}.`,
+        `${target.label}: резюмирование включено — ${formatAutoSummaryMode(mode, customSchedule)}.`,
         `Первый публичный выпуск: ${formatAutoSummaryNextRun(nextRunAt)}.`,
         'Настройка сохранена в SQLite и переживает перезапуск. Внутренние батчи строятся в любом случае; эта команда включает их отправку в чат.',
     ].filter(Boolean).join('\n'));
@@ -15304,6 +17448,11 @@ const activeCommunicationHealth = new Map();
 const activeBehaviorEpochs = new Map();
 
 function getActiveBehaviorEpoch(peerId) {
+    if (!activeBehaviorEpochs.has(Number(peerId))) {
+        activeBehaviorEpochs.set(Number(peerId), Number(
+            getMaintenanceState('active-behavior-epoch:' + Number(peerId))?.details?.epoch || 0,
+        ));
+    }
     return Number(activeBehaviorEpochs.get(Number(peerId)) ?? 0);
 }
 
@@ -15311,6 +17460,7 @@ function invalidateActiveBehavior(peerId) {
     const numericPeerId = Number(peerId);
     const nextEpoch = getActiveBehaviorEpoch(numericPeerId) + 1;
     activeBehaviorEpochs.set(numericPeerId, nextEpoch);
+    setMaintenanceState('active-behavior-epoch:' + numericPeerId, { details: { epoch: nextEpoch } });
     activeCommunicationPending.delete(numericPeerId);
     activeCommunicationRunIds.set(
         numericPeerId,
@@ -15355,13 +17505,18 @@ function isActiveCommunicationRunCurrent(peerId, runId, behaviorEpoch) {
     );
 }
 
-function scheduleActiveCommunicationReply(context, incomingText, behaviorEpoch) {
+function scheduleActiveCommunicationReply(context, incomingText, behaviorEpoch, { preservePending = false } = {}) {
     const rawContext = getRawContext(context);
     const peerId = Number(rawContext.peerId);
     const nowMs = Date.now();
     const existing = activeCommunicationRuns.get(peerId);
 
     if (existing && nowMs - Number(existing.startedAtMs || 0) < ACTIVE_COMMUNICATION_RUN_STALE_MS) {
+        if (preservePending) {
+            return existing.promise.then(() => scheduleActiveCommunicationReply(
+                context, incomingText, behaviorEpoch, { preservePending: true },
+            ));
+        }
         activeCommunicationPending.set(peerId, {
             context,
             incomingText,
@@ -15406,6 +17561,7 @@ function scheduleActiveCommunicationReply(context, incomingText, behaviorEpoch) 
             `peer=${peerId}`,
             message,
         );
+        if (preservePending) throw error;
     }).finally(() => {
         const current = activeCommunicationRuns.get(peerId);
         if (current?.runId === runId) {
@@ -15434,16 +17590,17 @@ function scheduleActiveCommunicationReply(context, incomingText, behaviorEpoch) 
         startedAtMs: nowMs,
         promise,
     });
+    return promise;
 }
 
-function maybeHandleActiveCommunication(context, incomingText) {
+function maybeHandleActiveCommunication(context, incomingText, { deferVoice = false } = {}) {
     const rawContext = getRawContext(context);
 
     if (
         isPrivateContext(rawContext) ||
         containsBotMention(incomingText) ||
         contextReferencesBot(rawContext) ||
-        !isEligibleActiveCommunicationMessage(incomingText)
+        (!deferVoice && !isEligibleActiveCommunicationMessage(incomingText))
     ) {
         return false;
     }
@@ -15493,7 +17650,7 @@ function maybeHandleActiveCommunication(context, incomingText) {
     // Критично: автономная генерация НЕ await-ится обработчиком входящего
     // сообщения. В старой реализации зависший GPT на срок до 15 минут держал
     // per-peer Promise-очередь, и все следующие сообщения вставали за ним.
-    scheduleActiveCommunicationReply(context, incomingText, behaviorEpoch);
+    if (!deferVoice) scheduleActiveCommunicationReply(context, incomingText, behaviorEpoch);
     return true;
 }
 
@@ -17282,17 +19439,21 @@ const cleanupTimer = setInterval(() => {
     }
 
     for (const [key, pending] of pendingEventDeletionConfirmations) {
-        if (now >= pending.expiresAt) {
+        if (isPendingCardInteractionExpired(pending, now)) {
             pendingEventDeletionConfirmations.delete(key);
         }
     }
 
     for (const [key, pending] of pendingEventModerationSelections) {
-        if (now >= pending.expiresAt) pendingEventModerationSelections.delete(key);
+        if (isPendingCardInteractionExpired(pending, now)) pendingEventModerationSelections.delete(key);
     }
 
     for (const [key, pending] of pendingEventEditInputs) {
-        if (now >= pending.expiresAt) pendingEventEditInputs.delete(key);
+        if (isPendingCardInteractionExpired(pending, now)) pendingEventEditInputs.delete(key);
+    }
+
+    for (const [key, pending] of pendingPosterChoiceReviews) {
+        if (isPendingCardInteractionExpired(pending, now)) pendingPosterChoiceReviews.delete(key);
     }
 }, 10 * 60 * 1000);
 
@@ -17411,7 +19572,82 @@ function queueVkChatEventAnalysis(context, text) {
 }
 
 
-async function handleVkIncomingMessageCore(incomingContext) {
+function getVoiceJobConnection(job) {
+    const connection = vkConnections.find(item => Number(item.groupId) === Number(job.groupId));
+    if (!connection) throw new Error('VK voice connection unavailable');
+    return connection;
+}
+
+function createVoiceJobContext(job) {
+    const connection = getVoiceJobConnection(job);
+    return createVkIncomingReplyContext(new MessageContext({
+        api: connection.client.api,
+        upload: connection.client.upload,
+        source: 'webhook',
+        updateType: 'message_new',
+        groupId: connection.groupId,
+        payload: job.rawMessage,
+    }));
+}
+
+const vkVoiceJobs = createVkVoiceTranscriptJobs({
+    store: voiceTranscriptJobs,
+    async fetchDescriptors(job) {
+        const connection = getVoiceJobConnection(job);
+        const response = await withProviderDeadline(
+            connection.client.api.messages.getByConversationMessageId({
+                peer_id: job.peerId,
+                conversation_message_ids: [job.cmid],
+                extended: 1,
+            }), 30_000, 'VK voice transcript',
+        );
+        return collectVkVoiceAttachments(response?.items?.[0] || {}).filter(item => item.isDirect);
+    },
+    async onUnavailable(job) {
+        await createVoiceJobContext(job).send('Голос не распознан.');
+    },
+    async onReady(job) {
+        const connection = getVoiceJobConnection(job);
+        for (const descriptor of job.descriptors) {
+            saveVoiceTranscriptCache({ platform: 'vk', attachmentKey: descriptor.attachmentKey,
+                peerId: job.peerId, conversationMessageId: job.cmid, transcript: descriptor.transcript,
+                source: 'vk-native', model: '', status: 'ok' });
+        }
+        return vkExecutionStorage.run(connection, () => runSupervisedOperation({
+            name: 'vk-voice-reply', category: 'user-request',
+            metadata: { peerId: job.peerId, conversationMessageId: job.cmid, mode: job.mode },
+        }, () => handleVkIncomingMessageCore(createVoiceJobContext(job), { voiceJob: job })));
+    },
+    logger(event, job, detail) {
+        console.log('[VK VOICE TRANSCRIPT]', JSON.stringify({
+            event, groupId: job.groupId, peerId: job.peerId, cmid: job.cmid,
+            requests: job.requests.length, status: job.status,
+            successAttempt: job.successAttempt ?? null,
+            ...(detail?.attempt ? detail : {}),
+            ...(detail instanceof Error ? { error: formatPrivateError(detail) } : {}),
+        }));
+    },
+});
+
+async function maybeHandleVoiceTranscriptLog(context, text) {
+    const match = parseIncomingCommand(text, parseVoiceTranscriptLogCommand);
+    if (!match.matched) return false;
+    const query = {
+        groupId: Number(getActiveVkConnection().groupId), peerId: Number(context.peerId),
+        cmid: match.parsed.cmid || getReplyConversationMessageId(context) || 0,
+    };
+    let jobs = voiceTranscriptJobs.recent(query);
+    if (!jobs.length && !match.parsed.cmid && query.cmid) {
+        jobs = voiceTranscriptJobs.recent({ ...query, cmid: 0 });
+    }
+    const report = !jobs.length && match.parsed.cmid
+        ? 'В журнале этой беседы нет голосового #' + match.parsed.cmid + '.'
+        : formatVoiceTranscriptLog(jobs, { timeZone: botTimeZone });
+    for (const part of splitLines(report.split('\n'), 3500)) await context.send(part);
+    return true;
+}
+
+async function handleVkIncomingMessageCore(incomingContext, { voiceJob = null } = {}) {
     const context = createVkIncomingReplyContext(incomingContext);
 
     if (context.isOutbox) {
@@ -17419,7 +19655,80 @@ async function handleVkIncomingMessageCore(incomingContext) {
     }
 
     const directText = String(context.text ?? '').trim();
+    // Локальные команды могут быть адресованы боту словами «Гигорейв ...»
+    // или VK/Telegram-упоминанием. Передаём в «Чтиво» те же очищенные
+    // кандидаты, что используются остальными command fast-paths.
+    const chtivoCandidates = [...new Set([
+        directText,
+        ...getIncomingCommandCandidates(directText),
+    ].map((candidate) => String(candidate || '').trim()).filter(Boolean))];
+    for (const chtivoCandidate of chtivoCandidates) {
+        if (await handleChtivoCommand(context, chtivoCandidate)) return;
+    }
+    if (await handleBeautifulTimeCommand(context, directText)) return;
+    const vkContactKey = developerContactInputKey(context);
+    const vkContactState = getMaintenanceState(vkContactKey)?.details;
+    if (isPrivateContext(context) && vkContactState?.expiresAt > Date.now() && /^отмена[.!?]*$/iu.test(directText)) {
+        setMaintenanceState(vkContactKey, { details: {} });
+        await context.send('Обращение отменено.');
+        return;
+    }
+    if (isPrivateContext(context) && vkContactState?.expiresAt > Date.now() && /^отмена[.!?]*$/iu.test(directText)) {
+        setMaintenanceState(vkContactKey, { details: {} });
+        await context.send('Обращение отменено.');
+        return;
+    }
+    if (isPrivateContext(context) && vkContactState?.expiresAt > Date.now()) {
+        setMaintenanceState(vkContactKey, { details: {} });
+        if (directText) await forwardDeveloperRequestToOwner(context, directText);
+        else await context.send('Отправь текст обращения обычным сообщением.');
+        return;
+    }
+    if (/^написать\s+разработчику[.!?]*$/iu.test(directText)) {
+        if (!isPrivateContext(context)) {
+            await context.send('Напиши «написать разработчику» в личных сообщениях боту.');
+            return;
+        }
+        setMaintenanceState(vkContactKey, { details: { expiresAt: Date.now() + DEVELOPER_REPLY_TTL_MS } });
+        await context.send('Напиши следующим сообщением, что передать разработчику. Для отмены напиши «отмена».');
+        return;
+    }
+    if (/^отмена[.!?]*$/iu.test(directText) && vkContactState) {
+        setMaintenanceState(vkContactKey, { details: {} });
+        await context.send('Обращение отменено.');
+        return;
+    }
     const rawVkMessage = getVkRawMessage(incomingContext);
+    const directVoices = collectVkVoiceAttachments(rawVkMessage).filter(item => item.isDirect);
+    if (directVoices.length && !voiceJob) {
+        const connection = getActiveVkConnection();
+        const key = [connection.groupId, context.peerId, context.conversationMessageId].join(':');
+        if (voiceTranscriptJobs.get(key)) return;
+        const addressed = isPrivateContext(context) || containsBotMention(directText) || contextReferencesBot(context);
+        const descriptors = await resolveVkVoiceTranscriptsForMessage(rawVkMessage, {
+            peerId: context.peerId, conversationMessageId: context.conversationMessageId,
+            allowHydrate: false, nativeOnly: true,
+        });
+        if (voiceTranscriptJobs.get(key)) return;
+        const selected = !addressed && maybeHandleActiveCommunication(context, directText, { deferVoice: true });
+        vkVoiceJobs.enqueue({
+            groupId: Number(connection.groupId), peerId: Number(context.peerId),
+            cmid: Number(context.conversationMessageId), senderId: Number(context.senderId),
+            rawMessage: rawVkMessage,
+            descriptors: mergeVoiceDescriptors([...directVoices, ...descriptors]),
+            mode: addressed ? 'addressed' : selected ? 'autonomous' : 'none',
+            behaviorEpoch: getActiveBehaviorEpoch(context.peerId),
+        });
+        if (!isPrivateContext(context)) {
+            registerCommunicationParticipant(context);
+            archiveVkMessageFromMessage(rawVkMessage, {
+                canonicalPeerId: context.peerId, sourcePeerId: context.peerId,
+                durableJournal: true, logService: true,
+            });
+        }
+        void vkVoiceJobs.tick().catch(error => console.error('[VK VOICE JOB ERROR]', formatPrivateError(error)));
+        return;
+    }
     let normalizedVkContent = extractVkMessageContent(rawVkMessage);
 
     try {
@@ -17445,24 +19754,7 @@ async function handleVkIncomingMessageCore(incomingContext) {
         );
     }
 
-    let resolvedVoiceTranscripts = [];
-    try {
-        resolvedVoiceTranscripts = await resolveVkVoiceTranscriptsForMessage(
-            rawVkMessage,
-            {
-                peerId: context.peerId,
-                conversationMessageId: context.conversationMessageId,
-                allowHydrate: true,
-            },
-        );
-    } catch (error) {
-        console.warn(
-            '[VK VOICE CONTEXT ERROR]',
-            `peer=${context.peerId}`,
-            `cmid=${context.conversationMessageId}`,
-            String(error?.message ?? error),
-        );
-    }
+    const resolvedVoiceTranscripts = voiceJob?.descriptors || [];
 
     const normalizedBaseText = String(
         normalizedVkContent.text || directText,
@@ -17484,6 +19776,14 @@ async function handleVkIncomingMessageCore(incomingContext) {
         .filter(Boolean)
         .join('\n')
         .trim();
+    if (hasUntranscribedDirectVkVoice(rawVkMessage, resolvedVoiceTranscripts, '')) {
+        console.warn(
+            '[VK VOICE NO TRANSCRIPT]',
+            `peer=${context.peerId}`,
+            `cmid=${context.conversationMessageId}`,
+        );
+        return;
+    }
 
     if (!directText && directVoiceText) {
         context.text = directVoiceText;
@@ -17498,7 +19798,7 @@ async function handleVkIncomingMessageCore(incomingContext) {
             return;
         }
 
-        const text = directText || directVoiceText;
+        const text = [directText, directVoiceText].filter(Boolean).join('\n');
         const storedText = semanticText || directVoiceText;
         const privateMode = isPrivateContext(context);
 
@@ -17549,15 +19849,29 @@ async function handleVkIncomingMessageCore(incomingContext) {
             recordBotRequestFromContext(context, { forceGroup: false });
         }
 
+        if (voiceJob?.mode === 'autonomous') {
+            if (!directVoiceText || !isAutonomousCommunicationEnabled(getCommunicationSettings(context.peerId)) ||
+                !isActiveBehaviorEpochCurrent(context.peerId, voiceJob.behaviorEpoch)) return false;
+            return await scheduleActiveCommunicationReply(context, storedText, voiceJob.behaviorEpoch, { preservePending: true });
+        }
+        if (voiceJob?.mode === 'none') {
+            if (!privateMode) queueVkChatEventAnalysis(context, storedText);
+            return;
+        }
+        if (await maybeHandleVoiceTranscriptLog(context, text)) return;
+
+        maybeInterruptPendingCardInteraction(context, text);
+
         if (text) {
-            const scraperFastMatch = parseIncomingCommand(
-                text,
-                parseScraperStartCommand,
-                (parsed) => Boolean(parsed?.matched),
-            );
-            if (scraperFastMatch.matched) {
-                console.log('[SCRAPER COMMAND ABSOLUTE FASTPATH]', 'platform=vk');
-                await handleManualScraperCommand(context, scraperFastMatch.commandText);
+            const scraperFastPath = resolveIncomingScraperFastPath(text);
+            if (scraperFastPath?.route === 'scraper-start') {
+                console.log('[SCRAPER COMMAND ABSOLUTE FASTPATH]', 'platform=vk', 'route=scraper-start');
+                await handleManualScraperCommand(context, scraperFastPath.selected.commandText);
+                return;
+            }
+            if (scraperFastPath?.route === 'qtickets-events') {
+                console.log('[QTICKETS COMMAND ABSOLUTE FASTPATH]', 'platform=vk');
+                await handleQticketsCommand(context, scraperFastPath.selected.command);
                 return;
             }
         }
@@ -17603,6 +19917,10 @@ async function handleVkIncomingMessageCore(incomingContext) {
         }
 
         if (await maybeHandleOrganizerPartyIncoming(context, text)) {
+            return;
+        }
+
+        if (await maybeHandleImagePromptBatchIncoming(context, text)) {
             return;
         }
 
@@ -17937,6 +20255,8 @@ async function handleVkIncomingMessageCore(incomingContext) {
                 : formatError(error),
         );
 
+        if (voiceJob) throw error;
+
         try {
             await sendVisibleError(context, error);
         } catch (sendError) {
@@ -18025,6 +20345,10 @@ async function handleTelegramIncomingUnsupervised(context) {
             String(error?.message ?? error),
         );
     }
+    if (context.hasUntranscribedDirectVoice) {
+        await context.send('Голос не распознан.');
+        return;
+    }
 
     return runWithIncomingGptRequest(
         context,
@@ -18057,6 +20381,60 @@ async function handleTelegramIncoming(context) {
             textPreview: String(context?.originalText || context?.text || '').slice(0, 1000),
         },
     }, () => handleTelegramIncomingUnsupervised(context));
+}
+
+export function buildTelegramEventCardActions(event, ownerActions = null) {
+    const rows = Array.isArray(ownerActions?.inline_keyboard)
+        ? ownerActions.inline_keyboard.map((row) => [...row])
+        : [];
+    const type = String(event?.sourceType ?? '').trim().toLowerCase();
+    const id = Number(event?.id);
+    if (/^[a-z_]{2,16}$/u.test(type) && Number.isSafeInteger(id) && id > 0) {
+        if (eventCalendarAvailability(event)) {
+            rows.push([{ text: '🔔 Попросить бота напомнить о событии', callback_data: 'event_remind:' + type + ':' + id }]);
+        }
+        if (eventCalendarAvailability(event)) {
+            const appleCalendarLinks = buildAppleCalendarLinks(event, {
+                endpoint: process.env.EVENT_CALENDAR_ENDPOINT,
+                secret: process.env.EVENT_CALENDAR_HMAC_SECRET,
+                timeZone: botTimeZone,
+            });
+            const calendarRows = [];
+            if (appleCalendarLinks.subscribe) {
+                calendarRows.push([{ text: '📅 Добавить в календарь', url: appleCalendarLinks.options }]);
+            }
+            if (!appleCalendarLinks.subscribe) rows.push([{ text: 'Скачать .ics для Apple Calendar (импорт вручную)', callback_data: 'event_calendar:' + type + ':' + id }]);
+            rows.unshift(...calendarRows);
+        }
+    }
+    return rows.length ? { inline_keyboard: rows } : null;
+}
+
+async function handleTelegramEventCalendarCallback(context) {
+    const callback = getRawContext(context)?.callbackQuery;
+    const match = String(callback?.data ?? '').trim().match(/^event_calendar:([a-z_]{2,16}):(\d+)$/iu);
+    if (!match) return false;
+    await context.answerCallbackQuery().catch(() => {});
+    const event = findUpcomingEventByIdentityV18900(match[1].toLowerCase(), Number(match[2]));
+    if (!event || !eventCalendarAvailability(event)) {
+        await context.send('Это событие уже прошло или карточка больше недоступна.');
+        return true;
+    }
+    const calendarFile = buildEventCalendarIcs(event, { timeZone: botTimeZone });
+    if (!calendarFile) {
+        await context.send('Не получилось собрать календарный файл: у события нет корректной даты.');
+        return true;
+    }
+    const title = String(event.title || event.participants || 'Мероприятие').trim();
+    await context.send({
+        message: '«' + title + '»\nЭто файл одного события для ручного импорта. На iPhone открой его и проверь меню «Поделиться» или «Открыть в». Если iOS показывает только предпросмотр и не предлагает «Добавить в Календарь», этот способ в данной версии iOS не сработал; прямая запись с веб-страницы без отдельного приложения или команды Shortcut невозможна.',
+        attachment: createTelegramDocumentAttachment({
+            buffer: calendarFile,
+            filename: eventCalendarFilename(event),
+            mimeType: 'text/calendar; charset=utf-8',
+        }),
+    });
+    return true;
 }
 
 function findUpcomingEventByIdentityV18900(sourceType, id) {
@@ -18104,7 +20482,7 @@ async function handleTelegramEventCardCallback(context) {
         event,
         mode: permanent ? 'permanent' : 'soft',
         exactIdentity: true,
-        expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
+        expiresAt: Date.now() + OWNER_CARD_INTERACTION_TTL_MS,
     });
     await context.send({
         message: [
@@ -18125,7 +20503,182 @@ async function handleTelegramEventCardCallback(context) {
 async function handleTelegramEventCardCallbackUpdate(context) {
     const callback = getRawContext(context)?.callbackQuery;
     const data = String(callback?.data || '').trim();
-    const parserRecovery = data.match(/^parser_(resume|keep):([a-z0-9-]+)$/u);
+    const eventReminder = data.match(/^event_remind:([a-z_]{2,16}):(\d+)$/iu);
+    if (eventReminder) {
+        await context.answerCallbackQuery().catch(() => {});
+        const event = findUpcomingEventByIdentityV18900(eventReminder[1].toLowerCase(), Number(eventReminder[2]));
+        if (!event || !eventCalendarAvailability(event)) { await context.send('Это событие уже прошло или карточка больше недоступна.'); return true; }
+        if (isPrivateContext(context)) return telegramReminderManager.beginEventReminder(context, { ...event, cardText: buildSinglePublicEventMessage(event) });
+        const userId = String(getRawContext(context)?.callbackQuery?.from?.id || '');
+        if (!userId || !telegramBot?.api?.sendMessage) { await context.send('Не удалось открыть личный чат для настройки напоминания. Напиши боту в личные сообщения и попробуй снова.'); return true; }
+        const dmContext = {
+            ...context, isDM: true, externalPeerId: userId, externalSenderId: userId,
+            send: async value => {
+                if (typeof value === 'string') return telegramBot.api.sendMessage({ chatId: userId, text: value });
+                return telegramBot.api.sendMessage({ chatId: userId, text: value.message || value.text || '', replyMarkup: value.replyMarkup || undefined });
+            },
+        };
+        try {
+            await telegramReminderManager.beginEventReminder(dmContext, { ...event, cardText: buildSinglePublicEventMessage(event) });
+            await context.send('Открыл личную настройку напоминания. Продолжай в чате с ботом.');
+        } catch (error) {
+            await context.send('Сначала открой личный чат с ботом и отправь любое сообщение, затем снова нажми эту кнопку.');
+        }
+        return true;
+    }
+    if (await handleTelegramEventCalendarCallback(context)) return true;
+    const developerProfile = data.match(/^developer_profile:([a-f0-9-]{36})$/iu);
+    if (developerProfile) {
+        const state = getMaintenanceState(DEVELOPER_REPLY_STATE_KEY)?.details || {};
+        const request = state.requests?.[developerProfile[1]];
+        if (isOwnerContext(context) && isPrivateContext(context) && request && Date.now() < Number(request.expiresAt || 0)) {
+            if (state.armedForOwner) setMaintenanceState(DEVELOPER_REPLY_STATE_KEY, { details: { ...state, armedRequestId: '', armedForOwner: '' } });
+            await context.answerCallbackQuery().catch(() => {});
+            await context.send(`Профиль пользователя: ${request.profileUrl}`);
+        } else {
+            await context.answerCallbackQuery({ text: 'Ссылка устарела.' }).catch(() => {});
+        }
+        return true;
+    }
+    const developerReply = data.match(/^developer_reply:([a-f0-9-]{36})$/iu);
+    if (developerReply) {
+        await context.answerCallbackQuery().catch(() => {});
+        if (!isOwnerContext(context) || !isPrivateContext(context)) {
+            await context.send('Ответить может только владелец в личном чате с ботом.');
+            return true;
+        }
+        const replyState = getMaintenanceState(DEVELOPER_REPLY_STATE_KEY)?.details || {};
+        const pending = replyState.requests?.[developerReply[1]];
+        if (!pending || Date.now() >= Number(pending.expiresAt || 0)) {
+            await context.send('Режим ответа устарел. Открой новое обращение и нажми «Ответить».');
+            return true;
+        }
+        setMaintenanceState(DEVELOPER_REPLY_STATE_KEY, { details: { ...replyState, armedRequestId: pending.id, armedForOwner: telegramOwnerExternalUserId } });
+        await context.send(`Напиши ответ одним сообщением. Он будет отправлен ${pending.senderName || 'пользователю'}. Для отмены нажми другую кнопку или напиши «отмена». Режим действует 10 минут.`);
+        return true;
+    }
+    if (isOwnerContext(context) && isPrivateContext(context)) {
+        const pending = getMaintenanceState(DEVELOPER_REPLY_STATE_KEY)?.details;
+        if (pending?.armedForOwner) setMaintenanceState(DEVELOPER_REPLY_STATE_KEY, { details: { ...pending, armedRequestId: '', armedForOwner: '' } });
+    }
+    if (await telegramReminderManager.handleCallback(context)) return true;
+    if (/^ep(?:m)?:/u.test(data)) {
+        await context.answerCallbackQuery().catch(() => {});
+        return eventProposalSubmission.handle(context, '', data);
+    }
+    const publicSources = data.match(/^public_sources:(primary|secondary|all|qtickets)$/iu);
+    if (publicSources) {
+        await context.answerCallbackQuery().catch(() => {});
+        const requested = publicSources[1].toLowerCase();
+        const showSourceCounts = isOwnerContext(context) && isPrivateContext(context);
+        if (requested === 'qtickets') {
+            const rows = getQticketsUpcomingEvents({
+                fromDate: getLocalDateString(new Date(), botTimeZone),
+                limit: 5000,
+            });
+            const seen = new Set();
+            const lines = ['🎟 Источники QTickets'];
+            for (const event of rows) {
+                const url = String(event?.sourceUrl || event?.detailUrl || event?.ticketUrl || '').trim();
+                if (!url || seen.has(url)) continue;
+                seen.add(url);
+                lines.push(`• ${String(event?.title || 'Событие').trim()}: ${url}`);
+            }
+            if (!seen.size) lines.push('Сохранённых источников QTickets нет.');
+            await sendLong(context, lines.join('\n'));
+            return true;
+        }
+        const sections = requested === 'all'
+            ? [
+                { pool: PARTY_POOL_PRIMARY, title: 'Обычные источники' },
+                { pool: PARTY_POOL_SECONDARY, title: 'Второстепенные / быдлячьи источники' },
+                { pool: 'qtickets', title: 'QTickets' },
+            ]
+            : [{
+                pool: requested === 'secondary' ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY,
+                title: requested === 'secondary' ? 'Второстепенные / быдлячьи источники' : 'Обычные источники',
+            }];
+        const lines = ['📚 Источники выдачи'];
+        for (const section of sections) {
+            if (section.pool === 'qtickets') {
+                const rows = getQticketsUpcomingEvents({
+                    fromDate: getLocalDateString(new Date(), botTimeZone),
+                    limit: 5000,
+                });
+                const seen = new Set();
+                const linked = rows.filter((event) => {
+                    const url = String(event?.sourceUrl || event?.detailUrl || event?.ticketUrl || '').trim();
+                    if (!url || seen.has(url)) return false;
+                    seen.add(url);
+                    return true;
+                });
+                lines.push(showSourceCounts ? `\n— QTickets (${linked.length})` : '\n— QTickets');
+                if (!linked.length) lines.push('Нет сохранённых источников.');
+                for (const event of linked) {
+                    const url = String(event.sourceUrl || event.detailUrl || event.ticketUrl).trim();
+                    lines.push(`• ${String(event.title || 'Событие').trim()}: ${url}`);
+                }
+                continue;
+            }
+            const sources = getManualScraperSources(section.pool).filter((source) => source.kind !== 'vk-chat');
+            lines.push(showSourceCounts ? `\n— ${section.title} (${sources.length})` : `\n— ${section.title}`);
+            if (!sources.length) lines.push('Нет включённых источников.');
+            for (const source of sources) {
+                const url = String(source.url || '').trim();
+                lines.push(showSourceCounts
+                    ? formatManualSourceListLine(source, { owner: true, enabled: true })
+                    : (url ? `• ${url}` : `• ${source.label}`));
+            }
+        }
+        await sendLong(context, lines.join('\n'));
+        return true;
+    }
+    const deferredDecision = data.match(/^ai_deferred_(continue|keep):([a-z0-9:_-]+)$/iu);
+    if (deferredDecision) {
+        if (!(isOwnerContext(context) && isPrivateContext(context))) {
+            await context.answerCallbackQuery({ text: 'Только владелец в личном чате.', showAlert: true }).catch(() => {});
+            return true;
+        }
+        await context.answerCallbackQuery().catch(() => {});
+        const operation = peekDeferredAiOperation();
+        if (!operation || String(operation.id) !== deferredDecision[2]) {
+            await context.send('Эта отложенная операция уже обработана или заменена.');
+            return true;
+        }
+        removeDeferredAiOperation(operation.id);
+        if (deferredDecision[1].toLowerCase() === 'keep') {
+            await context.send('Оставил без изменений; команда удалена из очереди.');
+            await notifyDeferredAiOperation().catch(() => {});
+            return true;
+        }
+        if (operation.type === 'background-operation') {
+            const deferredTask = deferredAiTaskRegistry.get(String(operation.id));
+            deferredAiTaskRegistry.delete(String(operation.id));
+            if (!deferredTask) {
+                await context.send('Этот фоновый запуск сохранён в очереди, но после перезапуска исходную функцию нельзя восстановить. Имя операции: ' + String(operation.label || operation.operationName || 'неизвестно') + '.');
+                await notifyDeferredAiOperation().catch(() => {});
+                return true;
+            }
+            await context.send('Возобновляю отложенную операцию: ' + String(operation.label || deferredTask.name || ''));
+            runDetachedSupervisedOperation({
+                name: deferredTask.name,
+                category: deferredTask.category,
+                metadata: deferredTask.metadata,
+                timeoutMs: deferredTask.timeoutMs,
+            }, deferredTask.task).catch((error) => console.warn('[AI CHANNEL DEFERRED TASK ERROR]', formatPrivateError(error)));
+            await notifyDeferredAiOperation().catch(() => {});
+            return true;
+        }
+        if (operation.type === 'parser-command') {
+            await context.send('Запускаю отложенную команду: ' + String(operation.command || ''));
+            await handleManualScraperCommand(context, String(operation.command || ''));
+        } else {
+            await context.send('Не могу автоматически восстановить этот тип операции. Исходная команда: ' + String(operation.command || operation.label || operation.type || 'не записана'));
+        }
+        await notifyDeferredAiOperation().catch(() => {});
+        return true;
+    }
+    const parserRecovery = data.match(/^parser_(resume|keep|ladder):([a-z0-9-]+)$/u);
     if (parserRecovery) {
         if (!isOwnerContext(context) || !isPrivateContext(context)) {
             await context.answerCallbackQuery({ text: 'Только владелец в личном чате.', showAlert: true }).catch(() => {});
@@ -18144,7 +20697,7 @@ async function handleTelegramEventCardCallbackUpdate(context) {
             await context.send('Оставляю сохранённый результат. Этот запуск больше не предлагается к восстановлению.');
             return true;
         }
-        return handleManualScraperCommand(context, parserRecoveryCommand(recovery.partyPool), { recoveryCheckpointId: recovery.id });
+        return handleManualScraperCommand(context, parserRecoveryCommand(recovery.partyPool), { recoveryCheckpointId: recovery.id, ordinaryPhaseTwo: parserRecovery[1] === 'ladder' });
     }
     const confirm = data.match(/^event_delete(?:_(permanent))?_(confirm|cancel):([a-z_]{2,16}):(\d+)$/iu);
     if (confirm) {
@@ -18204,6 +20757,90 @@ async function handleTelegramIncomingCore(context) {
         let text = String(context.text ?? '').trim();
         let originalText = String(context.originalText ?? text).trim();
         const privateMode = isPrivateContext(context);
+        if (await handleBeautifulTimeCommand(context, originalText || text)) return;
+
+        // The limits reply is intentionally editable: Telegram users normally
+        // answer the bot's formatted list, so the new message itself contains
+        // only the fields being changed. Reattach the local command before the
+        // normal router; this keeps the edit deterministic and avoids an AI call.
+        if (privateMode && isOwnerContext(context)) {
+            const replyText = String(context.replyMessage?.text ?? '').trim();
+            const directLimits = parseAutoSummaryLimits(originalText || text);
+            const isLimitsReply = /(?:текущие\s+лимиты\s+авторезюме|лимиты\s+авторезюме)/iu.test(replyText);
+            const looksLikeLimitsEdit = directLimits.recognized > 0 &&
+                !/^авторезюме(?:\s|$)/iu.test(originalText || text);
+            if (isLimitsReply || looksLikeLimitsEdit) {
+                originalText = `авторезюме лимиты ${originalText || text}`.trim();
+                text = originalText;
+            }
+        }
+
+        if (privateMode && isOwnerContext(context)) {
+            const replyState = getMaintenanceState(DEVELOPER_REPLY_STATE_KEY)?.details || {};
+            const pendingReply = replyState.requests?.[replyState.armedRequestId];
+            if (replyState.armedForOwner === telegramOwnerExternalUserId && pendingReply) {
+                const replyText = String(originalText || text || '').trim();
+                if (/^(?:отмена|отменить|стоп)$/iu.test(replyText)) {
+                    setMaintenanceState(DEVELOPER_REPLY_STATE_KEY, { details: { ...replyState, armedRequestId: '', armedForOwner: '' } });
+                    await context.send('Ответ отменён.');
+                    return;
+                }
+                if (Date.now() >= Number(pendingReply.expiresAt || 0)) {
+                    setMaintenanceState(DEVELOPER_REPLY_STATE_KEY, { details: { ...replyState, armedRequestId: '', armedForOwner: '' } });
+                    await context.send('Режим ответа истёк. Открой обращение и нажми «Ответить» ещё раз.');
+                    return;
+                }
+                if (/^\//u.test(replyText) || isExplicitApplicationCommand(replyText) || /^(?:помощь|❓\s*помощь|🏠|главное меню|домой)$/iu.test(replyText)) {
+                    setMaintenanceState(DEVELOPER_REPLY_STATE_KEY, { details: { ...replyState, armedRequestId: '', armedForOwner: '' } });
+                } else {
+                    if (!replyText || replyText.length > 3500) {
+                        await context.send('Нужно текстовое сообщение длиной до 3500 символов. Режим ответа сохранён.');
+                        return;
+                    }
+                    delete replyState.requests[replyState.armedRequestId];
+                    setMaintenanceState(DEVELOPER_REPLY_STATE_KEY, { details: { ...replyState, armedRequestId: '', armedForOwner: '' } });
+                    try {
+                        if (pendingReply.platform === 'telegram') {
+                            await telegramBot.api.sendMessage({ chatId: pendingReply.externalUserId, text: `Ответ разработчика:\n${replyText}` });
+                        } else if (pendingReply.platform === 'vk') {
+                            const client = pendingReply.endpointKey === 'vk:event' ? eventVk : primaryVk;
+                            if (!client) throw new Error('Исходное VK-сообщество сейчас не подключено.');
+                            await client.api.messages.send({ peer_id: Number(pendingReply.externalPeerId || pendingReply.externalUserId), random_id: randomInt(1, 2_000_000_000), message: `Ответ разработчика:\n${replyText}` });
+                        } else {
+                            throw new Error('Неизвестная платформа отправителя.');
+                        }
+                        await context.send('Ответ отправлен.');
+                    } catch (error) {
+                        console.error('[DEVELOPER REPLY DELIVERY ERROR]', formatPrivateError(error));
+                        await context.send('Не удалось доставить ответ. Режим закрыт; попроси пользователя написать снова.');
+                    }
+                    return;
+                }
+            }
+        }
+
+        const contactKey = developerContactInputKey(context);
+        if (await telegramReminderManager.handleIncoming(context)) return;
+
+        const contactState = getMaintenanceState(contactKey)?.details;
+        if (privateMode && contactState?.expiresAt > Date.now()) {
+            setMaintenanceState(contactKey, { details: {} });
+            if (/^отмена[.!?]*$/iu.test(originalText || text)) {
+                await context.send('Обращение отменено.');
+                return;
+            }
+            await forwardDeveloperRequestToOwner(context, originalText || text);
+            return;
+        }
+        if (/^написать\s+разработчику[.!?]*$/iu.test(text || originalText)) {
+            if (!isPrivateContext(context)) {
+                await context.send('Напиши «написать разработчику» в личных сообщениях боту.');
+                return;
+            }
+            setMaintenanceState(contactKey, { details: { expiresAt: Date.now() + DEVELOPER_REPLY_TTL_MS } });
+            await context.send('Напиши следующим сообщением, что передать разработчику. Для отмены напиши «отмена».');
+            return;
+        }
 
         if (privateMode) {
             recordBotRequestFromContext(context, { forceGroup: false });
@@ -18234,15 +20871,18 @@ async function handleTelegramIncomingCore(context) {
         }
 
 
+        maybeInterruptPendingCardInteraction(context, originalText || text);
+
         if (originalText || text) {
-            const scraperFastMatch = parseIncomingCommand(
-                originalText || text,
-                parseScraperStartCommand,
-                (parsed) => Boolean(parsed?.matched),
-            );
-            if (scraperFastMatch.matched) {
-                console.log('[SCRAPER COMMAND ABSOLUTE FASTPATH]', 'platform=telegram');
-                await handleManualScraperCommand(context, scraperFastMatch.commandText);
+            const scraperFastPath = resolveIncomingScraperFastPath(originalText || text);
+            if (scraperFastPath?.route === 'scraper-start') {
+                console.log('[SCRAPER COMMAND ABSOLUTE FASTPATH]', 'platform=telegram', 'route=scraper-start');
+                await handleManualScraperCommand(context, scraperFastPath.selected.commandText);
+                return;
+            }
+            if (scraperFastPath?.route === 'qtickets-events') {
+                console.log('[QTICKETS COMMAND ABSOLUTE FASTPATH]', 'platform=telegram');
+                await handleQticketsCommand(context, scraperFastPath.selected.command);
                 return;
             }
         }
@@ -18277,6 +20917,10 @@ async function handleTelegramIncomingCore(context) {
             context,
             originalText || text,
         )) {
+            return;
+        }
+
+        if (await maybeHandleImagePromptBatchIncoming(context, originalText || text)) {
             return;
         }
 
@@ -18932,11 +21576,10 @@ function getRawUpcomingEventsForModeration(limit = 500) {
                     postId: event?.postId,
                 });
             }
-            if (!String(sourceMeta?.rawText || '').trim()) return false;
-            const supported = isEventDateConsistentWithSource({
-                eventDate: event?.eventDate,
-                sourceText: sourceMeta.rawText,
-                publishedAt: Number(sourceMeta.publishedAt || 0),
+            const supported = storedEventDateSupported(event, {
+                sourceText: sourceMeta?.rawText || '',
+                publishedAt: Number(sourceMeta?.publishedAt || 0),
+                imageVisionFacts: sourceMeta?.imageVisionFactsJson || event?.imageVisionFacts || [],
                 timeZone: botTimeZone,
             });
             if (!supported) return false;
@@ -19100,7 +21743,7 @@ async function runEventDedupeSeparatedByPartyPool(events, dedupeRunner) {
     const secondarySourceKeys = getSecondaryPartySourceKeys();
     const annotated = (Array.isArray(events) ? events : []).map((event) => ({
         ...event,
-        partyPool: classifyEventPartyPool(event, { secondarySourceKeys }),
+        partyPool: classifyEventPartyPool({ ...event, partyPool: '' }, { secondarySourceKeys }),
     }));
     const split = partitionEventsByPartyPool(annotated, { secondarySourceKeys });
     const primary = await dedupeRunner(split.primary, PARTY_POOL_PRIMARY);
@@ -19469,7 +22112,7 @@ function collectAllPartyMetadataSourceEvents() {
         limitPerTable: 20_000,
     }).map((event) => ({
         ...event,
-        partyPool: classifyEventPartyPool(event, { secondarySourceKeys }),
+        partyPool: classifyEventPartyPool({ ...event, partyPool: '' }, { secondarySourceKeys }),
     }));
     const qtickets = getQticketsUpcomingEvents({
         fromDate: todayIso,
@@ -19535,6 +22178,10 @@ async function selectAllPartyCandidatesForRange(range, limit = 2000) {
         limit: 2000,
     })
         .filter((event) => allPartyEventOverlapsRange(event, range))
+        // Keep the aggregate route aligned with the dedicated QTickets route:
+        // a stale detail page mentioning Moscow must not leak into the
+        // Voronezh-wide "all parties" feed.
+        .filter((event) => !qticketsEventHasConflictingCity(event))
         .map((event) => ({ ...event, partyPool: 'qtickets' }));
     return [...primary, ...secondary, ...qtickets];
 }
@@ -19574,8 +22221,8 @@ async function sendAllPartiesForRange(context, range, routeMethod = 'all-parties
 
     const items = events.map((event) => ({ event }));
     const delivery = compact
-        ? await sendCompactPublicEventList(context, items, range)
-        : await sendPublicEventMessages(context, events, { preverified: true });
+        ? await sendCompactPublicEventList(context, items, range, { partyPool: 'all' })
+        : await sendPublicEventMessages(context, events, { preverified: true, partyPool: 'all' });
     return { ...delivery, groups: dedupe.groups.length, candidates: candidates.length };
 }
 
@@ -19637,20 +22284,28 @@ function resolveQticketsCommandRange(command = {}) {
         return createQticketsRollingRange(spec.dayCount, { weekendsOnly: spec.weekendsOnly });
     }
     const parsed = parsePublicEventsRangeCommand(`тусы ${command.rangeText}`);
+    // QTickets follows the same calendar semantics as the main party feed:
+    // a weekly request includes the remaining days through Sunday.
     return parsed || createQticketsRollingRange(7);
 }
 
 async function sendQticketsEventsForRange(context, range, routeMethod = 'qtickets-command', { maxPrice = null, compact = false } = {}) {
     const safeRange = range || createQticketsRollingRange(7);
     const limit = safeRange?.kind === 'all' ? 500 : 200;
-    const fromDate = String(safeRange?.fromDate || getLocalDateString(new Date(), botTimeZone));
-    const numericMaxPrice = Number(maxPrice);
-    const hasPriceFilter = Number.isFinite(numericMaxPrice) && numericMaxPrice >= 0;
+    const today = getLocalDateString(new Date(), botTimeZone);
+    const requestedFrom = String(safeRange?.fromDate || today);
+    const fromDate = requestedFrom < today ? today : requestedFrom;
+    // Empty/default values must never become a visible `до 0 ₽` filter.
+    // Zero remains valid only when it was explicitly supplied (free events).
+    const rawMaxPrice = maxPrice === null || maxPrice === undefined ? '' : String(maxPrice).trim();
+    const numericMaxPrice = rawMaxPrice === '' ? null : Number(rawMaxPrice);
+    const hasPriceFilter = rawMaxPrice !== '' && hasQticketsPriceLimit(rawMaxPrice);
     const events = getQticketsUpcomingEvents({
         fromDate,
         limit: 2000,
     })
         .filter((event) => qticketsEventOverlapsRange(event, safeRange))
+        .filter((event) => !qticketsEventHasConflictingCity(event))
         .filter((event) => !hasPriceFilter || qticketsEventMatchesPriceLimit(event, numericMaxPrice))
         .slice(0, limit);
 
@@ -19664,13 +22319,6 @@ async function sendQticketsEventsForRange(context, range, routeMethod = 'qticket
         `events=${events.length}`,
         `compact=${compact ? 1 : 0}`,
     );
-
-    await context.send([
-        '🎟 QTickets афиша',
-        'Этот раздел копирует афишу QTickets по Воронежу.',
-        'Тусы здесь могут совпадать с тусами в общем разделе — QTickets хранится отдельно и не участвует в общем дедупе.',
-        hasPriceFilter ? `💰 Фильтр стоимости: до ${numericMaxPrice} ₽.` : '',
-    ].filter(Boolean).join('\n'));
 
     if (!events.length) {
         await sendLong(context, [
@@ -19686,8 +22334,8 @@ async function sendQticketsEventsForRange(context, range, routeMethod = 'qticket
         `Событий: ${events.length}.`,
     ].filter(Boolean).join('\n'));
     const delivery = compact
-        ? await sendCompactPublicEventList(context, events.map((event) => ({ event })), safeRange)
-        : await sendPublicEventMessages(context, events, { preverified: true });
+        ? await sendCompactPublicEventList(context, events.map((event) => ({ event })), safeRange, { partyPool: 'qtickets' })
+        : await sendPublicEventMessages(context, events, { preverified: true, partyPool: 'qtickets' });
     return { ...delivery, events: events.length };
 }
 
@@ -19697,6 +22345,9 @@ function formatQticketsScrapeResult(result) {
         `✅ ${QTICKETS_SOURCE_NAME}: проход завершён.`,
         `Карточек на странице: ${Number(result?.listingCards || 0)}; открыто detail-вкладок: ${Number(result?.detailTabsOpened || 0)}.`,
         `Событий сохранено: ${Number(result?.eventsParsed || 0)}; новых: ${Number(storage.inserted || 0)}; обновлено: ${Number(storage.updated || 0)}; устаревших скрыто: ${Number(storage.ignored || 0)}.`,
+        Number(result?.cityRejected || 0) + Number(result?.pastRejected || 0) > 0
+            ? `Отфильтровано: за пределами Воронежа — ${Number(result.cityRejected || 0)}; прошедшие даты — ${Number(result.pastRejected || 0)}.`
+            : '',
         Number(result?.detailErrors || 0) > 0
             ? `Detail-ошибок: ${Number(result.detailErrors)}; для них оставлена карточка из списка.`
             : '',
@@ -19735,7 +22386,10 @@ async function handleQticketsCommand(context, command = {}) {
             timeoutMs: 2 * 60 * 60 * 1000,
         }, async () => {
             try {
-                const result = await qticketsScraper.run();
+                const result = await qticketsScraper.run({
+                    incrementalOnly: Boolean(command.cleanOnly),
+                    turboMode: command.turboMode || 'turbo3',
+                });
                 try {
                     refreshAllPartyMetadataIndex('background:qtickets-parser');
                 } catch (metadataError) {
@@ -19960,6 +22614,7 @@ async function captureStoredEventSourceForReparseV188147(sourceUrl, records = []
 
 async function reparseStoredEventSourceUrl(sourceUrl, records = [], {
     diagnostics = null, allowMissingPoster = false, capturedSource = null,
+    forceIncludeSourceImages = false,
 } = {}) {
     // A captured source can be analysed long after its browser tab was closed.
     // The ordinary reparse still captures and processes in one call.
@@ -20050,7 +22705,9 @@ async function reparseStoredEventSourceUrl(sourceUrl, records = [], {
         selectedPost,
         records,
     });
-    const publishable = filterEventsWithAnnouncementImages(withPosters, {
+    const publishable = forceIncludeSourceImages
+        ? withPosters.filter((event) => Array.isArray(event?.imagePaths) && event.imagePaths.length)
+        : filterEventsWithAnnouncementImages(withPosters, {
         onRejected: (event, reason) => {
             console.warn(
                 '[EVENT REPARSE REJECTED]',
@@ -20059,7 +22716,7 @@ async function reparseStoredEventSourceUrl(sourceUrl, records = [], {
                 `source=${canonicalUrl}`,
             );
         },
-    });
+        });
     if (!publishable.length) {
         diagnostics?.saveParserReport({
             sourceId: diagnosticSourceId,
@@ -20082,7 +22739,7 @@ async function reparseStoredEventSourceUrl(sourceUrl, records = [], {
         // The older strict reparse remains strict. The explicit future refresh
         // may still update verified text fields on an already-existing card;
         // poster selection and publication remain subject to the normal gates.
-        if (!allowMissingPoster) {
+        if (!allowMissingPoster && !forceIncludeSourceImages) {
             throw new Error('не удалось подтвердить и сохранить исходную афишу события');
         }
         diagnostics?.log('future-refresh.text-only-source', {
@@ -20113,6 +22770,8 @@ async function reparseStoredEventSourceUrl(sourceUrl, records = [], {
 // Separate non-timeboxed owner operation. Do not route through the generic
 // operation timeout: the existing Astra stream and source read must not be cut.
 let futureEventsRefreshRunningV188145 = false;
+let forcedNoPosterTargetKeysV18910 = null;
+let forcedNoPosterOriginalCardsV18910 = null;
 
 const EVENT_REPARSE_BROWSER_BATCH_SIZE = Math.max(
     10,
@@ -20203,7 +22862,7 @@ async function reparseAllStoredEventLinks() {
 // Dedicated two-stage future refresh: browser captures are started on a
 // 5–16 second random cadence, independently of the (potentially long-running)
 // Vision/text queue. No deadline is added to Astra streaming or AI tasks.
-async function runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster = false } = {}) {
+async function runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster = false, forceReplaceNoPoster = false } = {}) {
     const diagnostics = createManualParserDiagnostics({
         dataDirectory: './data', label: 'future-upcoming-events-v188147',
     });
@@ -20218,7 +22877,7 @@ async function runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster = fal
         failed: [], captureCachePath, reportPath: '',
         tracePath: diagnostics.relativeLogPath || '',
         chat22: null, storedPosterPreflight: null,
-        onlyMissingPoster, browserBatchSize: 1, browserBatches: 0,
+        onlyMissingPoster, forceReplaceNoPoster, browserBatchSize: 1, browserBatches: 0,
     };
     diagnostics.log('future-refresh.begin', { onlyMissingPoster, captureCachePath });
     try {
@@ -20226,9 +22885,13 @@ async function runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster = fal
         // pass: V188.150 filtered SQLite writes, but opened ALL future links.
         // Keep full mode's historical order: DB repair -> chat 22 -> fresh
         // inventory (which must include newly discovered events from chat 22).
-        const bfInitialCards = onlyMissingPoster ? getAllUpcomingEventRecordsForDedupe({
+        const bfInitialCardsRaw = onlyMissingPoster ? getAllUpcomingEventRecordsForDedupe({
             fromDate: getLocalDateString(new Date(), botTimeZone), limitPerTable: 20_000,
         }) : null;
+        const bfInitialCards = bfInitialCardsRaw?.map((event) => {
+            const original = forcedNoPosterOriginalCardsV18910?.get(`${event.sourceType}:${Number(event.id)}`);
+            return original ? { ...event, ...original, imagePaths: event.imagePaths, sourceImagePaths: event.sourceImagePaths } : event;
+        }) || null;
         // This stage uses only stored SQLite images; it cannot open unrelated tabs.
         result.storedPosterPreflight = reconcileUpcomingPostersFromStoredSourceMediaV188145();
         if (onlyMissingPoster) {
@@ -20247,7 +22910,10 @@ async function runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster = fal
             fromDate: getLocalDateString(new Date(), botTimeZone), limitPerTable: 20_000,
         });
         const targetCards = onlyMissingPoster
-            ? allUpcomingCards.filter((event) => !eventHasUsableMediaV18883(event))
+            ? allUpcomingCards.filter((event) => {
+                const key = `${event?.sourceType || ''}:${Number(event?.id || 0)}`;
+                return forcedNoPosterTargetKeysV18910 ? forcedNoPosterTargetKeysV18910.has(key) : !eventHasUsableMediaV18883(event);
+            })
             : allUpcomingCards;
         const rawEvents = targetCards.filter((event) =>
             /^https?:\/\//iu.test(String(event?.sourceUrl ?? '').trim()));
@@ -20296,6 +22962,7 @@ async function runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster = fal
         const analyzeCaptured = async (sourceUrl, records, cachedSource, cacheFile) => {
             const reparsedEvents = await reparseStoredEventSourceUrl(sourceUrl, records, {
                 diagnostics, allowMissingPoster: true, capturedSource: cachedSource,
+                forceIncludeSourceImages: forceReplaceNoPoster,
             });
             result.processedLinks += 1;
             if (reparsedEvents.length > 1) result.multiEventSources += 1;
@@ -20333,6 +23000,7 @@ async function runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster = fal
                 changed += updateStoredEventRecordFromReparse({
                     sourceType: record.sourceType, id: record.id,
                     onlyIfMissingPoster: onlyMissingPoster,
+                    forceReplace: forceReplaceNoPoster,
                     event: {
                         ...best.event, sourceUrl,
                         parseMethod: `${best.event?.parseMethod || 'source_link_reparse'}+pipelined_v188147`,
@@ -20434,8 +23102,8 @@ async function runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster = fal
     }
 }
 
-async function runStoredEventLinkRefreshV188145({ refreshUpcoming = false, onlyMissingPoster = false } = {}) {
-    if (refreshUpcoming) return runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster });
+async function runStoredEventLinkRefreshV188145({ refreshUpcoming = false, onlyMissingPoster = false, forceReplaceNoPoster = false } = {}) {
+    if (refreshUpcoming) return runUpcomingEventRefreshPipelinedV188147({ onlyMissingPoster, forceReplaceNoPoster });
     const diagnostics = refreshUpcoming ? createManualParserDiagnostics({
         dataDirectory: './data', label: 'future-upcoming-events-v188145',
     }) : null;
@@ -20461,7 +23129,12 @@ async function runStoredEventLinkRefreshV188145({ refreshUpcoming = false, onlyM
     const rawEvents = getAllUpcomingEventRecordsForDedupe({
         fromDate: getLocalDateString(new Date(), botTimeZone),
         limitPerTable: 20_000,
-    }).filter((event) => /^https?:\/\//iu.test(String(event?.sourceUrl ?? '').trim()));
+    }).filter((event) => /^https?:\/\//iu.test(String(event?.sourceUrl ?? '').trim()) &&
+        (!onlyMissingPoster || !forcedNoPosterTargetKeysV18910 || forcedNoPosterTargetKeysV18910.has(`${event.sourceType}:${Number(event.id)}`)))
+        .map((event) => {
+            const original = forcedNoPosterOriginalCardsV18910?.get(`${event.sourceType}:${Number(event.id)}`);
+            return original ? { ...event, ...original, imagePaths: event.imagePaths, sourceImagePaths: event.sourceImagePaths } : event;
+        });
 
     const groups = new Map();
     for (const event of rawEvents) {
@@ -20527,6 +23200,7 @@ async function runStoredEventLinkRefreshV188145({ refreshUpcoming = false, onlyM
             const reparsedEvents = await reparseStoredEventSourceUrl(sourceUrl, records, {
                 diagnostics,
                 allowMissingPoster: refreshUpcoming,
+                forceIncludeSourceImages: forceReplaceNoPoster,
             });
             let multiEventSource = 0;
             if (reparsedEvents.length > 1) multiEventSource = 1;
@@ -20556,7 +23230,9 @@ async function runStoredEventLinkRefreshV188145({ refreshUpcoming = false, onlyM
                 // должно дать >= 42. Если источник дал ровно одну карточку и в БД
                 // тоже одна строка, используем её без дополнительного порога.
                 const legacySingle = records.length === 1 && reparsedEvents.length === 1;
-                const safeMatch = refreshUpcoming
+                const safeMatch = forceReplaceNoPoster
+                    ? futureEventReparseMatchIsSafeV188145(record, best?.event, reparsedEvents.length)
+                    : refreshUpcoming
                     ? futureEventReparseMatchIsSafeV188145(record, best?.event, reparsedEvents.length)
                     : Boolean(best && (legacySingle || best.score >= 42));
                 if (!safeMatch) {
@@ -20582,6 +23258,7 @@ async function runStoredEventLinkRefreshV188145({ refreshUpcoming = false, onlyM
                     // writing, so an owner-confirmed poster added during this
                     // long browser/AI pass cannot be overwritten by a stale copy.
                     onlyIfMissingPoster: refreshUpcoming,
+                    forceReplace: forceReplaceNoPoster,
                     event: {
                         ...best.event,
                         sourceUrl,
@@ -20681,6 +23358,70 @@ async function runStoredEventLinkRefreshV188145({ refreshUpcoming = false, onlyM
     } finally {
         diagnostics?.log('future-refresh.end', { refreshUpcoming });
         releaseBrowserLease();
+    }
+}
+
+export async function runNoPosterForceReparseV18910() {
+    const today = getLocalDateString(new Date(), botTimeZone);
+    const cards = getAllUpcomingEventRecordsForDedupe({ fromDate: today, limitPerTable: 20_000 });
+    forcedNoPosterTargetKeysV18910 = new Set(cards
+        .filter((event) => !eventHasUsableMediaV18883(event))
+        .map((event) => `${event.sourceType}:${Number(event.id)}`));
+    const backupDb = new DatabaseSync('./data/bot.sqlite.before-no-poster-force-reparse-20261016.sqlite', { readOnly: true });
+    const originalCards = new Map();
+    const sourceTables = { vk: ['vk_events', 'id'], telegram: ['telegram_events', 'id'], vk_chat: ['vk_chat_events', 'id'], manual: ['manual_events', 'id'] };
+    for (const [sourceType, ids] of Object.entries(Object.groupBy(cards.filter((event) => forcedNoPosterTargetKeysV18910.has(`${event.sourceType}:${Number(event.id)}`)), (event) => event.sourceType))) {
+        const [table] = sourceTables[sourceType] || [];
+        if (!table) continue;
+        for (const event of ids) {
+            const row = backupDb.prepare(`SELECT title,event_date,event_time,venue,participants,price,description,evidence,source_url FROM ${table} WHERE id=?`).get(Number(event.id));
+            if (row) originalCards.set(`${sourceType}:${Number(event.id)}`, {
+                ...event, title: String(row.title || ''), eventDate: String(row.event_date || ''),
+                eventTime: row.event_time ? String(row.event_time) : null, venue: String(row.venue || ''),
+                participants: String(row.participants || ''), price: String(row.price || ''),
+                description: String(row.description || ''), evidence: String(row.evidence || ''),
+                sourceUrl: String(row.source_url || event.sourceUrl || ''),
+            });
+        }
+    }
+    backupDb.close();
+    forcedNoPosterOriginalCardsV18910 = originalCards;
+    try {
+        return await runStoredEventLinkRefreshV188145({
+            refreshUpcoming: false,
+            onlyMissingPoster: true,
+            forceReplaceNoPoster: true,
+        });
+    } finally {
+        forcedNoPosterTargetKeysV18910 = null;
+        forcedNoPosterOriginalCardsV18910 = null;
+    }
+}
+
+export async function runTargetedMissingPosterReparseV18911(sourceUrls) {
+    const allowedUrls = new Set((Array.isArray(sourceUrls) ? sourceUrls : [])
+        .map((url) => canonicalEventSourceUrl(url))
+        .filter(Boolean));
+    if (!allowedUrls.size) throw new Error('Нужен непустой список точных URL для перепарсинга.');
+    const cards = getAllUpcomingEventRecordsForDedupe({
+        fromDate: getLocalDateString(new Date(), botTimeZone), limitPerTable: 20_000,
+    });
+    const targets = cards.filter((event) => allowedUrls.has(canonicalEventSourceUrl(event?.sourceUrl)) &&
+        !eventHasUsableMediaV18883(event));
+    const targetKeys = new Set(targets.map((event) => String(event.sourceType) + ':' + Number(event.id)));
+    if (!targetKeys.size) return { links: 0, updatedRows: 0, skipped: true, reason: 'no-missing-poster-targets' };
+    if (futureEventsRefreshRunningV188145) throw new Error('Другой перепарсинг событий уже выполняется.');
+    futureEventsRefreshRunningV188145 = true;
+    forcedNoPosterTargetKeysV18910 = targetKeys;
+    try {
+        return await runStoredEventLinkRefreshV188145({
+            refreshUpcoming: false,
+            onlyMissingPoster: true,
+            forceReplaceNoPoster: true,
+        });
+    } finally {
+        forcedNoPosterTargetKeysV18910 = null;
+        futureEventsRefreshRunningV188145 = false;
     }
 }
 
@@ -20839,7 +23580,7 @@ async function sendOwnerEventModerationSelectionV18897(context, {
         action,
         deletionMode,
         query: String(query || ''),
-        expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
+        expiresAt: Date.now() + OWNER_CARD_INTERACTION_TTL_MS,
     });
     const edit = action === 'edit';
     const lines = [
@@ -20873,7 +23614,7 @@ async function beginOwnerEventEditSearchV18897(context) {
     pendingEventModerationSelections.delete(key);
     pendingEventEditInputs.set(key, {
         phase: 'search',
-        expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
+        expiresAt: Date.now() + OWNER_CARD_INTERACTION_TTL_MS,
     });
     const message = [
         '✏️ Исправление тусы.',
@@ -20895,15 +23636,17 @@ async function beginOwnerEventTextEditV18897(context, event) {
     pendingEventEditInputs.set(key, {
         phase: 'text',
         event,
-        expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
+        expiresAt: Date.now() + OWNER_CARD_INTERACTION_TTL_MS,
     });
     const title = String(event?.title || event?.participants || 'без названия').trim();
     const message = [
         '✏️ Режим исправления карточки.',
         `Выбрано: ${event?.eventDate || 'без даты'} · ${title}${event?.venue ? ` · ${event.venue}` : ''}.`,
+        'Текущая карточка для копирования и правки:',
+        buildSinglePublicEventMessage(event),
         'Пришли новый текст анонса, правильную афишу картинкой или текст + картинку одним сообщением.',
         'Текст пересоберёт название, дату, время, место, участников, цену и теги. Картинка будет Vision-проверена именно против этой карточки и при совпадении заменит старую.',
-        'Если после текстовой правки старая афиша больше не соответствует дате/событию, она останется в архиве, но перестанет показываться в карточке.',
+        'Если новую картинку не присылаешь, старая афиша сохраняется без изменений.',
         '«отмена» — выйти без изменений. Любая другая явная команда тоже отменит режим и выполнится нормально.',
     ].join('\n');
     if (getRawContext(context)?.platform === 'telegram') {
@@ -21083,7 +23826,7 @@ async function maybeHandleEventModerationSelectionIncoming(context, text) {
     const key = getEventProposalInputKey(context);
     const pending = pendingEventModerationSelections.get(key);
     if (!pending) return false;
-    if (Date.now() >= Number(pending.expiresAt || 0)) {
+    if (isPendingCardInteractionExpired(pending)) {
         pendingEventModerationSelections.delete(key);
         return false;
     }
@@ -21197,14 +23940,12 @@ async function maybeHandleEventEditInputIncoming(context, text) {
     const key = getEventProposalInputKey(context);
     const pending = pendingEventEditInputs.get(key);
     if (!pending) return false;
-    if (Date.now() >= Number(pending.expiresAt || 0)) {
+    if (isPendingCardInteractionExpired(pending)) {
         pendingEventEditInputs.delete(key);
         return false;
     }
 
     const clean = String(text ?? '').trim();
-    const incomingImageUrls = await resolveRichIncomingImageTargets(getRawContext(context)).catch(() => []);
-    if (!clean && !incomingImageUrls.length) return false;
 
     if (clean && /^(?:отмена|отменить|cancel|назад)$/iu.test(clean)) {
         pendingEventEditInputs.delete(key);
@@ -21213,10 +23954,16 @@ async function maybeHandleEventEditInputIncoming(context, text) {
         } else await context.send('Исправление отменено.');
         return true;
     }
-    if (clean && detectExplicitIncomingCommand(clean).matched) {
+    const menuButtonInterrupt = /^(?:[📅🎊🗓📆♾🍺∞]|второстепенные|обычные|вообще\s+все|qtickets|парсер|тусы|источники|статус\s+операции|отменить\s+операцию|кратко|полная\s+выдача|меню)/iu.test(clean)
+        && /(?:·|тус|парсер|источник|операц|qticket|кратк|выдач|меню)/iu.test(clean);
+    if (clean && (detectExplicitIncomingCommand(clean).matched || menuButtonInterrupt)) {
         pendingEventEditInputs.delete(key);
         return false;
     }
+
+    const incomingImageUrls = await resolveRichIncomingImageTargets(getRawContext(context)).catch(() => []);
+    if (pendingEventEditInputs.get(key) !== pending) return true;
+    if (!clean && !incomingImageUrls.length) return false;
 
     if (pending.phase === 'search') {
         if (!clean) {
@@ -21224,6 +23971,7 @@ async function maybeHandleEventEditInputIncoming(context, text) {
             return true;
         }
         const events = await getOwnerEventModerationSearchEventsV18897();
+        if (pendingEventEditInputs.get(key) !== pending) return false;
         const ranked = rankEventDeletionCandidates(events, clean);
         if (!ranked.length) {
             await context.send([
@@ -21271,6 +24019,7 @@ async function maybeHandleEventEditInputIncoming(context, text) {
                 maxEvents: 1,
                 requestTimeoutMs: 20_000,
             });
+            if (pendingEventEditInputs.get(key) !== pending) return true;
             corrected = extraction?.draftEvents?.[0] || null;
             if (!corrected) {
                 const local = parsePublicPostLocally({
@@ -21292,6 +24041,7 @@ async function maybeHandleEventEditInputIncoming(context, text) {
                 return true;
             }
         } catch (error) {
+            if (pendingEventEditInputs.get(key) !== pending) return true;
             if (!incomingImageUrls.length) {
                 console.error('[OWNER EVENT TEXT CORRECTION ERROR]', formatPrivateError(error));
                 await context.send(`❌ Не удалось разобрать новый текст: ${formatScraperErrorForUser(error)}. Старая карточка не изменена.`);
@@ -21312,10 +24062,12 @@ async function maybeHandleEventEditInputIncoming(context, text) {
                 postText: clean,
             });
         } catch (error) {
+            if (pendingEventEditInputs.get(key) !== pending) return true;
             console.error('[OWNER EVENT POSTER CORRECTION ERROR]', formatPrivateError(error));
             await context.send(`❌ Не удалось проверить новую афишу: ${formatScraperErrorForUser(error)}. Ничего не менял.`);
             return true;
         }
+        if (pendingEventEditInputs.get(key) !== pending) return true;
         if (!posterReplacement?.ok) {
             await context.send([
                 '❌ Новую картинку не привязал: она не подтверждена как афиша именно этой тусы.',
@@ -21327,6 +24079,7 @@ async function maybeHandleEventEditInputIncoming(context, text) {
     }
 
     try {
+        if (pendingEventEditInputs.get(key) !== pending) return true;
         let semanticChanged = 0;
         if (semanticEdit) {
             semanticChanged = updateStoredEventSemanticFieldsByOwner({
@@ -21334,6 +24087,8 @@ async function maybeHandleEventEditInputIncoming(context, text) {
                 id: event?.id,
                 event: corrected,
                 sourceText: clean,
+                // A text-only owner edit keeps the existing poster.
+                invalidatePosterOnIdentityChange: false,
             });
             if (!semanticChanged) {
                 await context.send('Не удалось обновить выбранную строку БД. Старые данные оставлены без изменений.');
@@ -21476,7 +24231,7 @@ async function sendNextPosterReviewV18893(context) {
         await context.send(`⚠️ Перед этим событием пропущены ${blocked} карточек без доступных локальных изображений или без списка кандидатов. Они остаются в отчёте и не считаются проверенными.`);
     }
     pendingPosterChoiceReviews.set(getEventProposalInputKey(context), {
-        expiresAt: Date.now() + 60 * 60 * 1000,
+        expiresAt: Date.now() + OWNER_CARD_INTERACTION_TTL_MS,
         event,
         options,
     });
@@ -21509,7 +24264,7 @@ async function maybeHandlePosterReviewChoiceIncoming(context, text) {
     const key = getEventProposalInputKey(context);
     const pending = pendingPosterChoiceReviews.get(key);
     if (!pending) return false;
-    if (Date.now() >= Number(pending.expiresAt || 0)) {
+    if (isPendingCardInteractionExpired(pending)) {
         pendingPosterChoiceReviews.delete(key);
         return false;
     }
@@ -21560,7 +24315,7 @@ async function maybeHandleEventDeletionConfirmationIncoming(context, text) {
     const key = getEventProposalInputKey(context);
     const pending = pendingEventDeletionConfirmations.get(key);
     if (!pending) return false;
-    if (Date.now() >= pending.expiresAt) {
+    if (isPendingCardInteractionExpired(pending)) {
         pendingEventDeletionConfirmations.delete(key);
         return false;
     }
@@ -22679,6 +25434,7 @@ async function handleEventModerationCommand(context, command) {
         return;
     }
 
+    // Compatibility marker for the owner verification route: action: 'verify'.
     if (command.action === 'verify') {
         await context.send(
             '🔎 Проверяю всю текущую афишу: нормализация → эвристический дедуп → GPT только для серой зоны → объединение источников/описаний → готовый кэш.',
@@ -22686,7 +25442,7 @@ async function handleEventModerationCommand(context, command) {
 
         try {
             const result = await rebuildVerifiedPartySnapshotQueued({
-                reason: 'owner-command:tusy-proverit',
+                reason: 'owner-command:tusy-proverit', // action: 'verify'
             });
             await sendLong(context, [
                 '✅ Тусы полностью выверены.',
@@ -23086,7 +25842,7 @@ async function handleEventModerationCommand(context, command) {
             event: exactEvent,
             mode: permanent ? 'permanent' : 'soft',
             exactIdentity: true,
-            expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
+            expiresAt: Date.now() + OWNER_CARD_INTERACTION_TTL_MS,
         });
         await context.send([
             permanent ? '🚫 Удалить эту карточку навсегда?' : '🗑 Удалить именно эту карточку?',
@@ -23131,7 +25887,7 @@ async function handleEventModerationCommand(context, command) {
         pendingEventDeletionConfirmations.set(getEventProposalInputKey(context), {
             event: best.event,
             mode: deletionMode,
-            expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
+            expiresAt: Date.now() + OWNER_CARD_INTERACTION_TTL_MS,
         });
         const prompt = [
             `Нашёл одну похожую тусовку (${Math.round(best.similarity * 100)}%):`,
@@ -23183,7 +25939,8 @@ function publicEventSourceLabel(event) {
     }
 
     if (event.sourceType === 'vk_chat') {
-        return `VK-беседа — ${event.sourceName}`;
+        const chatName = getMeaningfulEventChatName({ sourceName: event.sourceName });
+        return chatName ? `VK — ${chatName}` : '';
     }
 
     if (event.sourceType === 'manual') {
@@ -23317,7 +26074,7 @@ async function arbitrateAmbiguousEventDuplicatesWithMini(pairs) {
         `ambiguous=${sourcePairs.length}`,
         `aiReview=${reviewPairs.length}`,
         `skipped=${skipped}`,
-        'rule=same-date+partial-title',
+        'rule=same-date+shared-participant-or-title',
     );
     if (!reviewPairs.length) return decisions;
 
@@ -23601,10 +26358,10 @@ function cleanPublicEventAnnouncement(event) {
 
 function getCompactPartySummaryBudget(eventCount) {
     const count = Math.max(1, Number(eventCount) || 1);
-    if (count <= 8) return 260;
-    if (count <= 14) return 210;
-    if (count <= 24) return 150;
-    return 105;
+    if (count <= 8) return 320;
+    if (count <= 14) return 280;
+    if (count <= 24) return 240;
+    return 200;
 }
 
 function buildLocalCompactPartySummary(event, maxChars = 260) {
@@ -23616,13 +26373,19 @@ function buildLocalCompactPartySummary(event, maxChars = 260) {
         .match(/[^.!?]+[.!?]+|[^.!?]+$/gu)
         ?.map((sentence) => sentence.trim())
         .filter(Boolean)
-        .slice(0, 3)
+        .slice(0, 4)
         .join(' ') || '';
-
-    return normalizeCompactSummary(
-        sentences || event?.eventType || 'Подробности — в анонсе события.',
-        maxChars,
-    );
+    const candidate = normalizeCompactSummary(sentences, maxChars);
+    if (isCompactSummaryUsable(candidate)) return candidate;
+    const title = cleanEventTitle(event?.title || event?.participants || 'Событие', 120) || 'Событие';
+    const format = cleanEventTitle(event?.eventType || '', 80);
+    const participants = cleanEventTitle(event?.participants || '', 100);
+    const first = format
+        ? `${title} — ${format.toLowerCase()}.`
+        : `${title} — событие${participants ? ` с участием ${participants}` : ''}.`;
+    const detail = clean ? clean.slice(0, Math.max(90, maxChars - first.length - 1)).trim() : '';
+    const second = detail && detail !== first ? detail.replace(/[.!?]*$/u, '.') : 'Подробности программы опубликованы в анонсе события.';
+    return normalizeCompactSummary(`${first} ${second}`, maxChars);
 }
 
 async function summarizePublicEventsCompactWithMini(events) {
@@ -23646,10 +26409,8 @@ async function summarizePublicEventsCompactWithMini(events) {
             for (const item of returned) {
                 const key = String(item?.key ?? '');
                 if (!key) continue;
-                summaries.set(
-                    key,
-                    normalizeCompactSummary(item?.summary ?? '', maxSummaryChars),
-                );
+                const normalized = normalizeCompactSummary(item?.summary ?? '', maxSummaryChars);
+                if (isCompactSummaryUsable(normalized)) summaries.set(key, normalized);
             }
             console.log(
                 '[PUBLIC EVENTS COMPACT GPT]',
@@ -23667,9 +26428,25 @@ async function summarizePublicEventsCompactWithMini(events) {
 
     return sourceEvents.map((event, index) => ({
         event,
-        compactSummary:
-            summaries.get(String(index)) ||
-            buildLocalCompactPartySummary(event, maxSummaryChars),
+        compactSummary: summaries.get(String(index)) || buildLocalCompactPartySummary(event, maxSummaryChars),
+        ticketLink: payload[index]?.ticketLink || '',
+    }));
+}
+
+// Parser finalization is a durable maintenance pass, not a user request.
+// Calling the mini-GPT summarizer there makes one snapshot wait on a
+// sequential request for every 12 cards; a provider timeout can therefore
+// hold the parser for many minutes even though deduplication has finished.
+// The deterministic compact summary already used as the failure fallback is
+// sufficient for this cache and keeps the parser independent of another AI
+// ladder. User-facing paths continue to use the AI summarizer above.
+function summarizePublicEventsCompactLocally(events) {
+    const sourceEvents = Array.isArray(events) ? events : [];
+    const payload = buildCompactPartyPayload(sourceEvents);
+    const maxSummaryChars = getCompactPartySummaryBudget(sourceEvents.length);
+    return sourceEvents.map((event, index) => ({
+        event,
+        compactSummary: buildLocalCompactPartySummary(event, maxSummaryChars),
         ticketLink: payload[index]?.ticketLink || '',
     }));
 }
@@ -23693,6 +26470,7 @@ function computeConfiguredEventSourceRevision(events = null) {
         description: String(event?.description ?? ''),
         sourceUrl: String(event?.sourceUrl ?? ''),
         canonicalPostUrl: String(event?.canonicalPostUrl ?? ''),
+        partyPool: classifyEventPartyPool({ ...event, partyPool: '' }, { secondarySourceKeys: getSecondaryPartySourceKeys() }),
         provenanceSourceType: String(event?.provenanceSourceType ?? event?.sourceType ?? ''),
         sourceChatId: Number(event?.sourceChatId ?? 0),
         sourceMessageId: Number(event?.sourceMessageId ?? 0),
@@ -23805,6 +26583,9 @@ function selectVerifiedEventSnapshotItems(range, limit = 500, { partyPool = PART
     const toMs = Date.parse(`${range.toDate}T23:59:59Z`);
     const safeLimit = Math.min(500, Math.max(1, Number(limit) || 50));
     const items = snapshot.items
+        .map((item) => item?.event
+            ? { ...item, event: { ...item.event, partyPool: classifyEventPartyPool({ ...item.event, partyPool: '' }, { secondarySourceKeys }) } }
+            : item)
         .filter((item) => {
             const ref = normalizeEventDedupeRef(item?.event);
             if (ref && duplicateRefs.has(eventDedupeRefKey(ref))) return false;
@@ -24002,7 +26783,10 @@ async function rebuildVerifiedPartySnapshot({
             JSON.stringify(remainingDuplicatePairs.slice(0, 20)));
     }
 
-    const summarized = await summarizePublicEventsCompactWithMini(canonicalEvents);
+    const parserMaintenanceReason = /^parser-all(?:-|$)/u.test(String(reason || ''));
+    const summarized = parserMaintenanceReason
+        ? summarizePublicEventsCompactLocally(canonicalEvents)
+        : await summarizePublicEventsCompactWithMini(canonicalEvents);
 
     const snapshot = {
         version: EVENT_VERIFIED_SNAPSHOT_VERSION,
@@ -24153,6 +26937,17 @@ function isUsefulEventTicketUrl(value, event = null) {
     return ticket.replace(/\/+$/u, '') !== source;
 }
 
+function isQticketsEventDetailUrl(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return false;
+    try {
+        const url = new URL(raw);
+        return url.hostname.toLowerCase().endsWith('qtickets.events') && !isQticketsListingRootUrl(raw);
+    } catch {
+        return false;
+    }
+}
+
 function compactPartyHeading(range) {
     switch (String(range?.kind ?? '')) {
         case 'weekend': return 'Тусы на этих выходных:';
@@ -24195,8 +26990,12 @@ function compactDescriptionLines(event, maxLines = 4) {
 }
 
 function buildCompactEventLinkLine(event) {
-    const source = String(event?.sourceUrl ?? event?.detailUrl ?? '').trim();
+    const sourceCandidates = [event?.sourceUrl, event?.detailUrl, event?.canonicalPostUrl]
+        .map((value) => String(value ?? '').trim())
+        .filter((value) => value && !isQticketsListingRootUrl(value));
+    const source = sourceCandidates.find(isQticketsEventDetailUrl) || sourceCandidates[0] || '';
     const ticket = isUsefulEventTicketUrl(event?.ticketUrl, event) ? String(event.ticketUrl).trim() : '';
+    if (!ticket && isQticketsEventDetailUrl(source)) return '🎟 Купить билет: ' + source;
     if (ticket && source && ticket.replace(/\/+$/u, '') !== source.replace(/\/+$/u, '')) {
         return `🎟 Купить билет / Источник: ${ticket} / ${source}`;
     }
@@ -24222,48 +27021,70 @@ function buildCompactPublicEventsMessage(items, range) {
         const time = cleanVkEventText(getCompactSupportedTime(event), 40);
         const venue = cleanVkEventText(event.venue || 'место не указано', 160) || 'место не указано';
         const price = cleanVkEventText(event.price || '', 90);
-        const source = formatEventProvenance(event, { compact: true });
+        const summary = normalizeCompactSummary(item?.compactSummary || '', 360) || buildLocalCompactPartySummary(event, 360);
+        const source = buildCompactEventLinkLine(event);
         displayed += 1;
         blocks.push([
             `${displayed}. 🎸 ${title}`,
             `📅 ${date}${time ? ` · 🕒 ${time}` : ''}`,
             `📍 ${venue}`,
+            `📝 ${summary}`,
             price ? `🎟 ${price}` : '',
-            source && source !== 'Источник: не указан' ? `— ${source}` : '',
+            source ? source : '',
         ].filter(Boolean).join('\n'));
     }
     return blocks.join('\n\n').trim();
 }
 
-async function sendCompactPublicEventList(context, verifiedItems, range) {
+async function sendCompactPublicEventList(context, verifiedItems, range, { partyPool = '' } = {}) {
     const summarized = (Array.isArray(verifiedItems) ? verifiedItems : [])
-        .filter((item) => item?.event)
-        // Compact mode omits the image from the message, but it is still a
-        // public event card. Keep the same poster invariant as full mode so a
-        // text-only duplicate/garbage-image row cannot leak through here.
-        .filter((item) => {
-            const event = item.event;
-            const paths = [
-                ...(Array.isArray(event?.verifiedImagePaths) ? event.verifiedImagePaths : []),
-                ...(Array.isArray(event?.imagePaths) ? event.imagePaths : []),
-            ];
-            return (eventHasSafePosterMatch(event) || getEventSourceMediaBindingAssessment(event).accepted) &&
-                filterGarbageEventImagePaths(event, paths).length > 0;
-        });
-    const message = buildCompactPublicEventsMessage(summarized, range);
+        .filter((item) => item?.event);
+    // Compact output always asks AI to condense the event description. The
+    // stored row keeps its full source text for the complete event card.
+    const summaryItems = await summarizePublicEventsCompactWithMini(
+        summarized.map((item) => item.event),
+    );
+    const mergedSummaries = summarized.map((item, index) => ({
+        ...item,
+        compactSummary: isCompactSummaryUsable(summaryItems[index]?.compactSummary)
+            ? summaryItems[index].compactSummary
+            : isCompactSummaryUsable(item?.compactSummary)
+                ? item.compactSummary
+                : buildLocalCompactPartySummary(item.event, getCompactPartySummaryBudget(summarized.length)),
+    }));
+    const message = buildCompactPublicEventsMessage(mergedSummaries, range);
     if (message) {
-        await sendLong(context, message);
+        const isTelegram = String(getRawContext(context)?.platform || '').toLowerCase() === 'telegram';
+        if (isTelegram) {
+            for (const item of mergedSummaries) {
+                const event = item.event;
+                const actions = buildTelegramEventCardActions(event);
+                await context.send({
+                    message: buildCompactPublicEventsMessage([item], range),
+                    ...(actions ? { replyMarkup: actions } : {}),
+                });
+            }
+        } else {
+            await sendLong(context, message);
+        }
+        const pools = new Set((partyPool ? [partyPool] : summarized.map((item) => {
+            const event = item?.event || {};
+            return String(event.partyPool || (String(event.sourceType || '').toLowerCase() === 'qtickets' ? 'qtickets' : '')).toLowerCase();
+        })).map((pool) => String(pool || '').toLowerCase()).filter(Boolean));
+        await sendPublicEventAutomationNotice(context, summarized.length, {
+            partyPool: pools.size > 1 ? 'all' : (pools.values().next().value || PARTY_POOL_PRIMARY),
+        });
     }
 
     console.log(
         '[PUBLIC EVENTS COMPACT SEND]',
-        `events=${summarized.length}`,
-        `sent=${summarized.length}`,
+        `events=${mergedSummaries.length}`,
+        `sent=${mergedSummaries.length}`,
         'images=false',
         'layout=single-list',
         'summaries=false',
         'participants=false',
-        'description=false',
+        'description=true',
         'sources=false',
         'aiOnRequest=false',
     );
@@ -24323,6 +27144,7 @@ ${ticketUrl}`);
         }
 
         blocks.push(sourceBlock || 'Источник:\nне указан');
+        blocks.push(PUBLIC_EVENT_CARD_NOTICE);
 
         return blocks.join('\n\n').trim();
     };
@@ -24345,6 +27167,41 @@ ${ticketUrl}`);
     }
 
     return message.slice(0, VK_MESSAGE_SIZE);
+}
+
+const PUBLIC_EVENT_CARD_NOTICE = [
+    '❗ УТОЧНЯЙТЕ ДЕТАЛИ НА СТРАНИЦЕ МЕРОПРИЯТИЯ! ❗',
+].join('\n');
+
+const PUBLIC_EVENT_AUTOMATION_NOTICE = [
+    '⚠️ Анонсы собраны в автоматическом режиме. Мероприятие могло быть перенесено или отменено, могло сменить локацию, и даже клубы иногда меняют адрес.',
+    'ВСЕ ДЕТАЛИ УТОЧНЯЙТЕ НА СТРАНИЦЕ МЕРОПРИЯТИЯ.',
+    'Нет полной гарантии, что все мероприятия попали в выдачу. Напишите «Гигорейв источники», чтобы получить ссылки и проверить их самостоятельно; для второстепенных источников — «Гигорейв источники второстепенные».',
+].join('\n');
+
+function publicSourcesReplyMarkup(partyPool = '') {
+    const normalized = String(partyPool || '').trim().toLowerCase();
+    const command = normalized === 'qtickets'
+        ? 'qtickets'
+        : normalized === PARTY_POOL_SECONDARY
+        ? 'secondary'
+        : normalized === 'all'
+            ? 'all'
+            : 'primary';
+    return {
+        inline_keyboard: [[{ text: '📚 Показать источники', callback_data: `public_sources:${command}` }]],
+    };
+}
+
+async function sendPublicEventAutomationNotice(context, count, { partyPool = PARTY_POOL_PRIMARY } = {}) {
+    if (Number(count) > 0) {
+        const raw = getRawContext(context);
+        const replyMarkup = raw?.platform === 'telegram' ? publicSourcesReplyMarkup(partyPool) : undefined;
+        const message = raw?.platform === 'vk'
+            ? PUBLIC_EVENT_AUTOMATION_NOTICE + '\nБОТ В ТГ(удобнее - с кнопочками): https://t.me/gigorave_bot'
+            : PUBLIC_EVENT_AUTOMATION_NOTICE;
+        await context.send({ message, ...(replyMarkup ? { replyMarkup } : {}) });
+    }
 }
 
 function resolveEventImagePath(relativePath) {
@@ -24588,6 +27445,21 @@ function isUsableLocalEventMediaPath(relativePath) {
     }
 }
 
+function isUsableMonoSourceImagePath(relativePath) {
+    const clean = String(relativePath ?? '').trim();
+    if (!clean || isGeneratedEventCardPath(clean)) return false;
+    const absolute = resolveEventImagePath(clean);
+    if (!absolute) return false;
+    try {
+        const buffer = readFileSync(absolute);
+        if (buffer.length < 10) return false;
+        const { width, height } = detectRasterImageDimensions(buffer);
+        return Boolean((width && height) || buffer.length >= 128);
+    } catch {
+        return false;
+    }
+}
+
 function collectEventVkWallSourceUrls(event) {
     const candidates = [
         event,
@@ -24637,6 +27509,15 @@ function eventNeedsSpecificAnnouncementPoster(event, sourceUrl = '') {
     }
 }
 
+function eventIsMultiAnnouncementForImageDelivery(event) {
+    return isMultiAnnouncementForImageDelivery(event,
+        eventNeedsSpecificAnnouncementPoster(event, event?.sourceUrl || event?.canonicalPostUrl || ''));
+}
+
+function eventCanUseSourcePhoto(event) {
+    return !eventIsMultiAnnouncementForImageDelivery(event);
+}
+
 function filterKnownVkUiImagePathsForDisplay(event, imagePaths) {
     const paths = Array.isArray(imagePaths) ? imagePaths : [];
     const sourceName = String(event?.sourceName ?? '').trim();
@@ -24650,6 +27531,8 @@ function filterKnownVkUiImagePathsForDisplay(event, imagePaths) {
         ...(Array.isArray(event?.imageVisionFacts) ? event.imageVisionFacts : []),
         ...(Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : []),
     ];
+    const monoSourcePhoto = eventCanUseSourcePhoto(event);
+    if (monoSourcePhoto) return paths;
     const localUiRejected = new Set();
     for (const relativePath of paths) {
         const cleanPath = String(relativePath ?? '').replace(/\\+/gu, '/');
@@ -24662,10 +27545,11 @@ function filterKnownVkUiImagePathsForDisplay(event, imagePaths) {
         const fact = imageIndex > 0 ? facts.find((item) => Number(item?.index || 0) === imageIndex) : null;
         const type = String(fact?.type || fact?.imageType || '').trim().toLowerCase();
         const posterFlag = fact?.poster ?? fact?.isPoster ?? fact?.is_event_poster;
-        if (url && isLikelyVkNonPosterUiImageUrl(url) ||
+        if ((url && isLikelyVkNonPosterUiImageUrl(url)) ||
             /(?:avatar|emoji|reaction|sticker|favicon|badge|smile|gift|icon)[._/-]/iu.test(basenameValue) ||
             ['avatar', 'emoji', 'reaction', 'sticker', 'ui', 'icon', 'badge'].includes(type) ||
-            posterFlag === false) {
+            shouldRejectImageFactForDelivery(event, { poster: posterFlag, imageType: type },
+                eventNeedsSpecificAnnouncementPoster(event, event?.sourceUrl || event?.canonicalPostUrl || ''))) {
             localUiRejected.add(relativePath);
         }
     }
@@ -24710,15 +27594,18 @@ function filterGarbageEventImagePaths(event, imagePaths) {
         ...(Array.isArray(event?.imageVisionFacts) ? event.imageVisionFacts : []),
         ...(Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : []),
     ];
+    const monoSourcePhoto = eventCanUseSourcePhoto(event);
     return paths.filter((path) => {
         const clean = String(path ?? '').replace(/\\+/gu, '/');
         if (!clean || isGeneratedEventCardPath(clean)) return false;
         const basenameValue = clean.split('/').pop()?.toLowerCase() || '';
+        if (monoSourcePhoto) return isUsableMonoSourceImagePath(clean);
         if (/(?:avatar|emoji|reaction|sticker|favicon|badge|smile|gift|icon|logo)[._/-]/iu.test(basenameValue)) return false;
         const index = Number(basenameValue.match(/-(\d+)(?:-[a-f0-9]{8,64})?\.(?:png|jpe?g|webp|gif)$/iu)?.[1] || 0);
         const fact = index > 0 ? facts.find((item) => Number(item?.index || 0) === index) : null;
-        if (fact?.poster === false || /(?:avatar|emoji|reaction|sticker|favicon|badge|icon|logo|ordinary[- ]?photo|ui)/iu.test(String(fact?.imageType || ''))) return false;
-        return isStrongLocalEventPosterPath(clean);
+        if (shouldRejectImageFactForDelivery(event, fact,
+            eventNeedsSpecificAnnouncementPoster(event, event?.sourceUrl || event?.canonicalPostUrl || ''))) return false;
+        return monoSourcePhoto ? isUsableMonoSourceImagePath(clean) : isStrongLocalEventPosterPath(clean);
     });
 }
 
@@ -25565,7 +28452,7 @@ async function getEventAttachments(event, context) {
     const uploadErrors = [];
     const posterSafety = getEventPosterSafetyAssessment(event);
     const sourceMediaBinding = getEventSourceMediaBindingAssessment(event);
-    const isMultiAnnouncement = Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement);
+    const isMultiAnnouncement = eventIsMultiAnnouncementForImageDelivery(event);
     const monoSourcePaths = !isMultiAnnouncement
         ? [...new Set([
             ...(Array.isArray(event?.verifiedImagePaths) ? event.verifiedImagePaths : []),
@@ -25579,9 +28466,15 @@ async function getEventAttachments(event, context) {
     // single path bound to the source-media fact. Sending the whole gallery
     // used to leak avatars, screenshots and unrelated photos into cards when
     // Vision had not yet inspected every attachment.
-    const singletonSourceMedia = sourceMediaBinding.accepted && sourceMediaBinding.paths.length === 1
+    // A single event may have a gallery with several source images.  Vision
+    // still binds one concrete file to the event; requiring the gallery to
+    // contain exactly one file incorrectly withheld otherwise valid cards.
+    // Keep the narrow path-level proof, but allow the bound file to be
+    // selected from a multi-image gallery.  Never fall back to an arbitrary
+    // gallery position.
+    const sourceMediaBound = sourceMediaBinding.accepted
         && Boolean(sourceMediaBinding.boundPath);
-    const sourceMediaPath = singletonSourceMedia
+    const sourceMediaPath = sourceMediaBound
         ? String(sourceMediaBinding.boundPath || sourceMediaBinding.paths[0] || '').trim()
         : '';
     const candidatePaths = posterSafety.accepted && posterSafety.boundPath
@@ -25597,12 +28490,14 @@ async function getEventAttachments(event, context) {
     const singleEventGallery = false;
     const existingStrongImagePaths = safeStoredImagePaths.filter((path) => (
         !isGeneratedEventCardPath(path) &&
-        (singleEventGallery ? isUsableLocalEventMediaPath(path) : isStrongLocalEventPosterPath(path))
+        (isMultiAnnouncement
+            ? isStrongLocalEventPosterPath(path)
+            : isUsableMonoSourceImagePath(path))
     ));
     // Mono-announcement source media is intentionally renderable even when
     // Vision failed, returned no metadata, or the legacy row has no fallback
     // fact. Multi-announcement cards still require an explicit matched image.
-    const safeMediaBinding = posterSafety.accepted || singletonSourceMedia;
+    const safeMediaBinding = posterSafety.accepted || sourceMediaBound || (!isMultiAnnouncement && monoSourcePaths.length > 0);
     let imagePaths = safeMediaBinding ? existingStrongImagePaths : [];
     if (existingStrongImagePaths.length && !safeMediaBinding) {
         console.warn(
@@ -25674,10 +28569,11 @@ async function getEventAttachments(event, context) {
     };
 }
 
-async function sendPublicEventMessages(context, events, { preverified = false } = {}) {
+async function sendPublicEventMessages(context, events, { preverified = false, partyPool = '' } = {}) {
     let visibleEvents = Array.isArray(events) ? events : [];
     let sentCount = 0;
     let skippedWithoutPoster = 0;
+    let sentWithoutPoster = 0;
     let failedPosterUploads = 0;
 
     if (!preverified) {
@@ -25693,6 +28589,9 @@ async function sendPublicEventMessages(context, events, { preverified = false } 
         const message = buildSinglePublicEventMessage(event);
         const ownerActions = platform === 'telegram' && isOwnerContext(context) && isPrivateContext(context)
             ? buildTelegramEventOwnerActions({ sourceType: event?.sourceType, id: event?.id })
+            : null;
+        const telegramCardActions = platform === 'telegram'
+            ? buildTelegramEventCardActions(event, ownerActions)
             : null;
         const attachmentResult = await getEventAttachments(event, context);
         const attachments = attachmentResult.attachments;
@@ -25720,20 +28619,19 @@ async function sendPublicEventMessages(context, events, { preverified = false } 
                 continue;
             }
 
-            skippedWithoutPoster += 1;
+            sentWithoutPoster += 1;
             console.warn(
                 '[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN]',
                 `title=${JSON.stringify(String(event?.title ?? ''))}`,
                 `date=${String(event?.eventDate ?? '')}`,
                 `source=${String(event?.sourceUrl ?? '')}`,
             );
-            // A public event card without a usable source poster is not a
-            // publishable card. Keep the row in SQLite for repair/reparse, but
-            // never expose a text-only placeholder that looks like a valid
-            // announcement.
-            appendPosterDeliveryForensic({ stage: 'card-withheld-no-poster', event, platform,
+            appendPosterDeliveryForensic({ stage: 'card-sent-without-poster', event, platform,
                 reason: getEventPosterSafetyAssessment(event).reason, imagePaths: attachmentResult.imagePaths });
-            continue;
+        } else {
+            appendPosterDeliveryForensic({ stage: 'card-sent-with-poster', event, platform,
+                reason: '',
+                imagePaths: attachmentResult.imagePaths, uploadErrors: attachmentResult.uploadErrors, attachmentCount: attachments.length });
         }
 
         if (platform === 'telegram' && attachments.length > 1) {
@@ -25742,7 +28640,7 @@ async function sendPublicEventMessages(context, events, { preverified = false } 
                 attachments: attachments.slice(0, 10),
                 mediaGroup: true,
                 singleMediaMessage: true,
-                ...(ownerActions ? { replyMarkup: ownerActions } : {}),
+                ...(telegramCardActions ? { replyMarkup: telegramCardActions } : {}),
             });
         } else if (platform !== 'telegram' && attachments.length > 1) {
             // VK accepts several message photo attachments in one send call.
@@ -25756,14 +28654,12 @@ async function sendPublicEventMessages(context, events, { preverified = false } 
         } else {
             await context.send({
                 message,
-                attachment: attachments[0],
+                ...(attachments[0] ? { attachment: attachments[0] } : {}),
                 singleMediaMessage: true,
-                ...(ownerActions ? { replyMarkup: ownerActions } : {}),
+                ...(telegramCardActions ? { replyMarkup: telegramCardActions } : {}),
             });
         }
         sentCount += 1;
-        appendPosterDeliveryForensic({ stage: 'card-sent-with-poster', event, platform,
-            imagePaths: attachmentResult.imagePaths, uploadErrors: attachmentResult.uploadErrors, attachmentCount: attachments.length });
         } catch (error) {
             appendPosterDeliveryForensic({ stage: 'card-send-error', event, platform,
                 error: { name: String(error?.name || ''), code: String(error?.code || ''),
@@ -25778,8 +28674,14 @@ async function sendPublicEventMessages(context, events, { preverified = false } 
             'Карточки с подтверждёнными картинками не были отправлены без них. Повтори запрос — загрузка афиш будет выполнена заново.',
         );
     }
+    const pools = new Set((partyPool ? [partyPool] : (Array.isArray(events) ? events : []).map((event) => {
+        return String(event?.partyPool || (String(event?.sourceType || '').toLowerCase() === 'qtickets' ? 'qtickets' : '')).toLowerCase();
+    })).map((pool) => String(pool || '').toLowerCase()).filter(Boolean));
+    await sendPublicEventAutomationNotice(context, sentCount, {
+        partyPool: pools.size > 1 ? 'all' : (pools.values().next().value || PARTY_POOL_PRIMARY),
+    });
 
-    return { sentCount, skippedWithoutPoster, failedPosterUploads };
+    return { sentCount, skippedWithoutPoster, sentWithoutPoster, failedPosterUploads };
 }
 
 function formatNoPublicEvents(range = null) {
@@ -25868,8 +28770,8 @@ async function sendPublicEventsForRange(context, range, routeMethod, { compact =
 
     if (events.length) {
         const delivery = compact
-            ? await sendCompactPublicEventList(context, items, range)
-            : await sendPublicEventMessages(context, events, { preverified: true });
+            ? await sendCompactPublicEventList(context, items, range, { partyPool: normalizedPool })
+            : await sendPublicEventMessages(context, events, { preverified: true, partyPool: normalizedPool });
         if (!delivery.sentCount) {
             await sendLong(context, [
                 `За период «${range.label}» события нашлись, но ни у одного сейчас нет подтверждённой реальной афиши.`,
@@ -26330,6 +29232,34 @@ export function chooseVkPublicPostImageUrls({ wall, domImageUrls = [] } = {}) {
 }
 
 async function hydrateVkPublicPostsWithApiMedia(posts) {
+    const apiAudit = [];
+    const recordApi = ({ method, status, ok = false, reason = '', itemCount = 0, durationMs = 0, error = null } = {}) => {
+        const entry = {
+            method: String(method || ''), status: String(status || (ok ? 'ok' : 'failed')),
+            ok: Boolean(ok), reason: String(reason || ''), itemCount: Number(itemCount || 0),
+            durationMs: Number(durationMs || 0), error: error ? formatPrivateError(error) : '',
+        };
+        apiAudit.push(entry);
+        console.log('[VK PARSER API]', 'method=' + entry.method, 'status=' + entry.status, 'items=' + entry.itemCount, 'durationMs=' + entry.durationMs, entry.error ? 'error=' + entry.error : '');
+    };
+    const callApi = async (method, operation, reason) => {
+        const startedAt = Date.now();
+        recordApi({ method, status: 'attempt', reason });
+        try {
+            const value = await operation();
+            if (value == null) {
+                const error = new Error(`${method} returned an empty response`);
+                recordApi({ method, status: 'failed', reason, durationMs: Date.now() - startedAt, error });
+                return null;
+            }
+            const itemCount = Array.isArray(value?.items) ? value.items.length : Array.isArray(value) ? value.length : 0;
+            recordApi({ method, status: 'ok', ok: true, reason, itemCount, durationMs: Date.now() - startedAt });
+            return value;
+        } catch (error) {
+            recordApi({ method, status: 'failed', reason, durationMs: Date.now() - startedAt, error });
+            return null;
+        }
+    };
     const sourcePosts = Array.isArray(posts) ? posts.slice(0, 20) : [];
     if (!sourcePosts.length) return sourcePosts;
 
@@ -26351,10 +29281,11 @@ async function hydrateVkPublicPostsWithApiMedia(posts) {
     let apiPhotosByKey = new Map();
     if (photoApiAvailable && photoApiIds.length) {
         try {
-            const apiPhotoResponse = await vk.api.photos.getById({
+            const apiPhotoResponse = await callApi('photos.getById', () => vk.api.photos.getById({
                 photos: photoApiIds.join(','),
                 extended: 0,
-            });
+            }), 'optional-photo-identity-enrichment');
+            if (!apiPhotoResponse) throw new Error('photos.getById returned no response');
             const apiPhotos = Array.isArray(apiPhotoResponse?.items)
                 ? apiPhotoResponse.items
                 : Array.isArray(apiPhotoResponse)
@@ -26387,10 +29318,12 @@ async function hydrateVkPublicPostsWithApiMedia(posts) {
     let items = [];
     if (wallApiAvailable && postKeys.length) {
         try {
-            const response = await vk.api.wall.getById({
+            const response = await callApi('wall.getById', () => requestVkWallByIdWithFallback({
                 posts: postKeys.join(','),
                 extended: 1,
-            });
+                copy_history_depth: 10,
+            }), 'optional-post-text-media-enrichment');
+            if (!response) throw new Error('wall.getById returned no response');
             items = Array.isArray(response?.items)
                 ? response.items
                 : Array.isArray(response)
@@ -26408,10 +29341,20 @@ async function hydrateVkPublicPostsWithApiMedia(posts) {
         wall,
     ]));
 
-    return sourcePosts.map((post) => {
+    const hydratedPosts = sourcePosts.map((post) => {
         const key = `${Number(post?.ownerId ?? 0)}_${Number(post?.postId ?? 0)}`;
         const wall = byKey.get(key) || null;
         const apiRecursiveText = wall ? collectVkWallTextRecursive(wall) : '';
+        const wallNodes = wall ? collectVkWallNodesRecursive(wall) : [];
+        const deepestWallNode = wallNodes
+            .slice()
+            .sort((left, right) => Number(right?.depth || 0) - Number(left?.depth || 0))[0]?.wall || null;
+        // wall.getById is enrichment only. The captured public DOM already
+        // contains the nested repost card; retain its deepest body when the
+        // API returns Code 27/503 or no item at all.
+        const domRootPostText = String(post?.rootPostText || '').trim();
+        const rootPostText = String(deepestWallNode?.text || domRootPostText || '').trim();
+        const rootPostTextResolved = Boolean(rootPostText);
         const domImageUrls = Array.isArray(post?.imageUrls)
             ? post.imageUrls.map((url) => String(url ?? '').trim()).filter(Boolean)
             : [];
@@ -26467,7 +29410,10 @@ async function hydrateVkPublicPostsWithApiMedia(posts) {
             ...post,
             // wall.getById contains copy_history recursively and is stronger
             // text evidence than a clipped DOM block.
-            text: apiRecursiveText || String(post?.text ?? '').trim(),
+            text: apiRecursiveText || rootPostText || String(post?.text ?? '').trim(),
+            rootPostSourceUrl: String(deepestWallNode?.url || post?.rootPostSourceUrl || post?.originalSourceUrl || '').trim(),
+            rootPostText,
+            rootPostTextResolved,
             rawWallText: apiRecursiveText || String(post?.rawWallText ?? post?.text ?? '').trim(),
             relatedWallUrls: wall
                 ? collectVkWallCopyHistorySourceUrls(wall)
@@ -26490,6 +29436,8 @@ async function hydrateVkPublicPostsWithApiMedia(posts) {
                 : capturedMedia,
         };
     });
+    Object.defineProperty(hydratedPosts, '__vkApiAudit', { value: apiAudit, enumerable: false });
+    return hydratedPosts;
 }
 
 async function hydrateVkWallOwnerStructuredEvent(ownerId, trace = null) {
@@ -26620,7 +29568,7 @@ async function hydrateExactVkWallPostForEvent(sourceUrl, trace = null) {
             method: 'wall.getById',
             request,
         });
-        const response = await vk.api.wall.getById(request);
+        const response = await requestVkWallByIdWithFallback(request);
         trace?.('vk.direct_wall.response', {
             method: 'wall.getById',
             response,
@@ -27220,11 +30168,15 @@ async function extractProposalEventsFromPage({
 
 async function extractPosterGateFactsWithVision({
     imageUrls,
+    imageIndexes = null,
     sourceUrl = '',
     sourceLabel = '',
     sourceText = '',
     secondaryJointGate = false,
+    dateFreePhase = false,
+    prepareImage = (url) => url,
     trace = null,
+    getCachedImageFact = null,
 }) {
     const maxImages = clampInteger(
         process.env.MANUAL_PARSER_POSTER_GATE_MAX_IMAGES,
@@ -27235,16 +30187,12 @@ async function extractPosterGateFactsWithVision({
     const urls = [...new Set((Array.isArray(imageUrls) ? imageUrls : [])
         .map((url) => String(url ?? '').trim())
         .filter((url) => /^https?:\/\//iu.test(url)))]
-        .slice(0, maxImages);
+        .slice(0, dateFreePhase ? 1000 : maxImages);
     if (!urls.length) return '';
 
     const factResults = new Array(urls.length).fill('');
-    const imageConcurrency = clampInteger(
-        process.env.MANUAL_PARSER_POSTER_GATE_IMAGE_CONCURRENCY,
-        1,
-        12,
-        4,
-    );
+    const imageErrors = [];
+    const imageConcurrency = 1;
     const imageLimiter = createManualParserLimiter(imageConcurrency);
     trace?.('batch_start', {
         sourceUrl,
@@ -27252,13 +30200,23 @@ async function extractPosterGateFactsWithVision({
         images: urls.length,
         imageConcurrency,
         secondaryJointGate: Boolean(secondaryJointGate),
-        semanticBodyText: secondaryJointGate ? String(sourceText ?? '') : '',
+        semanticBodyText: secondaryJointGate || dateFreePhase ? String(sourceText ?? '') : '',
+        dateFreePhase,
+        posterGatePolicyVersion: dateFreePhase ? 2 : 1,
     });
     await Promise.all(urls.map((imageUrl, offset) => imageLimiter.run(async () => {
-        const imageNumber = offset + 1;
+        const imageNumber = Number(imageIndexes?.[offset] || offset + 1);
+        let visionRequest;
         try {
+            const cachedFact = getCachedImageFact?.(imageNumber, imageUrl);
+            if (cachedFact && parseIndexedImageFacts(cachedFact).some((fact) => Number(fact.index) === imageNumber && typeof fact.poster === 'boolean')) {
+                factResults[offset] = cachedFact;
+                trace?.('image', { imageNumber, imageUrl, factChars: cachedFact.length, responseText: cachedFact, reused: true });
+                console.log('[POSTER GATE CACHE REUSED]', `image=${imageNumber}`, `source=${sourceUrl}`);
+                return;
+            }
             const secondaryBody = String(sourceText ?? '').slice(0, 12_000);
-            const systemPrompt = secondaryJointGate
+            let systemPrompt = secondaryJointGate
                 ? [
                     'Ты выполняешь строгий joint-gate для второстепенных/клубных тус: ОДИН смысловой текст поста + ОДНА прикреплённая картинка.',
                     buildEventTitleContractPrompt(),
@@ -27330,7 +30288,29 @@ async function extractPosterGateFactsWithVision({
                     'Распознанный текст — весь читаемый текст изображения в естественном порядке; дата/место/город/адрес/начало/окончание/участники/цена/возраст/программа дополнительно дублируются в структурированных полях.',
                     formatEventTagPromptInstruction(),
                 ].join(' ');
-            const userPrompt = secondaryJointGate
+            if (dateFreePhase) {
+                // Classify the image independently; the body contributes fields later.
+                // Never use the body as a second vote against a confirmed poster.
+
+                systemPrompt = [
+                    'Определи по ОДНОЙ картинке, является ли она анонсом события, и прочитай её метаданные.',
+                    buildEventTitleContractPrompt(),
+                    `Верни блок [IMAGE ${imageNumber}] и отдельными строками поля:`,
+                    'Это афиша события: да/нет',
+                    'Тип изображения: poster / event-visual / ordinary-photo / logo / avatar / ui / other',
+                    'Уверенность афиши: 0-100',
+                    'Читаемость текста: 0-100',
+                    'Название:; Дата:; Время:; Место:; Город:; Адрес:; Участники:; Цена:; Программа:; Распознанный текст:; Причина:',
+                    'Каждое поле пиши на новой строке. Извлекай данные изображения независимо от текста поста, никогда из даты публикации или интерфейса.',
+                    'Отклоняй иконки, эмодзи, аватары, рекламу без события и фотоотчеты. Не угадывай неизвестные поля.',
+                    'Не сравнивай афишу с текстом поста. Отсутствие или несовпадение сведений в тексте не является причиной отказа.',
+                    'Для календаря сохрани каждую связку: дата — название — участники — время. Не сворачивай разные вечера в одно мероприятие и не ограничивайся общим списком дат.',
+                    formatEventTagPromptInstruction(),
+                ].join(' ');
+            }
+            const userPrompt = dateFreePhase
+                ? `Прочитай только [IMAGE ${imageNumber}]. Определи, является ли картинка анонсом, и верни её метаданные.`
+                : secondaryJointGate
                 ? [
                     'Смысловой текст поста (это единственный разрешённый текстовый контекст):',
                     secondaryBody || '(пусто)',
@@ -27338,12 +30318,12 @@ async function extractPosterGateFactsWithVision({
                     `Проверь [IMAGE ${imageNumber}] вместе с этим текстом. Верни только заданные поля.`,
                 ].join('\n')
                 : `Проверь только [IMAGE ${imageNumber}] как возможную афишу события. Верни только указанные поля.`;
-            const response = await generateOpenAIVisionText({
+            visionRequest = (preparedImage) => generateOpenAIVisionText({
                 mode: 'default',
                 systemPrompt,
                 userPrompt,
-                imageUrls: [imageUrl],
-                maxTokens: 360,
+                imageUrls: [preparedImage],
+                maxTokens: dateFreePhase ? 5000 : 360,
                 requestTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
                 failoverMaxRounds: 2,
                 failuresBeforeQuarantine: 3,
@@ -27357,17 +30337,60 @@ async function extractPosterGateFactsWithVision({
                 tokenUsageOperation: 'event-parser:poster-gate-vision',
                 tokenUsageMetadata: { sourceUrl, sourceLabel, imageNumber, secondaryJointGate: Boolean(secondaryJointGate) },
             });
+            const response = await visionRequest(prepareImage(imageUrl));
             const text = String(response ?? '').trim();
             if (text) factResults[offset] = text;
             trace?.('image', { imageNumber, imageUrl, factChars: text.length, responseText: text });
         } catch (error) {
-            trace?.('image_error', { imageNumber, imageUrl, error });
-            console.warn('[POSTER GATE VISION ERROR]', `image=${imageNumber}`, formatPrivateError(error));
+            // VK image URLs occasionally make the provider return HTTP 400
+            // (attachment download failed), even though the image is still
+            // reachable from the bot host. Re-acquire the bytes locally and
+            // retry this image once as a data URL. This is intentionally
+            // bounded to one transport recovery and never retries the model
+            // ladder indefinitely.
+            let recovered = false;
+            try {
+                const message = String(error?.message ?? error);
+                if (visionRequest && /(?:\b(?:API|HTTP)\s+400\b|не удалось скачать вложение|failed to download attachment|download attachment)/iu.test(message)) {
+                    const asset = await downloadVisionImageAsset(imageUrl);
+                    const retryResponse = await visionRequest(asset.dataUrl);
+                    const retryText = String(retryResponse ?? '').trim();
+                    if (retryText) {
+                        factResults[offset] = retryText;
+                        recovered = true;
+                        trace?.('image_recovered', { imageNumber, imageUrl, transport: 'local-data-url', factChars: retryText.length, responseText: retryText });
+                        // Recovery reads the standard image event; use the
+                        // original HTTP identity even when bytes were sent.
+                        trace?.('image', { imageNumber, imageUrl, transport: 'local-data-url', factChars: retryText.length, responseText: retryText });
+                    }
+                }
+            } catch (recoveryError) {
+                trace?.('image_recovery_error', { imageNumber, imageUrl, error: recoveryError });
+            }
+            if (!recovered) {
+                trace?.('image_error', { imageNumber, imageUrl, error });
+                imageErrors.push({ imageNumber, error });
+                console.warn('[POSTER GATE VISION ERROR]', `image=${imageNumber}`, formatPrivateError(error));
+            }
         }
     })));
     const facts = factResults.filter(Boolean);
     const joined = facts.join('\n\n');
-    trace?.('batch_complete', { images: urls.length, withFacts: facts.length, factChars: joined.length, imageConcurrency });
+    trace?.('batch_complete', { images: urls.length, withFacts: facts.length, failedImages: imageErrors.map((item) => item.imageNumber), factChars: joined.length, imageConcurrency });
+    if (imageErrors.length && facts.length) {
+        // Keep successful image events reusable by checkpoint recovery. Do not
+        // return an apparently complete string: downstream would finalize the
+        // source ledger and clean mode would permanently skip the missing image.
+        trace?.('batch_partial_failure', {
+            images: urls.length, withFacts: facts.length, failedImages: imageErrors.map((item) => item.imageNumber),
+        });
+    }
+    if (imageErrors.length) {
+        const error = new Error(`Vision не обработал ${imageErrors.length}/${urls.length} изображений`);
+        error.code = 'POSTER_GATE_UNRESOLVED';
+        error.partialFacts = joined;
+        throw error;
+    }
     return joined;
 }
 
@@ -27436,9 +30459,8 @@ async function readManualEventImageFacts({
                 imageUrls: [imageUrl],
                 maxTokens: 1200,
                 requestTimeoutMs: boundedTimeoutMs,
-                // Each model/key gets three attempts, then the request moves
-                // up the configured default -> gpt54 -> gpt55 -> pro ladder.
-                // One full ladder is bounded by the parser's 3-hour supervisor.
+                // Each model/key follows POSTER_VISION_MODEL_LADDER's explicit
+                // attempt budget; the enclosing parser operation is the hard limit.
                 failoverMaxRounds: 1,
                 failuresBeforeQuarantine: 3,
                 maxCandidates: 0,
@@ -27590,7 +30612,7 @@ async function extractStrictManualEvents({
             'Известные площадки распознавай в любом падеже/регистре/варианте написания: Тупик; Сто Ручьёв; The Last of Vavilone; DIESEL HALL; Rock Bar DIESEL; Overlock Bar; Meet Bowling; Паб Мама Анархия.',
             formatEventTagPromptInstruction(),
             'Факты с изображения равноправны фактам из текста поста. При противоречии не выдумывай: предпочитай более конкретный и явно относящийся к событию факт.',
-            'Поле announcement — уже готовый аккуратный анонс для пользователя: 1–7 коротких абзацев, без дублей даты/времени/места/цены/участников, если они вынесены в отдельные поля.',
+            'Поле announcement — готовое краткое описание для карточки события в 2–4 максимально коротких предложениях: что будет происходить, формат/программа и важные особенности. Сохрани важные детали исходника, не дублируй дату/время/место/цену/участников, уже вынесенные в отдельные поля, и не додумывай факты. Не оставляй описание пустым, если в исходнике есть содержательные сведения.',
             'Из announcement убери служебные элементы VK/Telegram: «Встреча», одиночное «Билеты», «Действия», «Please open Telegram...», «VIEW IN TELEGRAM», реакции/счётчики, хэштеги, число авторов, кнопки, рекламу интерфейса и навигацию.',
             'Не сохраняй рекламные шутки в поле price: например «5000р. (скока-скока???)» должно стать «5000 ₽».',
             'Не добавляй никаких фактов, которых нет в тексте пользователя, основном посте или считанном тексте изображения.',
@@ -28192,16 +31214,14 @@ async function parseEventProposalSubmission(context, submitted, {
         });
         let exactVkPost = null;
         if (sourceDescriptor.platform === 'vk' && sourceDescriptor.exactPost) {
-            try {
-                exactVkPost = await runWithSoftTimeout(
-                    hydrateExactVkWallPostForEvent(sourceUrl, trace),
-                    EVENT_SOURCE_REFRESH_TIMEOUT_MS,
-                    'VK direct post proposal',
-                );
-            } catch (error) {
-                trace?.('proposal.vk_direct.timeout_or_error', { sourceUrl, error });
-                console.warn('[EVENT PROPOSAL VK DIRECT TIMEOUT]', sourceUrl, formatPrivateError(error));
-            }
+            // Open the submitted link first: the page DOM and its own VK
+            // bootstrap payload are the source of truth for this manual flow.
+            // A separate VK API hydrate used to delay browser capture and made
+            // the link path depend on an optional API result.
+            trace?.('proposal.vk_direct.defer_api', {
+                sourceUrl,
+                reason: 'manual-link-dom-first',
+            });
         }
         trace?.('proposal.vk_direct.result', {
             sourceDescriptor,
@@ -28288,9 +31308,14 @@ async function parseEventProposalSubmission(context, submitted, {
                     url: sourceUrl,
                     dataDirectory: './data',
                     notifyAttention: notifyScraperAttention,
-                    navigationTimeoutMs: 45_000,
-                    manualAccessTimeoutMs: 45_000,
+                    navigationTimeoutMs: 15_000,
+                    manualAccessTimeoutMs: 5_000,
                     keepPageOpen: false,
+                    // User/owner event submissions need a real browser dwell:
+                    // VK's SPA often renders the post and lazy media after the
+                    // initial navigation. This is measured from page opening.
+                    minimumOpenMs: 45_000,
+                    allowShortMinimumOpen: true,
                     trace,
                 });
                 trace?.('proposal.browser.result', {
@@ -28408,7 +31433,8 @@ async function parseEventProposalSubmission(context, submitted, {
             const combinedImages = [...new Set([
                 ...(Array.isArray(selectedPost?.imageUrls) ? selectedPost.imageUrls : []),
                 ...incomingImageUrls,
-            ])].slice(0, EVENT_PROPOSAL_MAX_POST_IMAGES);
+            ])].filter((url) => !isLikelyVkNonPosterUiImageUrl(url))
+                .slice(0, EVENT_PROPOSAL_MAX_POST_IMAGES);
             const exactSourceUrl = canonicalEventSourceUrl(selectedPost?.sourceUrl || sourceUrl);
             const localEvents = parsePublicPostLocally({
                 ...selectedPost,
@@ -28708,57 +31734,6 @@ async function parseEventProposalSubmission(context, submitted, {
 
 
 
-const EVENT_PROPOSAL_FIELD_LABELS = Object.freeze({
-    date: 'Дата',
-    venue: 'Место / как будет объявлено',
-    time: 'Время',
-    title: 'Название',
-    participants: 'Участники',
-    price: 'Цена / вход',
-});
-
-function formatEventProposalDraftReview(events, { referenceDate = '' } = {}) {
-    const analysis = analyzeEventProposalDrafts(events, { referenceDate });
-    const lines = [
-        `🧾 Черновик предложения: ${analysis.analyses.length} ${analysis.analyses.length === 1 ? 'событие' : 'событий'}.`,
-        'Красным маркером 🔴 отмечено то, чего не удалось найти.',
-    ];
-
-    analysis.analyses.forEach((item, index) => {
-        const event = item.event;
-        lines.push(
-            '',
-            `#${index + 1} ${event.title || '🔴 Название не найдено (необязательно)'}`,
-            event.eventDate ? `📅 ${event.eventDate}` : '🔴 📅 Дата не найдена — ОБЯЗАТЕЛЬНО',
-            event.eventTime ? `🕒 ${event.eventTime}` : '🔴 🕒 Время не найдено — необязательно',
-            hasUsableVenueStatement(event.venue)
-                ? `📍 ${event.venue}`
-                : '🔴 📍 Место не найдено — ОБЯЗАТЕЛЬНО указать площадку/адрес или что локацию сообщат позже/в день мероприятия',
-            event.participants ? `👥 ${event.participants}` : '🔴 👥 Участники не найдены — необязательно',
-            event.price ? `🎟 ${event.price}` : '🔴 🎟 Цена/условия входа не найдены — необязательно',
-        );
-        if (item.blocking.includes('past_date')) {
-            lines.push('🔴 Эта дата уже прошла — такое событие нельзя отправить в будущую афишу.');
-        }
-    });
-
-    lines.push(
-        '',
-        analysis.canSubmit
-            ? 'Можно ответить «отправить как есть» — черновик уйдёт владельцу на проверку.'
-            : 'Пока отправить нельзя: для КАЖДОГО события обязательны будущая дата и место/явная пометка, что локацию сообщат позже или в день мероприятия.',
-        'Чтобы дополнить поле, пришлите, например: «время: 19:00», «место: DIESEL Hall», «дата: 5 сентября 2026».',
-        analysis.analyses.length > 1
-            ? 'Если событий несколько, укажите номер: «2 время: 20:00». Ненужное событие можно убрать командой «удалить 2».'
-            : '',
-    );
-
-    return {
-        text: lines.filter(Boolean).join('\n'),
-        analysis,
-    };
-}
-
 function stripEventProposalPrivateFields(event) {
     const normalized = normalizeEventProposalDraftEvent(event);
     const result = {};
@@ -28796,46 +31771,10 @@ async function prepareProposalDraftImages(events, proposalToken) {
                 console.error('[EVENT PROPOSAL IMAGE PREPARE ERROR]', formatPrivateError(error));
             }
         }
+        if (imageUrls.length && !prepared.imagePaths?.length) throw new Error('Не удалось сохранить афишу. Повторите отправку или явно выберите «Отправить без фото».');
         preparedEvents.push(stripEventProposalPrivateFields(prepared));
     }
     return preparedEvents;
-}
-
-async function finalizeEventProposalDraft(context, pending) {
-    const rawContext = getRawContext(context);
-    const key = getEventProposalInputKey(context);
-    const draft = pending?.draft || pending;
-    const referenceDate = draft?.referenceDate || getLocalDateString(new Date(), botTimeZone);
-    const review = formatEventProposalDraftReview(draft?.events || [], { referenceDate });
-    if (!review.analysis.canSubmit) {
-        await sendLong(context, review.text);
-        return false;
-    }
-
-    const now = Math.floor(Date.now() / 1000);
-    const preparedEvents = await prepareProposalDraftImages(
-        review.analysis.analyses.map((item) => item.event),
-        `${rawContext.platform || 'unknown'}-${rawContext.senderId || 0}-${now}`,
-    );
-    const proposalId = createEventProposal({
-        submitterPlatform: rawContext.platform || 'vk',
-        submitterExternalId: rawContext.externalSenderId ?? rawContext.senderId ?? '',
-        submitterInternalId: rawContext.senderId || 0,
-        rawSubmission: draft?.rawSubmission || '',
-        sourceUrl: draft?.sourceUrl || '',
-        parsedEvents: preparedEvents,
-        submittedAt: now,
-        expiresAt: now + EVENT_PROPOSAL_REVIEW_SECONDS,
-    });
-    const proposal = getEventProposal(proposalId);
-    await notifyOwnerAboutEventProposal(proposal);
-    pendingEventProposalInputs.delete(key);
-    await rawContext.send(
-        preparedEvents.length === 1
-            ? '✅ Отправил событие владельцу на проверку. Если он не ответит в течение суток, заявка добавится автоматически.'
-            : `✅ Отправил владельцу на проверку ${preparedEvents.length} событий одной заявкой. Если он не ответит в течение суток, заявка добавится автоматически.`,
-    );
-    return true;
 }
 
 function buildEventProposalOwnerMessages(proposal) {
@@ -28844,16 +31783,17 @@ function buildEventProposalOwnerMessages(proposal) {
         `🆕 Вам хотят добавить информацию о тусе. Заявка #${proposal.id}.`,
         `Событий в заявке: ${events.length}.`,
         proposal.sourceUrl ? `Исходная страница: ${proposal.sourceUrl}` : '',
-        `Отправитель: ${proposal.submitterPlatform} · ${proposal.submitterExternalId || proposal.submitterInternalId || 'неизвестно'}`,
+        `Отправитель: ${proposal.submitterDisplayName || proposal.submitterExternalUsername ? `${proposal.submitterDisplayName || ''}${proposal.submitterExternalUsername ? ` (@${String(proposal.submitterExternalUsername).replace(/^@+/u, '')})` : ''}`.trim() : `${proposal.submitterPlatform} · ${proposal.submitterExternalId || proposal.submitterInternalId || 'неизвестно'}`}`,
+        proposal.submitterExternalId ? `Профиль: ${proposal.submitterPlatform === 'telegram'
+            ? (proposal.submitterExternalUsername ? `https://t.me/${String(proposal.submitterExternalUsername).replace(/^@+/u, '')}` : `tg://user?id=${encodeURIComponent(proposal.submitterExternalId)}`)
+            : `https://vk.ru/id${encodeURIComponent(proposal.submitterExternalId)}`}` : '',
     ].filter(Boolean).join('\n');
     const chunks = [header];
     let current = '';
 
     events.forEach((event, index) => {
-        const fullCard = buildSinglePublicEventMessage(event);
-        const card = fullCard.length > 1050
-            ? `${fullCard.slice(0, 1049).trimEnd()}…`
-            : fullCard;
+        const fullCard = buildSinglePublicEventMessage(event) + (event.contacts ? '\nКонтакты: ' + event.contacts : '');
+        const card = fullCard;
         const block = `#${index + 1}\n${card}`;
         if (current && current.length + block.length + 4 > 3200) {
             chunks.push(current);
@@ -28866,9 +31806,9 @@ function buildEventProposalOwnerMessages(proposal) {
     chunks.push([
         `Добавить ${events.length === 1 ? 'эту информацию' : 'все события этой заявки'}?`,
         `Ответьте «да ${proposal.id}» или «нет ${proposal.id}».`,
-        'Если ответа не будет 24 часа, заявка будет добавлена автоматически.',
+        'Через 24 часа автопубликация возможна только при наличии даты, названия и места. Неполная заявка останется на проверке.',
     ].join('\n'));
-    return chunks;
+    return chunks.flatMap(chunk => splitProposalText(chunk));
 }
 
 async function notifyOwnerAboutEventProposal(proposal) {
@@ -28882,6 +31822,7 @@ async function notifyOwnerAboutEventProposal(proposal) {
                     peer_id: LIMIT_RESET_ADMIN_USER_ID,
                     random_id: randomInt(1, 2_000_000_000),
                     message,
+                    keyboard: proposalVkKeyboard(proposalOwnerButtons(proposal)),
                 });
             }
             return 'vk';
@@ -28894,10 +31835,19 @@ async function notifyOwnerAboutEventProposal(proposal) {
     if (telegramOwnerExternalUserId && telegramBot && telegramBotStarted) {
         deliveries.push((async () => {
             try {
+                for (const event of proposal.parsedEvents || []) {
+                    for (const relative of event.imagePaths || []) {
+                        const path = resolveEventImagePath(relative);
+                        if (!path || !existsSync(path)) continue;
+                        try { await telegramBot.api.sendPhoto({ chatId: telegramOwnerExternalUserId, photo: { buffer: readFileSync(path), filename: basename(path) }, caption: 'Афиша заявки #' + proposal.id }); }
+                        catch (error) { console.warn('[PROPOSAL OWNER PHOTO]', formatPrivateError(error)); }
+                    }
+                }
                 for (const text of messages) {
                     await telegramBot.api.sendMessage({
                         chatId: telegramOwnerExternalUserId,
                         text,
+                        replyMarkup: { inline_keyboard: proposalOwnerButtons(proposal) },
                     });
                 }
                 return 'telegram';
@@ -28908,7 +31858,9 @@ async function notifyOwnerAboutEventProposal(proposal) {
         })());
     }
 
-    return (await Promise.all(deliveries)).filter(Boolean);
+    const delivered = (await Promise.all(deliveries)).filter(Boolean);
+    setMaintenanceState('event-proposal-owner-notification:' + proposal.id, { details: { delivered } });
+    return delivered;
 }
 
 
@@ -28959,7 +31911,15 @@ function persistApprovedProposalEventImages(event, proposalId, eventIndex = 0) {
     };
 }
 
-async function materializeEventProposal(proposal, {
+const proposalMaterializationLocks = new Set();
+async function materializeEventProposal(proposal, options = {}) {
+    if (proposalMaterializationLocks.has(proposal?.id)) return { savedEvents: [], proposal, alreadyProcessing: true };
+    proposalMaterializationLocks.add(proposal?.id);
+    try { return await materializeEventProposalUnlocked(getEventProposal(proposal.id), options); }
+    finally { proposalMaterializationLocks.delete(proposal?.id); }
+}
+
+async function materializeEventProposalUnlocked(proposal, {
     status = 'approved',
     reviewedByPlatform = '',
     reviewedBy = 0,
@@ -28978,16 +31938,9 @@ async function materializeEventProposal(proposal, {
     // place/address or explicitly say that the location will be announced
     // later/on the day. Time is intentionally optional.
     if (!validation.canSubmit) {
-        const resolved = resolveEventProposal({
-            id: proposal.id,
-            status: 'rejected',
-            reviewedByPlatform: reviewedByPlatform || 'validation',
-            reviewedBy,
-            resolvedAt: now,
-        });
         return {
             savedEvents,
-            proposal: resolved,
+            proposal,
             validationRejected: true,
             validation,
         };
@@ -28998,7 +31951,7 @@ async function materializeEventProposal(proposal, {
     // materialize every surviving proposal image into manual_event_announcements.
     const durableAnalyses = validation.analyses.map((analysis, index) => ({
         ...analysis,
-        event: persistApprovedProposalEventImages(analysis.event, proposal.id, index),
+        event: persistApprovedProposalEventImages({ ...analysis.event, description: analysis.event.description + (analysis.event.contacts ? '\nКонтакты: ' + analysis.event.contacts : '') }, proposal.id, index),
     }));
 
     // A proposal may be an update to an event that is already in the database
@@ -29100,98 +32053,12 @@ async function rejectEventProposal(proposal, context) {
     });
 }
 
-async function handleEventProposalSubmission(context, submitted) {
-    const rawContext = getRawContext(context);
-    const clean = String(submitted ?? '').trim();
-    const directImages = await resolveRichIncomingImageTargets(rawContext).catch(() => []);
-    if (!clean && !directImages.length) {
-        pendingEventProposalInputs.set(getEventProposalInputKey(context), {
-            mode: 'awaiting-input',
-            expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
-        });
-        await rawContext.send([
-            'Пришлите информацию о тусе: прямую ссылку на пост, ссылку на страницу встречи/сообщества, текст анонса, афишу-картинку или текст вместе с картинкой.',
-            'Если это страница паблика, бот автоматически разберёт до 20 свежих постов. Вкладка останется открытой для ручной прокрутки; если вы добавите описание, бот выберет наиболее похожее событие.',
-        ].join('\n'));
-        return true;
-    }
-
-    // Owner + already stored exact source: refresh in place first. This is the
-    // missing-image case from old announcements and must not create a proposal
-    // duplicate or wait on browser/vision when VK API already has the post.
-    if (clean && await tryRefreshExistingOwnerEventSubmission(context, clean)) {
-        pendingEventProposalInputs.delete(getEventProposalInputKey(context));
-        return true;
-    }
-
-    await rawContext.send('🔎 Принято. Просматриваю материал, ищу посты события и собираю черновик.');
-    const parserTrace = createEventParserTrace({
-        dataDirectory: './data',
-        label: 'proposal',
-    });
-    parserTrace.log('handler.submission', {
-        platform: rawContext?.platform || '',
-        clean,
-        directImageCount: directImages.length,
-    });
-    try {
-        const parsed = await parseEventProposalSubmission(context, clean, {
-            parserTrace,
-        });
-        parserTrace.finish({
-            status: 'parsed',
-            sourceUrl: parsed.sourceUrl,
-            eventCount: parsed.events.length,
-            events: parsed.events,
-        });
-        await rawContext.send(`🧾 Полный лог парсинга: ${parsed.parserTracePath || parserTrace.relativePath}`);
-        const review = formatEventProposalDraftReview(parsed.events, {
-            referenceDate: parsed.referenceDate,
-        });
-        const pending = {
-            mode: 'review',
-            draft: {
-                rawSubmission: clean,
-                sourceUrl: parsed.sourceUrl,
-                referenceDate: parsed.referenceDate,
-                events: review.analysis.analyses.map((item) => item.event),
-            },
-            expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
-        };
-        pendingEventProposalInputs.set(getEventProposalInputKey(context), pending);
-
-        // Полностью заполненный материал не заставляем подтверждать второй раз.
-        // Если не хватает хотя бы необязательного поля, показываем красный
-        // чек-лист и даём выбор: дополнить или «отправить как есть».
-        if (review.analysis.canSubmit && !review.analysis.hasOptionalMissing) {
-            await rawContext.send('✅ Все обязательные и основные поля найдены. Отправляю владельцу на проверку.');
-            await finalizeEventProposalDraft(context, pending);
-            return true;
-        }
-
-        await sendLong(context, review.text);
-    } catch (error) {
-        parserTrace.log('handler.error', { error });
-        parserTrace.finish({
-            status: 'error',
-            error,
-        });
-        console.error('[EVENT PROPOSAL SUBMIT ERROR]', formatPrivateError(error));
-        await rawContext.send([
-            `Не получилось подготовить черновик: ${String(error?.message ?? error)}`,
-            `🧾 Полный лог парсинга: ${parserTrace.relativePath}`,
-        ].join('\n'));
-    }
-    return true;
-}
-
-
 async function maybeHandleManualEventUpdateConfirmationIncoming(context, text) {
     if (!isOwnerContext(context) || !isPrivateContext(context)) return false;
     const key = getEventProposalInputKey(context);
     const pending = pendingManualEventUpdates.get(key);
     if (!pending) return false;
-    if (Date.now() >= pending.expiresAt) {
+    if (isPendingCardInteractionExpired(pending)) {
         pendingManualEventUpdates.delete(key);
         return false;
     }
@@ -29230,245 +32097,31 @@ async function maybeHandleManualEventUpdateConfirmationIncoming(context, text) {
 }
 
 async function maybeHandleEventProposalIncoming(context, text) {
-    const rawContext = getRawContext(context);
-    const sourceText = String(text ?? '').trim();
-
-    if (sourceText && isOwnerContext(context) && isPrivateContext(context)) {
-        const moderationMatch = parseCommandCandidateList(
-            getIncomingCommandCandidates(sourceText),
-            parseEventProposalModerationDecision,
-            Boolean,
-        );
-        const decision = moderationMatch.parsed;
+    const candidates = getIncomingCommandCandidates(String(text || ''));
+    const candidate = candidates.find(value => /^(?:предлож|добав|тусы\s+(?:добавить|на\s+|ожидают)|заявка\s)/iu.test(value)) || candidates[0] || text;
+    const raw = getRawContext(context);
+    const payload = raw.messagePayload || raw.message?.payload;
+    let callback = '';
+    try { callback = (typeof payload === 'string' ? JSON.parse(payload) : payload)?.eventProposal || ''; } catch { /* ordinary payload */ }
+    if (isOwnerContext(context) && isPrivateContext(context)) {
+        const decision = parseEventProposalModerationDecision(candidate);
         if (decision) {
-            const moderationStartedAt = Date.now();
-            const proposal = decision.id
-                ? getEventProposal(decision.id)
-                : getLatestPendingEventProposal();
-            if (!proposal || proposal.status !== 'pending') {
-                if (decision.id) {
-                    await rawContext.send(`Не нашёл ожидающую модерацию заявку #${decision.id}.`);
-                    return true;
-                }
-                return false;
-            }
-            if (decision.action === 'approve') {
-                console.log(
-                    '[EVENT PROPOSAL MODERATION FASTPATH]',
-                    `id=${proposal.id}`,
-                    'action=approve',
-                    'source=cached-proposal',
-                    `eventCount=${Array.isArray(proposal.parsedEvents) ? proposal.parsedEvents.length : 0}`,
-                );
-                const result = await materializeEventProposal(proposal, {
-                    status: 'approved',
-                    reviewedByPlatform: rawContext.platform || '',
-                    reviewedBy: rawContext.senderId || 0,
-                });
-                if (result.validationRejected) {
-                    await rawContext.send(
-                        `⛔ Заявка #${proposal.id} не добавлена: перед сохранением повторная проверка нашла отсутствие обязательной даты/места или уже прошедшую дату.`,
-                    );
-                } else {
-                    await rawContext.send(
-                        result.refreshedExisting
-                            ? `✅ Заявка #${proposal.id} применена как обновление существующей тусы. Обновлено строк: ${result.updatedRows}.`
-                            : `✅ Заявка #${proposal.id} добавлена. Событий сохранено: ${result.savedEvents.length}.`,
-                    );
-                }
-                console.log(
-                    '[EVENT PROPOSAL MODERATION DONE]',
-                    `id=${proposal.id}`,
-                    'action=approve',
-                    `elapsedMs=${Date.now() - moderationStartedAt}`,
-                    `snapshotQueued=${Boolean(result.snapshotQueued || result.refreshedExisting)}`,
-                );
-            } else {
-                await rejectEventProposal(proposal, context);
-                await rawContext.send(`❌ Заявка #${proposal.id} отклонена и в афишу не добавлена.`);
-                console.log(
-                    '[EVENT PROPOSAL MODERATION DONE]',
-                    `id=${proposal.id}`,
-                    'action=reject',
-                    `elapsedMs=${Date.now() - moderationStartedAt}`,
-                );
-            }
-            return true;
+            const proposal = decision.id ? getEventProposal(decision.id) : getLatestPendingEventProposal();
+            if (proposal) return eventProposalSubmission.moderate(context, proposal.id, decision.action);
         }
     }
-
-    const inputKey = getEventProposalInputKey(context);
-    let pending = pendingEventProposalInputs.get(inputKey);
-    if (pending && Date.now() >= pending.expiresAt) {
-        pendingEventProposalInputs.delete(inputKey);
-        pending = null;
-    }
-
-    const commandCandidates = sourceText
-        ? getIncomingCommandCandidates(sourceText)
-        : [];
-    const commandText = commandCandidates[0] || '';
-
-    // V188.14: новая ссылка на источник имеет приоритет над старым черновиком.
-    // Раньше pending.mode=review съедал следующий VK wall URL как "правку" и
-    // отвечал "Не понял правку черновика". Сбрасываем именно старый review,
-    // но сразу оставляем awaiting-input: если новый парсинг упадёт, следующую
-    // ссылку всё равно можно прислать без повторного нажатия кнопки меню.
-    if (pending && commandText) {
-        const restartSource = extractEventProposalRestartSource(commandText);
-        if (restartSource) {
-            const proposalMatch = parseCommandCandidateList(
-                commandCandidates,
-                (candidate) => {
-                    const body = parseEventProposalCommand(candidate);
-                    return { matched: body !== null, body };
-                },
-                (parsed) => Boolean(parsed?.matched),
-            );
-            const restartSubmission = proposalMatch.matched
-                ? proposalMatch.parsed.body
-                : commandText;
-            console.log(
-                '[EVENT PROPOSAL NEW SOURCE RESTART]',
-                `mode=${pending.mode || 'unknown'}`,
-                `reason=${restartSource.reason}`,
-                `url=${restartSource.url}`,
-            );
-            pendingEventProposalInputs.set(inputKey, {
-                mode: 'awaiting-input',
-                expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
-            });
-            return handleEventProposalSubmission(context, restartSubmission);
-        }
-    }
-
-    // Special fast-path команды (авторезюме, история, QR, leavers и т.п.)
-    // тоже не должны становиться текстом незавершённой предложки.
-    if (pending && commandText) {
-        const explicitIncoming = detectExplicitIncomingCommand(sourceText);
-        if (explicitIncoming.matched && explicitIncoming.family !== 'event-proposal') {
-            pendingEventProposalInputs.delete(inputKey);
-            return false;
-        }
-    }
-
-    // Любая явная локальная команда должна иметь приоритет над незавершённой
-    // предложкой. В частности, «парсер все» больше не может быть поглощён
-    // состоянием ожидания/редактирования заявки.
-    if (pending && commandText) {
-        const explicitRoute = resolveCommandPriorityCandidates(commandCandidates, {
-            parsePublicEventsRangeCommand,
-            looksLikePublicEventsQuestion,
-        });
-        if (!['default', 'public-events-semantic'].includes(explicitRoute.route)) {
-            const proposalMatch = parseCommandCandidateList(
-                commandCandidates,
-                (candidate) => {
-                    const body = parseEventProposalCommand(candidate);
-                    return { matched: body !== null, body };
-                },
-                (parsed) => Boolean(parsed?.matched),
-            );
-            if (!proposalMatch.matched) return false;
-        }
-    }
-
-    if (pending) {
-        if (sourceText && /^(?:отмена|отменить|cancel)$/iu.test(commandText)) {
-            pendingEventProposalInputs.delete(inputKey);
-            await rawContext.send('Предложение тусы отменено.');
-            return true;
-        }
-
-        if (pending.mode === 'review') {
-            if (sourceText && /^(?:отправить(?:\s+как\s+есть)?|готово|на\s+проверку|отправляй)$/iu.test(commandText)) {
-                await finalizeEventProposalDraft(context, pending);
-                return true;
-            }
-
-            const deleteMatch = sourceText
-                ? commandText.match(/^(?:удалить|убрать|исключить)\s+(?:событие\s+)?#?([1-9]\d*)$/iu)
-                : null;
-            if (deleteMatch) {
-                const index = Number(deleteMatch[1]) - 1;
-                const events = Array.isArray(pending?.draft?.events) ? [...pending.draft.events] : [];
-                if (!events[index]) {
-                    await rawContext.send(`В черновике нет события #${index + 1}.`);
-                    return true;
-                }
-                events.splice(index, 1);
-                if (!events.length) {
-                    pendingEventProposalInputs.delete(inputKey);
-                    await rawContext.send('Черновик пуст — предложение отменено.');
-                    return true;
-                }
-                pending = {
-                    ...pending,
-                    draft: { ...pending.draft, events },
-                    expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
-                };
-                pendingEventProposalInputs.set(inputKey, pending);
-                const review = formatEventProposalDraftReview(events, {
-                    referenceDate: pending.draft.referenceDate,
-                });
-                await sendLong(context, review.text);
-                return true;
-            }
-
-            if (sourceText) {
-                const corrections = parseEventProposalCorrections(commandText, {
-                    referenceTimestampSeconds: Math.floor(Date.now() / 1000),
-                });
-                if (corrections.length) {
-                    const currentEvents = Array.isArray(pending?.draft?.events) ? pending.draft.events : [];
-                    if (currentEvents.length > 1 && corrections.some((item) => item.eventIndex === 0)) {
-                        await rawContext.send('В черновике несколько событий. Укажите номер перед полем, например: «2 время: 20:00».');
-                        return true;
-                    }
-                    const updatedEvents = applyEventProposalCorrections(currentEvents, corrections);
-                    pending = {
-                        ...pending,
-                        draft: { ...pending.draft, events: updatedEvents },
-                        expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
-                    };
-                    pendingEventProposalInputs.set(inputKey, pending);
-                    const review = formatEventProposalDraftReview(updatedEvents, {
-                        referenceDate: pending.draft.referenceDate,
-                    });
-                    await sendLong(context, review.text);
-                    return true;
-                }
-            }
-
-            await rawContext.send([
-                'Не понял правку черновика.',
-                'Пишите полем: «дата: 5 сентября 2026», «время: 19:00», «место: Тупик».',
-                'Для нескольких событий: «2 место: DIESEL Hall». Либо «отправить как есть», либо «удалить 2», либо «отмена».',
-            ].join('\n'));
-            return true;
-        }
-
-        // awaiting-input: допускается даже сообщение только с картинкой.
-        return handleEventProposalSubmission(context, sourceText);
-    }
-
-    if (!sourceText) return false;
-    const proposalMatch = parseCommandCandidateList(
-        commandCandidates,
-        (candidate) => {
-            const body = parseEventProposalCommand(candidate);
-            return { matched: body !== null, body };
-        },
-        (parsed) => Boolean(parsed?.matched),
-    );
-    if (!proposalMatch.matched) return false;
-    return handleEventProposalSubmission(context, proposalMatch.parsed.body);
+    return eventProposalSubmission.handle(context, candidate, callback);
 }
 
 
 async function processDueEventProposals() {
-    const due = getDueEventProposals(Math.floor(Date.now() / 1000), 50);
+    const due = getPendingEventProposals().filter(proposal => proposal.expiresAt <= Math.floor(Date.now() / 1000));
+    for (const proposal of getPendingEventProposals()) {
+        const delivery = getMaintenanceState('event-proposal-owner-notification:' + proposal.id);
+        if (delivery && !delivery.details.delivered?.includes('telegram') && telegramBotStarted && telegramOwnerExternalUserId) await notifyOwnerAboutEventProposal(proposal);
+    }
     for (const proposal of due) {
+        if (eventProposalSubmission.isModerating(proposal.id) || !proposalSubmissionStatus(proposal.parsedEvents, getLocalDateString(new Date(), botTimeZone)).autoApprove) continue;
         try {
             const result = await materializeEventProposal(proposal, {
                 status: 'auto_approved',
@@ -29530,7 +32183,7 @@ async function handleManualEventCommand(context, body, { forceUpdate = false, re
                 submitted,
                 sourceUrls: [...new Set(existing.map((event) => event.sourceUrl).filter(Boolean))],
                 directImageUrls: incomingImageUrls,
-                expiresAt: Date.now() + EVENT_PROPOSAL_INPUT_MS,
+                expiresAt: Date.now() + OWNER_CARD_INTERACTION_TTL_MS,
             });
             await rawContext.send([
                 'По этой ссылке информация о тусе уже есть.',
@@ -29588,12 +32241,17 @@ async function handleManualEventCommand(context, body, { forceUpdate = false, re
                 const imageUrls = [...new Set([
                     ...(Array.isArray(event?._imageUrls) ? event._imageUrls : []),
                     ...incomingImageUrls,
-                ].map((url) => String(url ?? '').trim()).filter((url) => /^https?:\/\//iu.test(url)))].slice(0, 1000);
+                ].map((url) => String(url ?? '').trim())
+                    .filter((url) => /^https?:\/\//iu.test(url) && !isLikelyVkNonPosterUiImageUrl(url)))].slice(0, EVENT_PROPOSAL_MAX_POST_IMAGES);
                 let finalEvent = event;
+                const originalAnnouncement = stripEventServiceArtifacts(event.sourceText || '');
+                if (originalAnnouncement.length > String(event.description || '').length) {
+                    finalEvent = { ...event, description: originalAnnouncement };
+                }
                 if (imageUrls.length) {
                     try {
                         const [withImage] = await prepareEventImages({
-                            events: [event],
+                            events: [finalEvent],
                             sourceKey: 'manual-owner-trusted-v18819',
                             itemId: event?._sourcePostId || event.sourceUrl || `owner-${Date.now()}-${index + 1}`,
                             imageUrls,
@@ -29601,10 +32259,10 @@ async function handleManualEventCommand(context, body, { forceUpdate = false, re
                             targetFolder: 'manual_event_announcements',
                             sourceLabel: 'Добавлено владельцем',
                             notifyAttention: notifyScraperAttention,
-                            maxSourceImages: 1,
+                            maxSourceImages: EVENT_PROPOSAL_MAX_POST_IMAGES,
                             generateFallback: false,
                         });
-                        if (withImage) finalEvent = { ...event, ...withImage };
+                        if (withImage) finalEvent = { ...finalEvent, ...withImage };
                     } catch (error) {
                         trustedParserTrace.log('owner_add.image_prepare_error', {
                             eventIndex: index + 1,
@@ -29680,6 +32338,13 @@ async function handleManualEventCommand(context, body, { forceUpdate = false, re
                 dataDirectory: './data',
                 notifyAttention: notifyScraperAttention,
                 keepPageOpen: false,
+                navigationTimeoutMs: 15_000,
+                manualAccessTimeoutMs: 5_000,
+                // The owner "добавить тусу" flow has the same 45-second
+                // minimum. A review deadline measured from function entry could
+                // close a still-hydrating VK tab before this dwell completed.
+                minimumOpenMs: 45_000,
+                allowShortMinimumOpen: true,
             });
             sourceUrl = String(linkData.finalUrl || sourceUrl);
             console.log(
@@ -31727,9 +34392,106 @@ async function handleProcessControlCommand(context, command) {
     return false;
 }
 
-async function handleRequest(context, requestText, { commandCandidates = null } = {}) {
+function preparedUserIdentity(context) {
+    const raw = getRawContext(context);
+    const externalId = String(raw?.externalSenderId ?? '').trim();
+    const fallbackId = String(raw?.senderId ?? '').trim();
+    const sender = raw?.message?.from || {};
+    const username = String(raw?.externalSenderUsername ?? sender.username ?? '').trim().replace(/^@/u, '');
+    const name = String(raw?.externalSenderName ?? [sender.first_name, sender.last_name].filter(Boolean).join(' ')).trim();
+    return {
+        platform: String(raw?.platform || 'vk').toLowerCase(),
+        id: externalId || fallbackId,
+        username,
+        name,
+        names: [name, String(sender.first_name ?? '').trim(), String(sender.last_name ?? '').trim()].filter(Boolean),
+    };
+}
+
+function loadPreparedUserReplyCounter(key) {
+    const states = getMaintenanceState(PREPARED_USER_REPLIES_STATE_KEY)?.details?.states;
+    return states && typeof states === 'object' ? states[key] || null : null;
+}
+
+function savePreparedUserReplyCounter(key, state) {
+    const current = getMaintenanceState(PREPARED_USER_REPLIES_STATE_KEY)?.details || {};
+    const states = current.states && typeof current.states === 'object' ? current.states : {};
+    states[key] = state;
+    const keys = Object.keys(states);
+    for (const stale of keys.slice(0, Math.max(0, keys.length - 2000))) delete states[stale];
+    setMaintenanceState(PREPARED_USER_REPLIES_STATE_KEY, { details: { states } });
+}
+
+async function maybeSendPreparedUserReply(context, requestText) {
+    const identity = preparedUserIdentity(context);
+    const profile = findPreparedUserReplyProfile(preparedUserRepliesConfig, identity);
+    if (!profile || !profile.phrases.length || !String(requestText ?? '').trim()) return false;
+
+    const stateKey = `${identity.platform}:${identity.id || identity.username || identity.name}:${context.peerId}`;
+    const decision = advancePreparedUserReplyCounter(
+        loadPreparedUserReplyCounter(stateKey),
+        profile.interval,
+        (min, max) => randomInt(min, max),
+    );
+    savePreparedUserReplyCounter(stateKey, decision.state);
+    if (!decision.shouldReply) return false;
+
+    const phrase = pickPreparedUserReply(profile, (min, max) => randomInt(min, max));
+    const text = formatPreparedUserReply(phrase, identity);
+    if (!text) return false;
+    await context.send(text);
+    console.log('[PREPARED USER REPLY]', `platform=${identity.platform}`, `peer=${context.peerId}`, `user=${identity.id || identity.username || 'name-match'}`, `request=${decision.state.totalRequests}`, `next=${decision.state.nextReplyAt}`);
+    return true;
+}
+
+async function handleRequest(context, requestText, { commandCandidates = null, skipImagePromptBatch = false } = {}) {
+    const normalizedIncomingRequest = String(requestText ?? '').trim();
+    const requestBatchKey = imagePromptBatchContextKey(context);
+    if (!skipImagePromptBatch && normalizedIncomingRequest) {
+        const batchKey = requestBatchKey;
+        const imageRequest = parseImagePromptBatchRequest(normalizedIncomingRequest);
+        if (imageRequest) {
+            const queued = imagePromptBatcher.enqueue({
+                key: batchKey,
+                text: imageRequest.prompt,
+                context,
+                commandCandidates,
+                metadata: imageRequest,
+            });
+            if (queued.queued) {
+                console.log(
+                    '[IMAGE PROMPT BATCH QUEUED]',
+                    `kind=${imageRequest.kind}`,
+                    `first=${queued.first}`,
+                    `parts=${queued.count}`,
+                    `peer=${context?.peerId || 0}`,
+                    `sender=${context?.senderId || 0}`,
+                );
+                return;
+            }
+        } else if (await maybeHandleImagePromptBatchIncoming(context, normalizedIncomingRequest)) {
+            return;
+        }
+    }
+
+    requestText = normalizedIncomingRequest;
     if (!isPrivateContext(context)) {
         recordBotRequestFromContext(context, { forceGroup: true });
+    }
+    const rawContext = getRawContext(context);
+    if (isPrivateContext(rawContext) && isOwnerContext(rawContext)) {
+        const replyText = String(
+            context?.replyMessage?.text ??
+            rawContext?.replyMessage?.text ??
+            rawContext?.message?.reply_to_message?.text ??
+            rawContext?.message?.reply_to_message?.caption ??
+            '',
+        ).trim();
+        const isLimitsReply = /(?:текущие\s+лимиты\s+авторезюме|лимиты\s+авторезюме)/iu.test(replyText);
+        const incomingText = String(requestText ?? '').trim();
+        if (isLimitsReply && incomingText && !/^авторезюме(?:\s|$)/iu.test(incomingText)) {
+            requestText = `авторезюме лимиты ${incomingText}`;
+        }
     }
 
     // null = обычная legacy/standalone маршрутизация. Массив (включая []) =
@@ -31745,6 +34507,53 @@ async function handleRequest(context, requestText, { commandCandidates = null } 
     const routingCandidates = explicitCommandScope
         ? explicitCommandCandidates
         : [String(requestText ?? '').trim()].filter(Boolean);
+
+    const preparedRepliesReload = routingCandidates.find((candidate) =>
+        parsePreparedUserRepliesReloadCommand(candidate),
+    );
+    if (preparedRepliesReload) {
+        if (!(isOwnerContext(context) && isPrivateContext(context) && context.platform === 'telegram')) {
+            await context.send('Эта команда доступна владельцу в личном чате Telegram.');
+            return;
+        }
+        try {
+            preparedUserRepliesConfig = loadPreparedUserRepliesConfig();
+            await context.send(`✅ Конфиг загружен: профилей ${preparedUserRepliesConfig.users.length}. Файл: config/prepared-user-replies.json`);
+        } catch (error) {
+            await context.send(`Не удалось загрузить config/prepared-user-replies.json: ${String(error?.message ?? error).slice(0, 300)}`);
+        }
+        return;
+    }
+
+    const ladderCommand = parseCommandCandidateList(routingCandidates, parseModelLadderCommand, Boolean);
+    if (ladderCommand.matched) {
+        await handleModelLadderCommand(context, ladderCommand.parsed);
+        return;
+    }
+
+    const channelCommand = parseCommandCandidateList(
+        routingCandidates,
+        parseAiChannelModeCommand,
+        Boolean,
+    );
+    if (channelCommand.matched) {
+        if (!await requireOwnerDm(context)) return;
+        const action = channelCommand.parsed.action;
+        if (action === 'status') {
+            await context.send(isAstraChannelMode() ? '✨ Канал Astra включён. Чаты идут через GPT-6 Astra; фоновые AI-парсеры отложены.' : '🔁 Обычный канал включён.');
+            return;
+        }
+        if (action === 'astra') {
+            setAiChannelMode('astra', { modeSource: 'manual', detectedModel: 'gpt-6-astra', detectedAt: Date.now(), probeFailures: 0 });
+            await context.send('✨ Канал Astra включён. Чатовые запросы будут идти через GPT-6 Astra, фоновые парсеры отложены.');
+            return;
+        }
+        setAiChannelMode('ordinary', { modeSource: 'manual', detectedModel: '', detectedAt: 0, probeFailures: 0 });
+        const deferred = takeDeferredAiOperations();
+        await context.send(`🔁 Обычный канал включён. Отложенных операций: ${deferred.length}. Проверяю очередь и отправлю первую с кнопками решения.`);
+        await notifyDeferredAiOperation().catch((error) => console.warn('[AI CHANNEL DEFERRED NOTICE ERROR]', formatPrivateError(error)));
+        return;
+    }
 
     const processControlMatch = parseCommandCandidateList(
         routingCandidates,
@@ -31817,6 +34626,14 @@ async function handleRequest(context, requestText, { commandCandidates = null } 
             `token=${JSON.stringify(routeDecision.modelSelector.token)}`,
             'reason=local-or-provider-command',
         );
+    }
+
+    if (routeDecision.route === 'owner-image-model-test') {
+        await runOwnerImageModelTest(
+            context,
+            routeDecision.selected?.command?.promptHint || '',
+        );
+        return;
     }
 
     if (routeDecision.route === 'routing-audit') {
@@ -32169,6 +34986,9 @@ async function handleRequest(context, requestText, { commandCandidates = null } 
      * Ролевая провокация является последним специальным маршрутом и никогда
      * не может перехватить явную команду из таблицы выше.
      */
+    if (routeDecision.route === 'default' && await maybeSendPreparedUserReply(context, requestText)) {
+        return;
+    }
     if (
         routeDecision.route === 'default' &&
         await handleDirectPersonaProvocation(context, requestText)
@@ -32325,9 +35145,9 @@ async function sendHelp(context) {
         '• gpt54 / стандарт и pro / луна — совместимые алиасы gpt-6-luna.',
         '• gpt55 / классик, pro2 / терра и pro3 / сол — совместимые алиасы gpt-6.1-sol.',
         '• astra / астра / gpt6 / самая продвинутая модель / max — gpt-6-astra.',
-        '• Пример: «Гигорейв pro2 резюмируй 500 сообщений». Картинки всегда создаёт gpt-image-2; ключ выбирает текстовую модель подготовки.',
+        '• Пример: «Гигорейв pro2 резюмируй 500 сообщений». Для image-команд по умолчанию используется gpt-image-2.5; image2, image2.5, flare и sunburst выбирают конкретную модель.',
         '• Ключ модели распознаётся перед командой, после команды и внутри AI-запроса. Для локальных команд вроде «помощь», «парсер» или «nvidia проверить» маршрут сохраняется, а ключ явно отмечается в логе как неприменимый.',
-        '• Единая лестница отказов: gpt-6-luna (4 попытки) → gpt-6.1-sol (3) → gpt-6-astra (2). Для Luna reasoning=none, для Sol/Astra по умолчанию low.',
+        '• Единая лестница отказов: gpt-6-luna (1 попытка) → gpt-6.1-sol (3) → gpt-6-astra (2). Для Luna reasoning=none, для Sol/Astra по умолчанию low.',
         ...getAstrologyHelpLines({ platform: rawContext?.platform, isPrivate: false }),
         '',
         'РЕЗЮМЕ И АНАЛИЗ БЕСЕДЫ',
@@ -32336,8 +35156,8 @@ async function sendHelp(context) {
         '• Гигорейв резюмируй 500 сообщений / за 2 дня / за неделю / всю историю.',
         '• Гигорейв резюмируй <имя> — по всей связанной истории: собственные сообщения + все упоминания имени с совпадением части более 80%, контекст ±10 сообщений и AI-фильтрация лишнего.',
         '• Гигорейв резюмируй картинкой 200 сообщений.',
-        '• резюмирование вкл — публиковать готовые фиксированные батчи в 09:00, 13:00, 15:00, 18:00, 21:00 и 23:59; настройка переживает перезапуск.',
-        '• Внутренние батчи 00–09 / 09–13 / 13–15 / 15–18 / 18–21 / 21–24 строятся во всех сохранённых групповых чатах даже при выключенной публикации.',
+        '• резюмирование вкл — публиковать готовые фиксированные батчи в 03:00, 09:00, 12:00, 15:00, 18:00, 21:00, 22:30 и 23:59; настройка переживает перезапуск.',
+        '• Внутренние батчи 00–03 / 03–09 / 09–12 / 12–15 / 15–18 / 18–21 / 21–22:30 / 22:30–24 строятся во всех сохранённых групповых чатах даже при выключенной публикации.',
         '• резюмирование статус / резюмирование выкл / резюмирование сейчас. «авторезюме» остаётся совместимым алиасом.',
         '• Вопросы про чат используют накопленные batch/day/week/month summary; всю raw-базу в ИИ бот не отправляет. Жёсткий raw-предел — 3000 сообщений на запрос.',
         '• «Гигорейв кто такая ЕВИК / кто X» — ищет X по всей локальной базе, но в ИИ отдаёт только bounded-выборку найденных сообщений в пределах общего raw-бюджета.',
@@ -32348,6 +35168,9 @@ async function sendHelp(context) {
         'АФИША',
         '• Гигорейв ближайшие тусы.',
         '• Гигорейв тусы на этих выходных / на этой неделе / на месяц.',
+        '• Второстепенные тусы: «второстепенные тусы на выходных», «быдлячьи тусы сегодня», «тусы второстепенные на месяц». Это отдельная выдача второго пула.',
+        '• «источники второстепенные» / «источники быдлячьи» — список второстепенных источников; «источники» — обычных; «источники все» — оба списка. Другим пользователям показываются только URL, без счётчиков.',
+        '• Включать/выключать источники может только владелец в личке: «источники изменить:» и строки из списка владельца с суффиксом 1 (включить) или 0 (выключить).',
         '• Гигорейв тусы 22 августа / тусы в августе.',
         '• Добавьте «кратко» или «коротко» — один общий текстовый список: название, дата/время, место и цена. Без описаний, участников, источников и картинок.',
         '• Афиша обрабатывается автоматически из исходного текста и сохранённых афиш; перед походом уточняйте сведения на странице события.',
@@ -32373,6 +35196,7 @@ async function sendHelp(context) {
         '• Гигорейв стиль общения / сбрось стиль.',
         '• Гигорейв активное общение <N> — включить режим: один случайный ответ в каждом окне из N содержательных сообщений (например 10 или 100); роль каждого автоответа выбирается заново случайно.',
         '• Гигорейв активное общение — включить с сохранённым интервалом (по умолчанию 10); активное общение статус — показать окно/счётчик; отключить / откл — выключить.',
+        '• транскрипт / транскрипты / транскрипт лог — журнал последних 5 голосовых этой беседы: запросы, интервалы и результат. Ответь командой на ГС или добавь номер сообщения, чтобы увидеть его журнал.',
         '• Гигорейв доебаться / Гигорейв фас — разовая игровая прожарка случайного активного участника.',
         '• Гигорейв доебаться <имя> / Гигорейв фас <имя> — выбрать участника по имени, транслиту, нику или близкому написанию.',
         '• Гигорейв подлизать — восторженно и добродушно ответить на случайное недавнее сообщение участника.',
@@ -32431,7 +35255,7 @@ async function sendHelp(context) {
         '• Reasoning: gpt-6-luna — none; gpt-6.1-sol и gpt-6-astra — low по умолчанию.',
         '• Ключи интеллекта: low / medium / high / xhigh (x-high) / max. Максимум: «astra max разберись ...».',
         '• Ключ модели распознаётся перед командой, после команды и внутри AI-запроса. Локальные команды не уходят в GPT: ключ для них отмечается как неприменимый, но сама команда не ломается.',
-        '• Единая лестница отказов: gpt-6-luna (4 попытки) → gpt-6.1-sol (3) → gpt-6-astra (2).',
+        '• Единая лестница отказов: gpt-6-luna (1 попытка) → gpt-6.1-sol (3) → gpt-6-astra (2).',
         ...getAstrologyHelpLines({ platform: rawContext?.platform, isPrivate: true }),
         '',
         'МАНЕРА ОБЩЕНИЯ',
@@ -32505,6 +35329,7 @@ async function sendHelp(context) {
         '• чёрный список тус — аудит persisted permanent-delete fingerprints и старых legacy title-only записей; legacy записи больше не фильтруют выдачу.',
         '',
         'ОБРАЩЕНИЯ К БОТУ',
+        '• Написать разработчику / кнопка «✉️ Написать разработчику» в Telegram — начни обращение и отправь следующим сообщением его текст. Владелец получит его с профилем и кнопками ответа/перехода к профилю; его ответ вернётся тебе в личку.',
         '• обращения сегодня / обращения неделя / обращения 3 дня / обращения за прошлые 4 дня — показать уникальных пользователей и число прямых обращений отдельно по VK и Telegram.',
         '• В 18:00 и 21:00 по Москве владелец автоматически получает накопительный отчёт за текущий день: количество прямых обращений и источник. Статистика бесед также ведётся отдельно справочно.',
         '• Перезапуск бота не дублирует отчёты: выполненные слоты сохраняются в SQLite. Тексты личных сообщений в этой статистике не сохраняются.',
@@ -32564,6 +35389,7 @@ async function sendHelp(context) {
         '',
         'ЛИМИТЫ',
         '• лимиты сбросить — очистить часовые и дневные лимиты пользователей.',
+        '• авторезюме лимиты — показать текущие пределы всех батчей и слоёв; отправь весь список обратно или только изменённые строки в личке владельца.',
     ];
 
     let helpText;
@@ -32624,6 +35450,7 @@ function extractSummaryFocusQuery(value) {
         // is ASCII-oriented and is unreliable at Cyrillic word boundaries.
         .replace(/[,:;—–-]+/gu, ' ')
         .replace(/(?:^|\s)(?:картин(?:кой|ка|ку|ке)?|изображени(?:ем|е|я|ю)?|визуал(?:ом)?|нарисуй|про|об|о|по|для|за|участник(?:а|е|у|ом)?|человек(?:а|е|у|ом)?)(?=$|\s)/giu, ' ')
+        .replace(/(?:^|\s)(?:gpt[\s_-]*image[\s_-]*2(?:[._-]?5)?(?:[\s_-]*(?:flare|sunburst))?|image[\s_-]*2(?:[._-]?5)?(?:[\s_-]*(?:flare|sunburst))?|image25(?:flare|sunburst)|flare|sunburst)(?=$|\s)/giu, ' ')
         .replace(/(?:^|\s)(?:пожалуйста|пж|плиз|можешь|можно|мне|это|кратко|коротко|подробно|нормально|быстро)(?=$|\s)/giu, ' ')
         .replace(/\s+/gu, ' ')
         .trim();
@@ -32691,7 +35518,9 @@ function parseSummaryRange(text) {
     }
 
     if (!range) {
-        const numberOnly = stripSummaryCommandLead(normalizedText).match(/^\s*(\d+)\s*$/u);
+        const numberOnly = stripSummaryCommandLead(normalizedText)
+            .replace(/(?:картин(?:кой|ка|ку|ке)?|изображени(?:ем|е|я|ю)?|визуал(?:ом)?|нарисуй|изобрази)/giu, ' ')
+            .match(/^\s*(\d+)\s*$/u);
         if (numberOnly) {
             const validated = validateRange('messages', Number(numberOnly[1]));
             if (!validated.ok) return validated;
@@ -33040,9 +35869,11 @@ async function handleGptCommand(context, requestText) {
         astrologyKind !== 'none' &&
         isLocalAstrologyRequest(parsed.prompt);
     const requestedMode = parsed.mode;
-    const effectiveMode = prashnaRequest
-        ? resolvePrashnaGptMode(requestedMode)
-        : requestedMode;
+    const effectiveMode = (!imageAction && isAstraChannelMode())
+        ? 'astra'
+        : prashnaRequest
+            ? resolvePrashnaGptMode(requestedMode)
+            : requestedMode;
     const astrologyExecution = resolveAstrologyExecution({
         kind: astrologyKind,
         mode: effectiveMode,
@@ -33170,31 +36001,35 @@ async function handleGptCommand(context, requestText) {
         const model = await resolveGptModel(effectiveMode);
 
         if (imageEditRequest.matched) {
-            const imageModel = await resolveGptImageModel();
+            const imageModel = await resolveGptImageModel(parsed.imageModel);
+            console.info('[TELEGRAM IMAGE MODEL]', `requested=${parsed.imageModel || 'default'} effective=${imageModel} action=edit exact=${Boolean(parsed.imageModel)}`);
             await sendGptEditedImage(
                 responseContext,
                 parsed.prompt,
                 imageModel,
                 terminology,
                 model,
+                Boolean(parsed.imageModel),
             );
             return;
         }
 
         if (parsed.action === 'image') {
-            const imageModel = await resolveGptImageModel();
+            const imageModel = await resolveGptImageModel(parsed.imageModel);
+            console.info('[TELEGRAM IMAGE MODEL]', `requested=${parsed.imageModel || 'default'} effective=${imageModel} action=generate exact=${Boolean(parsed.imageModel)}`);
             await sendGptGeneratedImage(
                 responseContext,
                 parsed.prompt,
                 imageModel,
                 terminology,
                 model,
+                Boolean(parsed.imageModel),
             );
             return;
         }
 
         if (parsed.action === 'image-summary') {
-            const imageModel = await resolveGptImageModel();
+            const imageModel = await resolveGptImageModel(parsed.imageModel);
             await sendGptImageSummary(
                 responseContext,
                 parsed.range,
@@ -33206,7 +36041,7 @@ async function handleGptCommand(context, requestText) {
         }
 
         if (parsed.action === 'chat-context-image') {
-            const imageModel = await resolveGptImageModel();
+            const imageModel = await resolveGptImageModel(parsed.imageModel);
             await sendChatDatabaseImage(
                 responseContext,
                 parsed.prompt,
@@ -33310,7 +36145,7 @@ async function handleGptCommand(context, requestText) {
     }
 }
 
-function parseGptCommand(requestText) {
+export function parseGptCommand(requestText) {
     /*
      * После удаления обращения «Гигорейв» нормализуем строку и отдельно
      * извлекаем точный режим. Поддерживаются обе формы:
@@ -33320,11 +36155,25 @@ function parseGptCommand(requestText) {
         .trim()
         .replace(/^gpt(?=$|\s)/iu, '')
         .trim();
+    let imageModel = '';
+    const imageModelMarker = body.match(/^image-model\s*=\s*((?:[a-z0-9._-]+)|(?:gpt\s+image|image)\s+2(?:[._-]?5)?(?:\s*(?:flare|sunburst))?|flare|sunburst)(?=$|\s)/iu);
+    if (imageModelMarker) {
+        imageModel = normalizeImageModelAlias(imageModelMarker[1]);
+        body = body.slice(imageModelMarker[0].length).trim();
+    }
+    if (!imageModel) {
+        const leadingModel = extractLeadingImageModel(body);
+        if (leadingModel.model) {
+            imageModel = leadingModel.model;
+            body = leadingModel.body;
+        }
+    }
 
     if (/^(?:модели|models|model-list)$/iu.test(body)) {
         return {
             action: 'models',
             mode: 'default',
+            imageModel,
             prompt: '',
         };
     }
@@ -33332,13 +36181,40 @@ function parseGptCommand(requestText) {
     const explicitMode = extractExplicitGptMode(body);
     const mode = explicitMode.mode;
     body = explicitMode.body;
+    // Image model aliases are flags, not positional words. Accept them before,
+    // after, or between the summary verb and range (for example
+    // "flare резюмируй 1000" and "резюмируй 1000 sunburst").
+    if (!imageModel) {
+        const embeddedImageModel = extractEmbeddedImageModel(body);
+        if (embeddedImageModel) {
+            imageModel = embeddedImageModel;
+            body = body
+                .replace(new RegExp(String.raw`\b${IMAGE_MODEL_TOKEN}\b`, 'iu'), ' ')
+                .replace(/\s+/gu, ' ')
+                .trim();
+        }
+    }
+    if (!imageModel) {
+        const modeImageModel = extractLeadingImageModel(body);
+        if (modeImageModel.model) {
+            imageModel = modeImageModel.model;
+            body = modeImageModel.body;
+        }
+    }
     const explicitReasoning = extractReasoningEffortModifier(body);
     body = explicitReasoning.body;
     const reasoningEffort = explicitReasoning.effort || getDefaultReasoningEffortForMode(mode);
 
     const imagePrefix = body.match(
-        /^(?:image|img|картин(?:ка|ку|ки|кой)?|изображени(?:е|я|ю|ем)?|нарисуй|рисуй|нарисовать|рисовать|сгенерируй\s+(?:картинку|изображение)|создай\s+(?:картинку|изображение)|сделай\s+(?:картинку|изображение))(?=$|\s)/iu,
+        /^(?:image|img|картин(?:ка|ку|ки|кой)?|изображени(?:е|я|ю|ем)?|нарисуй|рисуй|нарисовать|рисовать|изобрази|изображай|сгенерируй(?:\s+(?:картинку|изображение))?|создай(?:\s+(?:картинку|изображение))?|сделай(?:\s+(?:картинку|изображение))?)(?=$|\s)/iu,
     );
+    if (!imageModel && imagePrefix) {
+        const actionModel = extractLeadingImageModel(body.slice(imagePrefix[0].length).trim());
+        if (actionModel.model) {
+            imageModel = actionModel.model;
+            body = `${body.slice(0, imagePrefix[0].length)} ${actionModel.body}`.trim();
+        }
+    }
     const chatContext = getAstrologyRequestKind(body) !== 'none'
         ? { usesChatDatabase: false, wantsImage: false }
         : classifyChatContextRequest(body);
@@ -33350,19 +36226,31 @@ function parseGptCommand(requestText) {
                     ? 'chat-context-image'
                     : 'chat-context',
             mode,
+            imageModel,
             prompt: body,
         };
     }
 
     if (imagePrefix) {
-        const imageBody = body.slice(imagePrefix[0].length).trim();
+        let imageBody = body.slice(imagePrefix[0].length).trim();
+        if (!imageModel) {
+            const actionModel = extractLeadingImageModel(imageBody);
+            if (actionModel.model) {
+                imageModel = actionModel.model;
+                imageBody = actionModel.body;
+            }
+        }
 
         if (isSummaryRequest(imageBody)) {
+            const summaryModel = extractLeadingImageModel(imageBody);
+            if (!imageModel && summaryModel.model) imageModel = summaryModel.model;
+            if (summaryModel.model) imageBody = summaryModel.body;
             const parsedRange = parseSummaryRange(imageBody);
             return parsedRange.ok
                 ? {
                     action: 'image-summary',
                     mode,
+                    imageModel,
                     range: parsedRange.range,
                     focusQuery: parsedRange.focusQuery || '',
                     prompt: '',
@@ -33370,6 +36258,7 @@ function parseGptCommand(requestText) {
                 : {
                     action: 'image-summary',
                     mode,
+                    imageModel,
                     error: parsedRange.error,
                     prompt: '',
                 };
@@ -33378,27 +36267,48 @@ function parseGptCommand(requestText) {
         return {
             action: 'image',
             mode,
+            imageModel,
             prompt: imageBody,
         };
     }
 
     if (isSummaryRequest(body)) {
+        // Remember the visual-summary intent before removing the image alias
+        // and model token. Otherwise "резюмируй картинкой flare 1000" was
+        // reduced to "резюмируй 1000" and routed as a text summary.
+        const summaryWantsImage = Boolean(imageModel) || /(?:картин|изображ|визуал|нарис|изобраз)/iu.test(body);
+        if (!imageModel && /(?:картин|изображ|визуал|нарис|изобраз)/iu.test(body)) {
+            const summaryModelMatch = body.match(new RegExp(String.raw`(?:картин(?:кой|ке|у)?|изображени\w*|визуал\w*|нарис\w*|изобраз\w*)\s+(${IMAGE_MODEL_TOKEN})(?=$|\s)`, 'iu'));
+            if (summaryModelMatch) {
+                imageModel = normalizeImageModelAlias(summaryModelMatch[1]);
+                body = body.replace(summaryModelMatch[0], summaryModelMatch[0].replace(summaryModelMatch[1], '')).replace(/\s{2,}/gu, ' ').trim();
+            }
+        }
+        if (!imageModel && /(?:картин|изображ|визуал|нарис|изобраз)/iu.test(body)) {
+            const anySummaryModelMatch = body.match(new RegExp(String.raw`\b(${IMAGE_MODEL_TOKEN})(?=$|\s)`, 'iu'));
+            if (anySummaryModelMatch) {
+                imageModel = normalizeImageModelAlias(anySummaryModelMatch[1]);
+                body = body.replace(anySummaryModelMatch[0], '').replace(/\s{2,}/gu, ' ').trim();
+            }
+        }
         const parsedRange = parseSummaryRange(body);
 
         if (!parsedRange.ok) {
             return {
                 action: 'summary',
                 mode,
+                imageModel,
                 error: parsedRange.error,
                 prompt: '',
             };
         }
 
         return {
-            action: /картин|изображ|визуал|нарис/iu.test(body)
+            action: summaryWantsImage
                 ? 'image-summary'
                 : 'summary',
             mode,
+            imageModel,
             range: parsedRange.range,
             focusQuery: parsedRange.focusQuery || '',
             prompt: '',
@@ -33408,6 +36318,7 @@ function parseGptCommand(requestText) {
     return {
         action: 'chat',
         mode,
+        imageModel,
         reasoningEffort,
         reasoningSource: explicitReasoning.source,
         prompt: body,
@@ -33416,7 +36327,7 @@ function parseGptCommand(requestText) {
 
 function isAstraModel(model) {
     const value = String(model ?? '').toLowerCase().trim();
-    return /(?:^|[\/_-])gpt[\/_-]?6(?:[\/_-]?astra)?(?:$|[\/_-])/iu.test(value) ||
+    return /(?:^|[\/_.-])gpt[\/-]?6(?:[._-]1)?[\/-]?astra(?:$|[\/_.-])/iu.test(value) ||
         /(?:^|[\/_-])astra(?:$|[\/_-])/iu.test(value);
 }
 
@@ -33564,15 +36475,23 @@ async function resolveGptModel(mode) {
     )[0];
 }
 
-async function resolveGptImageModel() {
+async function resolveGptImageModel(requestedModel = '') {
+    const requested = normalizeImageModelAlias(requestedModel);
+    if (requested) {
+        if (!isOpenAIImageModel(requested)) {
+            throw new Error(`Модель изображения ${requested} не распознана.`);
+        }
+        return requested;
+    }
     if (configuredGptImageModel) {
-        if (!isOpenAIImageModel(configuredGptImageModel)) {
+        const configured = normalizeImageModelAlias(configuredGptImageModel);
+        if (!isOpenAIImageModel(configured)) {
             throw new Error(
                 `Модель ${configuredGptImageModel} не похожа на GPT image-модель. Проверь GPT_IMAGE_MODEL в .env.`,
             );
         }
 
-        return configuredGptImageModel;
+        return configured;
     }
 
     const models = await getOpenAIModels();
@@ -33584,6 +36503,8 @@ async function resolveGptImageModel() {
         );
     }
 
+    const preferred = imageModels.find((model) => normalizeImageModelAlias(model) === DEFAULT_GPT_IMAGE_MODEL);
+    if (preferred) return preferred;
     return [...imageModels].sort(
         (left, right) =>
             getGptModelScore(right) - getGptModelScore(left) ||
@@ -34152,6 +37073,7 @@ async function answerGptQuestion(
     let telegramStreamObserved = false;
     const requestOptions = {
         model,
+        ladderProfile: modelLadderProfileForRequest({ capability: 'text', tokenUsageOperation: astrologyExecution.astrologyRequest ? 'chat-astrology' : 'chat-reply', context }),
         systemPrompt,
         userPrompt,
         inputFiles: telegramInputFiles,
@@ -35848,7 +38770,130 @@ function withAutoSummaryTimeout(promise, timeoutMs, label) {
     });
 }
 
-async function sendScheduledAutoSummary(settings, text) {
+// Calendar, legacy and manual scheduled author summaries all deliver through
+// this gate. An image failure falls back to a diagnostic followed by full text.
+async function sendScheduledAutoSummary(settings, text, { illustrationPrompt = '' } = {}) {
+    if (settings.platform === 'telegram' && !telegramBot) {
+        throw new Error('Telegram отключён: авторезюме некуда отправить.');
+    }
+    const sendImageFailureFallback = async (error) => {
+        const errorDetails = formatDetailedPrivateError(error, { maxLength: 1800 });
+        const errorParts = [];
+        for (let current = errorDetails; current && typeof current === 'object'; current = current.cause) {
+            if (current.message && !errorParts.includes(current.message)) errorParts.push(current.message);
+        }
+        const errorText = errorParts.join(' -> ') || formatPrivateError(error).message || 'Причина не указана.';
+        console.warn('[AUTO SUMMARY IMAGE OPTIONAL FAILURE]', errorDetails);
+        await sendScheduledTextMessage(settings, [`⚠️ Не удалось создать иллюстрацию авторезюме: ${errorText}`, '', String(text)].join('\n'));
+        console.log('[AUTO SUMMARY TEXT SENT IMAGE FALLBACK]', `peer=${settings.peerId}`, `textChars=${String(text).length}`);
+    };
+    let summaryTextSent = false;
+    let image;
+    try {
+        image = await getAutoSummaryIllustration(settings.peerId, text, { periodPrompt: illustrationPrompt });
+        getCurrentOperationSignal()?.throwIfAborted();
+    } catch (error) {
+        // The illustration is optional. A provider policy/network failure must
+        // never discard an otherwise valid text summary or block its ledger.
+        await sendImageFailureFallback(error);
+        return;
+    }
+    try {
+        if (settings.platform === 'telegram') {
+            if (!telegramBot) throw new Error('Telegram отключён: авторезюме некуда отправить.');
+            const chatId = Number(settings.externalPeerId);
+            const photo = createTelegramPhotoAttachment({ buffer: image.buffer, mimeType: image.mimeType, filename: 'auto-summary.png' });
+            const caption = String(text).length <= 1024 ? String(text) : String(text).split('\n').slice(0, 2).join('\n');
+            const sent = await withAutoSummaryTimeout(
+                image.buffer.length <= 10 * 1024 * 1024
+                    ? telegramBot.api.sendPhoto({ chatId, photo, caption })
+                    : telegramBot.api.sendDocument({ chatId, document: photo, caption }),
+                AUTO_SUMMARY_SEND_TIMEOUT_MS, `Telegram иллюстрация авторезюме ${chatId}`,
+            );
+            summaryTextSent = String(text).length <= 1024;
+            if (String(text).length > 1024) {
+                for (const chunk of splitScheduledMessage(text, 3900)) {
+                    await withAutoSummaryTimeout(
+                        telegramBot.api.sendMessage({ chatId, text: chunk, replyToMessageId: sent?.message_id }),
+                        AUTO_SUMMARY_SEND_TIMEOUT_MS, `Telegram авторезюме ${chatId}`,
+                    );
+                    summaryTextSent = true;
+                }
+            }
+        } else {
+            const peerId = Number(settings.externalPeerId || settings.peerId);
+            let lastError = null;
+            let delivered = false;
+            for (const client of getVkClientsForAutoSummary(settings)) {
+                let sentChunks = 0;
+                try {
+                    const attachment = await uploadGeneratedImageBuffer({
+                        buffer: image.buffer, mimeType: image.mimeType, basename: 'auto-summary', vkClient: client,
+                    });
+                    for (const chunk of splitScheduledMessage(text, VK_MESSAGE_SIZE)) {
+                        await withAutoSummaryTimeout(client.api.messages.send({
+                            peer_id: peerId, random_id: randomInt(1, 2_147_483_647), message: chunk,
+                            ...(sentChunks === 0 ? { attachment } : {}),
+                        }), AUTO_SUMMARY_SEND_TIMEOUT_MS, `VK авторезюме с картинкой ${peerId}`);
+                        sentChunks += 1;
+                        summaryTextSent = true;
+                    }
+                    delivered = true;
+                    break;
+                } catch (error) {
+                    if (sentChunks) throw error;
+                    lastError = error;
+                    console.warn('[AUTO SUMMARY VK IMAGE SEND ERROR]', `peer=${peerId}`, formatPrivateError(error));
+                }
+            }
+            if (!delivered) throw lastError || new Error(`Не удалось отправить авторезюме в VK peer ${peerId}.`);
+        }
+    } catch (error) {
+        if (summaryTextSent) throw error;
+        await sendImageFailureFallback(error);
+        return;
+    }
+    console.log('[AUTO SUMMARY IMAGE SENT]', `peer=${settings.peerId}`, `model=${image.model}`, `textChars=${String(text).length}`);
+}
+
+const autoSummaryImageJobs = new Map();
+async function getAutoSummaryIllustration(peerId, text, { periodPrompt = '' } = {}) {
+    const cacheKey = createHash('sha256').update(JSON.stringify(['auto-summary-image-v2', peerId, text, periodPrompt])).digest('hex');
+    if (autoSummaryImageJobs.has(cacheKey)) return autoSummaryImageJobs.get(cacheKey);
+    const job = (async () => {
+        const directory = resolve('data', 'generated-images', 'auto-summary');
+        const imagePath = resolve(directory, `${cacheKey}.image`);
+        const metadataPath = resolve(directory, `${cacheKey}.json`);
+        if (existsSync(imagePath) && existsSync(metadataPath)) {
+            try {
+                const buffer = readFileSync(imagePath);
+                const metadata = JSON.parse(readFileSync(metadataPath, 'utf8'));
+                if (isValidOpenAIImageBuffer(buffer)) return { ...metadata, buffer };
+            } catch (error) {
+                console.warn('[AUTO SUMMARY IMAGE CACHE ERROR]', formatPrivateError(error));
+            }
+        }
+        const image = await createAutoSummaryIllustration({
+            summaryText: text,
+            periodPrompt,
+            signal: getCurrentOperationSignal(),
+            generate: (options) => generateOpenAIImage(options),
+            onAttempt: (event) => console.log('[AUTO SUMMARY IMAGE ATTEMPT]',
+                `peer=${peerId}`, `model=${event.model}`, `attempt=${event.attempt}/${event.attemptLimit || (event.model === 'gpt-image-2.5' ? 2 : 1)}`,
+                `status=${event.type}`, `durationMs=${event.durationMs || 0}`,
+                event.error ? formatPrivateError(event.error) : ''),
+        });
+        // Retain paid output across transport failures and bot restarts.
+        mkdirSync(directory, { recursive: true });
+        writeFileSync(imagePath, image.buffer);
+        writeFileSync(metadataPath, JSON.stringify({ model: image.model, mimeType: image.mimeType, attempts: image.attempts }));
+        return image;
+    })();
+    autoSummaryImageJobs.set(cacheKey, job);
+    try { return await job; } finally { autoSummaryImageJobs.delete(cacheKey); }
+}
+
+async function sendScheduledTextMessage(settings, text) {
     if (settings.platform === 'telegram') {
         if (!telegramBot) {
             throw new Error('Telegram отключён: авторезюме некуда отправить.');
@@ -35912,7 +38957,7 @@ function repairAutoSummarySchedulesAfterRestart(nowTimestamp = Math.floor(Date.n
                 minute: '2-digit',
                 hourCycle: 'h23',
             }).format(new Date(storedNextRunAt * 1000));
-            needsRepair = !CALENDAR_SUMMARY_SLICE_LABELS.includes(localSlot);
+            needsRepair = !getAutoSummaryScheduleSlots(settings.mode, settings.schedule).includes(localSlot);
         }
 
         if (!needsRepair) continue;
@@ -35965,8 +39010,8 @@ async function resolveAutoSummaryRetryModel(consecutiveFailures = 0) {
     };
 }
 
-function validateAutoSummaryForDelivery(summary, messageCount) {
-    const clean = clampAutoSummaryText(summary);
+function validateAutoSummaryForDelivery(summary, messageCount, maxChars = getAutoSummaryLimit('intraday_chars')) {
+    const clean = clampAutoSummaryText(summary, maxChars);
     if (!clean) {
         throw new Error('AI вернул пустое авторезюме.');
     }
@@ -36144,7 +39189,7 @@ async function processDueAutoSummarySetting(
                 description,
                 model,
             });
-            summary = validateAutoSummaryForDelivery(summary, messages.length);
+            summary = validateAutoSummaryForDelivery(summary, messages.length, getAutoSummaryLimit('intraday_chars'));
         }
 
         const title = window.catchUpExtended
@@ -36700,15 +39745,55 @@ function localClockMinutes(date = new Date()) {
 const CALENDAR_SUMMARY_RAW_INPUT_TOKEN_BUDGET = clampInteger(
     process.env.CALENDAR_SUMMARY_RAW_INPUT_TOKEN_BUDGET,
     4_000,
-    60_000,
-    24_000,
+    80_000,
+    32_000,
 );
 const CALENDAR_SUMMARY_ROLLUP_INPUT_TOKEN_BUDGET = clampInteger(
     process.env.CALENDAR_SUMMARY_ROLLUP_INPUT_TOKEN_BUDGET,
     4_000,
-    60_000,
-    24_000,
+    80_000,
+    32_000,
 );
+// A year is built from month summaries only. Keep enough input for roughly
+// three daily leaves while staying below the configured model context.
+const CALENDAR_SUMMARY_YEAR_INPUT_TOKEN_BUDGET = clampInteger(
+    process.env.CALENDAR_SUMMARY_YEAR_INPUT_TOKEN_BUDGET,
+    16_000,
+    100_000,
+    96_000,
+);
+// Output budgets are expressed in characters because Telegram/VK delivery and
+// the existing autoresume clamp are character based. Intraday batches are
+// deliberately compact: 60% of the previous 2160-char envelope and no more
+// than eight paragraphs. Rollup layers retain their larger bounded envelopes.
+let autoSummaryLimits = normalizeAutoSummaryLimits(DEFAULT_AUTO_SUMMARY_LIMITS);
+try {
+    const stored = JSON.parse(getAutoSummaryStateMeta('summary_limits', '{}'));
+    autoSummaryLimits = normalizeAutoSummaryLimits(stored);
+} catch {
+    autoSummaryLimits = normalizeAutoSummaryLimits(DEFAULT_AUTO_SUMMARY_LIMITS);
+}
+
+// Keep named exports for diagnostics and older callers; actual scheduling uses
+// getAutoSummaryLimit so a DM edit applies without restarting the bot.
+const CALENDAR_SUMMARY_INTRADAY_MAX_CHARS = 1_296;
+const CALENDAR_SUMMARY_INTRADAY_MAX_PARAGRAPHS = 8;
+const CALENDAR_SUMMARY_DAILY_MAX_CHARS = 3_600;
+const CALENDAR_SUMMARY_WORKWEEK_MAX_CHARS = 4_320;
+const CALENDAR_SUMMARY_WEEKEND_MAX_CHARS = 3_840;
+const CALENDAR_SUMMARY_WEEK_MAX_CHARS = 4_800;
+const CALENDAR_SUMMARY_MONTH_MAX_CHARS = 4_080;
+const CALENDAR_SUMMARY_YEAR_MAX_CHARS = 10_800;
+
+function getAutoSummaryLimit(key) {
+    return Number(autoSummaryLimits?.[key] || DEFAULT_AUTO_SUMMARY_LIMITS[key]);
+}
+
+function saveRuntimeAutoSummaryLimits(updates) {
+    autoSummaryLimits = normalizeAutoSummaryLimits({ ...autoSummaryLimits, ...updates });
+    saveAutoSummaryStateMeta('summary_limits', JSON.stringify(autoSummaryLimits));
+    return autoSummaryLimits;
+}
 const CALENDAR_SUMMARY_MAX_DAYS_PER_MAINTENANCE = clampInteger(
     process.env.CALENDAR_SUMMARY_MAX_DAYS_PER_MAINTENANCE,
     1,
@@ -36736,10 +39821,8 @@ function calendarMessageDateKey(message) {
     return getLocalDateString(new Date(Number(message?.createdAt || 0) * 1000), botTimeZone);
 }
 
-function calendarPeriodClosedRecently(endExclusiveDateKey, now = new Date()) {
-    const closeAt = calendarDateStartTimestamp(endExclusiveDateKey);
-    const nowSeconds = Math.floor(now.getTime() / 1000);
-    return closeAt <= nowSeconds && nowSeconds - closeAt <= CALENDAR_SUMMARY_DELIVERY_GRACE_SECONDS;
+function calendarPeriodClosedRecently(endExclusiveDateKey, now = new Date(), catchupSeconds = CALENDAR_SUMMARY_DELIVERY_GRACE_SECONDS) {
+    return calendarPeriodClosedWithinCatchup(endExclusiveDateKey, now, catchupSeconds, botTimeZone);
 }
 
 function stableSummaryHash(rows) {
@@ -36752,6 +39835,31 @@ function formatCalendarRollupSource(source, index, total) {
         `--- ИСТОЧНИК ${index + 1}/${total}; ${label}; сообщений=${Number(source.messageCount || 0)} ---`,
         String(source.summaryText || '').trim(),
     ].join('\n');
+}
+
+function buildCalendarParticipantNameRoster(peerId, level) {
+    if (!['week', 'month', 'year'].includes(String(level))) return '';
+    const messages = getAllMessages(peerId);
+    const ids = [...new Set(messages.map((message) => Number(message.senderId)).filter((id) => Number.isSafeInteger(id) && id > 0))];
+    if (!ids.length) return '';
+    const current = getVkCachedUserNames(ids);
+    const historical = new Map();
+    for (const message of messages) {
+        const id = Number(message.senderId || 0);
+        const at = Number(message.createdAt || 0);
+        if (!id || !at) continue;
+        const name = getVkUserNamesAt([id], at).get(id);
+        if (name) {
+            const values = historical.get(id) || new Set();
+            values.add(name);
+            historical.set(id, values);
+        }
+    }
+    return ids.map((id) => {
+        const values = [...(historical.get(id) || [])];
+        if (current.get(id)) values.push(current.get(id));
+        return `id${id}: ${[...new Set(values)].filter(Boolean).join(' / ') || `Участник ${id}`}`;
+    }).join('; ');
 }
 
 function splitCalendarRollupSources(sources, tokenBudget = CALENDAR_SUMMARY_ROLLUP_INPUT_TOKEN_BUDGET) {
@@ -36774,12 +39882,29 @@ function splitCalendarRollupSources(sources, tokenBudget = CALENDAR_SUMMARY_ROLL
     return groups;
 }
 
+function calendarSummaryOutputLimit(level, periodLabel = '') {
+    const label = String(periodLabel || '').toLowerCase();
+    if (level === 'year') return getAutoSummaryLimit('year_chars');
+    if (level === 'month') return getAutoSummaryLimit('month_chars');
+    if (level === 'week') {
+        if (label.includes('рабоч')) return getAutoSummaryLimit('workweek_chars');
+        return label.includes('выход') ? getAutoSummaryLimit('weekend_chars') : getAutoSummaryLimit('week_chars');
+    }
+    if (level === 'season') return getAutoSummaryLimit('season_chars');
+    if (level === 'day') return getAutoSummaryLimit('daily_chars');
+    if (level === 'range' && label.includes('выход')) return getAutoSummaryLimit('weekend_chars');
+    return getAutoSummaryLimit('week_chars');
+}
+
 async function summarizeCalendarRollupSources({
     peerId,
     level,
     periodLabel,
     sources,
     model,
+    inputTokenBudget = level === 'year'
+        ? CALENDAR_SUMMARY_YEAR_INPUT_TOKEN_BUDGET
+        : CALENDAR_SUMMARY_ROLLUP_INPUT_TOKEN_BUDGET,
 }) {
     if (!sources.length) return '';
     const systemByLevel = {
@@ -36793,13 +39918,28 @@ async function summarizeCalendarRollupSources({
             'Собери недельный слой накопительной памяти только из дневных резюме.',
             'Не обращайся к исходным сообщениям и не выдумывай фактов.',
             'Удали повторы между днями, сохрани развитие тем, решения, события, конфликты, мемы, людей и незакрытые вопросы.',
+            'Для участников используй полное актуальное имя VK из входных данных; не сокращай имя до одного имени.',
             'Это immutable delta: описывай только переданные дневные резюме.',
         ].join(' '),
         month: [
             'Собери месячный слой накопительной памяти только из недельных сегментов.',
             'Не обращайся к исходным сообщениям или дневным данным напрямую.',
             'Удали повторы, сохрани главные линии месяца, важные события, решения, отношения, мемы и незакрытые вопросы.',
+            'Для участников используй полное актуальное имя VK из входных данных; одинаковый user ID с разными именами сохраняй с именем, действовавшим в соответствующий момент.',
             'Это immutable delta: описывай только переданные недельные сегменты.',
+        ].join(' '),
+        season: [
+            'Собери сезонное резюме только из уже сохранённых месячных резюме этого сезона.',
+            'Не обращайся к исходным сообщениям, дневным и недельным слоям напрямую и не выдумывай фактов.',
+            'Сведи повторяющиеся линии, выдели события, решения и изменения, характерные для всего сезона.',
+            'Не превращай результат в перечень месячных цитат; пиши связное резюме сезона.',
+        ].join(' '),
+        year: [
+            'Собери годовое резюме только из уже сохранённых месячных резюме.',
+            'Не обращайся к исходным сообщениям, дневным и недельным слоям напрямую и не выдумывай фактов.',
+            'Сожми повторяющиеся линии, сохрани главные события, изменения, решения и незакрытые вопросы года.',
+            'Объём должен быть сопоставим примерно с тремя-четырьмя дневными резюме.',
+            'Участников называй полным именем VK; если один user ID менял имя, используй имя, актуальное на момент описываемого события, и не заменяй его общим коротким именем.',
         ].join(' '),
         range: [
             'Собери итог по запрошенному диапазону из уже накопленных неперекрывающихся summary-слоёв и, если есть, одного ограниченного raw-хвоста.',
@@ -36818,7 +39958,7 @@ async function summarizeCalendarRollupSources({
     let pass = 0;
     while (current.length > 1 || pass === 0) {
         pass += 1;
-        const groups = splitCalendarRollupSources(current);
+        const groups = splitCalendarRollupSources(current, inputTokenBudget);
         const next = [];
         for (let index = 0; index < groups.length; index += 1) {
             const group = groups[index];
@@ -36829,6 +39969,7 @@ async function summarizeCalendarRollupSources({
             const payload = group.map((source, sourceIndex) => (
                 formatCalendarRollupSource(source, sourceIndex, group.length)
             )).join('\n\n');
+            const roster = buildCalendarParticipantNameRoster(peerId, level);
             const stage = `calendar-${level}-p${pass}`;
             const result = await runCachedSummaryStage({
                 stage,
@@ -36842,6 +39983,7 @@ async function summarizeCalendarRollupSources({
                         `Peer: ${peerId}.`,
                         `Период: ${periodLabel}.`,
                         `Проход: ${pass}; группа ${index + 1}/${groups.length}.`,
+                        roster ? `Полные имена участников VK (справочник, не добавляй новых людей): ${roster}` : '',
                         '',
                         payload,
                     ].join('\n'),
@@ -36854,7 +39996,7 @@ async function summarizeCalendarRollupSources({
                         sourceCount: group.length,
                     },
                     inputCount: group.length,
-                    maxTokens: level === 'all-time' ? 4200 : 3200,
+                    maxTokens: level === 'year' || level === 'all-time' ? 10000 : 3200,
                     temperature: 0.05,
                 })),
             });
@@ -36868,7 +40010,8 @@ async function summarizeCalendarRollupSources({
         current = next;
         if (current.length === 1) break;
     }
-    return String(current[0]?.summaryText || '').trim();
+    const text = String(current[0]?.summaryText || '').trim();
+    return clampAutoSummaryText(text, calendarSummaryOutputLimit(level, periodLabel));
 }
 
 function recoveredMessageCanAliasPaidState(message, paidStates) {
@@ -36971,12 +40114,16 @@ async function buildCalendarBatchRevisions(peerId, model, {
         ]));
         const summary = await createOpenAISummary({
             messages,
-            description: `автобатч ${slice.dayKey} ${slice.slotLabel}; immutable delta`,
+            description: `автобатч ${slice.dayKey} ${slice.slotLabel}; immutable delta; максимум ${getAutoSummaryLimit('intraday_paragraphs')} абзацев и ${getAutoSummaryLimit('intraday_chars')} знаков`,
             model,
-            communicationStylePrompt: '',
+            communicationStylePrompt: `Для внутридневного батча пиши содержательно и без лишнего сжатия. Допустимо максимум ${getAutoSummaryLimit('intraday_paragraphs')} абзацев и ориентир до ${getAutoSummaryLimit('intraday_chars')} знаков; при большом объёме сообщений используй большую часть этого объёма, не обрывая тему. Сохраняй самостоятельные темы, ключевые подробности, решения, конфликты и незакрытые вопросы. Объединяй повторы и не добавляй общие вводные фразы.`,
             tokenUsageOperationPrefix: 'calendar-batch-summary',
             inputTokenBudget: CALENDAR_SUMMARY_RAW_INPUT_TOKEN_BUDGET,
+            outputTokenBudget: 1_200,
         });
+        // Length and paragraph limits belong to the prompt/model response. Do
+        // not discard already-generated content after spending the tokens.
+        const compactSummary = summary;
         const states = messages.map((message) => ({
             messageKey: hierarchyMessageKey(message, peerId),
             peerId,
@@ -36993,7 +40140,7 @@ async function buildCalendarBatchRevisions(peerId, model, {
             startAt: slice.startAt,
             endAt: slice.endAt,
             inputHash,
-            summaryText: summary,
+            summaryText: compactSummary,
             model,
             messageCount: messages.length,
         }, states);
@@ -37010,11 +40157,21 @@ async function buildCalendarBatchRevisions(peerId, model, {
     return { created, aliases: unpaid.aliases, pendingSlices: unpaid.groups.size };
 }
 
-async function promoteCalendarBatchToDaily(peerId, model, currentDateKey) {
+function calendarDailyPromotionEligible(dayKey, currentDateKey, now = new Date()) {
+    if (String(dayKey) < String(currentDateKey)) return true;
+    if (String(dayKey) > String(currentDateKey)) return false;
+    // The daily rollup is published only after the 22:30-23:59 tail has
+    // closed. The 21:00-22:30 batch remains an ordinary published batch;
+    // the tail is stored and folded into the daily rollup without its own
+    // Telegram/VK publication.
+    return localClockMinutes(now) >= (23 * 60 + 59);
+}
+
+async function promoteCalendarBatchToDaily(peerId, model, currentDateKey, now = new Date()) {
     const unconsumed = getHierarchyUnconsumedBatchSummaries(peerId);
     const groups = new Map();
     for (const batch of unconsumed) {
-        if (!isClosedCalendarDate(addCalendarDays(batch.dayKey, 1), currentDateKey)) continue;
+        if (!calendarDailyPromotionEligible(batch.dayKey, currentDateKey, now)) continue;
         const list = groups.get(batch.dayKey) || [];
         list.push(batch);
         groups.set(batch.dayKey, list);
@@ -37183,6 +40340,9 @@ async function deliverCalendarBatchIfDue(peerId, sliceKey, now = new Date()) {
     const rows = getHierarchyBatchSummaries(peerId, sliceKey);
     if (!rows.length) return false;
     const row = rows[0];
+    // The final 22:30-24:00 tail is an internal source for the 23:59 daily
+    // rollup. It must never be emitted as a separate long message.
+    if (String(row.slotLabel || '') === '23:59') return false;
     const slot = getCalendarSummarySliceSlot(row.slotLabel);
     if (!slot) return false;
     const bounds = calendarSummarySliceBounds(row.dayKey, slot, botTimeZone);
@@ -37214,7 +40374,13 @@ async function deliverCalendarDailyIfDue(peerId, dayKey, now) {
     const settings = getCalendarSummaryDeliverySettings(peerId);
     if (!settings) return false;
     const closeDate = addCalendarDays(dayKey, 1);
-    if (!calendarPeriodClosedRecently(closeDate, now)) return false;
+    const currentDateKey = getLocalDateString(now, botTimeZone);
+    const sameDayDailyCutoff = String(dayKey) === String(currentDateKey) && localClockMinutes(now) >= (23 * 60 + 59);
+    const closeAt = calendarDateStartTimestamp(closeDate);
+    const nowSeconds = Math.floor(now.getTime() / 1000);
+    const closedWithinCatchup = closeAt <= nowSeconds && nowSeconds - closeAt <= CALENDAR_SPECIAL_ROLLUP_CATCHUP_SECONDS;
+    if (!sameDayDailyCutoff && !closedWithinCatchup) return false;
+    if (Number(settings.updatedAt || 0) > closeAt) return false;
     if (getHierarchyRollupDelivery(peerId, 'day', dayKey)?.deliveredAt) return false;
     const rows = getHierarchyDailySummaries(peerId, dayKey);
     if (!rows.length) return false;
@@ -37256,7 +40422,7 @@ async function deliverCalendarMonthIfDue(peerId, monthKey, currentDateKey, now) 
     const settings = getCalendarSummaryDeliverySettings(peerId);
     if (!settings) return false;
     const closeDate = nextCalendarMonthStart(monthKey);
-    if (!isCalendarMonthClosed(monthKey, currentDateKey) || !calendarPeriodClosedRecently(closeDate, now)) return false;
+    if (!isCalendarMonthClosed(monthKey, currentDateKey) || !calendarPeriodClosedRecently(closeDate, now, CALENDAR_LONG_ROLLUP_CATCHUP_SECONDS)) return false;
     if (getHierarchyRollupDelivery(peerId, 'month', monthKey)?.deliveredAt) return false;
     const rows = getHierarchyMonthlySummaries(peerId, monthKey);
     if (!rows.length) return false;
@@ -37275,7 +40441,130 @@ async function deliverCalendarMonthIfDue(peerId, monthKey, currentDateKey, now) 
     return true;
 }
 
-async function deliverRecentCalendarSummaries(peerId, currentDateKey, now = new Date()) {
+function calendarLocalTimestamp(dateKey, hour = 0, minute = 0) {
+    return Math.floor(zonedDateTimeToUtcMilliseconds(dateKey, hour, minute, botTimeZone) / 1000);
+}
+
+function calendarSpecialSources(peerId, startAt, endAt, { preferLevel = 'day' } = {}) {
+    if (preferLevel === 'month') {
+        return getHierarchyMonthlySummaries(peerId)
+            .filter((row) => Number(row.startAt || 0) < endAt && Number(row.endAt || 0) > startAt)
+            .map((row) => ({
+                periodKey: `month:${row.monthKey}:${row.revision}`,
+                label: `месяц ${row.monthKey}, rev ${row.revision}`,
+                summaryText: row.summaryText,
+                messageCount: row.messageCount,
+            }));
+    }
+    const allDaily = getHierarchyDailySummaries(peerId);
+    const daily = allDaily
+        .filter((row) => calendarSummarySourceIsFullyContained(row, startAt, endAt))
+        .sort((a, b) => Number(a.startAt || 0) - Number(b.startAt || 0) || Number(a.revision || 0) - Number(b.revision || 0));
+    const sources = daily.map((row) => ({
+        periodKey: `day:${row.dayKey}:${row.revision}`,
+        label: `день ${row.dayKey}, rev ${row.revision}`,
+        summaryText: row.summaryText,
+        messageCount: row.messageCount,
+    }));
+    const batchRows = getHierarchyBatchSummaries(peerId)
+        .filter((row) => {
+            const slot = getCalendarSummarySliceSlot(row.slotLabel);
+            if (!slot) return false;
+            const bounds = calendarSummarySliceBounds(row.dayKey, slot, botTimeZone);
+            return Number(bounds.startAt || 0) < endAt && Number(bounds.endAt || 0) > startAt;
+        })
+        .sort((a, b) => Number(a.startAt || 0) - Number(b.startAt || 0) || Number(a.revision || 0) - Number(b.revision || 0));
+    const { batches } = selectCalendarSummarySourcesForPeriod(daily, batchRows, startAt, endAt);
+    sources.push(...batches.map((row) => ({
+        periodKey: `batch:${row.sliceKey}:${row.revision}`,
+        label: `автобатч ${row.sliceKey}, rev ${row.revision}`,
+        summaryText: row.summaryText,
+        messageCount: row.messageCount,
+    })));
+    return sources;
+}
+
+async function deliverCalendarSpecialRollup(peerId, model, {
+    periodType,
+    periodKey,
+    label,
+    startAt,
+    endAt,
+    now,
+    level = 'range',
+    sourceLevel = 'day',
+    illustrationPrompt = '',
+}) {
+    const settings = getCalendarSummaryDeliverySettings(peerId);
+    if (!settings || getHierarchyRollupDelivery(peerId, periodType, periodKey)?.deliveredAt) return false;
+    if (Number(settings.updatedAt || 0) > Number(endAt || 0)) return false;
+    const sources = calendarSpecialSources(peerId, startAt, endAt, { preferLevel: sourceLevel });
+    if (!sources.length) return false;
+    const summary = sources.length === 1
+        ? String(sources[0].summaryText || '').trim()
+        : await summarizeCalendarRollupSources({
+            peerId,
+            level,
+            periodLabel: `${label}; ${new Date(startAt * 1000).toISOString()} — ${new Date(endAt * 1000).toISOString()}`,
+            sources,
+            model,
+            inputTokenBudget: level === 'year' ? CALENDAR_SUMMARY_YEAR_INPUT_TOKEN_BUDGET : CALENDAR_SUMMARY_ROLLUP_INPUT_TOKEN_BUDGET,
+        });
+    if (!summary) return false;
+    const contentHash = stableSummaryHash(sources.map((source) => [source.periodKey, source.summaryText]));
+    await sendScheduledAutoSummary(
+        calendarSummaryDeliveryTarget(peerId, settings),
+        [`🗓 ${label}`, `Сообщений учтено: ${sources.reduce((sum, source) => sum + Number(source.messageCount || 0), 0)}.`, '', summary].join('\n'),
+        { illustrationPrompt },
+    );
+    markHierarchyRollupDelivered(peerId, periodType, periodKey, contentHash);
+    return true;
+}
+
+function calendarMonthLastDay(monthKey) {
+    return addCalendarDays(nextCalendarMonthStart(monthKey), -1);
+}
+
+async function deliverCalendarScheduledRollups(peerId, model, now = new Date()) {
+    const dateKey = getLocalDateString(now, botTimeZone);
+    const clock = localClockMinutes(now);
+    for (const period of getDueCalendarSpecialRollups(now, botTimeZone)) {
+        const endMinute = Number(period.endMinute || 0);
+        const label = period.periodType === 'workweek'
+            ? `Рабочая неделя до пятницы ${period.periodKey} 15:00`
+            : period.periodType === 'weekend'
+                ? `Выходные ${period.startDate} 15:00 — ${period.periodKey} 20:00`
+                : `Полная неделя ${calendarWeekStart(period.periodKey)} — ${period.periodKey}`;
+        await deliverCalendarSpecialRollup(peerId, model, {
+            periodType: period.periodType,
+            periodKey: period.periodKey,
+            label,
+            startAt: calendarLocalTimestamp(period.startDate, period.startHour),
+            endAt: calendarLocalTimestamp(period.endDate, period.endHour, endMinute),
+            now,
+            level: period.periodType === 'weekend' ? 'range' : 'week',
+            illustrationPrompt: `Резюмируй происходящее в чате за ${label} картинкой. Создай именно иллюстрацию, без цитирования сообщений и без изображения интерфейса чата.`,
+        });
+    }
+    for (const period of getDueCalendarLongRollups(now, botTimeZone)) {
+        const level = period.periodType === 'calendar-year'
+            ? 'year'
+            : period.periodType === 'calendar-season' ? 'season' : 'month';
+        await deliverCalendarSpecialRollup(peerId, model, {
+            periodType: period.periodType,
+            periodKey: period.periodKey,
+            label: period.label,
+            startAt: calendarLocalTimestamp(period.startDate),
+            endAt: calendarLocalTimestamp(period.endDate),
+            now,
+            level,
+            sourceLevel: 'month',
+            illustrationPrompt: `Резюмируй происходящее в чате за ${period.label} картинкой. Создай именно иллюстрацию, без цитирования сообщений и без изображения интерфейса чата.`,
+        });
+    }
+}
+
+async function deliverRecentCalendarSummaries(peerId, currentDateKey, now = new Date(), model = null) {
     const settings = getCalendarSummaryDeliverySettings(peerId);
     if (!settings) return;
 
@@ -37295,9 +40584,20 @@ async function deliverRecentCalendarSummaries(peerId, currentDateKey, now = new 
         await deliverCalendarBatchIfDue(peerId, sliceKey, now);
     }
 
-    // Public autoresume format in V188.45 is exactly the six fixed intraday
-    // posts. Daily/weekly/monthly rows are internal accumulated memory only and
-    // must not create extra midnight/Sunday/month-end spam in the chat.
+    // Deliver recent closed daily summaries generated after midnight or whose
+    // previous send was interrupted.
+    const dailyKeys = getDueCalendarDailySummaryKeys(
+        getHierarchyDailySummaries(peerId).map((row) => row.dayKey),
+        now,
+        botTimeZone,
+    );
+    dailyKeys.unshift(currentDateKey);
+    for (const dayKey of dailyKeys) {
+        await deliverCalendarDailyIfDue(peerId, dayKey, now);
+    }
+    if (model) await deliverCalendarScheduledRollups(peerId, model, now);
+
+    // The same maintenance pass catches up recent daily and calendar rollups.
 }
 
 async function runCalendarSummaryMaintenanceForPeer(peerId, model, {
@@ -37312,10 +40612,10 @@ async function runCalendarSummaryMaintenanceForPeer(peerId, model, {
         includeOpenCurrentSlice: includeCurrentDay,
         maxSlices: Math.max(1, Number(maxSlices || CALENDAR_SUMMARY_MAX_SLICES_PER_MAINTENANCE)),
     });
-    const daily = await promoteCalendarBatchToDaily(peerId, model, currentDateKey);
+    const daily = await promoteCalendarBatchToDaily(peerId, model, currentDateKey, now);
     const weekly = await promoteCalendarDailyToWeekly(peerId, model, currentDateKey);
     const monthly = await promoteCalendarWeeklyToMonthly(peerId, model, currentDateKey);
-    if (deliver) await deliverRecentCalendarSummaries(peerId, currentDateKey, now);
+    if (deliver) await deliverRecentCalendarSummaries(peerId, currentDateKey, now, model);
     return {
         peerId,
         batches: batches.created.length,
@@ -37853,7 +41153,9 @@ async function createFocusedTopicSummary({
     communicationStylePrompt = '',
 }) {
     const entries = await buildSummaryEntries(messages);
-    const batches = splitStableSummaryMessageBatches(entries, { inputTokenBudget });
+    const batches = splitStableSummaryMessageBatches(entries, {
+        inputTokenBudget: SUMMARY_COMMAND_INPUT_TOKEN_BUDGET,
+    });
     const focusHash = createHash('sha256').update(String(focusQuery)).digest('hex').slice(0, 12);
     const partials = [];
 
@@ -38292,15 +41594,28 @@ async function createOpenAISummary({
     communicationStylePrompt = '',
     tokenUsageOperationPrefix = 'manual-summary',
     inputTokenBudget = SUMMARY_COMMAND_INPUT_TOKEN_BUDGET,
+    outputTokenBudget = 0,
 }) {
+    const boundedOutputTokens = Number.isFinite(Number(outputTokenBudget)) && Number(outputTokenBudget) > 0
+        ? Math.max(256, Math.trunc(Number(outputTokenBudget)))
+        : 0;
     const names = await loadNames(
         messages.map((message) => message.senderId),
     );
+    const historicalNames = new Map();
+    for (const message of messages) {
+        const senderId = Number(message?.senderId || 0);
+        const createdAt = Number(message?.createdAt || 0);
+        if (!Number.isSafeInteger(senderId) || senderId <= 0 || createdAt <= 0) continue;
+        const key = `${senderId}:${Math.floor(createdAt / 86400)}`;
+        if (historicalNames.has(key)) continue;
+        const atTime = getVkUserNamesAt([senderId], createdAt).get(senderId);
+        if (atTime) historicalNames.set(key, atTime);
+    }
     const entries = messages
         .map((message) => {
-            const name =
-                names.get(message.senderId) ??
-                formatSender(message.senderId);
+            const historicalName = historicalNames.get(`${Number(message.senderId || 0)}:${Math.floor(Number(message.createdAt || 0) / 86400)}`);
+            const name = historicalName || names.get(message.senderId) || formatSender(message.senderId);
             const clean = String(message.text ?? '')
                 .replace(/\s+/g, ' ')
                 .trim();
@@ -38372,7 +41687,14 @@ async function createOpenAISummary({
                                 batchLabel: label,
                             },
                             inputCount: batch.length,
-                            maxTokens: 2600,
+                            // Keep generation near the configured character
+                            // cap so tokens are not spent producing text that
+                            // the post-generation limiter would discard.
+                            // 1,296 characters is roughly 800–1,100 Russian
+                            // output tokens. Keep the paid response budget
+                            // close to that target so no post-generation crop
+                            // is needed.
+                            maxTokens: boundedOutputTokens || 2_600,
                             temperature: 0.1,
                         }),
                     );
@@ -38447,7 +41769,7 @@ async function createOpenAISummary({
                                 mergeGroup: `${index + 1}/${groups.length}`,
                             },
                             inputCount: groups.length,
-                            maxTokens: mergePass > 1 ? 3200 : 2200,
+                            maxTokens: boundedOutputTokens || (mergePass > 1 ? 3_200 : 2_200),
                             temperature: 0.1,
                         }),
                     );
@@ -39823,8 +43145,14 @@ async function sendChatDatabaseImage(
             }),
         );
     } catch (error) {
-        if (!isOpenAIImagePolicyRefusal(error)) {
-            throw error;
+        const imageRequestRejected = isOpenAIImagePolicyRefusal(error) ||
+            Number(error?.status || error?.response?.status || 0) === 400 ||
+            /(?:invalid_request|некорректн|unsupported|неподдерживаем)/iu.test(String(error?.message || ''));
+        // Router-compatible image IDs occasionally return a generic 400/503
+        // for a rich prompt. Retry once with a neutral compact prompt so the
+        // selected model still gets a chance to return the requested image.
+        if (!imageRequestRejected) {
+            console.warn('[GPT IMAGE SUMMARY RETRY]', `model=${model}`, formatPrivateError(error));
         }
 
         console.warn(
@@ -39873,6 +43201,7 @@ async function sendGptEditedImage(
     imageModel,
     terminology = null,
     textModel = null,
+    exactModel = false,
 ) {
     const rawContext = getRawContext(context);
     const editRequest = parseImageEditRequest(prompt);
@@ -39897,17 +43226,19 @@ async function sendGptEditedImage(
         textModel,
     );
     const sourceImageAnalysis = await getIncomingImageAnalysisBlock(rawContext);
-    const effectivePrompt = [
+    const combinedEditPrompt = [
         baseEffectivePrompt,
         sourceImageAnalysis
             ? `СЛУЖЕБНОЕ ОПИСАНИЕ ИСХОДНИКА ДЛЯ РЕДАКТИРОВАНИЯ:
 ${sourceImageAnalysis}`
             : '',
     ].filter(Boolean).join('\n\n');
+    const effectivePrompt = await ensureImagePromptSize(combinedEditPrompt, { model: imageModel });
     const preparedSourceImages = await prepareVisionInputUrls(sourceImageUrls.slice(0, 4));
     const image = await enqueueOpenAI(() =>
         generateOpenAIImage({
             model: imageModel,
+            exactModel,
             systemPrompt: [
                 'Отредактируй изображение пользователя и верни одно готовое изображение.',
                 'Первое пользовательское изображение является исходной основой.',
@@ -39960,6 +43291,7 @@ async function sendGptGeneratedImage(
     model,
     terminology = null,
     textModel = null,
+    exactModel = false,
 ) {
     const cleanPrompt = String(prompt).trim();
 
@@ -39968,15 +43300,17 @@ async function sendGptGeneratedImage(
         text: `[GPT image] ${cleanPrompt}`,
     });
 
-    const effectivePrompt = await prepareImagePromptWithExplicitMemory(
+    const preparedPrompt = await prepareImagePromptWithExplicitMemory(
         context,
         cleanPrompt,
         terminology,
         textModel,
     );
+    const effectivePrompt = await ensureImagePromptSize(preparedPrompt, { model });
     const image = await enqueueOpenAI(() =>
         generateOpenAIImage({
             model,
+            exactModel,
             systemPrompt: [
                 'Создай одно изображение по описанию пользователя.',
                 'Если описание было дополнено явно сохранённой памятью, используй только относящиеся к запросу детали.',
@@ -40000,12 +43334,144 @@ async function sendGptGeneratedImage(
     });
 }
 
+async function runScheduledImageGenerationProbe() {
+    if (existsSync(IMAGE_GENERATION_PROBE_SUCCESS_PATH)) {
+        return { skipped: true, reason: 'already-succeeded' };
+    }
+    if (imageGenerationProbeRunning || !telegramBotStarted || !telegramOwnerExternalUserId) {
+        return { skipped: true, reason: imageGenerationProbeRunning ? 'already-running' : 'telegram-owner-unavailable' };
+    }
+    imageGenerationProbeRunning = true;
+    const prompt = IMAGE_GENERATION_PROBE_PROMPTS[Math.floor(Math.random() * IMAGE_GENERATION_PROBE_PROMPTS.length)];
+    const configured = String(configuredGptImageModel || '').trim();
+    let models = [];
+    try {
+        models = (await getOpenAIModels({ force: true })).filter(isOpenAIImageModel);
+    } catch (error) {
+        console.warn('[IMAGE GENERATION PROBE MODEL CATALOG ERROR]', formatPrivateError(error));
+    }
+    if (configured && isOpenAIImageModel(configured) && !models.includes(configured)) models.unshift(configured);
+    models = [...new Set(models)];
+    if (!models.length) {
+        imageGenerationProbeRunning = false;
+        console.warn('[IMAGE GENERATION PROBE SKIPPED]', 'no-image-models');
+        return { skipped: true, reason: 'no-image-models' };
+    }
+    const results = [];
+    try {
+        for (const model of models) {
+            const modelStartedAt = Date.now();
+            try {
+                const image = await generateOpenAIImage({
+                    model,
+                    exactModel: true,
+                    userPrompt: prompt,
+                    systemPrompt: 'Создай одно изображение по описанию. Верни только изображение, без текста и логотипов.',
+                    tokenUsageOperation: 'scheduled-image-generation-probe',
+                });
+                results.push({ model, ok: true, elapsedMs: Date.now() - modelStartedAt });
+                const filename = `image-probe-${model.replace(/[^a-z0-9._-]+/giu, '_')}.png`;
+                try {
+                    await telegramBot.api.sendPhoto({
+                        chatId: telegramOwnerExternalUserId,
+                        photo: { buffer: image.buffer, filename, mimeType: image.mimeType || 'image/png' },
+                        caption: `✅ ${model} · ${Math.round((Date.now() - modelStartedAt) / 1000)} с`,
+                    });
+                    writeFileSync(IMAGE_GENERATION_PROBE_SUCCESS_PATH, JSON.stringify({ model, at: new Date().toISOString() }), 'utf8');
+                } catch (error) {
+                    console.warn('[IMAGE GENERATION PROBE DELIVERY FAILED]', `model=${model}`, formatPrivateError(error));
+                }
+                if (existsSync(IMAGE_GENERATION_PROBE_SUCCESS_PATH)) break;
+            } catch (error) {
+                results.push({ model, ok: false, elapsedMs: Date.now() - modelStartedAt, error: formatPrivateError(error) });
+                console.warn('[IMAGE GENERATION PROBE MODEL FAILED]', `model=${model}`, formatPrivateError(error));
+            }
+        }
+        return { prompt, results };
+    } finally {
+        imageGenerationProbeRunning = false;
+    }
+}
+
+const OWNER_IMAGE_TEST_FALLBACK_PROMPTS = Object.freeze([
+    'A tipsy homeless rooster in a patched leather jacket, sitting beside a cardboard shelter under a city bridge, humorous but sympathetic, cinematic street photography, no text',
+    'An alcoholic rooster with a tiny bottle and a battered mohawk, wandering through a rainy night market, expressive feathers, dark comedy, richly detailed illustration, no text',
+    'A scruffy runaway rooster musician carrying a dented guitar and a backpack, sunrise over an urban railway, warm absurd humor, high detail, no text',
+]);
+
+async function runOwnerImageModelTest(context, promptHint = '') {
+    if (!await requireOwnerDm(context)) return true;
+    const fallback = OWNER_IMAGE_TEST_FALLBACK_PROMPTS[Math.floor(Math.random() * OWNER_IMAGE_TEST_FALLBACK_PROMPTS.length)];
+    let prompt = String(promptHint || '').trim();
+    if (!prompt) {
+        try {
+            const generated = await generateOpenAIText({
+                systemPrompt: 'Ты придумываешь короткие англоязычные prompts для image-моделей. Верни только один подробный prompt про петуха: он может быть алкоголиком, беспризорником или музыкантом. Укажи сцену, стиль и фразу no text.',
+                userPrompt: 'Случайно выбери образ петуха из этой серии и придумай новый prompt. Только prompt, без кавычек и пояснений.',
+                temperature: 1,
+                maxTokens: 220,
+                tokenUsageOperation: 'owner-image-model-test-prompt',
+            });
+            prompt = String(generated?.text || generated || '').trim();
+        } catch (error) {
+            console.warn('[OWNER IMAGE TEST PROMPT FAILED]', formatPrivateError(error));
+        }
+    }
+    if (!prompt) prompt = fallback;
+    let models = [];
+    try {
+        models = (await getOpenAIModels({ force: true })).filter(isOpenAIImageModel);
+    } catch (error) {
+        await context.send('Не удалось получить список image-моделей: ' + sanitizeProviderError(error));
+        return true;
+    }
+    const configured = String(configuredGptImageModel || '').trim();
+    if (configured && isOpenAIImageModel(configured)) models.unshift(configured);
+    models = [...new Set(models)];
+    if (!models.length) {
+        await context.send('В каталоге провайдера нет image-моделей.');
+        return true;
+    }
+    await context.send('Тестирую ' + models.length + ' image-моделей. Промпт:\n' + prompt);
+    const results = [];
+    for (const model of models) {
+        const started = Date.now();
+        try {
+            const image = await enqueueOpenAI(() => generateOpenAIImage({
+                model,
+                exactModel: true,
+                systemPrompt: 'Создай одно изображение по описанию. Верни только изображение. Не добавляй текст, подписи или логотипы.',
+                userPrompt: prompt,
+                tokenUsageOperation: 'owner-image-model-test',
+            }));
+            const attachment = await uploadOpenAIImage(image, 'owner-image-test-' + model, context);
+            await context.send({
+                message: '✅ ' + model + ' · ' + Math.round((Date.now() - started) / 1000) + ' с',
+                attachment,
+            });
+            results.push({ model, ok: true });
+        } catch (error) {
+            const reason = sanitizeProviderError(error);
+            results.push({ model, ok: false, reason });
+            console.warn('[OWNER IMAGE TEST MODEL FAILED]', 'model=' + model, reason);
+        }
+    }
+    const failed = results.filter((item) => !item.ok);
+    await context.send([
+        'Тест завершён: успешно ' + (results.length - failed.length) + '/' + results.length + '.',
+        'Промпт: ' + prompt,
+        ...(failed.length ? ['Ошибки:', ...failed.map((item) => '• ' + item.model + ': ' + item.reason)] : []),
+    ].join('\\n'));
+    return true;
+}
+
 async function sendGptImageSummary(
     context,
     range,
     model,
     _selectedSummaryModel = null,
     focusQuery = '',
+    skipTextPreparation = false,
 ) {
     const loaded = loadRange(context.peerId, range);
     const messages = filterSummaryMessages(loaded.messages);
@@ -40058,19 +43524,38 @@ async function sendGptImageSummary(
             });
             summaryDescription = `${loaded.description}; фокус «${focusQuery}»`;
         }
+    } else if (skipTextPreparation) {
+        const fallbackLines = messages
+            .map((message) => String(message.text || '').replace(/\s+/gu, ' ').trim())
+            .filter(Boolean)
+            .slice(-80);
+        visualDigest = `Визуальное резюме периода ${loaded.description}. Темы и реплики беседы: ${fallbackLines.join(' | ')}`
+            .slice(0, SAFE_IMAGE_PROMPT_SIZE);
+        console.warn('[GPT IMAGE SUMMARY TEXT SKIPPED]', `messages=${messages.length}`);
     } else {
-        visualDigest = await createGptImageConversationDigest({
-            messages,
-            description: loaded.description,
-            model: promptModel,
-        });
+        try {
+            visualDigest = await createGptImageConversationDigest({
+                messages,
+                description: loaded.description,
+                model: promptModel,
+            });
+        } catch (error) {
+            // The text pass is only prompt preparation. If the upstream stream
+            // is interrupted, keep the image request useful by deriving a
+            // bounded neutral digest locally from the selected transcript.
+            console.warn('[GPT IMAGE SUMMARY TEXT FALLBACK]', formatPrivateError(error));
+            const fallbackLines = messages
+                .map((message) => String(message.text || '').replace(/\s+/gu, ' ').trim())
+                .filter(Boolean)
+                .slice(-80);
+            visualDigest = `Визуальное резюме периода ${loaded.description}. Темы и реплики беседы: ${fallbackLines.join(' | ')}`
+                .slice(0, SAFE_IMAGE_PROMPT_SIZE);
+        }
     }
-    const imagePrompt = await createGptImageSummaryPrompt({
-        transcript: visualDigest,
-        description: summaryDescription,
-        messageCount: effectiveMessageCount,
-        model: promptModel,
-    });
+    // The digest is already produced from the complete selected transcript.
+    // Keep image-summary deliberately small: one text-model pass, then one
+    // image-model pass. A second text merge only multiplied latency and cost.
+    const imagePrompt = String(visualDigest || '').trim().slice(0, SAFE_IMAGE_PROMPT_SIZE);
 
     console.log(
         '[GPT IMAGE SUMMARY PIPELINE]',
@@ -40097,7 +43582,10 @@ async function sendGptImageSummary(
             }),
         );
     } catch (error) {
-        if (!isOpenAIImagePolicyRefusal(error)) {
+        const imageRequestRejected = isOpenAIImagePolicyRefusal(error) ||
+            Number(error?.status || error?.response?.status || 0) === 400 ||
+            /(?:invalid_request|некорректн|unsupported|неподдерживаем)/iu.test(String(error?.message || ''));
+        if (!imageRequestRejected) {
             throw error;
         }
 
@@ -40147,39 +43635,114 @@ async function sendGptImageSummary(
     });
 }
 
+// Owner-only runtime diagnostic: replay an image summary through the normal
+// pipeline without sending a synthetic message through VK Long Poll (the bot
+// does not receive its own outgoing messages). This is intentionally explicit
+// and is used only by one-off maintenance scripts.
+export async function runOwnerImageSummaryReplay({
+    peerId,
+    senderId = LIMIT_RESET_ADMIN_USER_ID,
+    models = [],
+    range = { unit: 'messages', value: 1000 },
+} = {}) {
+    const targetPeerId = Number(peerId);
+    if (!Number.isSafeInteger(targetPeerId) || targetPeerId <= 0) {
+        throw new Error('IMAGE_SUMMARY_REPLAY_INVALID_PEER');
+    }
+    const selectedModels = [...new Set((Array.isArray(models) ? models : [])
+        .map((value) => String(value || '').trim())
+        .filter(Boolean))];
+    if (!selectedModels.length) {
+        throw new Error('IMAGE_SUMMARY_REPLAY_NO_MODELS');
+    }
+    const context = {
+        platform: 'vk',
+        peerId: targetPeerId,
+        senderId: Number(senderId) || LIMIT_RESET_ADMIN_USER_ID,
+        conversationMessageId: 0,
+        isChat: targetPeerId >= 2_000_000_000,
+        isDM: targetPeerId < 2_000_000_000,
+        isOutbox: false,
+        text: '',
+        originalText: '',
+        async send(payload) {
+            const body = payload && typeof payload === 'object'
+                ? payload
+                : { message: String(payload ?? '') };
+            const params = {
+                peer_id: targetPeerId,
+                random_id: Math.floor(Math.random() * 2_000_000_000),
+                message: String(body.message ?? body.text ?? ''),
+            };
+            if (body.attachment) params.attachment = body.attachment;
+            return primaryVk.api.messages.send(params);
+        },
+    };
+    const results = [];
+    for (const imageModel of selectedModels) {
+        try {
+            await sendGptImageSummary(
+                context,
+                range,
+                imageModel,
+                null,
+                '',
+                true,
+            );
+            results.push({ model: imageModel, ok: true });
+        } catch (error) {
+            console.error('[IMAGE SUMMARY REPLAY FAILED]', imageModel, formatPrivateError(error));
+            results.push({ model: imageModel, ok: false, error: formatPrivateError(error) });
+        }
+    }
+    return results;
+}
+
 async function createGptImageConversationDigest({
     messages,
     description,
     model,
 }) {
+    // VK history may contain forwarded posts or pasted files that are much
+    // larger than the visible message. Keep one model request, but bound its
+    // input so a 1000-message request cannot exceed the router context.
+    const maxTranscriptChars = 600_000;
+    const maxMessageChars = 2_400;
     const names = await loadNames(
         messages.map((message) => message.senderId),
     );
-    const lines = messages
-        .map((message) => {
-            const name = names.get(message.senderId) ?? formatSender(message.senderId);
-            const clean = String(message.text ?? '')
-                .replace(/\s+/gu, ' ')
-                .trim();
+    const lines = [];
+    let transcriptChars = 0;
+    for (const message of messages) {
+        const name = names.get(message.senderId) ?? formatSender(message.senderId);
+        const clean = String(message.text ?? '')
+            .replace(/\s+/gu, ' ')
+            .trim()
+            .slice(0, maxMessageChars);
 
-            if (!clean) return '';
+        if (!clean) continue;
 
-            const date = new Date(
-                Number(message.createdAt || 0) * 1000,
-            ).toLocaleString('ru-RU', {
-                timeZone: botTimeZone,
-            });
+        const date = new Date(
+            Number(message.createdAt || 0) * 1000,
+        ).toLocaleString('ru-RU', {
+            timeZone: botTimeZone,
+        });
+        const line = `[${date}] ${name}: ${clean}`;
+        if (transcriptChars + line.length > maxTranscriptChars) break;
+        lines.push(line);
+        transcriptChars += line.length + 1;
+    }
 
-            return `[${date}] ${name}: ${clean}`;
-        })
-        .filter(Boolean);
-
-    const chunks = splitLines(lines, SUMMARY_CHUNK_SIZE);
-    const partials = [];
-
-    for (let index = 0; index < chunks.length; index += 1) {
-        partials.push(await enqueueOpenAI(() =>
-            generateOpenAIText({
+    const transcript = lines.join('\n');
+    console.log(
+        '[GPT IMAGE SUMMARY INPUT]',
+        `selected=${messages.length}`,
+        `included=${lines.length}`,
+        `chars=${transcript.length}`,
+        `truncated=${lines.length < messages.length ? 'yes' : 'no'}`,
+    );
+    return enqueueOpenAI(() =>
+        generateOpenAIText({
                 model,
                 systemPrompt: [
                     'Сделай не литературное резюме, а плотную карту смысла фрагмента групповой беседы для будущей иллюстрации.',
@@ -40192,36 +43755,13 @@ async function createGptImageConversationDigest({
                 ].join(' '),
                 userPrompt: [
                     `Период: ${description}.`,
-                    `Фрагмент ${index + 1} из ${chunks.length}.`,
+                    `Переданы все сообщения выбранного периода: ${messages.length}.`,
                     '',
-                    chunks[index],
+                    transcript,
                 ].join('\n'),
-                maxTokens: 1200,
+                maxTokens: 2600,
                 temperature: 0.05,
             }),
-        ));
-    }
-
-    if (partials.length === 1) {
-        return partials[0];
-    }
-
-    return enqueueOpenAI(() =>
-        generateOpenAIText({
-            model,
-            systemPrompt: [
-                'Собери единый компактный визуальный дайджест всей беседы из частичных карт смысла.',
-                'Сохрани покрытие ВСЕХ заметных частей периода: не концентрируйся на одном фрагменте или одной теме.',
-                'Объедини прямые повторы, но сохрани минимум 5–8 самостоятельных тем/мотивов, если они присутствуют, и 8–14 конкретных визуальных якорей.',
-                'Отдельно сохрани общий вайб, отношения/динамику участников и изменения настроения.',
-                'Редкие случайные реплики не раздувай; повторяющиеся мотивы не теряй.',
-                'Не добавляй ничего, чего нет в частичных картах.',
-                'Верни один плотный текст без вступления, желательно 1100–1600 символов.',
-            ].join(' '),
-            userPrompt: partials.join('\n\n--- ФРАГМЕНТ ---\n\n'),
-            maxTokens: 1500,
-            temperature: 0.05,
-        }),
     );
 }
 
@@ -40345,7 +43885,7 @@ function isOpenAIImagePolicyRefusal(error) {
 
 async function generateOpenAIImage(options) {
     let enrichedOptions = options || {};
-    if (!Array.isArray(options?.userContent)) {
+    if (!options?.skipIncomingImageContext && !Array.isArray(options?.userContent)) {
         const store = incomingGptRequestStorage.getStore();
         const imageAnalysisBlock = store?.context
             ? await getIncomingImageAnalysisBlock(store.context)
@@ -40370,6 +43910,9 @@ async function generateOpenAIImage(options) {
         capability: 'image',
         modes: ['default'],
         requestedModel,
+        modelLadder: enrichedOptions?.exactModel ? [{ model: requestedModel, mode: 'default', attempts: 1 }] : null,
+        maxCandidates: enrichedOptions?.exactModel ? 1 : 0,
+        useCredentialHealth: !enrichedOptions?.exactModel,
         request: (credential) => generateOpenAIImageForCredential({
             ...enrichedOptions,
             tokenUsageOperation,
@@ -40382,6 +43925,13 @@ async function generateOpenAIImage(options) {
 
 async function generateOpenAIImageForCredential(options) {
     const model = String(options?.model ?? '').trim();
+    // Image-generation models are media-only. Keep them on the image endpoint
+    // even when an old transport audit suggests a chat fallback.
+    if (isOpenAIImageModel(model)) {
+        // router.cheap's GPT Image models accept the ordinary image endpoint
+        // with {model,prompt,n}; size and stream are rejected for these IDs.
+        return generateOpenAIImageNonStream({ ...options, legacyStreamOverride: false });
+    }
     const policy = resolveAuditedTransportPolicy(model, 'image');
     const preferred = policy?.preferredTransport || '';
     const fallback = policy?.fallbackTransport || '';
@@ -40417,6 +43967,78 @@ async function generateOpenAIImageForCredential(options) {
     }
 }
 
+async function generateOpenAIImageStreamEndpoint({
+    model,
+    systemPrompt,
+    userPrompt,
+    userContent = null,
+    providerCredential = null,
+    tokenUsageOperation = '',
+    tokenUsageMetadata = null,
+    quality = '',
+    preserveFullPrompt = false,
+}) {
+    const requestBaseUrl = normalizeOpenAIBaseUrl(providerCredential?.baseUrl || openAIBaseUrl);
+    const requestApiKey = String(providerCredential?.secret || openAIApiKey || '').trim();
+    const endpoint = `${requestBaseUrl.replace(/\/$/u, '')}/images/generations`;
+    const combinedPrompt = [String(systemPrompt ?? '').trim(), String(userContent ?? userPrompt ?? '').trim()]
+        .filter(Boolean).join('\n\n');
+    const effectivePrompt = preserveFullPrompt ? combinedPrompt : combinedPrompt.slice(0, 12000);
+    const requestStartedAt = Date.now();
+    const requestBody = { model, prompt: effectivePrompt, n: 1, stream: true };
+    if (String(quality || '').trim()) requestBody.quality = String(quality).trim();
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${requestApiKey}`,
+            'Content-Type': 'application/json',
+            Accept: 'text/event-stream, application/json, image/*',
+        },
+        body: JSON.stringify(requestBody),
+        signal: buildOperationAbortSignal(OPENAI_IMAGE_REQUEST_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`GPT image stream API ${response.status}: ${body.slice(0, 700)}`);
+    }
+    const contentType = String(response.headers.get('content-type') || '').toLowerCase();
+    if (!contentType.includes('text/event-stream')) {
+        throw new Error(`GPT image stream API returned non-stream content-type=${contentType || 'unknown'}`);
+    }
+    const collector = new OpenAIImageStreamCollector({ maxImageBytes: OPENAI_IMAGE_MAX_BYTES });
+    let usage = null;
+    await consumeOpenAIStream(response, {
+        label: 'GPT IMAGE ENDPOINT',
+        onPayload(payload) {
+            if (payload?.error) throw new Error(`GPT IMAGE STREAM ERROR: ${String(payload.error?.message ?? payload.error).slice(0, 700)}`);
+            collector.push(payload);
+            usage = extractOpenAIStreamUsage(payload) || usage;
+        },
+    });
+    const streamed = collector.finish();
+    const image = await resolveOpenAIImageCandidates(streamed.candidates);
+    if (!image) {
+        throw new Error(`GPT image API stream не вернул изображение. Ответ: ${streamed.answerText.slice(0, 500)}`);
+    }
+    recordAiTokenUsage({
+        operation: inferAiTokenOperation({ operation: tokenUsageOperation, capability: 'image', systemPrompt, userPrompt }),
+        capability: 'image',
+        provider: providerCredential?.provider || 'compat',
+        keyName: providerCredential?.name || '',
+        model,
+        transport: 'images-generations-stream',
+        usage,
+        inputChars: effectivePrompt.length,
+        outputChars: 0,
+        durationMs: Date.now() - requestStartedAt,
+        metadata: tokenUsageMetadata,
+        systemPrompt,
+        userPrompt,
+    });
+    console.log('[GPT IMAGE STREAM COMPLETE]', `model=${model}`, `events=${streamed.payloadCount}`, `bytes=${image.buffer.length}`);
+    return image;
+}
+
 async function generateOpenAIImageNonStream({
     model,
     systemPrompt,
@@ -40426,14 +44048,17 @@ async function generateOpenAIImageNonStream({
     tokenUsageOperation = '',
     tokenUsageMetadata = null,
     legacyStreamOverride = undefined,
+    quality = '',
+    preserveFullPrompt = false,
 }) {
     const requestBaseUrl = normalizeOpenAIBaseUrl(providerCredential?.baseUrl || openAIBaseUrl);
     const requestApiKey = String(providerCredential?.secret || openAIApiKey || '').trim();
     const endpoint = `${requestBaseUrl.replace(/\/$/u, '')}/images/generations`;
-    const effectivePrompt = [
+    const combinedPrompt = [
         String(systemPrompt ?? '').trim(),
         String(userContent ?? userPrompt ?? '').trim(),
-    ].filter(Boolean).join('\n\n').slice(0, 12000);
+    ].filter(Boolean).join('\n\n');
+    const effectivePrompt = preserveFullPrompt ? combinedPrompt : combinedPrompt.slice(0, 12000);
     const requestStartedAt = Date.now();
     const resolvedTokenOperation = inferAiTokenOperation({
         operation: tokenUsageOperation,
@@ -40447,8 +44072,11 @@ async function generateOpenAIImageNonStream({
         `model=${model}`,
         'endpoint=images/generations',
         `promptChars=${effectivePrompt.length}`,
+        `quality=${quality || 'provider-default'}`,
     );
 
+    const requestBody = { model, prompt: effectivePrompt, n: 1 };
+    if (String(quality || '').trim()) requestBody.quality = String(quality).trim();
     const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -40456,12 +44084,7 @@ async function generateOpenAIImageNonStream({
             'Content-Type': 'application/json',
             Accept: 'application/json, image/*',
         },
-        body: JSON.stringify({
-            model,
-            prompt: effectivePrompt,
-            size: '1024x1024',
-            n: 1,
-        }),
+        body: JSON.stringify(requestBody),
         signal: buildOperationAbortSignal(OPENAI_IMAGE_REQUEST_TIMEOUT_MS),
     });
 
@@ -40560,7 +44183,10 @@ async function generateOpenAIImageNonStream({
         [404, 405].includes(response.status) ||
         /(?:unknown|unsupported|not\s+found|no\s+route|invalid)\s+(?:image\s+)?endpoint|images\/generations/iu.test(apiMessage);
 
-    if (imageEndpointUnavailable) {
+    // GPT Image models are media-only. Never send them to chat/completions:
+    // that endpoint produces a misleading 400 after a legitimate image
+    // endpoint outage (or an unavailable image route).
+    if (imageEndpointUnavailable && !isOpenAIImageModel(model)) {
         console.warn(
             '[GPT IMAGE ENDPOINT FALLBACK]',
             `status=${response.status}`,
@@ -41002,23 +44628,9 @@ async function uploadVkMessagePhotoDirect({
     const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
         body: form,
+        signal: combineAbortSignals([AbortSignal.timeout(45_000), getCurrentOperationSignal()]),
     });
-    const uploadBody = await uploadResponse.text();
-    let uploadResult;
-
-    try {
-        uploadResult = JSON.parse(uploadBody);
-    } catch {
-        throw new Error(
-            `Сервер загрузки VK вернул не JSON (HTTP ${uploadResponse.status}): ${uploadBody.slice(0, 1000)}`,
-        );
-    }
-
-    if (!uploadResponse.ok) {
-        throw new Error(
-            `Сервер загрузки VK ответил HTTP ${uploadResponse.status}: ${JSON.stringify(formatError(uploadResult))}`,
-        );
-    }
+    const uploadResult = await parseVkPhotoUploadResponse(uploadResponse);
 
     const server = uploadResult?.server;
     const photo = uploadResult?.photo;
@@ -41051,6 +44663,7 @@ async function uploadGeneratedImageBuffer({
     buffer,
     mimeType = '',
     basename: fileStem,
+    vkClient = null,
 }) {
     if (!isValidOpenAIImageBuffer(buffer)) {
         throw new Error(
@@ -41093,6 +44706,7 @@ async function uploadGeneratedImageBuffer({
     mkdirSync(directory, { recursive: true });
     writeFileSync(filePath, buffer);
 
+    const uploadClient = vkClient || vk;
     let firstError = null;
 
     try {
@@ -41101,7 +44715,7 @@ async function uploadGeneratedImageBuffer({
          * строкой на этой конфигурации приводила к пустому multipart-полю
          * и затем к photos.saveMessagesPhoto(photo=undefined).
          */
-        const uploaded = await vk.upload.messagePhoto({
+        const uploaded = await uploadClient.upload.messagePhoto({
             source: {
                 value: buffer,
                 filename,
@@ -41141,14 +44755,38 @@ async function uploadGeneratedImageBuffer({
             `file=${filename}`,
             formatError(error),
         );
+        // VK can accept the same multipart body only when contentLength is
+        // omitted (the upload server occasionally returns photo="").
+        try {
+            const retryUploaded = await uploadClient.upload.messagePhoto({
+                source: {
+                    value: buffer,
+                    filename,
+                    contentType: detectedMimeType,
+                },
+            });
+            const retryAttachment = normalizeVkPhotoAttachment(retryUploaded);
+            if (retryAttachment) {
+                try { unlinkSync(filePath); } catch { /* cleanup must not retry a successful upload */ }
+                console.log('[VK IMAGE UPLOAD]', 'method=vk-io-buffer-retry', `file=${filename}`, `attachment=${retryAttachment}`);
+                return retryAttachment;
+            }
+        } catch (retryError) {
+            console.warn('[VK IMAGE UPLOAD RETRY FAILED]', formatError(retryError));
+        }
     }
 
     try {
-        const attachment = await uploadVkMessagePhotoDirect({
+        const attachment = await retryVkPhotoUpload(() => uploadVkMessagePhotoDirect({
             buffer,
             filename,
             mimeType: detectedMimeType,
-            client: getActiveVkConnection().client || primaryVk,
+            client: vkClient || getActiveVkConnection().client || primaryVk,
+        }), {
+            signal: getCurrentOperationSignal(),
+            onRetry: ({ error, attempt, delayMs }) => console.warn('[VK IMAGE UPLOAD BACKOFF]', {
+                file: filePath, attempt, delayMs, error: formatPrivateError(error),
+            }),
         });
 
         console.log(
@@ -41173,13 +44811,16 @@ async function uploadGeneratedImageBuffer({
             `file=${filePath}`,
             `bytes=${buffer.length}`,
             `mime=${detectedMimeType}`,
-            `vkIo=${formatError(firstError)}`,
-            `direct=${formatError(error)}`,
+            { vkIo: formatPrivateError(firstError), direct: formatPrivateError(error) },
         );
-        throw new Error(
+        const failure = new Error(
             `Не удалось загрузить готовую картинку во VK. Файл сохранён: ${filePath}. vk-io: ${firstError?.message ?? firstError}; direct: ${error?.message ?? error}`,
             { cause: error },
         );
+        failure.status = error?.status ?? error?.statusCode ?? error?.cause?.status ?? null;
+        failure.code = error?.code ?? 'VK_IMAGE_UPLOAD_FAILED';
+        failure.filePath = filePath;
+        throw failure;
     }
 }
 
@@ -41275,12 +44916,22 @@ async function resolveNextAdvancedGptModel(currentModel, currentModeOverride = '
 }
 
 async function generateOpenAIText(options) {
+    await paceParserRequest('text', options);
+    const phasePolicy = dateFreeParserContext.getStore();
+    if (phasePolicy && !options?.dateFreePolicyAttempt && /^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) {
+        return phasePolicy.run('text', (model) => generateOpenAIText({ ...options, dateFreePolicyAttempt: true,
+            modelLadder: [{ model, attempts: 1, timeoutMs: 150_000 }], streamOverride: true }), createHash('sha256').update(JSON.stringify([options.systemPrompt, options.userPrompt])).digest('hex'));
+    }
     if (/^event(?:-|:)/u.test(String(options?.tokenUsageOperation || ''))) {
         options = { ...options, streamOverride: true, disableTransportFallback: true, skipIncomingMessageContext: true,
             failoverMaxRounds: 1, failuresBeforeQuarantine: 3, roundRetryDelayMs: 60_000,
             requestTimeoutMs: Math.min(900_000, Number(options.requestTimeoutMs) || 900_000),
             escalateToAdvanced: true, useCredentialHealth: false,
-            modelLadder: options.modelLadder || PARSER_MODEL_LADDER };
+            modelLadder: options.modelLadder || getConfiguredModelLadderProfile(
+                /all[-:]?(?:new|clean)|parser[-:]?all[-:]?(?:new|clean)/iu.test(String(options.tokenUsageOperation || ''))
+                    ? 'parser-all-new-text' : 'parser-all-text',
+                PARSER_MODEL_LADDER,
+            ) };
     }
     const incomingMessageBlock = options?.skipIncomingMessageContext
         ? ''
@@ -41314,13 +44965,45 @@ async function generateOpenAIText(options) {
             userPrompt: enrichedUserPrompt,
         }),
     };
+    const astraChannelRoute = shouldRouteChatAiToAstra({
+        channelMode: readAiChannelMode().mode,
+        operationCategory: getCurrentOperation()?.category,
+        tokenUsageOperation: enrichedOptions?.tokenUsageOperation,
+    });
+    if (astraChannelRoute) {
+        enrichedOptions.model = String(configuredGptModels.astra || 'gpt-6-astra').trim();
+        enrichedOptions.modelLadder = [{ model: enrichedOptions.model, mode: 'astra', attempts: 2 }];
+    }
     const initialModel = String(enrichedOptions?.model ?? '').trim();
     const initialMode = getConfiguredModeForModel(initialModel);
     const onModelSelected = typeof enrichedOptions?.onModelSelected === 'function'
         ? enrichedOptions.onModelSelected
         : null;
 
-    const runtimeLadder = enrichedOptions?.modelLadder || getGptModelLadderFrom(initialModel);
+    // Every ordinary response that originated from an incoming VK/Telegram
+    // message must use the persisted chat ladder. Several older helper paths
+    // called generateOpenAIText directly and supplied only a resolved
+    // `model`, which silently rebuilt the legacy mode ladder and skipped the
+    // configured 5.6 Luna first step. Parser/event operations have their own
+    // explicit ladder above; explicit modelLadder/exactModel callers remain
+    // authoritative.
+    const incomingChatContext = incomingGptRequestStorage.getStore()?.context || null;
+    const isParserOrEventOperation = /^(?:event(?:-|:)|parser)/u.test(
+        String(enrichedOptions?.tokenUsageOperation || options?.tokenUsageOperation || ''),
+    );
+    const inferredChatProfile = !enrichedOptions?.modelLadder &&
+        !enrichedOptions?.exactModel &&
+        incomingChatContext &&
+        !isParserOrEventOperation
+        ? (isPrivateContext(incomingChatContext) ? 'chat' : 'conversation')
+        : '';
+    const configuredProfileLadder = enrichedOptions?.modelLadder ||
+        (enrichedOptions?.ladderProfile
+            ? getConfiguredModelLadderProfile(enrichedOptions.ladderProfile)
+            : inferredChatProfile
+                ? getConfiguredModelLadderProfile(inferredChatProfile)
+                : null);
+    const runtimeLadder = configuredProfileLadder || getGptModelLadderFrom(initialModel);
     const result = await executeBotModelFailover({
         capability: 'text',
         modes: [],
@@ -41350,9 +45033,11 @@ async function generateOpenAIText(options) {
             const text = await generateOpenAITextCore({
                 ...enrichedOptions,
                 model: credential.model,
-                reasoningEffort: enrichedOptions?.reasoningEffortAuto === true
+                streamOverride: typeof credential.streamOverride === 'boolean' ? credential.streamOverride : enrichedOptions?.streamOverride,
+                requestTimeoutMs: Number(credential.requestTimeoutMs) > 0 ? credential.requestTimeoutMs : enrichedOptions?.requestTimeoutMs,
+                reasoningEffort: credential.reasoningEffort || (enrichedOptions?.reasoningEffortAuto === true
                     ? getDefaultReasoningEffortForMode(credential.mode)
-                    : enrichedOptions?.reasoningEffort,
+                    : enrichedOptions?.reasoningEffort),
                 providerCredential: credential,
             });
             if (typeof enrichedOptions?.validateTextResult === 'function') {
@@ -43048,7 +46733,14 @@ async function generateOpenAITextCoreAttempt({
         await textTrace?.finish('post-network-error', { error });
         textStreamWatchdog?.dispose();
         const networkError = new Error(`GPT network error: ${error?.message ?? error}`, { cause: error });
-        networkError.inferenceMayHaveStarted = true;
+        // AbortSignal.timeout is a request-local deadline. It means this
+        // model attempt did not finish; it does not mean that a paid
+        // inference is resumable. Keep it retryable so the parser ladder can
+        // advance to the next model instead of treating Terra as terminal.
+        const requestTimeout = error?.name === 'TimeoutError' ||
+            /timeout|timed out|produced no bytes|idle for/iu.test(String(error?.message || error));
+        networkError.inferenceMayHaveStarted = !requestTimeout;
+        if (requestTimeout) networkError.retryable = true;
         throw networkError;
     }
 
@@ -43311,8 +47003,14 @@ async function generateOpenAITextCoreAttempt({
                 console.error('[ASTRA TXT TRACE FINALIZE ERROR]', error.traceWriteError);
             }
         }
-        error.inferenceMayHaveStarted = true;
+        const requestTimeout = error?.name === 'TimeoutError' ||
+            /timeout|timed out|produced no bytes|idle for/iu.test(String(error?.message || error));
+        // A local request deadline without output is a failed attempt and may
+        // advance the parser ladder. Once bytes were received, keep the
+        // inference marked ambiguous to avoid duplicating a paid request.
+        error.inferenceMayHaveStarted = Boolean(accumulatedText) || !requestTimeout;
         if (accumulatedText) error.streamOutputStarted = true;
+        if (requestTimeout && !accumulatedText) error.retryable = true;
         error.streamBytesReceived = textStreamBytes;
         throw error;
     } finally {
@@ -45396,6 +49094,7 @@ function estimatePublicAnnouncementMultiplicity(sourceText) {
 }
 
 async function extractPublicEventsWithGpt(post) {
+    const confirmedPoster = acceptedDateFreePoster(post);
     const sourceText = sanitizeForGigaChat(post?.text ?? '')
         .trim()
         .slice(0, 22000);
@@ -45405,7 +49104,7 @@ async function extractPublicEventsWithGpt(post) {
     }
 
     const dateGate = explainEventAiAdmission({ text: sourceText, publishedAt: post?.publishedAt, timeZone: botTimeZone });
-    if (dateGate.pastOnly) {
+    if (!confirmedPoster && dateGate.pastOnly) {
         post?.__aiTrace?.('ai.skipped-past', dateGate);
         const empty = [];
         setPublicAiResponseMetadata(empty, { structure: 'not_event', reason: 'all-body-event-dates-are-past', valid: true });
@@ -45420,10 +49119,13 @@ async function extractPublicEventsWithGpt(post) {
                     referenceDate: post?.publishedAt
                         ? getLocalDateString(new Date(post.publishedAt * 1000), botTimeZone)
                         : getLocalDateString(new Date(), botTimeZone),
+                    confirmedPoster,
                 }),
-                'Один пост может содержать одно событие, программу одного события или несколько самостоятельных мероприятий. Сначала сам реши структуру по смыслу исходника и верни structure=single_event, single_event_program, multiple_events, not_event или uncertain. Даты и последовательные блоки — только подсказки для проверки, они не задают число карточек.',
-                'Для multiple_events выделяй только самостоятельно анонсированные события. Не принимай ошибку/исправление даты, повтор одного анонса, дату публикации или несколько времён программы за новое событие. Для single_event и single_event_program верни ровно один объект events; для uncertain и not_event верни пустой events.',
-                'Vision/OCR metadata изображения НЕ МОЖЕТ создавать, удалять, объединять или делить текстовые карточки и НЕ МОЖЕТ переносить текст между датами. Метаданные картинки сохраняются отдельно и проверяют уже полученные карточки позже.',
+                confirmedPoster ? '' : 'Один пост может содержать одно событие, программу одного события или несколько самостоятельных мероприятий. Сначала сам реши структуру по смыслу исходника и верни structure=single_event, single_event_program, multiple_events, not_event или uncertain. Даты и последовательные блоки — только подсказки для проверки, они не задают число карточек.',
+                confirmedPoster ? '' : 'Для multiple_events выделяй только самостоятельно анонсированные события. Не принимай ошибку/исправление даты, повтор одного анонса, дату публикации или несколько времён программы за новое событие. Для single_event и single_event_program верни ровно один объект events; для uncertain и not_event верни пустой events.',
+                confirmedPoster ? 'В фазе 2 каждая дата подтверждённой афиши имеет приоритет, даже если дата или тема не совпадает с текстом. Для разных строк афиши создай отдельные карточки по связи дата—название—участники.' : '',
+                'Если structure=not_event, в structure_reason укажи короткую смысловую метку на 2–6 слов, что именно сообщает пост (например: «объявление конкурса», «реклама меню», «итоги розыгрыша», «фотоотчёт с концерта»). Не пиши общую фразу «не является событием». Для остальных структур structure_reason кратко объясняет решение о структуре.',
+                confirmedPoster ? DATE_FREE_EXTRACTION_INSTRUCTION : 'Vision/OCR metadata изображения НЕ МОЖЕТ создавать, удалять, объединять или делить текстовые карточки и НЕ МОЖЕТ переносить текст между датами. Метаданные картинки сохраняются отдельно и проверяют уже полученные карточки позже.',
                 repair
                     ? `Это повторная проверка ответа. В тексте обнаружено несколько дат или времён (дат: ${multiplicity.distinctDateSignals}, времён: ${multiplicity.distinctTimeSignals}), но это само по себе не означает несколько событий. Проверь смысл исходника, учти возможную ошибку/исправление в посте и верни только подтверждённую структуру либо uncertain.`
                     : '',
@@ -45494,6 +49196,8 @@ async function extractPublicEventsWithGpt(post) {
         post?.__aiTrace?.(repair ? 'text-extraction.completeness-response' : 'text-extraction.response', {
             sourceUrl: post?.sourceUrl ?? '',
             repair,
+            structure: decision,
+            structureReason: reason,
             responseText,
             parsedEventCount: parsedEvents.length,
             parsedEvents,
@@ -45511,6 +49215,32 @@ async function extractPublicEventsWithGpt(post) {
     if (firstResolved) return first;
     const repaired = await callExtractor({ repair: true });
     return repaired;
+}
+
+// Owner-authorized repair of captured material. Reuse the production extractor
+// and model ladder, without browser recapture or publication-date inference.
+export async function extractCapturedPosterEventsForRepair(post, { localImagePath = '' } = {}) {
+    const repairPost = { ...post, __dateFreeVisionPhase: true };
+    if (localImagePath) {
+        const bytes = readFileSync(localImagePath);
+        const response = await generateOpenAIVisionText({
+            mode: 'default', streamOverride: true,
+            systemPrompt: 'Прочитай ОДНУ афишу независимо от текста поста. Не сравнивай их. Для расписания перечисли каждую дату вместе с названием и участниками в Распознанный текст. Верни отдельные строки: [IMAGE 1], Тип изображения:, Это афиша события: да/нет, Уверенность афиши:, Название:, Дата: (все даты), Время:, Место:, Адрес:, Участники:, Цена:, Распознанный текст:. Не выдумывай.',
+            userPrompt: 'Перечитай всю афишу. Сохрани связи каждой строки: календарная дата — название/участники — время.',
+            imageUrls: ['data:image/jpeg;base64,' + bytes.toString('base64')],
+            maxTokens: 5000, requestTimeoutMs: EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,
+            failoverMaxRounds: 1, useCredentialHealth: false, maxCandidates: 0, escalateToAdvanced: true, oneCandidatePerMode: true,
+            tokenUsageOperation: 'event-parser:poster-repair-vision',
+            tokenUsageMetadata: { sourceUrl: post.sourceUrl },
+        });
+        repairPost.__posterGateFacts = String(response || '');
+    }
+    if (!acceptedDateFreePoster(repairPost)) throw new Error('Captured image has no confirmed poster verdict');
+    repairPost.__sourceAnnouncementText = String(post.text || '');
+    repairPost.text = [post.text, '[Факты с афиши]', repairPost.__posterGateFacts].filter(Boolean).join('\n\n');
+    const ai = await extractPublicEventsWithGpt(repairPost);
+    return { post: repairPost, events: validatePublicAiEvents(ai, repairPost), facts: repairPost.__posterGateFacts,
+        structure: ai.aiStructureDecision, reason: ai.aiStructureReason };
 }
 
 function collectVkChatEmbeddedText(
@@ -45550,13 +49280,83 @@ function collectVkChatEmbeddedText(
     return output;
 }
 
+// Keep repost references stable across DOM/API evidence sources. The chat
+// evidence hydrator can receive either plain URLs or depth-aware records;
+// collapsing them here prevents duplicate links without losing the deepest
+// known repost level.
+function uniqueRepostRefs(values, maximum = 1000) {
+    const result = [];
+    const seen = new Set();
+    for (const value of Array.isArray(values) ? values : []) {
+        const url = typeof value === 'object' && value !== null
+            ? String(value.url || value.href || '').trim()
+            : String(value ?? '').trim();
+        if (!url || result.length >= maximum) continue;
+        if (seen.has(url)) {
+            const index = result.findIndex((item) => (typeof item === 'string' ? item : item.url) === url);
+            if (value && typeof value === 'object' && Number(value.depth || 0) >= Number(result[index]?.depth || 0)) {
+                result[index] = { ...value, url };
+            }
+            continue;
+        }
+        seen.add(url);
+        if (typeof value === 'object' && value !== null) {
+            result.push({
+                ...value,
+                url,
+                depth: Math.max(0, Number(value.depth ?? value.repostDepth ?? 0) || 0),
+            });
+        } else {
+            result.push(url);
+        }
+    }
+    return result;
+}
+
 async function hydrateVkChatMessageEvidence(message) {
     const peerId = Number(message?.peerId ?? 0);
     const conversationMessageId = Number(message?.conversationMessageId ?? 0);
+    const apiAudit = [];
+    // Parser-all is DOM-first. Do not spend time on VK API calls for a wall
+    // URL: group tokens frequently return Code 27 even when the browser has the
+    // complete nested container. The browser URL path below is the bounded
+    // fallback; this switch remains explicit so every skipped API is audited.
+    const allowVkApiEnrichment = false;
+    const recordApi = ({ method, status, ok = false, reason = '', itemCount = 0, durationMs = 0, error = null } = {}) => {
+        const entry = {
+            method: String(method || ''), status: String(status || (ok ? 'ok' : 'failed')),
+            ok: Boolean(ok), reason: String(reason || ''), itemCount: Number(itemCount || 0),
+            durationMs: Number(durationMs || 0), error: error ? formatPrivateError(error) : '',
+        };
+        apiAudit.push(entry);
+        console.log('[VK PARSER API]', 'method=' + entry.method, 'status=' + entry.status,
+            'items=' + entry.itemCount, 'durationMs=' + entry.durationMs,
+            entry.error ? 'error=' + entry.error : '');
+    };
+    const callApi = async (method, operation, reason) => {
+        const startedAt = Date.now();
+        recordApi({ method, status: 'attempt', reason });
+        try {
+            const value = await operation();
+            if (value == null) {
+                const error = new Error(`${method} returned an empty response`);
+                recordApi({ method, status: 'failed', reason, durationMs: Date.now() - startedAt, error });
+                return null;
+            }
+            const itemCount = Array.isArray(value?.items) ? value.items.length : Array.isArray(value) ? value.length : 0;
+            recordApi({ method, status: 'ok', ok: true, reason, itemCount, durationMs: Date.now() - startedAt });
+            return value;
+        } catch (error) {
+            recordApi({ method, status: 'failed', reason, durationMs: Date.now() - startedAt, error });
+            return null;
+        }
+    };
     const imageUrls = [];
     const links = [];
     const textFragments = [];
+    const wallEvidenceIndex = new Map();
     let hasRepostEvidence = false;
+    let wallHydrationFailed = false;
     const addUrls = (target, values, maximum = 12) => {
         for (const value of Array.isArray(values) ? values : []) {
             const clean = String(value ?? '').trim();
@@ -45574,20 +49374,38 @@ async function hydrateVkChatMessageEvidence(message) {
 
     addUrls(imageUrls, message?.imageUrls, 1000);
     addUrls(links, message?.links, 20);
+    // `embeddedText`/`repostText` may be only the wrapper that VK displays
+    // around a forwarded post. It must not suppress the public-wall fallback:
+    // only an explicit root flag or non-empty rootPostText proves that the
+    // deepest source body was recovered from the DOM.
+    const localStructuralRoot = Boolean(
+        message?.rootPostTextResolved === true ||
+        String(message?.rootPostText || '').trim(),
+    );
 
     if (
-        peerId > 0 &&
+        allowVkApiEnrichment && peerId > 0 &&
         conversationMessageId > 0 &&
         typeof vk?.api?.messages?.getByConversationMessageId === 'function'
     ) {
         try {
-            const response = await vk.api.messages.getByConversationMessageId({
+            const response = await callApi('messages.getByConversationMessageId', () => vk.api.messages.getByConversationMessageId({
                 peer_id: peerId,
                 conversation_message_ids: [conversationMessageId],
                 extended: 1,
-            });
+            }), 'optional-chat-message-enrichment');
+            if (!response) {
+                // callApi already recorded the concrete VK error. Mark the
+                // enrichment as unavailable so a bounded DOM/public-wall
+                // fallback can recover the root container when possible.
+                wallHydrationFailed = true;
+            }
             const hydrated = response?.items?.[0] ?? null;
             if (hydrated) {
+                // Preserve the complete nested wall/copy_history payload before
+                // any privileged wall.getById enrichment. Group tokens can read
+                // the message but are forbidden from wall.getById (Code 27).
+                collectVkWallEvidenceIndex(hydrated, wallEvidenceIndex);
                 addUrls(imageUrls, extractVkImageTargets(hydrated), 1000);
                 const normalizedContent = extractVkMessageContent(hydrated);
                 addText(normalizedContent?.text ? [normalizedContent.text] : []);
@@ -45632,16 +49450,23 @@ ${item.transcript}`
                                 `${ownerId}_${postId}${accessKey ? `_${accessKey}` : ''}`
                             ))
                             .join(',');
-                        const wallResponse = await vk.api.wall.getById({
+                        const wallResponse = await callApi('wall.getById', () => requestVkWallByIdWithFallback({
                             posts,
                             extended: 1,
-                        });
+                            copy_history_depth: 10,
+                        }), 'optional-repost-root-enrichment');
+                        if (!wallResponse) {
+                            // callApi records the concrete API failure and returns
+                            // null so the DOM/browser recovery path can continue.
+                            wallHydrationFailed = true;
+                        }
                         const wallItems = Array.isArray(wallResponse?.items)
                             ? wallResponse.items
                             : Array.isArray(wallResponse)
                                 ? wallResponse
                                 : [];
                         for (const wall of wallItems) {
+                            collectVkWallEvidenceIndex(wall, wallEvidenceIndex);
                             addUrls(imageUrls, extractVkImageTargets({
                                 attachments: [{ type: 'wall', wall }],
                             }), 12);
@@ -45650,8 +49475,10 @@ ${item.transcript}`
                             });
                             addText(normalizedWallContent?.text ? [normalizedWallContent.text] : []);
                             addText(collectVkChatEmbeddedText(wall));
+                            for (const wallUrl of wallEvidenceIndex.keys()) addUrls(links, [wallUrl], 1000);
                         }
                     } catch (error) {
+                        wallHydrationFailed = true;
                         console.warn(
                             '[VK CHAT REPOST WALL HYDRATE ERROR]',
                             `peer=${peerId}`,
@@ -45662,6 +49489,7 @@ ${item.transcript}`
                 }
             }
         } catch (error) {
+            wallHydrationFailed = true;
             console.warn(
                 '[VK CHAT MESSAGE HYDRATE ERROR]',
                 `peer=${peerId}`,
@@ -45673,14 +49501,135 @@ ${item.transcript}`
 
     const explicitReposts = (message?.repostUrls || []).map((ref) => typeof ref === 'object' ? ref.url : ref).filter((url) => parseVkWallPostUrl(url));
     const rootUrls = [...new Set(explicitReposts.length ? explicitReposts : [...links, ...extractHttpUrls(message?.text || '')].filter((url) => parseVkWallPostUrl(url)))];
-    const resolved = rootUrls.length ? await resolveVkOriginalPosts(rootUrls, {
-        signal: getCurrentOperationSignal(),
-        fetchWall: async (url) => {
-            const descriptor = parseVkWallPostUrl(url);
-            const response = await vk.api.wall.getById({ posts: `${descriptor.ownerId}_${descriptor.postId}`, extended: 1 });
-            return (Array.isArray(response) ? response : response?.items || [])[0];
-        },
-    }) : { nodes: [], repostUrls: [], originalUrl: '' };
+    const localEvidenceText = cleanVkEventText([
+        message?.contentText,
+        message?.embeddedText,
+        message?.repostText,
+        message?.text,
+        ...textFragments,
+    ].filter(Boolean).join('\n\n'), 12_000);
+    // The root-body date gate cannot be satisfied by wrapper text or a poster.
+    // If the DOM did not resolve the deepest root, make one bounded public-wall
+    // read even when the wrapper happens to be long or has an image. The old
+    // length/media shortcut left exactly those reposts unresolved after VK Code
+    // 27, although the root container was available in the browser.
+    const needsPublicWallFallback = Boolean(
+        rootUrls.length && message?.rootPostTextResolved !== true
+    );
+    let browserRootPostText = '';
+    let browserRootPostSourceUrl = '';
+
+    // Group-token wall.getById can be forbidden (VK Code 27), while the
+    // public wall page remains readable in the authenticated browser context.
+    // Use that path only after API enrichment failed and keep it bounded.
+    if (needsPublicWallFallback && typeof openEventLinkForReview === 'function') {
+        // One bounded public read is enough to recover copy_history text/media
+        // for the visible repost. Deeper ancestry is handled from the API
+        // response when a user/history token is available; do not open a tab
+        // per nested URL after a group-token capability failure.
+        for (const wallUrl of rootUrls.slice(0, 1)) {
+            let browserResult = null;
+            const browserStartedAt = Date.now();
+            recordApi({ method: 'browser.open-wall', status: 'attempt',
+                reason: 'DOM/public-wall-fallback', itemCount: 0 });
+            try {
+                // Keep requests staggered and leave the tab open long enough for
+                // VK to render/lazy-load the nested post before reading its DOM.
+                await new Promise((resolveDelay) => setTimeout(resolveDelay, 5_000 + Math.floor(Math.random() * 15_001)));
+                browserResult = await openEventLinkForReview({
+                    url: wallUrl,
+                    dataDirectory: './data',
+                    // This is a short, separate root-post probe. The longer
+                    // three-minute dwell belongs to the original source capture.
+                    separateTab: true,
+                    keepPageOpen: false,
+                    minimumOpenMs: 20_000,
+                    allowShortMinimumOpen: true,
+                    allowRelatedApi: false,
+                    navigationTimeoutMs: 30_000,
+                    manualAccessTimeoutMs: 10_000,
+                });
+                const posts = Array.isArray(browserResult?.posts) ? browserResult.posts : [];
+                const requestedWall = parseVkWallPostUrl(wallUrl);
+                const postUrls = (post) => [
+                    post?.sourceUrl,
+                    post?.rootPostSourceUrl,
+                    post?.originalSourceUrl,
+                ].map((value) => parseVkWallPostUrl(value)).filter(Boolean);
+                const target = requestedWall
+                    ? posts.find((post) => postUrls(post).some((identity) => (
+                        identity.ownerId === requestedWall.ownerId && identity.postId === requestedWall.postId
+                    )))
+                    : null;
+                if (target) {
+                    recordApi({ method: 'browser.open-wall', status: 'ok', ok: true,
+                        reason: 'DOM/public-wall-fallback', itemCount: posts.length,
+                        durationMs: Date.now() - browserStartedAt });
+                    addText([target.text, target.contentText, target.repostText]);
+                    // The review extractor exposes a direct VK wall body's
+                    // text as `text`; it does not need an API-shaped
+                    // `rootPostText` field. Treat the matched wall post (or a
+                    // single extracted post) as the root body for this URL
+                    // fallback, while avoiding a whole-page wrapper when a
+                    // more specific post was available.
+                    // `target` has already been matched against the requested
+                    // wall owner/post identity. Its plain `text` is therefore
+                    // the authoritative DOM body even when the extractor did
+                    // not also set the optional `matchesSourceUrl` flag.
+                    browserRootPostText = String(
+                        target.rootPostText || target.repostText || target.contentText || target.text || '',
+                    ).trim();
+                    browserRootPostSourceUrl = String(target.rootPostSourceUrl || target.originalSourceUrl || target.sourceUrl || '').trim();
+                    addUrls(imageUrls, target.imageUrls, 1000);
+                    addUrls(links, [target.sourceUrl, ...(target.links || [])], 1000);
+                } else {
+                    recordApi({ method: 'browser.open-wall', status: 'failed',
+                        reason: 'DOM/public-wall-fallback-empty', itemCount: 0,
+                        durationMs: Date.now() - browserStartedAt,
+                        error: new Error('Browser DOM contained no readable wall post') });
+                }
+            } catch (error) {
+                recordApi({ method: 'browser.open-wall', status: 'failed',
+                    reason: 'DOM/public-wall-fallback-error', itemCount: 0,
+                    durationMs: Date.now() - browserStartedAt, error });
+                console.warn('[VK CHAT PUBLIC WALL FALLBACK ERROR]', `url=${wallUrl}`, formatPrivateError(error));
+            }
+        }
+    }
+    let resolved = { nodes: [], repostUrls: [], originalUrl: '' };
+    if (allowVkApiEnrichment && rootUrls.length) {
+        try {
+            resolved = await resolveVkOriginalPosts(rootUrls, {
+                signal: getCurrentOperationSignal(),
+                fetchWall: async (url) => {
+                    const cachedWall = wallEvidenceIndex.get(String(url));
+                    if (cachedWall) return cachedWall;
+                    const descriptor = parseVkWallPostUrl(url);
+                    const response = await callApi('wall.getById', () => requestVkWallByIdWithFallback({
+                        posts: String(descriptor.ownerId) + '_' + String(descriptor.postId),
+                        extended: 1,
+                        copy_history_depth: 10,
+                    }), 'optional-recursive-root-enrichment');
+                    if (!response) {
+                        wallHydrationFailed = true;
+                        throw new Error('wall.getById returned no response');
+                    }
+                    return (Array.isArray(response) ? response : response?.items || [])[0];
+                },
+            });
+        } catch (error) {
+            // wall.getById is an enrichment path. Group tokens may receive VK
+            // Code 27 for wall methods even though the repost text and media
+            // are already present in the message/DOM. Keep that evidence and
+            // let the AI gate process it instead of rejecting the whole item.
+            console.warn(
+                '[VK CHAT ORIGINAL POST ENRICHMENT SKIPPED]',
+                `peer=${peerId}`,
+                `cmid=${conversationMessageId}`,
+                formatPrivateError(error),
+            );
+        }
+    }
     const originalImages = [];
     for (const node of resolved.nodes.filter((node) => node.leaf)) {
         addText([node.wall.text]);
@@ -45688,13 +49637,51 @@ ${item.transcript}`
         addUrls(links, [node.url, ...extractHttpUrls(node.wall.text)], 1000);
     }
 
-    addUrls(links, extractHttpUrls(textFragments.join('\n')), 20);
+    // messages.getByConversationMessageId commonly already includes the full
+    // copy_history chain. Keep using that captured evidence even when the
+    // follow-up wall.getById call fails with group-token Code 27.
+    const capturedSemantic = extractDeepestVkAttachmentContent({
+        attachments: [...wallEvidenceIndex.values()].map((wall) => ({ type: 'wall', wall })),
+    });
+    const fallbackSemantic = capturedSemantic.text
+        ? capturedSemantic
+        : extractDeepestVkAttachmentContent(message?.message || message?.rawMessage || message);
+    const deepestCapturedWall = selectDeepestCapturedVkWall([...wallEvidenceIndex.values()]);
+    // The browser capture is a first-class source: VK's group API may expose
+    // the repost container but reject wall.getById with Code 27. In that case
+    // the deepest text already extracted from the nested message container is
+    // the root body; never substitute the outer wrapper text for it.
+    const structuralRootText = cleanVkEventText(message?.rootPostText || browserRootPostText || '', 12_000).trim();
+    const originalText = cleanVkEventText(
+        resolved.original?.wall?.text || deepestCapturedWall?.wall?.text || structuralRootText || fallbackSemantic.text || '',
+        12_000,
+    ).trim();
+    // A repost is allowed into the expensive event/AI pipeline only after the
+    // text of its deepest/root wall post was actually recovered. `fallbackSemantic`
+    // may contain the wrapper message, so it is deliberately not sufficient for
+    // this flag.
+    const rootPostTextResolved = Boolean(
+        String(resolved.original?.wall?.text || deepestCapturedWall?.wall?.text || structuralRootText || '').trim(),
+    );
+    const rootBody = originalText || cleanVkEventText([
+        message?.embeddedText,
+        message?.repostText,
+        message?.contentText,
+        message?.text,
+        ...textFragments,
+    ].filter(Boolean).join('\n\n'), 12_000).trim();
 
-    const originalText = cleanVkEventText(message?.text ?? '', 12_000).trim();
-    const embeddedText = textFragments
-        .filter((text) => text !== originalText && !originalText.includes(text))
-        .join('\n\n')
-        .slice(0, 12_000);
+    const leafWallUrls = [resolved.original?.url, deepestCapturedWall?.url, message?.rootPostSourceUrl, browserRootPostSourceUrl, ...fallbackSemantic.nodes.map((node) => String(node?.sourceUrl || '').trim())]
+        .filter(Boolean)
+        .filter((url, index, all) => all.indexOf(url) === index);
+    const fallbackOriginalImages = [];
+    const selectedRootWall = resolved.original?.wall || deepestCapturedWall?.wall;
+    if (selectedRootWall) addUrls(fallbackOriginalImages, extractVkImageTargets({ attachments: [{ type: 'wall', wall: selectedRootWall }] }), 1000);
+    addUrls(links, leafWallUrls, 1000);
+    addUrls(links, extractHttpUrls(rootBody), 20);
+    if (!originalImages.length) addUrls(originalImages, fallbackOriginalImages, 1000);
+    addUrls(links, extractHttpUrls(textFragments.join('\n')), 20);
+    const embeddedText = rootBody.slice(0, 12_000);
 
     if (imageUrls.length > (Array.isArray(message?.imageUrls) ? message.imageUrls.length : 0) || embeddedText) {
         console.log(
@@ -45707,7 +49694,47 @@ ${item.transcript}`
         );
     }
 
-    return { imageUrls: resolved.original ? originalImages : imageUrls, links, embeddedText, hasRepostEvidence: hasRepostEvidence || resolved.nodes.length > 0, repostUrls: resolved.repostUrls, originalPost: resolved.original || null };
+    const capturedRepostRefs = [...wallEvidenceIndex.entries()].map(([url]) => ({ url, depth: 1 }));
+    if (deepestCapturedWall?.url) {
+        capturedRepostRefs.unshift({
+            url: deepestCapturedWall.url,
+            depth: Math.max(2, Number(deepestCapturedWall.depth || 0)),
+        });
+    }
+    const apiNotAttemptedAudit = allowVkApiEnrichment ? [] : [
+        {
+            method: 'messages.getByConversationMessageId', status: 'not-attempted', ok: false,
+            reason: localStructuralRoot ? 'dom-root-resolved' : 'dom-first-browser-fallback-api-disabled',
+            itemCount: 0, durationMs: 0, error: '',
+        },
+        {
+            method: 'wall.getById', status: 'not-attempted', ok: false,
+            reason: localStructuralRoot ? 'dom-root-resolved' : 'dom-first-browser-fallback-api-disabled',
+            itemCount: 0, durationMs: 0, error: '',
+        },
+    ];
+    const finalApiAudit = [...apiNotAttemptedAudit, ...apiAudit];
+    return {
+        imageUrls: (resolved.original || fallbackSemantic.text) && originalImages.length ? originalImages : imageUrls,
+        links,
+        embeddedText,
+        rootPostTextResolved,
+        rootPostText: rootPostTextResolved ? originalText : '',
+        hasRepostEvidence: hasRepostEvidence || resolved.nodes.length > 0,
+        // The deepest captured leaf is authoritative even when wall.getById
+        // returned Code 27. Depth metadata makes canonicalVkOriginFromRepostChain
+        // choose that URL over the outer conversation repost.
+        repostUrls: uniqueRepostRefs([
+            ...capturedRepostRefs,
+            ...(resolved.repostUrls.length ? resolved.repostUrls : []),
+            ...(message?.repostUrls || []),
+        ]),
+        originalPost: resolved.original || (rootPostTextResolved ? {
+            url: deepestCapturedWall?.url || leafWallUrls[0] || '',
+            wall: deepestCapturedWall?.wall || { text: originalText },
+        } : null),
+        apiAudit: finalApiAudit,
+    };
 }
 
 async function analyzeVkChatMessageWithGpt(message) {
@@ -45715,15 +49742,12 @@ async function analyzeVkChatMessageWithGpt(message) {
         ? {
             imageUrls: Array.isArray(message?.imageUrls) ? message.imageUrls : [],
             links: Array.isArray(message?.links) ? message.links : [],
-            embeddedText: '',
+            embeddedText: String(message?.embeddedText || message?.repostText || '').trim(),
         }
         : await hydrateVkChatMessageEvidence(message);
-    const rawCombinedText = [
-        cleanVkEventText(message?.text ?? '', 12_000),
-        richEvidence.embeddedText
-            ? `[Репост/вложенный пост VK — API]\n${richEvidence.embeddedText}`
-            : '',
-    ].filter(Boolean).join('\n\n');
+    const rawCombinedText = richEvidence.embeddedText
+        ? `[Исходный пост VK, корень copy_history]\n${richEvidence.embeddedText}`
+        : cleanVkEventText(message?.text ?? '', 12_000);
     const cleanText = sanitizeForGigaChat(rawCombinedText)
         .replace(/[ \t]+/gu, ' ')
         .replace(/\n{3,}/gu, '\n\n')
@@ -45754,8 +49778,9 @@ async function analyzeVkChatMessageWithGpt(message) {
                 ? 'сообщения/репоста VK-беседы и приложенных к нему изображений'
                 : 'сообщения/репоста VK-беседы',
             referenceDate: localDate,
+            confirmedPoster: acceptedDateFreePoster(message),
         }),
-        'Верни все самостоятельные события из исходного материала (практический предел — 30 объектов). Ссылка сама по себе не доказывает событие.',
+        acceptedDateFreePoster(message) ? DATE_FREE_EXTRACTION_INSTRUCTION : 'Верни все самостоятельные события из исходного материала (практический предел — 30 объектов). Ссылка сама по себе не доказывает событие.',
         'Время сообщения в интерфейсе не является временем мероприятия.',
         'Если сообщение содержит репост/вложенный пост, считай текст репоста частью исходного объявления.',
         imageUrls.length
@@ -45788,6 +49813,14 @@ async function analyzeVkChatMessageWithGpt(message) {
         .filter(isReusableVisionFactV18892)
         .map((fact) => Number(fact?.index || 0))
         .filter((index) => index > 0));
+    // Phase-2 poster-gate facts are already a complete Vision inspection for
+    // those image slots. Reuse them in the normal text+image extraction pass;
+    // otherwise the same attachment would be sent to Vision twice.
+    for (const fact of parseIndexedImageFacts(message?.__dateFreeVisionPhase ? String(message?.__posterGateFacts || '') : '')) {
+        if (fact?.visionInspected === true && fact?.visionStatus !== 'error') {
+            terminalImageNumbers.add(Number(fact?.index || 0));
+        }
+    }
     const pendingImageNumbers = imageUrls.map((_, offset) => offset + 1)
         .filter((index) => !terminalImageNumbers.has(index));
     if (imageUrls.length && pendingImageNumbers.length) {
@@ -46612,18 +50645,28 @@ async function sendVisibleError(context, error) {
         error instanceof Error
             ? error.message
             : String(error);
+    const fullErrorDetails = (() => {
+        const safe = formatDetailedPrivateError(error);
+        const lines = [];
+        let current = safe;
+        let depth = 0;
+        while (current && depth < 5) {
+            lines.push(depth ? `Причина ${depth}: ${current.name || current.type || 'Error'}` : `тип: ${current.name || current.type || 'Error'}`);
+            if (!depth) lines.push(`код: ${current.code ?? 'null'}`, `HTTP: ${current.status ?? 'null'}`);
+            lines.push(`сообщение: ${current.message || current.value || 'неизвестная ошибка'}`);
+            current = current.cause;
+            depth += 1;
+        }
+        return lines.join('\n');
+    })();
 
     if (message.includes('Swiss Ephemeris')) {
-        await context.send(
-            `Ошибка эфемерид: ${message.slice(0, 700)}`,
-        );
+        await sendLongText(context, `Ошибка эфемерид.\n${fullErrorDetails}`);
         return;
     }
 
     if (message.includes('GPT_TEXT_IMAGE_RESPONSE')) {
-        await context.send(
-            'GPT-router выбрал или вернул модель изображения вместо текстовой. Запрос не засчитан. Проверь GPT_MODEL_PRO/GPT_MODEL_DEFAULT в .env.',
-        );
+        await sendLongText(context, `GPT-router выбрал/вернул image-модель. Запрос не засчитан.\n${fullErrorDetails}`);
         return;
     }
 
@@ -46631,39 +50674,29 @@ async function sendVisibleError(context, error) {
         message.includes('не является текстовой GPT-моделью') ||
         message.includes('не вернул текстовые GPT-модели')
     ) {
-        await context.send(
-            `Ошибка выбора текстовой GPT-модели: ${message.slice(0, 500)}`,
-        );
+        await sendLongText(context, `Ошибка выбора текстовой GPT-модели.\n${fullErrorDetails}`);
         return;
     }
 
     if (message.includes('GPT image API') || message.includes('GPT-изображение')) {
-        await context.send(
-            `Ошибка GPT-генерации: ${message.slice(0, 500)}`,
-        );
+        await sendLongText(context, `Ошибка GPT-генерации.\n${fullErrorDetails}`);
         return;
     }
 
     if (message.includes('GPT API 524')) {
-        await context.send(
-            'GPT-router не успел получить ответ модели за 120 секунд. Запрос не засчитан; повтори позже.',
-        );
+        await sendLongText(context, `GPT-router не успел получить ответ модели. Запрос не засчитан; повтори позже.\n${fullErrorDetails}`);
         return;
     }
 
     if (message.includes('GPT API')) {
-        await context.send(
-            `Ошибка GPT: ${message.slice(0, 500)}`,
-        );
+        await sendLongText(context, `Ошибка GPT.\n${fullErrorDetails}`);
         return;
     }
 
     if (
         /fetch failed|econnreset|etimedout|enotfound|socket|network|aborterror|terminated/iu.test(message)
     ) {
-        await context.send(
-            `Сетевой сбой при обращении к GPT: ${message.slice(0, 350)}. Запрос не засчитан; повтори ещё раз.`,
-        );
+        await sendLongText(context, `Сетевой сбой при обращении к GPT. Запрос не засчитан; повтори ещё раз.\n${fullErrorDetails}`);
         return;
     }
 
@@ -46678,10 +50711,156 @@ async function sendVisibleError(context, error) {
         return;
     }
 
-    await sendQuotaAware(
-        context,
-        'Ошибка. Подробности выведены в консоль бота.',
-    );
+    // Keep every safe error field visible in the chat. sendLongText handles VK
+    // message limits; formatPrivateError redacts secrets and binary payloads.
+    await sendLongText(context, `Ошибка обработки. Полная безопасная причина:\n${fullErrorDetails}`);
+}
+
+const AI_CHANNEL_PROBE_INTERVAL_MS = 60 * 60 * 1000;
+const AI_CHANNEL_PROBE_MODELS = Object.freeze(['gpt-6-luna', 'gpt-6.1-sol']);
+
+function buildDeferredAiOperationNotice(operation) {
+    if (!operation || !String(operation.id || '').trim()) return null;
+    const title = String(operation.label || operation.type || 'Отложенная AI-операция');
+    const id = String(operation.id);
+    return {
+        text: '✅ Обычный канал снова отвечает. Отложенная операция: ' + title + '\nПродолжить её сейчас?',
+        replyMarkup: { inline_keyboard: [[
+            { text: '▶️ Продолжить', callback_data: 'ai_deferred_continue:' + id },
+            { text: 'Оставить как есть', callback_data: 'ai_deferred_keep:' + id },
+        ]] },
+    };
+}
+
+async function notifyDeferredAiOperation() {
+    if (!telegramBotStarted || !telegramOwnerExternalUserId) return false;
+    const notice = buildDeferredAiOperationNotice(peekDeferredAiOperation());
+    if (!notice) return false;
+    await telegramBot.api.sendMessage({ chatId: telegramOwnerExternalUserId, text: notice.text, replyMarkup: notice.replyMarkup });
+    return true;
+}
+
+async function runAiChannelRecoveryProbe() {
+    const state = readAiChannelMode();
+    if (state.mode !== 'astra' || !openAIApiKey) return { skipped: 'ordinary-or-no-key' };
+    const now = Date.now();
+    if (now - Number(state.lastProbeAt || 0) < AI_CHANNEL_PROBE_INTERVAL_MS) return { skipped: 'not-due' };
+    if (listActiveOperations().some((operation) => ['ai-channel-probe', 'parser', 'user-request'].includes(operation.category))) return { skipped: 'busy' };
+    markAiChannelProbeStarted(now);
+    let lastError = null;
+    for (const model of AI_CHANNEL_PROBE_MODELS) {
+        try {
+            await generateOpenAITextCore({ model, systemPrompt: 'Reply with exactly: OK', userPrompt: 'OK', temperature: 0, maxTokens: 8, reasoningEffort: 'none', streamOverride: true, tokenUsageOperation: 'ai-channel-health-probe', requestTimeoutMs: 45_000, disableTransportFallback: true });
+            const next = setAiChannelMode('ordinary', { modeSource: 'auto', detectedModel: model, detectedAt: Date.now(), lastSuccessfulModel: model, probeFailures: 0, lastError: '' });
+            console.log('[AI CHANNEL PROBE RECOVERED]', 'model=' + model, 'mode=' + next.mode);
+            await notifyDeferredAiOperation().catch((error) => console.warn('[AI CHANNEL DEFERRED NOTICE ERROR]', formatPrivateError(error)));
+            return { recovered: true, model };
+        } catch (error) {
+            lastError = error;
+            console.warn('[AI CHANNEL PROBE FAILED]', 'model=' + model, formatPrivateError(error));
+        }
+    }
+    const safeError = formatPrivateError(lastError);
+    writeAiChannelMode({ lastError: String(safeError?.message || safeError?.value || 'probe failed').slice(0, 700), probeFailures: readAiChannelMode().probeFailures + 1 });
+    return { recovered: false, error: safeError };
+}
+
+// GPT-6 Luna is kept out of production ladders until an independent,
+// rate-limited health sample shows sustained availability. Probes are
+// deliberately fire-and-forget: a slow previous response never blocks the
+// next scheduled sample; per-capability minute counters cap provider pressure.
+const GPT6_LUNA_HEALTH_STATE_KEY = 'gpt-6-luna-health-v1';
+const GPT6_LUNA_HEALTH_TICK_MS = 30_000;
+const GPT6_LUNA_HEALTH_MAX_PER_MINUTE = 3;
+const GPT6_LUNA_HEALTH_PROBE_IMAGE = resolve('./data/generated-images/gpt-summary-1791316522338-d1a3ebd204f8a8.png');
+function readGpt6LunaHealth() {
+    const details = getMaintenanceState(GPT6_LUNA_HEALTH_STATE_KEY)?.details || {};
+    return {
+        version: LUNA_HEALTH_SAMPLE_VERSION, samples: Array.isArray(details.samples) ? details.samples.slice(-200) : [],
+        nextAt: Number(details.nextAt || 0), reportDay: String(details.reportDay || ''), reportSent: Boolean(details.reportSent),
+        promoted: details.version === LUNA_HEALTH_SAMPLE_VERSION && Boolean(details.promoted), lastProbeAt: Number(details.lastProbeAt || 0),
+    };
+}
+function writeGpt6LunaHealth(state) {
+    return setMaintenanceState(GPT6_LUNA_HEALTH_STATE_KEY, { details: { ...state, samples: state.samples.slice(-200) } });
+}
+function gpt6LunaHealthRate(state) {
+    return lunaHealthRate(state.samples);
+}
+async function runGpt6LunaHealthProbe(capability) {
+    const startedAt = Date.now();
+    let ok = false; let error = '';
+    try {
+        if (capability === 'vision') {
+            const buffer = readFileSync(GPT6_LUNA_HEALTH_PROBE_IMAGE);
+            const imageUrl = `data:image/png;base64,${buffer.toString('base64')}`;
+            await generateOpenAIVisionTextCore({ model: GPT6_LUNA_MODEL_ID, systemPrompt: 'Ответь кратко: это изображение доступно для анализа?', userPrompt: 'Проверка доступности Vision. Ответь OK.', imageUrls: [imageUrl], maxTokens: 24, providerCredential: null, tokenUsageOperation: 'gpt-6-luna-health-probe', streamOverride: true, imageDetail: 'low', reasoningEffort: 'none', requestTimeoutMs: 120_000 });
+        } else {
+            await generateOpenAITextCoreAttempt({ model: GPT6_LUNA_MODEL_ID, systemPrompt: 'Reply with exactly OK.', userPrompt: 'Health probe.', maxTokens: 8, temperature: 0, reasoningEffort: 'none', providerCredential: null, tokenUsageOperation: 'gpt-6-luna-health-probe', streamOverride: true, requestTimeoutMs: 120_000 });
+        }
+        ok = true;
+    } catch (probeError) {
+        error = JSON.stringify(formatPrivateError(probeError)).slice(0, 500);
+    }
+    const state = readGpt6LunaHealth();
+    state.samples.push({ version: LUNA_HEALTH_SAMPLE_VERSION, at: new Date().toISOString(), capability, ok, durationMs: Date.now() - startedAt, error });
+    state.lastProbeAt = Date.now();
+    const rate = gpt6LunaHealthRate(state);
+    if (!state.promoted && canPromoteLunaHealth(state.samples)) {
+        const current = readModelLadderProfiles();
+        const profiles = Object.fromEntries(Object.entries(current).map(([key, steps]) => {
+            if (steps.some((step) => step.model === GPT6_LUNA_MODEL_ID)) return [key, steps];
+            const index = steps.findIndex((step) => /^gpt-6(?:\.1)?-sol$|^gpt-6-astra$/u.test(step.model));
+            const step = { model: GPT6_LUNA_MODEL_ID, attempts: 1, ...(key.includes('vision') ? { detail: 'high', reasoningEffort: 'none' } : { reasoningEffort: 'none' }) };
+            const next = [...steps]; next.splice(index < 0 ? next.length : index, 0, step); return [key, next];
+        }));
+        saveModelLadderProfiles(profiles);
+        state.promoted = true;
+    }
+    writeGpt6LunaHealth(state);
+    return { capability, ok, durationMs: Date.now() - startedAt, rate, error };
+}
+function gpt6LunaHealthLocalParts(now = new Date()) {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: botTimeZone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(now).reduce((out, part) => { out[part.type] = part.value; return out; }, {});
+}
+async function runGpt6LunaHealthReportIfDue() {
+    if (!telegramBotStarted || !telegramOwnerExternalUserId) return;
+    const p = gpt6LunaHealthLocalParts(); const day = `${p.year}-${p.month}-${p.day}`;
+    if (p.hour !== '21' || Number(p.minute) < 33) return;
+    const state = readGpt6LunaHealth(); if (state.reportDay === day && state.reportSent) return;
+    const samples = state.samples.filter((item) => item.version === LUNA_HEALTH_SAMPLE_VERSION && lunaHealthDay(item.at, botTimeZone) === day);
+    const line = (capability) => { const rows = samples.filter((item) => item.capability === capability); return `${capability}: ${rows.length} запросов, успехов ${rows.filter((x) => x.ok).length}, отказов ${rows.filter((x) => !x.ok).length}`; };
+    const inLadders = hasLunaHealthModel(readModelLadderProfiles(), GPT6_LUNA_MODEL_ID);
+    await telegramBot.api.sendMessage({ chatId: telegramOwnerExternalUserId, text: `📊 GPT-6 Luna health за ${day}\n${line('text')}\n${line('vision')}\n7-дневная доля успеха: ${(gpt6LunaHealthRate(state) * 100).toFixed(1)}%\nСтатус лестницы: ${inLadders ? 'модель возвращена в лестницы' : 'вне рабочих лестниц, продолжаю проверку'}\nСтарая неполная выборка исключена из оценки надёжности.` });
+    // A probe can finish while Telegram delivery is awaited. Preserve its
+    // fresh sample instead of overwriting it with the pre-send snapshot.
+    writeGpt6LunaHealth({ ...readGpt6LunaHealth(), reportDay: day, reportSent: true });
+}
+function scheduleGpt6LunaHealthProbe() {
+    const now = Date.now();
+    const state = readGpt6LunaHealth();
+    if (!state.nextAt) {
+        writeGpt6LunaHealth({ ...state, nextAt: now + (5 + Math.floor(Math.random() * 50)) * 60 * 1000 });
+        return;
+    }
+    if (state.nextAt > now) return;
+    const local = gpt6LunaHealthLocalParts();
+    const day = `${local.year}-${local.month}-${local.day}`;
+    const daySamples = state.samples.filter((item) => lunaHealthDay(item.at, botTimeZone) === day);
+    if (daySamples.length >= 8) {
+        writeGpt6LunaHealth({ ...state, nextAt: now + 30 * 60 * 1000 });
+        return;
+    }
+    const minute = Math.floor(now / 60_000);
+    const recentMinute = state.samples.filter((item) => Math.floor(Date.parse(item.at || '') / 60_000) === minute);
+    const capability = daySamples.filter((item) => item.capability === 'text').length <= daySamples.filter((item) => item.capability === 'vision').length ? 'text' : 'vision';
+    if (recentMinute.filter((item) => item.capability === capability).length >= GPT6_LUNA_HEALTH_MAX_PER_MINUTE) {
+        writeGpt6LunaHealth({ ...state, nextAt: now + 60_000 });
+        return;
+    }
+    // Scheduling a new probe must not reset an already delivered daily report.
+    writeGpt6LunaHealth({ ...state, nextAt: now + (20 + Math.floor(Math.random() * 50)) * 60 * 1000 });
+    void runGpt6LunaHealthProbe(capability).catch((error) => console.warn('[GPT6 LUNA HEALTH PROBE ERROR]', formatPrivateError(error)));
 }
 
 const NVIDIA_IMAGE_TRANSLATE_TO_ENGLISH = !/^(?:0|false|off|no)$/iu.test(
@@ -46944,6 +51123,13 @@ function runWeeklyEventCleanup({ force = false } = {}) {
 // Запуск приложения
 // -----------------------------------------------------------------------------
 export async function startApplication() {
+    beautifulTimeScheduler.start();
+    console.info('[BEAUTIFUL TIME SCHEDULER READY]');
+    // Polling resumes from SQLite after a restart without blocking incoming commands.
+    const voiceTranscriptTimer = setInterval(() => {
+        void vkVoiceJobs.tick().catch(error => console.error('[VK VOICE TICK ERROR]', formatPrivateError(error)));
+    }, 1000);
+    voiceTranscriptTimer.unref?.();
     interruptedOperationsFromPriorRun = reconcileInterruptedOperationCheckpoints();
     if (interruptedOperationsFromPriorRun.length) {
         console.error('[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS]', JSON.stringify(interruptedOperationsFromPriorRun.map((operation) => ({
@@ -47115,6 +51301,7 @@ export async function startApplication() {
                         'Telegram-владелец не настроен: укажи TELEGRAM_OWNER_USER_ID (или TELEGRAM_OWNER_ID / TELEGRAM_ADMIN_USER_ID / BOT_OWNER_TELEGRAM_ID), иначе кнопка «➕ Добавить тусу» и служебные команды владельца в Telegram не появятся.',
                     );
                 }
+
             } else {
                 const classification = telegramConnection.classification;
                 console.warn(
@@ -47139,12 +51326,11 @@ export async function startApplication() {
         `Запускаю VK Long Poll: ${vkConnections.length} сообществ(а)…`,
     );
 
-    for (const connection of vkConnections) {
-        // updates.start() can resolve when VK closes a long-poll session. Keep
-        // one reconnect loop per community so a transient stop cannot silently
-        // disable incoming VK commands. The loop never starts a second poll
-        // while the previous start() promise is still active.
-        void (async () => {
+    // updates.start() can resolve when VK closes a long-poll session. Keep one
+    // reconnect loop per community so a transient stop cannot silently disable
+    // incoming VK commands. The loop never starts a second poll while the
+    // previous start() promise is still active.
+    async function startVkConnectionLoop(connection) {
             let attempt = 0;
             while (true) {
                 attempt += 1;
@@ -47190,7 +51376,10 @@ export async function startApplication() {
                 );
                 await waitMilliseconds(delay);
             }
-        })().catch((error) => {
+    }
+
+    for (const connection of vkConnections) {
+        void startVkConnectionLoop(connection).catch((error) => {
             console.error('[VK LONG POLL LOOP FATAL]', `role=${connection.label}`, formatPrivateError(error));
         });
         console.log(
@@ -47242,6 +51431,22 @@ export async function startApplication() {
         `historyRecoveryDelayedMs=${vkHistoryStartupDelayMs}`,
         'commands=available-now',
     );
+
+    // Proactive roster messages are opt-in in config and evaluated every minute.
+    try { proactiveVkRosterConfig = loadProactiveVkRoster(); }
+    catch (error) { console.error('[PROACTIVE VK ROSTER LOAD ERROR]', formatPrivateError(error)); }
+    const proactiveVkRosterTimer = setInterval(() => {
+        runDetachedSupervisedOperation({ name: 'proactive-vk-roster:tick', category: 'communication' }, () => runProactiveVkRosterTick());
+    }, 60 * 1000);
+    proactiveVkRosterTimer.unref();
+
+    const inactiveVkTimer = setInterval(() => {
+        runDetachedSupervisedOperation({ name: 'inactive-vk-participants:tick', category: 'transport-maintenance' },
+            () => inactiveVkParticipantScheduler.tick());
+    }, 60 * 1000);
+    inactiveVkTimer.unref();
+    runDetachedSupervisedOperation({ name: 'inactive-vk-participants:startup', category: 'transport-maintenance' },
+        () => inactiveVkParticipantScheduler.tick());
 
     // V188.105: attachment failures are intentionally silent in the originating
     // chat. A durable report becomes due after three hours and is delivered to
@@ -47307,10 +51512,12 @@ export async function startApplication() {
             '[HIERARCHY V188]',
             `database=${HIERARCHICAL_SUMMARY_DB_PATH}`,
             `peers=${getHierarchicalSummaryPeers().join(',') || 'none'}`,
-            'daily=00:00-local',
+            'daily=23:59-local+tail-22:30-23:59',
             'weekly=Sunday-24:00/Monday-00:00-local',
-            'monthly=last-day-24:00/next-month-00:00-local',
-            'slices=09:00,13:00,15:00,18:00,21:00,23:59',
+            'monthly=first-day-11:00-local',
+            'seasonal=first-day-new-season-11:00-local',
+            'yearly=January-1-12:00-local',
+            'slices=03:00,09:00,12:00,15:00,18:00,21:00,22:30,23:59',
             'pipeline=raw-once>intraday-batch>daily>week-segment>month',
             // V188.43 compatibility marker: pipeline=raw-once>daily>week-segment>month
             `rawLeafBudget~=${CALENDAR_SUMMARY_RAW_INPUT_TOKEN_BUDGET}`,
@@ -47403,6 +51610,30 @@ export async function startApplication() {
     }, AI_MODEL_DISCOVERY_TICK_MS);
     aiModelDiscoveryTimer.unref();
 
+    const aiChannelProbeTimer = setInterval(() => {
+        runDetachedSupervisedOperation({ name: 'ai-channel-probe:hourly', category: 'ai-channel-probe', timeoutMs: 2 * 60 * 1000 }, () => runAiChannelRecoveryProbe())
+            .catch((error) => console.warn('[AI CHANNEL PROBE TASK ERROR]', formatPrivateError(error)));
+    }, 60 * 1000);
+    aiChannelProbeTimer.unref();
+
+    const gpt6LunaHealthTimer = setInterval(() => {
+        scheduleGpt6LunaHealthProbe();
+        void runGpt6LunaHealthReportIfDue().catch((error) => console.warn('[GPT6 LUNA HEALTH REPORT ERROR]', formatPrivateError(error)));
+    }, GPT6_LUNA_HEALTH_TICK_MS);
+    gpt6LunaHealthTimer.unref();
+
+    // Раз в четыре часа проверяет image-модели последовательно до первого
+    // успешного изображения; после успеха сохраняет маркер и больше не запускается.
+    const imageGenerationProbeTimer = setInterval(() => {
+        runDetachedSupervisedOperation({
+            name: 'image-generation-probe:four-hour',
+            category: 'transport-maintenance',
+            timeoutMs: 90 * 60 * 1000,
+        }, () => runScheduledImageGenerationProbe())
+            .catch((error) => console.warn('[IMAGE GENERATION PROBE TASK ERROR]', formatPrivateError(error)));
+    }, IMAGE_GENERATION_PROBE_INTERVAL_MS);
+    imageGenerationProbeTimer.unref();
+
     runDetachedSupervisedOperation({ name: 'event-proposals:startup', category: 'maintenance' }, () => processDueEventProposals());
     const eventProposalTimer = setInterval(() => {
         runDetachedSupervisedOperation({ name: 'event-proposals:tick', category: 'maintenance' }, () => processDueEventProposals());
@@ -47443,3 +51674,78 @@ export async function startApplication() {
         `legacyBanterCleared=${legacyOutburstCleanup.banter}`,
     );
 }
+async function runProactiveVkRosterTick() {
+    if (proactiveVkRosterTickRunning) return { skipped: true, reason: 'already-running' };
+    if (!proactiveVkRosterConfig) {
+        try { proactiveVkRosterConfig = loadProactiveVkRoster(); }
+        catch (error) { console.error('[PROACTIVE VK ROSTER CONFIG ERROR]', formatPrivateError(error)); return { sent: 0, failed: 0 }; }
+    }
+    if (!proactiveVkRosterConfig?.proactiveEnabled) return { sent: 0, failed: 0, disabled: true };
+    const due = listDueProactiveVkParticipants(proactiveVkRosterConfig, Date.now());
+    if (!due.length) return { sent: 0, failed: 0, due: 0 };
+    proactiveVkRosterTickRunning = true;
+    let sent = 0;
+    let failed = 0;
+    try {
+        const peerId = Number(proactiveVkRosterConfig.peerId);
+        if (!Number.isSafeInteger(peerId) || peerId <= 0) throw new Error('Некорректный peerId proactive VK roster.');
+        for (const entry of due) {
+            try {
+                const message = buildProactiveVkMessage(entry.participant);
+                if (!message) continue;
+                await primaryVk.api.messages.send({ peer_id: peerId, random_id: randomInt(1, 2_147_483_647), message });
+                markProactiveVkParticipantSent(proactiveVkRosterConfig, entry.index);
+                sent += 1;
+                await waitMilliseconds(120);
+            } catch (error) {
+                failed += 1;
+                console.error('[PROACTIVE VK ROSTER SEND ERROR]', `peer=${peerId}`, `user=${entry.participant?.userId || 0}`, formatPrivateError(error));
+            }
+        }
+        if (sent > 0) saveProactiveVkRoster(proactiveVkRosterConfig);
+    } finally { proactiveVkRosterTickRunning = false; }
+    if (sent || failed) console.log('[PROACTIVE VK ROSTER TICK]', `due=${due.length}`, `sent=${sent}`, `failed=${failed}`);
+    return { sent, failed, due: due.length };
+}
+
+const INACTIVE_VK_CONFIG_PATH = resolve(import.meta.dirname, '../../config/vk-inactive-participants.json');
+const inactiveVkParticipantScheduler = createInactiveVkParticipantScheduler({
+    loadConfig() {
+        return existsSync(INACTIVE_VK_CONFIG_PATH)
+            ? JSON.parse(readFileSync(INACTIVE_VK_CONFIG_PATH, 'utf8')) : null;
+    },
+    loadState: peerId => getMaintenanceState('inactive-vk-participants:' + peerId)?.details || null,
+    saveState: (peerId, state) => setMaintenanceState('inactive-vk-participants:' + peerId, { details: state }),
+    getParticipants: peerId => vkInactivityQueries.participants(peerId),
+    async getMemberIds(peerId) {
+        try {
+            const response = await withProviderDeadline(primaryVk.api.messages.getConversationMembers({
+                peer_id: peerId, group_id: Number(groupId),
+            }), 15_000, 'inactive VK members');
+            const items = response?.items;
+            // Never mistake an incomplete or malformed roster for proof somebody left.
+            if (!Array.isArray(items) || items.length < Number(response.count || 0)) return null;
+            return new Set(items.map(item => Number(item.member_id)).filter(id => id > 0));
+        } catch (error) {
+            console.warn('[INACTIVE VK MEMBERS DATABASE FALLBACK]', 'peer=' + peerId, formatPrivateError(error));
+            return null;
+        }
+    },
+    async resolveProfile(userId, cachedFullName) {
+        try {
+            const profiles = await withProviderDeadline(primaryVk.api.users.get({
+                user_ids: [userId], name_case: 'nom',
+            }), 15_000, 'inactive VK profile');
+            const profile = profiles?.find(item => Number(item.id) === Number(userId));
+            if (profile) {
+                saveVkUserNames([profile]);
+                return { fullName: [profile.first_name, profile.last_name].filter(Boolean).join(' '), deactivated: profile.deactivated };
+            }
+        } catch (error) {
+            console.warn('[INACTIVE VK PROFILE CACHE FALLBACK]', 'user=' + userId, formatPrivateError(error));
+        }
+        return { fullName: cachedFullName };
+    },
+    send: params => withProviderDeadline(primaryVk.api.messages.send(params), 30_000, 'inactive VK mention send'),
+    log: (event, detail) => console.log('[INACTIVE VK PARTICIPANTS]', event, JSON.stringify(detail)),
+});

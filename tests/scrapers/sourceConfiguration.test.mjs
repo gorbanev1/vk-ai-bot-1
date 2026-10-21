@@ -47,5 +47,11 @@ assert.equal(
     parseVkChatConfigurations('Stable|https://vk.ru/im?sel=c22|300')[0].url,
     'https://vk.ru/im?sel=c22',
 );
+const chatsWithPartyChat = parseVkChatConfigurations('');
+assert.deepEqual(chatsWithPartyChat.map(({ name, url, autoScrollMessages }) => ({ name, url, autoScrollMessages })), [
+    { name: 'Беседа 22', url: 'https://vk.ru/im?sel=c22', autoScrollMessages: 50 },
+    { name: 'Беседа 3', url: 'https://vk.ru/im?sel=c3', autoScrollMessages: 0 },
+    { name: 'Беседа 14', url: 'https://vk.ru/im?sel=c14', autoScrollMessages: 0 },
+]);
 
 console.log('sourceConfiguration tests: OK');

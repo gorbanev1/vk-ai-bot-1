@@ -1,0 +1,674 @@
+
+> vk-ai-bot@0.188.127 start
+> node --import ./src/infrastructure/database/databasePreflightRegister.js src/index.js
+
+[DB PREFLIGHT] healthy backup current=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-20T07-33-22-215Z.sqlite
+[DB HEALTHY BACKUP SCHEDULER] intervalHours=6 retained=15
+[LIVE MESSAGE JOURNAL REPLAY] parsed=63 replayed=63 invalid=0
+[VK MESSAGE ARCHIVE JOURNAL REPLAY] parsed=63 replayed=63 invalid=0
+[PROJECT AUDIT CONFIG] mode=multipass inputMode=text transport=stream concurrency=1
+[BOT BUILD] V188.146
+[BOT PATCH] V188.146
+[STRICT EVENT AUDIT NON-DESTRUCTIVE] telegram=0 vk=0 vkChat=0 manual=0 orphanSources=87
+Проверяю необязательное подключение к GigaChat…
+[EVENT DEDUPE PERSISTENT FAST REBUILD] reason=startup-v147-db-repair raw=100 canonical=100 groups=0 duplicates=0
+Имя бота: гигорейв
+ID основного VK-сообщества: 233007447
+Часовой пояс: Europe/Moscow
+Сессия участника в каждой конфе: 2 часа.
+ЛС включены без обязательного обращения; содержимое ЛС не сохраняется и не логируется.
+Запускаю VK Long Poll: 1 сообществ(а)…
+[VK LONG POLL STARTED] role=primary groupId=233007447
+Бот запущен: оба VK-сообщества и настроенные дополнительные платформы активны.
+[BOT READY] historyRecoveryDelayedMs=5000 commands=available-now
+[LEGACY EVENT STARTUP REPAIRS] disabled=v18892 mode=explicit-owner-command-only
+[SCRAPER MODE] Основной пул: новые раз в 3 дня, в пятницу после 2 дней. Второстепенный: раз в неделю и в пятницу. Только ночью 02:00–06:00 без пересечения операций. timeZone=Europe/Moscow nextSecondaryAutoAt=1792198800 manualFull=«тусы быдлячьи парсер все» manualClean=«тусы быдлячьи парсер все чисто»
+[PERSONALIZATION V187] database=C:\Users\Adm\AppData\Local\Gigorave\state\personalization-v187.sqlite dossier=command-only styleBatch=500 startupBackfill=disabled
+[SUMMARY V188 CACHE] database=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite contextTokens=128000 rawInputBudget~=24000 pruned=0
+[HIERARCHY V188] database=C:\Users\Adm\AppData\Local\Gigorave\state\hierarchical-summary-v188.sqlite peers=2000000001,2000000004,2000000006,2000000007,8138353801,8138961901,8141076491,8196547900,8196547901,8196547902,8196547903,8202627500,8202627501,8202627502,8202627503,8223773400,8223773401,8223773402,8223773403,2000000022 daily=23:59-local+tail-22:30-23:59 weekly=Sunday-24:00/Monday-00:00-local monthly=first-day-11:00-local seasonal=first-day-new-season-11:00-local yearly=January-1-12:00-local slices=03:00,09:00,12:00,15:00,18:00,21:00,22:30,23:59 pipeline=raw-once>intraday-batch>daily>week-segment>month rawLeafBudget~=32000 late=immutable-delta auto=default-on
+[AUTO SUMMARY LEGACY SCHEDULER DISABLED] calendar rollup owns scheduled summaries; set LEGACY_AUTO_SUMMARY_SCHEDULER_ENABLED=1 only for rollback compatibility
+[CHAT LEAVERS AUTO STATE] enabled=1 repaired=0
+[COMMUNICATION STATE RESTORED FROM SQLITE] restart-safe=true legacyOutburstsCleared=0 legacyBanterCleared=0
+[TELEGRAM CONNECT ATTEMPT] reason=startup attempt=1/3
+GPT router подключён. Текстовые GPT-модели: grok-4.6, gpt-6-sol, grok-4.5, gpt-5.6-terra, gpt-5.6-luna, gpt-6-astra, gpt-6-luna, gpt-5.5, gpt-6.1-sol, grok-4.7, gpt-5.6-sol
+GPT image-модели: grok-imagine-image-2.0, gpt-image-2.5-flare-4k, gpt-image-2.5-sunburst-4k, gpt-image-2, gpt-image-2.5, gpt-image-2.5-flare-2k, gpt-image-2.5-sunburst, gpt-image-2.5-sunburst-2k, gpt-image-2.5-flare
+[TELEGRAM BOT STARTED] id=8965960830 username=@Gigorave_bot offset=813863554
+[TELEGRAM CONNECTED] reason=startup username=@Gigorave_bot
+[VK LONG POLL ACTIVE] role=primary groupId=233007447
+[VK HISTORY LOCAL SQLITE SKIP DURABLE] peer=2000000006 database=C:\Users\Adm\AppData\Local\Gigorave\state\history-recovery-v1872.sqlite currentRows=146794 checkpointRows=146694 lastScanRows=3747702 coverageMaxCmid=210111 coverageRows=146694 sourceFiles=42 checkpoint=v2
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1792404241 max=3500 reason=startup
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153574-153673
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=95 new=0 existing=82 cmid=153574-153673
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153474-153573
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153374-153473
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153274-153373
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153174-153273
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153074-153173
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152974-153073
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=152986 type=kicked member=746894229 actor=89921228
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152874-152973
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152774-152873
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152674-152773
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=994 new=0 existing=906 cmid=152674-152773
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152574-152673
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152474-152573
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=152503 type=left member=138842074 actor=138842074
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152374-152473
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152274-152373
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1391 new=0 existing=1246 cmid=152274-152373
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1391 new=0 existing=1246 cutoff=1792404241 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Зови"
+Telegram подключён: @Gigorave_bot
+[TEXT RECOVERY STARTUP] method=GET-only legacyJobId=d0e42598-b6f5-4c34-8e8b-c7e51877b144
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Нельзя😤"
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Мы ток с Яриком Максом и Олежей  гм Мышь был"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="У меня друг очень круто ведет"
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Ну мышь умеет"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Но он на ближайшие года 4 выпал из этой темы"
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Выдумать компанию на ходу ахахаха"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ну я тоже водил, но только по системе ведьмака."
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ну это часто так )))\nКогда готовил сюжет месяцы, а игроки пидорасы пошли деревню сожгли и выебали корчмаря ))"
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Ахахахв"
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Ну Олежа пыталась так"
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Я тип по его сюжету ходил"
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Правильно расставленые приоритеты😂"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ну, в рулбуке так и написано, главное что бы игрокам нравилось, а чего хочет мастер никого не ебет, азахазаз"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ну из меня тоже игрок не оч )))"
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Как никого не ебёт? Корчмаря же выебали в итоге🤣"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="ЭТО НЕ ПО СЮЖЕТУ"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="По сюжету он их должен выебать."
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="НЕ ВАЖНО"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Вообще особенно люблю не неподходящие моменты крит успехи и провалы)))"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Посадили?"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Хотел дать дружескую затрещину, выбросил крит, дал так, что зубы посыпались )))"
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Я ни разу в такие настолки не играл("
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Жена беременная"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ну как так ((("
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Настолки это когда на столе расчертились"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="А потом на стол положили, нагнули и отодрали"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ну вот я это дело бросил и вернулся к привычным настолкам)"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Надо тя вернуть в то дело"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="И растянуть"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="НЕТ"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А эт можно"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Пхаха"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Под веществами"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Зачем."
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Так приятнее"
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Да у меня ж в кругу знакомых никто этим не увлекается 😞"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Во блин, а чем увлекаются?"
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="Да все работяги, даже графики никак не совпадают, чтобы просто увидеться и пивка попить😅"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Да у нас так же последние годы. \nОчень редко получается словиться как то. \nПоэтому у меня настолки на 1-2 человека 😂😂😂😂😂😂"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="неправда"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="я увлекаюсь"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="пошли в настолки"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="в субботу играть будем"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="В одной ток проебался, \"Страдающее средневековье\", она от 3 до 5 человек"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А вы во что, где ?"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="в подруги в манчкин или покер играть будем"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Если б я открыл магаз настолок, то просто закупил бы манчкина со всеми дополнениями, каркассона и детских развивашек....."
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="гигорейв у кого самые уникальные ножки в чате"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=196514685 mention=true replyOrQuote=false request="у кого самые уникальные ножки в чате" expiresAt=2026-10-20T12:30:38.697Z
+[COMMAND ROUTE] selected=gpt-explicit-action reason=explicit-chat-context candidates=gpt-explicit-action explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat-context requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=default astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=all packet=none
+[AI RUNTIME TRANSPORT] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=755496806 isChat=true text="Гигорейв тусы эта неделя кратко"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=755496806 mention=true replyOrQuote=false request="тусы эта неделя кратко" expiresAt=2026-10-20T12:30:49.639Z
+[COMMAND ROUTE] selected=public-events-direct reason=deterministic-public-event-range candidates=public-events-direct>public-events-semantic explicitMode=none modelKeyPolicy=absent suppressed=public-events-semantic context=group
+[PUBLIC EVENTS ROUTE] method=local kind=week from=2026-10-20 to=2026-10-25 events=16 partyPool=primary snapshot=verified verifiedAt=1792441834 aiOnRequest=false scraperAutoRun=false
+[AI RUNTIME TRANSPORT] requestId=eb22de3a-93f1-4dd5-888f-64f095c6da04 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4760,
+  completion_tokens: 8,
+  total_tokens: 4768,
+  prompt_tokens_details: {
+    cached_tokens: 2534,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac operationId=mvgjlj6m-58a10ce7 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4760 output=8 total=4768 cached=2534 reasoning=0 estimatedText=0 durationMs=11118
+[AI TOKEN TOTAL] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac operationId=mvgjlj6m-58a10ce7 operation=manual-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=4760 output=8 total=4768 cached=2534 reasoning=0 estimatedText=0
+[GPT UNKNOWN TERMS] terms=0
+[SUMMARY CACHE HIT] stage=calendar-all-time-p1 inputs=11 key=b2004112b39b
+[AI RUNTIME TRANSPORT] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000001 senderId=755496806 isChat=true text="Гигорейв"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Порвала б Эрика?"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="да"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ого"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А Тимоху?"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="а Тимоху на поводок"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="чтоб других отпугивать"
+[VK MESSAGE] peerId=2000000006 senderId=283656478 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А как же твой парнишка ??"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000001 reason=direct-bot-interaction
+[SESSION START] mode=prompt peerId=2000000001 senderId=755496806 expiresAt=2026-10-20T12:33:30.952Z
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Можно тогда его уже забрать на выхи ??!!!!"
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6260,
+  completion_tokens: 25,
+  total_tokens: 6285,
+  prompt_tokens_details: {
+    cached_tokens: 2534,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac operationId=mvgjlj6m-58a10ce7 operation=hierarchical-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=6260 output=25 total=6285 cached=2534 reasoning=0 estimatedText=0 durationMs=17634
+[AI TOKEN TOTAL] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac operationId=mvgjlj6m-58a10ce7 operation=hierarchical-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=6260 output=25 total=6285 cached=2534 reasoning=0 estimatedText=0
+[AI RUNTIME TRANSPORT] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1792406035 max=3500 reason=periodic
+[AI RUNTIME TRANSPORT] requestId=eb22de3a-93f1-4dd5-888f-64f095c6da04 model=gpt-5.6-terra capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 9691,
+  completion_tokens: 20,
+  total_tokens: 9711,
+  prompt_tokens_details: {
+    cached_tokens: 2450,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac operationId=mvgjlj6m-58a10ce7 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=9691 output=20 total=9711 cached=2450 reasoning=0 estimatedText=0 durationMs=165671
+[AI TOKEN TOTAL] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac operationId=mvgjlj6m-58a10ce7 operation=event-analysis provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=9691 output=20 total=9711 cached=2450 reasoning=0 estimatedText=0
+[CHAT DATABASE SUMMARY-FIRST ANALYSIS] peer=2000000006 searched=138630 summarySources=11 summaryCoverage=166582 uncovered=142 rawToAi=142 rawHardLimit=3000 rawTruncated=no chunks=1 model=gpt-6-luna purpose=text
+[AI RUNTIME TRANSPORT] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="только вместе со мной"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="я от него никуда не денусь"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Не"
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="такая подходит во время прогулки, смотрит в глаза и говорит \"ПОКАЗЫВАЙ СТУПНИ\""
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Влюбился?)"
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="испугался"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А в меня????"
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153645-153744
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=2 existing=94 cmid=153645-153744
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153545-153644
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153445-153544
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153345-153444
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153245-153344
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153145-153244
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=153045-153144
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="тебя в жаркие уста поцелую твои"
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="сильно пиздящие"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="ураа яой"
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="токсичный"
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152945-153044
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=152986 type=kicked member=746894229 actor=89921228
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152845-152944
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152745-152844
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=994 new=2 existing=912 cmid=152745-152844
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Я вообще молчун."
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152645-152744
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152545-152644
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152445-152544
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=152503 type=left member=138842074 actor=138842074
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=13 requested=1300 received=1291 new=2 existing=1191 cmid=152445-152544
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1300 received=1291 new=2 existing=1191 cutoff=1792406035 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="да да"
+[GPT FINISH] reason=length
+[GPT USAGE] {
+  prompt_tokens: 2712,
+  completion_tokens: 3200,
+  total_tokens: 5912,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 2858
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=eb22de3a-93f1-4dd5-888f-64f095c6da04 operationId=mvgjlrmk-ee32a53e operation=event-analysis provider=compat model=gpt-5.6-terra capability=text transport=chat-completions-nonstream source=provider input=2712 output=3200 total=5912 cached=0 reasoning=2858 estimatedText=0 durationMs=67131
+[AI TOKEN TOTAL] requestId=eb22de3a-93f1-4dd5-888f-64f095c6da04 operationId=mvgjlrmk-ee32a53e operation=event-analysis provider=compat model=gpt-5.6-terra requests=1 providerRequests=1 input=2712 output=3200 total=5912 cached=0 reasoning=2858 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=1-12 returned=0
+[AI RUNTIME TRANSPORT] requestId=eb22de3a-93f1-4dd5-888f-64f095c6da04 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6774,
+  completion_tokens: 22,
+  total_tokens: 6796,
+  prompt_tokens_details: {
+    cached_tokens: 2619,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac operationId=mvgjlj6m-58a10ce7 operation=style-personalization provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=6774 output=22 total=6796 cached=2619 reasoning=0 estimatedText=0 durationMs=69211
+[AI TOKEN TOTAL] requestId=8c86988d-5697-4cd5-87ca-7ae36a7264ac operationId=mvgjlj6m-58a10ce7 operation=style-personalization provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=6774 output=22 total=6796 cached=2619 reasoning=0 estimatedText=0
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="гигорейв поменяй самые уникальные ножки в чате у Микки Хилтона"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[ACTIVE REQUEST] peerId=2000000006 senderId=196514685 mention=true reply=false replyOrQuote=false request="поменяй самые уникальные ножки в чате у Микки Хилтона"
+[COMMAND ROUTE] selected=gpt-explicit-action reason=explicit-image-edit candidates=gpt-explicit-action explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat-context requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=default astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=all packet=none
+[AI RUNTIME TRANSPORT] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Да."
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4769,
+  completion_tokens: 11,
+  total_tokens: 4780,
+  prompt_tokens_details: {
+    cached_tokens: 2449,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 operationId=mvgjuzg1-5f8e7331 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4769 output=11 total=4780 cached=2449 reasoning=0 estimatedText=0 durationMs=13816
+[AI TOKEN TOTAL] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 operationId=mvgjuzg1-5f8e7331 operation=manual-summary provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=9529 output=19 total=9548 cached=4983 reasoning=0 estimatedText=0
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=1 matches=0
+[GPT UNKNOWN TERMS] terms=1 resolved=0 unresolved=1 values=ножки
+[SUMMARY CACHE HIT] stage=calendar-all-time-p1 inputs=11 key=b2004112b39b
+[AI RUNTIME TRANSPORT] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5641,
+  completion_tokens: 176,
+  total_tokens: 5817,
+  prompt_tokens_details: {
+    cached_tokens: 2534,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=eb22de3a-93f1-4dd5-888f-64f095c6da04 operationId=mvgjlrmk-ee32a53e operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=5641 output=176 total=5817 cached=2534 reasoning=0 estimatedText=0 durationMs=185608
+[AI TOKEN TOTAL] requestId=eb22de3a-93f1-4dd5-888f-64f095c6da04 operationId=mvgjlrmk-ee32a53e operation=event-analysis provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=15332 output=196 total=15528 cached=4984 reasoning=0 estimatedText=0
+[PUBLIC EVENTS COMPACT GPT] model=gpt-6-luna batch=13-16 returned=4
+[PUBLIC EVENTS COMPACT SEND] events=16 sent=16 images=false layout=single-list summaries=false participants=false description=true sources=false aiOnRequest=false
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Гигорейв у кого в чате анальные аномалии"
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="это при рождении спрашивают вам по 5, он такой мне по 6 и похуй"
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="Гигорейв когда Ваня спать пойдет"
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="😂😂😂😂🤦🏻👍🏻"
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Сам иди спи"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=229552765 mention=true replyOrQuote=false request="у кого в чате анальные аномалии" expiresAt=2026-10-20T12:40:46.578Z
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=1095773519 mention=true replyOrQuote=false request="когда Ваня спать пойдет" expiresAt=2026-10-20T12:40:46.580Z
+[COMMAND ROUTE] selected=gpt-explicit-action reason=explicit-chat-context candidates=gpt-explicit-action explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat-context requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=default astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=all packet=none
+[COMMAND ROUTE] selected=default reason=no-explicit-command candidates=default explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=implicit astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=no packet=none
+[AI RUNTIME TRANSPORT] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[AI RUNTIME TRANSPORT] requestId=350dd284-67f7-4aea-8be5-0f14d2165fa1 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4759,
+  completion_tokens: 12,
+  total_tokens: 4771,
+  prompt_tokens_details: {
+    cached_tokens: 2576,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=350dd284-67f7-4aea-8be5-0f14d2165fa1 operationId=mvgjyk72-02c53586 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4759 output=12 total=4771 cached=2576 reasoning=0 estimatedText=0 durationMs=2621
+[AI TOKEN TOTAL] requestId=350dd284-67f7-4aea-8be5-0f14d2165fa1 operationId=mvgjyk72-02c53586 operation=manual-summary provider=compat model=gpt-5.6-luna requests=3 providerRequests=3 input=14288 output=31 total=14319 cached=7559 reasoning=0 estimatedText=0
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=1 matches=0
+[GPT UNKNOWN TERMS] terms=1 resolved=0 unresolved=1 values=Ваня
+[GPT ROUTE RESOLVED] requestedMode=default effectiveMode=default model=gpt-6-luna packet=none
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=3 matches=0
+[DIRECT GPT CHAT CONTEXT] peer=2000000006 sender=1095773519 name="Микки Хилтон" messages=39 chars=6384
+[AI RUNTIME TRANSPORT] requestId=350dd284-67f7-4aea-8be5-0f14d2165fa1 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4760,
+  completion_tokens: 8,
+  total_tokens: 4768,
+  prompt_tokens_details: {
+    cached_tokens: 2492,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 operationId=mvgjyk72-a51a0682 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4760 output=8 total=4768 cached=2492 reasoning=0 estimatedText=0 durationMs=18950
+[AI TOKEN TOTAL] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 operationId=mvgjyk72-a51a0682 operation=manual-summary provider=compat model=gpt-5.6-luna requests=4 providerRequests=4 input=19048 output=39 total=19087 cached=10051 reasoning=0 estimatedText=0
+[GPT UNKNOWN TERMS] terms=0
+[SUMMARY CACHE HIT] stage=calendar-all-time-p1 inputs=11 key=b2004112b39b
+[AI RUNTIME TRANSPORT] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6417,
+  completion_tokens: 38,
+  total_tokens: 6455,
+  prompt_tokens_details: {
+    cached_tokens: 2534,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 operationId=mvgjuzg1-5f8e7331 operation=hierarchical-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=6417 output=38 total=6455 cached=2534 reasoning=0 estimatedText=0 durationMs=172897
+[AI TOKEN TOTAL] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 operationId=mvgjuzg1-5f8e7331 operation=hierarchical-summary provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=12677 output=63 total=12740 cached=5068 reasoning=0 estimatedText=0
+[AI RUNTIME TRANSPORT] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 9985,
+  completion_tokens: 28,
+  total_tokens: 10013,
+  prompt_tokens_details: {
+    cached_tokens: 2577,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=350dd284-67f7-4aea-8be5-0f14d2165fa1 operationId=mvgjyk72-02c53586 operation=chat-reply provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=9985 output=28 total=10013 cached=2577 reasoning=0 estimatedText=0 durationMs=166349
+[AI TOKEN TOTAL] requestId=350dd284-67f7-4aea-8be5-0f14d2165fa1 operationId=mvgjyk72-02c53586 operation=chat-reply provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=9985 output=28 total=10013 cached=2577 reasoning=0 estimatedText=0
+[GPT ANSWER] mode=default model=gpt-5.6-luna length=standard paragraphs=1 chars=84  
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Мэнхант тур"
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 10655,
+  completion_tokens: 77,
+  total_tokens: 10732,
+  prompt_tokens_details: {
+    cached_tokens: 2576,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 operationId=mvgjuzg1-5f8e7331 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=10655 output=77 total=10732 cached=2576 reasoning=0 estimatedText=0 durationMs=50374
+[AI TOKEN TOTAL] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 operationId=mvgjuzg1-5f8e7331 operation=event-analysis provider=compat model=gpt-5.6-luna requests=3 providerRequests=3 input=25987 output=273 total=26260 cached=7560 reasoning=0 estimatedText=0
+[CHAT DATABASE SUMMARY-FIRST ANALYSIS] peer=2000000006 searched=138674 summarySources=11 summaryCoverage=166582 uncovered=168 rawToAi=168 rawHardLimit=3000 rawTruncated=no chunks=1 model=gpt-6-luna purpose=text
+[AI RUNTIME TRANSPORT] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6260,
+  completion_tokens: 25,
+  total_tokens: 6285,
+  prompt_tokens_details: {
+    cached_tokens: 2534,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 operationId=mvgjyk72-a51a0682 operation=hierarchical-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=6260 output=25 total=6285 cached=2534 reasoning=0 estimatedText=0 durationMs=108009
+[AI TOKEN TOTAL] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 operationId=mvgjyk72-a51a0682 operation=hierarchical-summary provider=compat model=gpt-5.6-luna requests=3 providerRequests=3 input=18937 output=88 total=19025 cached=7602 reasoning=0 estimatedText=0
+[AI RUNTIME TRANSPORT] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 7001,
+  completion_tokens: 38,
+  total_tokens: 7039,
+  prompt_tokens_details: {
+    cached_tokens: 2576,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 operationId=mvgjuzg1-5f8e7331 operation=style-personalization provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=7001 output=38 total=7039 cached=2576 reasoning=0 estimatedText=0 durationMs=85142
+[AI TOKEN TOTAL] requestId=ea65a118-5283-4502-adb7-c4c9d269cee8 operationId=mvgjuzg1-5f8e7331 operation=style-personalization provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=13775 output=60 total=13835 cached=5195 reasoning=0 estimatedText=0
+[VK MESSAGE] peerId=2000000006 senderId=134545999 isChat=true text="а ты это с какой целью интересуешься, а???😂"
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 10678,
+  completion_tokens: 36,
+  total_tokens: 10714,
+  prompt_tokens_details: {
+    cached_tokens: 2576,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 operationId=mvgjyk72-a51a0682 operation=event-analysis provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=10678 output=36 total=10714 cached=2576 reasoning=0 estimatedText=0 durationMs=36714
+[AI TOKEN TOTAL] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 operationId=mvgjyk72-a51a0682 operation=event-analysis provider=compat model=gpt-5.6-luna requests=4 providerRequests=4 input=36665 output=309 total=36974 cached=10136 reasoning=0 estimatedText=0
+[CHAT DATABASE SUMMARY-FIRST ANALYSIS] peer=2000000006 searched=138680 summarySources=11 summaryCoverage=166582 uncovered=173 rawToAi=173 rawHardLimit=3000 rawTruncated=no chunks=1 model=gpt-6-luna purpose=text
+[AI RUNTIME TRANSPORT] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6790,
+  completion_tokens: 45,
+  total_tokens: 6835,
+  prompt_tokens_details: {
+    cached_tokens: 2619,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 operationId=mvgjyk72-a51a0682 operation=style-personalization provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=6790 output=45 total=6835 cached=2619 reasoning=0 estimatedText=0 durationMs=6425
+[AI TOKEN TOTAL] requestId=d0808761-dead-43b4-bcd3-ad8b8f5cc1a5 operationId=mvgjyk72-a51a0682 operation=style-personalization provider=compat model=gpt-5.6-luna requests=3 providerRequests=3 input=20565 output=105 total=20670 cached=7814 reasoning=0 estimatedText=0
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="это наш местный прикол"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="Устроим? 🌚"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Сука ты же русский \nПить водку и бить жену \nЭто наше \nА ты из гейропы и США взял \nНастолки \nОни человека пидарасом делают \nТАК МИНУТОЧКУ Ты же и есть гей"
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Пить водку и пиздить женщин это хорошо"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="Бля, промолчу..."
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ты если хочешь с нами в настолки, то так и скажи"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Никто д не против."
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="бросай"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Скоро"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="жду!"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="Когда они?"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Ды пока хз. Я дома у себя играю. Но если захотите собраться, то ток в клубе каком-нить"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="Дм если нужен, могу провести. Давно не вел. Ток не днд, а трушный vtm"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Нихуя себе )\nЯ как раз оч хочу в вампиров ))"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Нам чел провел, но оч хуево"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="Заебись"
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Прощайте навсегда одинокие крыши и города..."
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text="Что у вас тут нового?"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Я чет правила так и не вкурил толком"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="По идее, пишут что бои быстрые, по факту долгие"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Прям очень затянутые"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="Распишу + первый раз можно и по упрощенным"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Мб просто где то с механикой проебались ?"
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Вампиры маскарад?"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Да"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Нришка"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="Да"
+[VK MESSAGE] peerId=2000000006 senderId=229552765 isChat=true text="Скока ж всего понаделали интересного"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="Нуууу, там сама система мемная"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="И я по 4-той редакции веду"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Смотри, кози дайс 2000 вечер , можем скинуться, если человека 4 наберем"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="5-тая срань какая-то"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А в ведьмака играл? Мне там бой пиздец нравится, именно механика ранений)"
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="Ноуп"

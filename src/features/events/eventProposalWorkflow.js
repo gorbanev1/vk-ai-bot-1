@@ -85,6 +85,7 @@ export function normalizeEventProposalDraftEvent(event = {}) {
         eventTime,
         venue: clean(event?.venue, 500),
         participants: clean(event?.participants, 2000),
+        contacts: clean(event?.contacts, 2000),
         price: clean(event?.price, 700),
         description: clean(event?.description ?? event?.announcement, 6000),
         evidence: clean(event?.evidence, 1000),
@@ -195,6 +196,9 @@ const FIELD_ALIASES = new Map([
     ['участники', 'participants'], ['кто', 'participants'], ['лайнап', 'participants'], ['лайн-ап', 'participants'], ['lineup', 'participants'], ['line-up', 'participants'],
     ['цена', 'price'], ['стоимость', 'price'], ['вход', 'price'], ['билеты', 'price'], ['почем', 'price'], ['почём', 'price'],
     ['описание', 'description'], ['анонс', 'description'],
+    ['подробности', 'description'], ['контент', 'description'],
+    ['контакты', 'contacts'], ['контакты (необязательно)', 'contacts'],
+    ['ссылка', 'sourceUrl'], ['источник', 'sourceUrl'],
 ]);
 
 /**
@@ -264,6 +268,8 @@ export function applyEventProposalCorrections(events, corrections) {
                 participants: 'participants',
                 price: 'price',
                 description: 'description',
+                contacts: 'contacts',
+                sourceUrl: 'sourceUrl',
             })[correction.field];
             if (!key) continue;
             result[index] = {

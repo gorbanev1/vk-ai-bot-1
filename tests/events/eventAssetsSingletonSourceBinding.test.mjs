@@ -43,6 +43,7 @@ test('one event plus one source image keeps the image even when Vision says ordi
         assert.equal(event.posterImageIndex, 1);
         assert.equal(event.posterVisionFacts[0].poster, false);
         assert.equal(event.posterVisionFacts[0].sourceMediaBinding, true);
+        assert.equal(event.isMultiAnnouncement, false);
         assert.equal(eventHasSafePosterMatch(event), true);
         assert.ok((await readFile(join(root, event.imagePaths[0]))).length > 1000);
     } finally {
@@ -50,17 +51,46 @@ test('one event plus one source image keeps the image even when Vision says ordi
     }
 });
 
-test('one source image is not shared across multi-announcement events', async () => {
+test('one source image is shared across every multi-announcement card when enabled', async () => {
     const root = await mkdtemp(join(tmpdir(), 'event-assets-multi-'));
     const restore = mockFetch();
     try {
         const events = await prepareEventImages({
-            events: [{ title: 'A', eventDate: '2026-10-12' }, { title: 'B', eventDate: '2026-10-13' }],
+            events: [
+                { title: 'A', eventDate: '2026-10-12', isMultiAnnouncement: true },
+                { title: 'B', eventDate: '2026-10-13', isMultiAnnouncement: true },
+                { title: 'C', eventDate: '2026-10-14', isMultiAnnouncement: true },
+            ],
             sourceKey: 'vk:test', itemId: 'post-2',
             imageUrls: ['https://cdn.example.test/one.png'],
-            dataDirectory: root, allowBrowserFallback: false,
+            dataDirectory: root, allowBrowserFallback: false, shareSourceImagesAcrossEvents: true,
         });
-        assert.deepEqual(events.map((event) => event.imagePaths), [[], []]);
+        assert.ok(events.every((event) => event.imagePaths.length === 1));
+        assert.equal(new Set(events.map((event) => event.imagePaths[0])).size, 1);
+        assert.ok(events.every((event) => event.posterMatchStatus === 'shared_multi_event_source_image'));
+        assert.ok(events.every((event) => eventHasSafePosterMatch(event)));
+        assert.ok(events.every((event) => event.posterVisionFacts.some((fact) => fact.fallbackBinding === 'multi-event-shared-source-image')));
+    } finally {
+        restore();
+    }
+});
+
+test('a Vision negative does not prevent one shared source image from reaching every child card', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'event-assets-multi-negative-'));
+    const restore = mockFetch();
+    try {
+        const events = await prepareEventImages({
+            events: [
+                { title: 'A', eventDate: '2026-10-12', isMultiAnnouncement: true, posterVisionFacts: [{ index: 1, poster: false, visionStatus: 'error' }] },
+                { title: 'B', eventDate: '2026-10-13', isMultiAnnouncement: true, posterVisionFacts: [{ index: 1, poster: false, visionStatus: 'error' }] },
+            ],
+            sourceKey: 'vk:test', itemId: 'post-3',
+            imageUrls: ['https://cdn.example.test/one.png'],
+            dataDirectory: root, allowBrowserFallback: false, shareSourceImagesAcrossEvents: true,
+        });
+        assert.ok(events.every((event) => event.imagePaths.length === 1));
+        assert.ok(events.every((event) => eventHasSafePosterMatch(event)));
+        assert.ok(events.every((event) => event.posterVisionFacts.some((fact) => fact.poster === false && fact.visionStatus === 'error')));
     } finally {
         restore();
     }

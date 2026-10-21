@@ -7,14 +7,17 @@ import { parseEventModerationCommand } from '../../src/features/events/eventMode
 const app = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
 const browser = readFileSync(new URL('../../src/infrastructure/browser/browserGrabber.js', import.meta.url), 'utf8');
 
-test('event Vision and text HTTP requests retain owner cancellation but have no bot deadline', () => {
+test('event Vision and text requests retain operation cancellation and cap stalled model attempts', () => {
   const vision = app.slice(app.indexOf('async function generateOpenAIVisionTextCore('), app.indexOf('async function generateOpenAIVisionText('));
   const textStart = app.indexOf('async function generateOpenAITextCoreAttempt(');
   const text = app.slice(textStart, textStart + 21000);
   for (const source of [vision, text]) {
     assert.ok(source.includes("/^event(?:-|:)/u.test(String(tokenUsageOperation || ''))"));
-    assert.match(source, /getCurrentOperationSignal\(\) \|\| undefined/u);
+        assert.match(source, /getCurrentOperationSignal\(\)/u);
   }
+    assert.match(vision, /buildOperationAbortSignal\(Math\.max\(60_000, Number\(requestTimeoutMs\) \|\| OPENAI_REQUEST_TIMEOUT_MS\)\)/u);
+    assert.match(vision, /signal: requestSignal/u);
+    assert.match(vision, /signal: requestSignal,[\s\S]*?onActivity: \(\) => streamWatchdog\?\.touch\(\)/u);
 });
 
 test('upstream 403 changes model/key instead of restarting same model in another transport', () => {
@@ -38,10 +41,11 @@ test('future cards have two independently routed modes and a real capture-before
   const start = app.indexOf('async function runUpcomingEventRefreshPipelinedV188147(');
   const end = app.indexOf('\nasync function runStoredEventLinkRefreshV188145(', start);
   const flow = app.slice(start, end);
-  assert.match(flow, /noMinimumDwell: true/u);
-  assert.match(flow, /5_000 \+ Math\.floor\(Math\.random\(\) \* 11_001\)/u);
+  assert.doesNotMatch(flow, /noMinimumDwell: true/u);
+  assert.match(flow, /5_000 \+ Math\.floor\(Math\.random\(\) \* 10_001\)/u);
   assert.match(flow, /renameSync\(temporary, cacheFile\)/u);
   assert.match(flow, /await runAiQueued\(\(\) => analyzeCaptured/u);
   assert.match(flow, /onlyIfMissingPoster: onlyMissingPoster/u);
-  assert.match(browser, /minimumOpenMs === 0/u);
+  assert.doesNotMatch(browser, /minimumOpenMs === 0/u);
+  assert.match(browser, /EVENT_REVIEW_MINIMUM_OPEN_MS = 180_000/u);
 });

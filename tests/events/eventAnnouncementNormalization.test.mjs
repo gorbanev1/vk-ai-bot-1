@@ -63,6 +63,10 @@ const normalizationPrompt = buildEventNormalizationSystemPrompt();
 assert.match(normalizationPrompt, /сертификата, приза, скидки/u);
 assert.match(normalizationPrompt, /Не превращай фрагмент даты/u);
 assert.match(normalizationPrompt, /явное имя мероприятия/u);
+assert.match(normalizationPrompt, /«ВОРОН-ЁЖ гиг» → title «ВОРОН-ЁЖ»/u);
+assert.match(normalizationPrompt, /WhattaGig/u);
+assert.match(normalizationPrompt, /только собственное имя события/u);
+assert.match(normalizationPrompt, /сократи его лишь частично/u);
 
 
 const giveawayClean = stripEventServiceArtifacts('STONEHAND даст большой концерт. Для этого нужно: вступить во встречу и нажать "Точно пойду". Итоги конкурса будут опубликованы 15 августа. В программе тяжёлый материал.');
@@ -89,3 +93,18 @@ const realTime = mergeNormalizedEvent({
     announcement: 'Концертный вечер.',
 });
 assert.equal(realTime.timeLabel, '19:30');
+
+const shortSource = 'Первый абзац исходного анонса.\n\nВторой абзац с подробностями.';
+const shortSourceMerged = mergeNormalizedEvent({ description: shortSource }, {
+    announcement: 'Короткая ИИ-выжимка.',
+});
+assert.equal(shortSourceMerged.description, shortSource);
+
+const longSource = Array.from({ length: 5 }, (_, index) =>
+    `Абзац ${index + 1}: ${'В программе события подробная информация для посетителей. '.repeat(4)}`,
+).join('\n\n');
+const longEdited = `В программе концерты и другие события. Организаторы подготовили несколько площадок и подробное расписание. ${'Гости смогут посетить тематические зоны, познакомиться с участниками, посмотреть дополнительные выступления и выбрать интересующую программу. '.repeat(8)}`;
+const longSourceMerged = mergeNormalizedEvent({ description: longSource }, { announcement: longEdited });
+assert.equal(longSourceMerged.description, longEdited.trim());
+const overlyShortEdit = mergeNormalizedEvent({ description: longSource }, { announcement: 'Будет интересно.' });
+assert.equal(overlyShortEdit.description, stripEventServiceArtifacts(longSource));

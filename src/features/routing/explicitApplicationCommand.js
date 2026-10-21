@@ -55,6 +55,12 @@ function requestStats(value) {
 export function detectExplicitApplicationCommand(value) {
     const text = String(value ?? '').trim();
     if (!text) return { matched: false, family: '', route: 'default' };
+    if (/^написать\s+разработчику[.!?]*$/iu.test(text)) {
+        return { matched: true, family: 'developer-contact', route: 'developer-contact', parsed: { matched: true } };
+    }
+    if (/^(?:напомни|напоминай|напомнить|напиши\s+милан[аеуой]*)(?=$|\s)/iu.test(text)) {
+        return { matched: true, family: 'reminder', route: 'reminder' };
+    }
 
     const route = resolveCommandPriority(text);
     if (!['default', 'public-events-semantic'].includes(route.route)) {

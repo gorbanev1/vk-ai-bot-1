@@ -13,6 +13,19 @@ test('owner-only full image review is a separate explicit command', () => {
     assert.equal(parseEventModerationCommand('тусы метаданные картинок заполнить')?.action, 'image-metadata-backfill');
     assert.equal(parseEventModerationCommand('тусы исходники картинки через vision')?.action, 'source-image-vision-audit');
     assert.equal(parseEventModerationCommand('тусы источники восстановить')?.action, 'source-recovery');
+    assert.equal(parseEventModerationCommand('тусы восстановить скрытые афиши')?.action, 'hidden-poster-recovery');
+    assert.equal(parseEventModerationCommand('тусы проверить скрытые карточки')?.action, 'hidden-poster-recovery');
+});
+
+test('hidden-poster recovery status and report aliases stay owner-routable', () => {
+    for (const command of [
+        'тусы восстановить скрытые афиши статус',
+        'тусы восстановить скрытые афиши отчёт',
+        'статус восстановления скрытых афиш',
+        'отчёт восстановления скрытых афиш',
+    ]) {
+        assert.equal(parseEventModerationCommand(command)?.action, 'hidden-poster-recovery-status', command);
+    }
 });
 
 test('explicit manual poster binding is exact event + image, not a global AI override', () => {

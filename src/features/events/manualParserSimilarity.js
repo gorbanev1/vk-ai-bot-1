@@ -84,11 +84,13 @@ export function scoreManualParserSeenSimilarity(current = {}, previous = {}) {
 }
 
 export function findProcessedNearDuplicate(current, rows, { threshold = 0.97 } = {}) {
+    const safeThreshold = Math.max(0, Math.min(1, Number.isFinite(Number(threshold)) ? Number(threshold) : 0.97));
     let best = null;
     for (const row of Array.isArray(rows) ? rows : []) {
+        if (!row || !['processed_event', 'processed_not_event', 'processed_rejected', 'processed_existing', 'event', 'not_event'].includes(String(row.parseStatus ?? '').trim())) continue;
         const score = scoreManualParserSeenSimilarity(current, row);
         if (!best || score.similarity > best.similarity) best = { ...score, row };
     }
-    if (!best || best.similarity + Number.EPSILON < Number(threshold)) return null;
+    if (!best || best.similarity + Number.EPSILON < safeThreshold) return null;
     return best;
 }

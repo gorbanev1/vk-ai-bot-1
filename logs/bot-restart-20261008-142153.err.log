@@ -1,0 +1,1290 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=218650 scanned=5000 skipped=213650
+(node:40548) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:49537:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY LOCAL SQLITE RESCAN] peer=2000000006 reason=source-inventory-changed currentRows=124712 checkpointRows=124334 sourceFiles=36
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=balagan.city/17111 source=missing-source-date-v185 publishedAt=0
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T10-43-50-921Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-09T16-34-21-740Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-09T16-05-50-176Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-06T10-52-18-531Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130788 cutoff=1791372515 max=3500 reason=startup
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130837 cutoff=1791373925 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[SUPERVISED DETACHED OPERATION ERROR] name=parser-all:secondary {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationCancelledError',
+  message: 'Operation muzgvlkb-7cef1a11 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130800 Operation muzgvlkb-7cef1a11 cancelled: command-bulk:telegram:3000000004
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationCancelledError',
+  message: 'Operation muzh0jf7-dc63cbbe cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130803 Operation muzh0jf7-dc63cbbe cancelled: command-bulk:telegram:3000000004
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationCancelledError',
+  message: 'Operation muzh4uu8-4c58489e cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130810 Operation muzh4uu8-4c58489e cancelled: command-bulk:telegram:3000000004
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationCancelledError',
+  message: 'Operation muzh5wni-964c1434 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130812 Operation muzh5wni-964c1434 cancelled: command-bulk:telegram:3000000004
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationCancelledError',
+  message: 'Operation muzh6kth-0c16328f cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130813 Operation muzh6kth-0c16328f cancelled: command-bulk:telegram:3000000004
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhe97f-de3d5102 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130856 Operation muzhe97f-de3d5102 cancelled: command-bulk:telegram:3000000004
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130812 Operation muzh5wni-964c1434 cancelled: command-bulk:telegram:3000000004
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[SCRAPER BROWSER RECOVERY] cached persistent context is dead; relaunching
+[MANUAL SCRAPER SOURCE FAILURE] source=vk:12bpg targetClosed=true page.evaluate: Target page, context or browser has been closed
+Browser logs:
+
+<launching> C:\Program Files\Google\Chrome\Application\chrome.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,Translate,AutoDeElevate,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --no-sandbox --user-data-dir=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\scraper-browser-profile --remote-debugging-pipe about:blank
+<launched> pid=43096
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:pintahausvrn targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:poneslosbar_vrn targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:arena_hall_vrn targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:xlam_bar targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:onibarvrn targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:kommunavrn targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:naryadnyrest targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:vinzavodproo targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:barak_omama targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:auraclubvrn targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=tg:cenzurabar targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=vk:xlambar targetClosed=true browserType.launchPersistentContext: Target page, context or browser has been closed
+Browser logs:
+
+<launching> C:\Program Files\Google\Chrome\Application\chrome.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,Translate,AutoDeElevate,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --no-sandbox --user-data-dir=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\scraper-browser-profile --remote-debugging-pipe about:blank
+<launched> pid=44992
+Call log:
+[2m  - <launching> C:\Program Files\Google\Chrome\Application\chrome.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,Translate,AutoDeElevate,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --no-sandbox --user-data-dir=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\scraper-browser-profile --remote-debugging-pipe about:blank[22m
+[2m  - <launched> pid=44992[22m
+[2m  - [pid=44992] <gracefully close start>[22m
+[2m  - [pid=44992] <kill>[22m
+[2m  - [pid=44992] <will force kill>[22m
+[2m  - [pid=44992] taskkill stderr: �訡��: �� 㤠���� ���� ����� "44992".[22m
+[2m  - [pid=44992] <process did exit: exitCode=21, signal=null>[22m
+[2m  - [pid=44992] starting temporary directories cleanup[22m
+[2m  - [pid=44992] finished temporary directories cleanup[22m
+[2m  - [pid=44992] <gracefully close end>[22m
+
+[EVENT POSTER REJECTED] event="Открывашка" date=2026-10-08 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Открывашка" date=2026-10-08 source=
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="ЦЕНТР ОСЕНИ" date=2026-10-09 source=https://vk.ru/wall-226190294_1198
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhq7x3-4d67d5af cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhq7x7-fc961a74 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhq7ww-227f73c6 cancelled: command-bulk:telegram:3000000004'
+}
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Следующая встреча «Культура. Воронеж»" date=2026-10-10 source=https://vk.ru/wall-230415917_8
+[EVENT POSTER REJECTED] event="Бриолин" date=2026-10-17 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Бриолин" date=2026-10-17 source=https://vk.ru/wall-95062430_2725
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhq9g2-c4f16ec1 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130859 Operation muzhq9g2-c4f16ec1 cancelled: command-bulk:telegram:3000000004
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhq9g3-4c23bba5 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130860 Operation muzhq9g3-4c23bba5 cancelled: command-bulk:telegram:3000000004
+[SUPERVISED DETACHED OPERATION ERROR] name=summary-hierarchy:maintenance {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhrcn1-a2634760 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: Operation muzhrcn1-a2634760 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muzhrcn1-a2634760 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT network error: Operation muzhrcn1-a2634760 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'GPT network error: Operation muzhrcn1-a2634760 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu7yf-1ad477b8 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu80v-29b7c0d9 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu811-b701d112 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu817-807e4294 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu81d-f5d3591c cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu81i-e03afaa4 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu81n-f187655f cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu81t-1e7ddc47 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu820-18c213a7 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu825-efa7d6eb cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu82a-9063b375 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu82e-5e11acf1 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu82l-2d55413c cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu82p-a7f0a7ef cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu82u-3bab643d cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu830-c4fd23cc cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu834-aaa6662f cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu839-7431a66f cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu83e-218a39c5 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu83k-105fe8d5 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu83v-b6fefdac cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu842-8f00cd55 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu84c-d2e122dc cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu84j-7bfc9c04 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu84r-001cb52d cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu84x-aa3672c4 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu853-d21dce0e cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu85a-d23c17de cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu85h-682f3d21 cancelled: command-bulk:telegram:3000000004'
+}
+[TELEGRAM MESSAGE TASK ERROR] {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhu80s-b8e4d4ed cancelled: command-bulk:telegram:3000000004'
+}
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[MANUAL SCRAPER SOURCE FAILURE] source=vk:koptilnyarest targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=vk:naryadny.rest targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=vk:zhivoikontakt_vrn targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=vk:barakomama targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=vk:poneslosbar_vrn targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[MANUAL SCRAPER SOURCE FAILURE] source=vk:literabar targetClosed=true page.waitForTimeout: Target page, context or browser has been closed
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-15.vkuserphoto.ru/s/v1/ig2/vZBGtBxgy9LD4U7oM0dlKOE14f7FoxMBpkH3KjRcOvOBzPpWHh4fSBQMQb5_T4JxAyx_fZQo9CG-mg_GIahGPUXeEJ63vQ.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,64 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=1 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-66.vkuserphoto.ru/s/v1/ig2/cmUY2abPaFKslqMW_8IKPtelUhh13oMajv0LKq8TLtnYPwArNJx9_701JfkLPvVrb7NQ4EvNqmW56MQA3qGCpXEvp_5NJw.jpg?quality=95&as=32x40,48x60,72x90,108x135,160x200,240x300,360x450,480x600,540x675,6 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=1 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-80.vkuserphoto.ru/s/v1/ig2/lCMt7nrEfiw9YGu7o0svj4R8CailL6UTQrrxNpCV9fKm841OWg8RCuWTKyZZaV52ZmQ3vUwUbsWaNhO_xbPZ5n7q.jpg?quality=95&as=32x18,48x27,72x41,108x62,160x91,240x137,360x205,480x274,540x308,640x365,7 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=1 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-72.vkuserphoto.ru/s/v1/ig2/UmvAzY_0wcwsfwRTtSnn_wc-Ul2uWNIHmlINIUMJsdjIsrmCKJc658Z5EK777vdj3zyDviJ1kCrqflUl1LcDiYKq.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640x427, {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=2 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-8.vkuserphoto.ru/s/v1/ig2/KlQgvb0jgiHf1w_V5Y38fExUTA6JuwMJ5EmEbv2GniL_6EF3NqqSyKO8BNYf2Fmt41Is6_2SE3chTaEFtM66WONHhVG-sQ.jpg?quality=95&crop=0,0,1280,720&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,48 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=2 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-4.vkuserphoto.ru/s/v1/ig2/RujOwV0mlQWLz774uYebU68p-OHVrTVSs8lVQrRqCP8Ri8b8g5mCuJACom38YbFlyRPXsgYuF2ZMztEfsvbTsOXYRVa59A.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=3 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-82.vkuserphoto.ru/s/v1/ig2/p0t6azXjup1o1_tzXKrXyCaiG1yal5zyAru_g3dqKXDL1ACyt6zDuU1HOfIb_j1P_VnG8q7Xh7eb1vSkkib-Pv_6Dqlc4g.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=3 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-72.vkuserphoto.ru/s/v1/ig2/ANXtJ8iQOfKbPGsFMa4ky8Q2r4AgHv5XY4cO7SqFVGN7rJ2q78D2IhvCib41xK-n5I8_zDJ_3_gaSwep-GwZXMxr.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640x427, {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=4 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-83.vkuserphoto.ru/s/v1/ig2/p3GpZ2TLXQF9NOEQ_blu8OwK6pdwmJIOW7-uYnks56zAHZnLzifvQHe14u4GywRImKrXB1pQhGc935jRHySk3Yz4.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,7 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=4 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-55.vkuserphoto.ru/s/v1/ig2/BP3fTBXe_kMvzbidBrtU5K4DC_k1hdxGivcSf_Otc-i3TX18dUg5misGfFOlMpD4gQrNlZ3z0xM_yiCRXq_x1TCP.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640x427, {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=5 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-52.vkuserphoto.ru/s/v1/ig2/A67sT3oLUMu4IXZ4kaGf_nXkkTZu39n5-gNlfqpzOR6KGKC0JONG_6iRGbTJezqMENKd1pWPClvqYlr2vznP9Ie-.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,7 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=5 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-37.vkuserphoto.ru/s/v1/ig2/Ty8T3c9rmYvKOZXB_j8P_MHb_equHOVZEewaF5ob26JxMLN7H5F4qMrj-6mXskkKPTGMh1aSYMWtM04-UYYRwxKn.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640x427, {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=6 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-4.vkuserphoto.ru/s/v1/ig2/8qWwOjijzPTBDzNQi2EcQ0S6XZwDmOLZutp_u9zxwiCOCYUaJbNsNUi15M9fcnt9wCSFzZ6NOfXQPLoWrLiPDqNj.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,72 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=6 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-61.vkuserphoto.ru/s/v1/ig2/tEZqp4vITXdRL8y5r-0HkS1tvvHv7uvT9ghIUC8oBHzeEMlHhR8VaMyvfGfvyeiIndDAyEbpX9EW_ToHUapu6nfVXdLWOA.jpg?quality=95&as=32x57,48x85,72x128,108x192,160x284,240x427,360x640,480x853,540x960, {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=7 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-81.vkuserphoto.ru/s/v1/ig2/9IitWFQJZLaTy31hxB_x0GZTvVsbmJduGyHdfOs82-0uy2caS70xeUF0EliPhLuiWTYkLHoC6RkKY2zV4AFnYAh3.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,7 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=7 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-51.vkuserphoto.ru/s/v1/ig2/47WUKVgF878VhxMM3QEN7z325rMgnumJAkNczuV4wfYIlp9Nt7FM8JDIOjuQIZJRXgbFIFiJlHe_kYmyCvUj5T-JZInaJg.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,64 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=8 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-54.vkuserphoto.ru/s/v1/ig2/KViAq-uG9nISA8H6Ws1dOtcK4MUYRdrG0zoMrdR5cc43P02SRbLbgZ45SMztDEXERaquru3UV1rJ8xxqakU8h9dmVp9Tzw.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=8 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-87.vkuserphoto.ru/s/v1/ig2/1tOZK6AhbMyg_Y9nwZsaauBE4GXn9x8z74xoRgInILA5MINwgyBZe_-E33YnUGavhLduawWrIn5wJidsrdqA9xl4X0d6SA.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,64 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=9 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-54.vkuserphoto.ru/s/v1/ig2/jwWOce8yuZhFrTqClGTcCCc6nXjuNvZxdb5ZF2dby6cUWG5KpW1p2cahv6k9MnKIF6qgefhh1qoUhfcNWZonZS7f-IEKTQ.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=9 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-51.vkuserphoto.ru/s/v1/ig2/cCzzD-xOZ_lPndgWb9wOW4LmGZ98UOKyAkJWs7uNz-K7SpNMjeucE2dHUcfu4RLejqHlxHt1URJTt-fFVuccA-SmQTESww.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=10 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-80.vkuserphoto.ru/s/v1/ig2/lCMt7nrEfiw9YGu7o0svj4R8CailL6UTQrrxNpCV9fKm841OWg8RCuWTKyZZaV52ZmQ3vUwUbsWaNhO_xbPZ5n7q.jpg?quality=95&as=32x18,48x27,72x41,108x62,160x91,240x137,360x205,480x274,540x308,640x365,7 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[POSTER GATE VISION ERROR] image=11 {
+  name: 'OperationCancelledError',
+  message: 'Operation muzhf8z2-7d290820 cancelled: command-bulk:telegram:3000000004',
+  code: 'OPERATION_CANCELLED',
+  status: null
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130868 cutoff=1791375725 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130888 cutoff=1791377525 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM REMINDER SEND ERROR] fetch failed
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=130966 cutoff=1791379325 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=ae1c3cef-0443-4f5d-8741-d9d777ddc41f provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=ae1c3cef-0443-4f5d-8741-d9d777ddc41f provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131135 cutoff=1791381125 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-81.userapi.com/s/v1/ig2/JVekjoeF7cg7KFZ5pmBJENSfV5PArc7NnZgpEIg_Q56Rw2n91MRqavNckCOk0MRbYp84XhlX6kfCk1JbvNTNt2BXuNYeOQ.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'ENOTFOUND',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=e7f2ca31-6d5f-4204-8a16-7ff06143d34d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=e7f2ca31-6d5f-4204-8a16-7ff06143d34d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=e7f2ca31-6d5f-4204-8a16-7ff06143d34d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=e7f2ca31-6d5f-4204-8a16-7ff06143d34d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=d4062687461282a7 currentRevision=d7e20bb207a39fe8 snapshotRaw=61 currentRaw=61 fallback=sqlite
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=d4062687461282a7 currentRevision=d7e20bb207a39fe8 snapshotRaw=61 currentRaw=61 fallback=sqlite
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="ЦЕНТР ОСЕНИ" date=2026-10-09 source=https://vk.ru/wall-226190294_1198
+[EVENT POSTER REJECTED] event="Бриолин" date=2026-10-17 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Бриолин" date=2026-10-17 source=https://vk.ru/wall-95062430_2725
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="El Mental" date=2026-11-14 source=https://vk.ru/wall-117292629_13821
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter" date=2026-11-14 source=https://vk.ru/wall-227219886_186
+[EVENT POSTER REJECTED] event="Открывашка" date=2026-10-08 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Открывашка" date=2026-10-08 source=
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Следующая встреча «Культура. Воронеж»" date=2026-10-10 source=https://vk.ru/wall-230415917_8
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT STREAM ERROR bad_response: Внешний провайдер временно недоступен (статус 500). Попробуйте позже. (request id: 202610081416315270604078268d9d6NqYZvfEV) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=e7f2ca31-6d5f-4204-8a16-7ff06143d34d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR bad_response: Внешний провайдер временно недоступен (статус 500). Попробуйте позже. (request id: 202610081416315270604078268d9d6NqYZvfEV) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=e7f2ca31-6d5f-4204-8a16-7ff06143d34d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[VK MESSAGE TASK ERROR] role=primary {
+  name: 'OperationTimeoutError',
+  message: 'Operation muzi83s6-90a80ab8 exceeded 7200000 ms',
+  code: 'OPERATION_TIMEOUT',
+  status: null
+}
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=130869 Operation muzi83s6-90a80ab8 exceeded 7200000 ms
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131215 cutoff=1791382925 max=3500 reason=periodic
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI KEY ATTEMPT FAILED] requestId=e7f2ca31-6d5f-4204-8a16-7ff06143d34d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081424436769277338268d9d68fR5Ukgg)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=e7f2ca31-6d5f-4204-8a16-7ff06143d34d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures

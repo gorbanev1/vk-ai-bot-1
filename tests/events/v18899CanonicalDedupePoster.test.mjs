@@ -169,14 +169,18 @@ test('V188.99 dedupe collapses metadata-poor obsolete card and keeps canonical r
     assert.equal(eventHasSafePosterMatch(stale), false);
     const comparison = compareEventsDeterministic(good, stale);
     assert.equal(comparison.verdict, 'same');
-    assert.ok(comparison.reasons.includes('v18899-metadata-superseded-card'));
+    assert.ok(!comparison.hardConflicts.includes('different-venue'));
 
-    const dedupe = await deduplicateEventsTwoContour([stale, good]);
+    const dedupe = await deduplicateEventsTwoContour([stale, good], {
+        arbitrateAmbiguous: async (pairs) => new Map(pairs.map((pair) => [pair.key, {
+            verdict: 'same', confidence: 0.98, reason: 'same dated event; stale venue text is weaker than matching poster',
+        }])),
+    });
     assert.equal(dedupe.events.length, 1);
     const [canonical] = dedupe.events;
     assert.deepEqual(canonical.imagePaths, [goodPath]);
     assert.deepEqual(canonical.verifiedImagePaths, [goodPath]);
-    assert.equal(canonical.venue, 'Башня, Винзавод');
+    assert.equal(canonical.venue, 'Башня, Винзавод / Старый клуб ❗ уточните место на странице события');
     assert.equal(eventHasSafePosterMatch(canonical), true);
     assert.match(canonical.posterMatchReason, /^dedupe-best-metadata:/u);
 });
@@ -212,6 +216,39 @@ test('V188.99 among two relevant posters merge chooses stronger relevance then r
     assert.ok(scorePosterFactMetadataQuality(richerFact) > scorePosterFactMetadataQuality(weakerFact));
     const selected = selectBestPosterCandidateForEvent(event, candidates);
     assert.equal(selected?.candidate?.path, 'b.jpg');
+});
+
+test('V188.99 invalid gallery index/path pair is removed before poster ranking', () => {
+    const event = {
+        title: 'STONEHAND',
+        eventDate: '2026-09-20',
+        participants: 'STONEHAND',
+        venue: 'DIESEL HALL',
+    };
+    const validPath = 'vk_announcements/stonehand/4073-1.jpg';
+    const validFact = posterFact({
+        title: 'STONEHAND', participants: 'STONEHAND', venue: 'DIESEL HALL',
+        path: validPath, confidence: 80, readability: 80,
+    });
+    const wrongLogoPath = 'vk_announcements/stonehand/4073-2.jpg';
+    const wrongLogoFact = posterFact({
+        title: 'STONEHAND', participants: 'STONEHAND', venue: 'DIESEL HALL',
+        path: 'vk_announcements/stonehand/4073-1.jpg', confidence: 100, readability: 100,
+    });
+
+    const selected = selectBestPosterCandidateForEvent(event, [
+        { path: wrongLogoPath, posterImageIndex: 1, posterFact: wrongLogoFact, posterVisionFacts: [wrongLogoFact] },
+        { path: validPath, posterImageIndex: 1, posterFact: validFact, posterVisionFacts: [validFact] },
+    ]);
+    assert.equal(selected?.candidate?.path, validPath);
+    assert.equal(selectBestPosterCandidateForEvent(event, [
+        { path: wrongLogoPath, posterImageIndex: 1, posterFact: wrongLogoFact, posterVisionFacts: [wrongLogoFact] },
+    ]), null);
+
+    const wrongFactIndex = { ...validFact, index: 2 };
+    assert.equal(selectBestPosterCandidateForEvent(event, [
+        { path: validPath, posterImageIndex: 1, posterFact: wrongFactIndex, posterVisionFacts: [wrongFactIndex] },
+    ]), null);
 });
 
 test('V188.99 merged verifiedImagePaths never bypass metadata validation', () => {
@@ -323,9 +360,14 @@ test('V188.99 screenshot-like duplicate swarm collapses to one metadata-rich can
         posterVisionFacts: [],
         _dedupeRefs: [{ sourceType, id }],
     }));
-    const result = await deduplicateEventsTwoContour([...stale, canonical]);
+    const result = await deduplicateEventsTwoContour([...stale, canonical], {
+        arbitrateAmbiguous: async (pairs) => new Map(pairs.map((pair) => [pair.key, {
+            verdict: 'same', confidence: 0.96, reason: 'same dated named event',
+        }])),
+    });
     assert.equal(result.events.length, 1);
-    assert.equal(result.events[0].venue, 'Башня, Винзавод');
+    assert.ok(result.events[0].venue.startsWith('Башня, Винзавод / '));
+    assert.ok(result.events[0].venue.endsWith('❗ уточните место на странице события'));
     assert.deepEqual(result.events[0].imagePaths, [goodPath]);
     assert.equal(getEventPosterSafetyAssessment(result.events[0]).boundPath, goodPath);
 });
@@ -375,7 +417,8 @@ test('V188.99 metadata anchor sweep never collapses two independently safe event
     assert.equal(eventHasSafePosterMatch(second), true);
     const comparison = compareEventsDeterministic(first, second);
     assert.equal(comparison.verdict, 'different');
-    assert.ok(comparison.reasons.includes('hard-different-venue'));
+    assert.equal(comparison.factors.venueConflict, 1);
+    assert.ok(!comparison.hardConflicts.includes('different-date'));
 
     const result = await deduplicateEventsTwoContour([first, second]);
     assert.equal(result.events.length, 2);

@@ -161,7 +161,7 @@ export function extractVkMessengerDomStaged({ peerId = 0, snapshotHtml = '', bas
         }
         return [...best.values()]
             .sort((a, b) => b.score - a.score || a.order - b.order)
-            .slice(0, 12)
+            .slice(0, 1000)
             .map((item) => item.url);
     };
 
@@ -592,7 +592,9 @@ export function extractVkMessengerDomStaged({ peerId = 0, snapshotHtml = '', bas
                 text: previous.text || item.text,
                 embeddedText: previous.embeddedText || item.embeddedText,
                 links: uniq([...(previous.links||[]), ...(item.links||[])],30),
-                imageUrls: uniq([...(previous.imageUrls||[]), ...(item.imageUrls||[])],12),
+                // Keep the source gallery lossless; downstream Vision decides
+                // which media is terminal or retryable.
+                imageUrls: uniq([...(previous.imageUrls||[]), ...(item.imageUrls||[])],1000),
                 repostChain: previous.repostChain?.length ? previous.repostChain : (item.repostChain || []),
                 // Exact ownership wins; later contours only recover fields that were absent.
                 ownMedia: previous.ownMedia?.length ? previous.ownMedia : item.ownMedia,
@@ -756,7 +758,7 @@ export function extractVkPublicDomStaged({ screenName = '', snapshotHtml = '', b
         }
         return [...best.values()]
             .sort((a, b) => b.score - a.score || a.order - b.order)
-            .slice(0, 12)
+            .slice(0, 1000)
             .map((item) => item.url);
     };
 
@@ -830,7 +832,7 @@ export function extractVkPublicDomStaged({ screenName = '', snapshotHtml = '', b
         const ownImageRoot = root;
         const ownImageUrls = collectImages(ownImageRoot, identity);
         let imageUrls = ownImageUrls;
-        if (!imageUrls.length && repostChain.length) imageUrls = uniq(repostChain.flatMap((post) => post.imageUrls || []), 12);
+        if (!imageUrls.length && repostChain.length) imageUrls = uniq(repostChain.flatMap((post) => post.imageUrls || []), 1000);
         const deepest = repostChain.length
             ? repostChain.reduce((best, current) => {
                 const currentDepth = Number(current.repostDepth || 0);
@@ -857,6 +859,12 @@ export function extractVkPublicDomStaged({ screenName = '', snapshotHtml = '', b
             postId: identity.postId,
             sourceUrl: identity.url,
             originalSourceUrl: deepest?.originalSourceUrl || deepest?.sourceUrl || '',
+            // The nested post card is the authoritative source body. The outer
+            // public repost wrapper can have its own commentary or no API body;
+            // preserve the deepest DOM text so API enrichment is optional.
+            rootPostText: String(deepest?.rootPostText || deepest?.text || text || '').trim(),
+            rootPostTextResolved: Boolean(String(deepest?.rootPostText || deepest?.text || '').trim()),
+            rootPostSourceUrl: String(deepest?.rootPostSourceUrl || deepest?.sourceUrl || '').trim(),
             publishedAt: published.publishedAt,
             publishedLabel: published.publishedLabel,
             text,
@@ -867,6 +875,9 @@ export function extractVkPublicDomStaged({ screenName = '', snapshotHtml = '', b
                 postId: post.postId,
                 sourceUrl: post.sourceUrl,
                 originalSourceUrl: post.originalSourceUrl,
+                rootPostText: post.rootPostText,
+                rootPostTextResolved: post.rootPostTextResolved,
+                rootPostSourceUrl: post.rootPostSourceUrl,
                 publishedAt: post.publishedAt,
                 publishedLabel: post.publishedLabel,
                 text: post.text,
@@ -933,9 +944,12 @@ export function extractVkPublicDomStaged({ screenName = '', snapshotHtml = '', b
             merged.set(key,{
                 ...previous,
                 text: previous.text || post.text,
+                rootPostText: previous.rootPostText || post.rootPostText,
+                rootPostTextResolved: Boolean(previous.rootPostTextResolved || post.rootPostTextResolved),
+                rootPostSourceUrl: previous.rootPostSourceUrl || post.rootPostSourceUrl,
                 publishedAt: previous.publishedAt || post.publishedAt,
                 publishedLabel: previous.publishedLabel || post.publishedLabel,
-                imageUrls: uniq([...(previous.imageUrls||[]), ...(post.imageUrls||[])],12),
+                imageUrls: uniq([...(previous.imageUrls||[]), ...(post.imageUrls||[])],1000),
                 repostChain: previous.repostChain?.length ? previous.repostChain : (post.repostChain || []),
                 ownMedia: previous.ownMedia?.length ? previous.ownMedia : post.ownMedia,
                 embeddedPosts: previous.embeddedPosts?.length ? previous.embeddedPosts : post.embeddedPosts,

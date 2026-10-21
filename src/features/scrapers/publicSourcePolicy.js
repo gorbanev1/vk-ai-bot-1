@@ -4,6 +4,8 @@ export const REQUIRED_VK_PUBLIC_SOURCES = Object.freeze([
     Object.freeze({ source: 'idmamaanarchy', initialCount: 20 }),
     Object.freeze({ source: 'meetbowling.club', initialCount: 20 }),
     Object.freeze({ source: 'vavilone_rb', initialCount: 20 }),
+    Object.freeze({ source: '12bpg', initialCount: 20 }),
+    Object.freeze({ source: 'berserk_bar', initialCount: 20 }),
 ]);
 
 export function mergeVkPublicSourceConfigurations(

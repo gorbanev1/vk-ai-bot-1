@@ -1,0 +1,402 @@
+[PROJECT AUDIT CONFIG] mode=multipass inputMode=text transport=stream concurrency=1
+[BOT BUILD] V188.146
+[EVENT DEDUPE AI CANDIDATE GATE] ambiguous=18 aiReview=18 skipped=0 rule=same-date+partial-title
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+(node:40376) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[GPT FINISH] reason=stop
+[GPT USAGE] { prompt_tokens: 28588, completion_tokens: 421, total_tokens: 29009 }
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-dedupe-arbitration provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-stream source=provider input=28588 output=421 total=29009 cached=0 reasoning=0 estimatedText=0 durationMs=11358
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-dedupe-arbitration provider=compat model=gpt-5.4-mini requests=1 providerRequests=1 input=28588 output=421 total=29009 cached=0 reasoning=0 estimatedText=0
+[EVENT DEDUPE AI SECOND CONTOUR] batch=1-8 returned=8 model=gpt-5.4-mini
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 31222,
+  completion_tokens: 719,
+  total_tokens: 31941,
+  prompt_tokens_details: { cached_tokens: 3571 },
+  completion_tokens_details: { reasoning_tokens: 365 }
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-dedupe-arbitration provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-stream source=provider input=31222 output=719 total=31941 cached=3571 reasoning=365 estimatedText=0 durationMs=17693
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-dedupe-arbitration provider=compat model=gpt-5.4-mini requests=2 providerRequests=2 input=59810 output=1140 total=60950 cached=3571 reasoning=365 estimatedText=0
+[EVENT DEDUPE AI SECOND CONTOUR] batch=9-16 returned=8 model=gpt-5.4-mini
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=stream fallback=non_stream source=explicit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 12743,
+  completion_tokens: 185,
+  total_tokens: 12928,
+  prompt_tokens_details: { cached_tokens: 3456 },
+  completion_tokens_details: { reasoning_tokens: 69 }
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-dedupe-arbitration provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-stream source=provider input=12743 output=185 total=12928 cached=3456 reasoning=69 estimatedText=0 durationMs=6338
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-dedupe-arbitration provider=compat model=gpt-5.4-mini requests=3 providerRequests=3 input=72553 output=1325 total=73878 cached=7027 reasoning=434 estimatedText=0
+[EVENT DEDUPE AI SECOND CONTOUR] batch=17-18 returned=2 model=gpt-5.4-mini
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 7920,
+  completion_tokens: 851,
+  total_tokens: 8771,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 541
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-nonstream source=provider input=7920 output=851 total=8771 cached=0 reasoning=541 estimatedText=0 durationMs=25512
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini requests=1 providerRequests=1 input=7920 output=851 total=8771 cached=0 reasoning=541 estimatedText=0
+[EVENT DEDUPE AI MERGE DETAILS] sources=3 title="COREFEST #3" model=gpt-5.4-mini
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4428,
+  completion_tokens: 186,
+  total_tokens: 4614,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-nonstream source=provider input=4428 output=186 total=4614 cached=0 reasoning=0 estimatedText=0 durationMs=9389
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini requests=2 providerRequests=2 input=12348 output=1037 total=13385 cached=0 reasoning=541 estimatedText=0
+[EVENT DEDUPE AI MERGE DETAILS] sources=2 title="Shoegaze Fall Night 2" model=gpt-5.4-mini
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 11741,
+  completion_tokens: 645,
+  total_tokens: 12386,
+  prompt_tokens_details: {
+    cached_tokens: 3840,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 342
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-nonstream source=provider input=11741 output=645 total=12386 cached=3840 reasoning=342 estimatedText=0 durationMs=19503
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini requests=3 providerRequests=3 input=24089 output=1682 total=25771 cached=3840 reasoning=883 estimatedText=0
+[EVENT DEDUPE AI MERGE DETAILS] sources=2 title="Апекс 29 лет спустя" model=gpt-5.4-mini
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 10603,
+  completion_tokens: 564,
+  total_tokens: 11167,
+  prompt_tokens_details: {
+    cached_tokens: 3840,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 347
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-nonstream source=provider input=10603 output=564 total=11167 cached=3840 reasoning=347 estimatedText=0 durationMs=12597
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini requests=4 providerRequests=4 input=34692 output=2246 total=36938 cached=7680 reasoning=1230 estimatedText=0
+[EVENT DEDUPE AI MERGE DETAILS] sources=2 title="DANSE MACABRE PARTY VOL. 1" model=gpt-5.4-mini
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5531,
+  completion_tokens: 126,
+  total_tokens: 5657,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-nonstream source=provider input=5531 output=126 total=5657 cached=0 reasoning=0 estimatedText=0 durationMs=8119
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini requests=5 providerRequests=5 input=40223 output=2372 total=42595 cached=7680 reasoning=1230 estimatedText=0
+[EVENT DEDUPE AI MERGE DETAILS] sources=2 title="SELLOUT" model=gpt-5.4-mini
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 13565,
+  completion_tokens: 570,
+  total_tokens: 14135,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 275
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-nonstream source=provider input=13565 output=570 total=14135 cached=0 reasoning=275 estimatedText=0 durationMs=18086
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini requests=6 providerRequests=6 input=53788 output=2942 total=56730 cached=7680 reasoning=1505 estimatedText=0
+[EVENT DEDUPE AI MERGE DETAILS] sources=3 title="ЦЕНТР ОСЕНИ" model=gpt-5.4-mini
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 12922,
+  completion_tokens: 221,
+  total_tokens: 13143,
+  prompt_tokens_details: {
+    cached_tokens: 3840,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-nonstream source=provider input=12922 output=221 total=13143 cached=3840 reasoning=0 estimatedText=0 durationMs=10967
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini requests=7 providerRequests=7 input=66710 output=3163 total=69873 cached=11520 reasoning=1505 estimatedText=0
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 9993,
+  completion_tokens: 383,
+  total_tokens: 10376,
+  prompt_tokens_details: {
+    cached_tokens: 3840,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 134
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-nonstream source=provider input=9993 output=383 total=10376 cached=3840 reasoning=134 estimatedText=0 durationMs=13088
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini requests=8 providerRequests=8 input=76703 output=3546 total=80249 cached=15360 reasoning=1639 estimatedText=0
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 11156,
+  completion_tokens: 671,
+  total_tokens: 11827,
+  prompt_tokens_details: {
+    cached_tokens: 3840,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 503
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-nonstream source=provider input=11156 output=671 total=11827 cached=3840 reasoning=503 estimatedText=0 durationMs=18663
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini requests=9 providerRequests=9 input=87859 output=4217 total=92076 cached=19200 reasoning=2142 estimatedText=0
+[EVENT DEDUPE AI MERGE DETAILS] sources=3 title="ORIGAMI — 20 лет альбому «...и ангелы ошибаются»" model=gpt-5.4-mini
+[AI RUNTIME TRANSPORT] requestId=- model=gpt-5.4-mini capability=text reasoning_requested=medium reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 8696,
+  completion_tokens: 98,
+  total_tokens: 8794,
+  prompt_tokens_details: {
+    cached_tokens: 3840,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini capability=text transport=chat-completions-nonstream source=provider input=8696 output=98 total=8794 cached=3840 reasoning=0 estimatedText=0 durationMs=7479
+[AI TOKEN TOTAL] requestId=- operationId=- operation=event-analysis provider=compat model=gpt-5.4-mini requests=10 providerRequests=10 input=96555 output=4315 total=100870 cached=23040 reasoning=2142 estimatedText=0
+[EVENT DEDUPE AI MERGE DETAILS] sources=2 title="Existenter — концерт в поддержку альбома «ШРАМЫ»" model=gpt-5.4-mini
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.797 left="COREFEST #3" right="COREFEST #3" result="COREFEST #3" aiConfidence=0.990 aiReason="Совпадают дата, точное название COREFEST #3, время, формат двух площадок и характер события; составы различаются в двух публикациях, но это похоже на варианты афиши."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.905 left="COREFEST #3" right="COREFEST #3 — народный фестиваль тяжелой и любимой музыки" result="COREFEST #3" aiConfidence=1.000 aiReason="Совпадают дата, название COREFEST #3, время, адрес и описание фестиваля; различия в составах публикаций не меняют идентичность события."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.870 left="Shoegaze Fall Night 2" right="03.10 | Shoegaze Fall Night 2" result="Shoegaze Fall Night 2" aiConfidence=1.000 aiReason="Совпадают дата, полное название, место, время и участники."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.937 left="Дрфест \"Апекс 29 лет спустя\" / Воронеж 1.10.2026" right="Апекс 29 лет спустя" result="Апекс 29 лет спустя" aiConfidence=1.000 aiReason="Совпадают дата, название «Апекс 29 лет спустя», место и состав участников; это повторные публикации одного фестиваля."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.858 left="DANSE MACABRE PARTY VOL. 1" right="DANSE MACABRE PARTY — dark electro вечеринка" result="DANSE MACABRE PARTY VOL. 1" aiConfidence=1.000 aiReason="Совпадают дата, площадка, время и все три участника; афиша уточняет название как DANSE MACABRE PARTY VOL. 1."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.972 left="SELLOUT — 10 лет вопреки" right="SELLOUT" result="SELLOUT" aiConfidence=1.000 aiReason="Совпадают дата, площадка, группа SELLOUT и содержание анонса о десятилетии; это одно событие."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.923 left="ЦЕНТР ОСЕНИ" right="Рок-акустический фестиваль «ЦЕНТР ОСЕНИ»" result="ЦЕНТР ОСЕНИ" aiConfidence=1.000 aiReason="Совпадают дата, название «Центр осени», площадка, время и заявленные участники; различие формулировок несущественно."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.911 left="ЦЕНТР ОСЕНИ" right="Центр Осени" result="ЦЕНТР ОСЕНИ" aiConfidence=0.990 aiReason="Совпадают дата, название «Центр Осени», время, цена и состав участников; различие адреса объяснено переездом площадки."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.875 left="рок группа Дёргать! возвращаются в Воронеж! в рок-бар The Last of Vavilone В этом году группе Дёргать! — 25 лет, и этой осенью мы везём большую юбилейную программу: «ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА» На этот раз сет-лист выби" right="Дёргать! — 25 лет панк-рока" result="Дёргать! — 25 лет панк-рока" aiConfidence=0.990 aiReason="Совпадают дата, время, площадка и юбилейный концерт «Дёргать! — 25 лет панк-рока»."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.951 left="Дёргать! — 25 лет панк-рока" right="ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА" result="ДЁРГАТЬ! — 25 ЛЕТ ПАНК-РОКА" aiConfidence=0.995 aiReason="Совпадают дата, время, площадка и название юбилейного концерта; состав согласуется."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.893 left="Манагер" right="Олег «Манагер» Судаков — концерт" result="Манагер" aiConfidence=0.980 aiReason="Совпадают дата, время, площадка, исполнитель и содержание концерта; различается только указанная цена."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.886 left="Концерт группы ORIGAMI" right="Концерт ORIGAMI — 20 лет альбому «…и ангелы ошибаются»" result="Концерт ORIGAMI — 20 лет альбому «...и ангелы ошибаются»" aiConfidence=0.995 aiReason="Совпадают дата, время, площадка, ORIGAMI и программа к 20-летию альбома."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.954 left="Концерт ORIGAMI — 20 лет альбому «...и ангелы ошибаются»" right="ORIGAMI — 20 лет альбому «…и ангелы ошибаются»" result="ORIGAMI — 20 лет альбому «...и ангелы ошибаются»" aiConfidence=0.995 aiReason="Полностью совпадают дата, время, площадка, название, исполнитель и программа."
+[EVENT DEDUPE TWO CONTOUR] contour=ai score=0.779 left="Existenter — концерт в поддержку альбома «ШРАМЫ»" right="Не знаешь, куда идти? Приходи на концерт. Там не нужно знать маршрут, а нужно всего лишь чувствовать нашу энергию.Existenter: Воронеж" result="Existenter — концерт в поддержку альбома «ШРАМЫ»" aiConfidence=0.990 aiReason="Совпадают дата, площадка и участник Existenter; обе карточки описывают концерт в поддержку альбома «ШРАМЫ»."
+[
+  {
+    "date": "2026-10-09",
+    "keep": {
+      "sourceType": "vk",
+      "id": 339
+    },
+    "members": [
+      {
+        "sourceType": "vk",
+        "id": 339
+      },
+      {
+        "sourceType": "vk_chat",
+        "id": 65
+      },
+      {
+        "sourceType": "vk_chat",
+        "id": 85
+      }
+    ],
+    "titles": [
+      "ЦЕНТР ОСЕНИ",
+      "Рок-акустический фестиваль «ЦЕНТР ОСЕНИ»",
+      "Центр Осени"
+    ]
+  },
+  {
+    "date": "2026-10-10",
+    "keep": {
+      "sourceType": "vk",
+      "id": 302
+    },
+    "members": [
+      {
+        "sourceType": "vk",
+        "id": 302
+      },
+      {
+        "sourceType": "vk_chat",
+        "id": 69
+      }
+    ],
+    "titles": [
+      "Манагер",
+      "Олег «Манагер» Судаков — концерт"
+    ]
+  },
+  {
+    "date": "2026-10-22",
+    "keep": {
+      "sourceType": "vk",
+      "id": 175
+    },
+    "members": [
+      {
+        "sourceType": "vk",
+        "id": 175
+      },
+      {
+        "sourceType": "vk",
+        "id": 304
+      },
+      {
+        "sourceType": "vk_chat",
+        "id": 70
+      }
+    ],
+    "titles": [
+      "Концерт группы ORIGAMI",
+      "Концерт ORIGAMI — 20 лет альбому «…и ангелы ошибаются»",
+      "ORIGAMI — 20 лет альбому «…и ангелы ошибаются»"
+    ]
+  }
+]

@@ -101,6 +101,7 @@ test('parser-all invalidates stale display/image snapshot caches and audits fina
     assert.match(app, /EVENT VERIFIED SNAPSHOT ORPHANS PRESERVED/u);
     assert.match(app, /run-verification/u);
     assert.match(app, /EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS/u);
-    assert.match(pub, /label: `vk-public-vision:[^`]+`[\s\S]{0,100}maxAttempts: 1/u);
-    assert.match(pub, /label: `vk-public-ai:[^`]+`[\s\S]{0,100}maxAttempts: 1/u);
+    const withoutComments = pub.replace(/\/\/[^\r\n]*/gu, '');
+    assert.match(withoutComments, /label: `vk-public-vision:[^`]+`\s*,\s*maxAttempts: 1/u);
+    assert.match(withoutComments, /label: `vk-public-ai:[^`]+`\s*,\s*maxAttempts: 1/u);
 });

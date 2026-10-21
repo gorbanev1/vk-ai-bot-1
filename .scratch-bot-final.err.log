@@ -1,0 +1,209 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=354396 scanned=5000 skipped=349396
+[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS] [{"id":"mvgv9xkt-f0d20fc1","name":"vk-history-recovery:startup","phase":"","tracePath":""},{"id":"mvgv9tpu-7a6f4083","name":"startup-telegram-connect","phase":"","tracePath":""}]
+(node:26316) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:51123:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY LOCAL SQLITE RESCAN] peer=2000000006 reason=source-inventory-changed currentRows=147364 checkpointRows=146694 sourceFiles=42
+[EVENT LINK DOM SNAPSHOT RECOVERY] reason=page-closed-after-dom textChars=1994
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-17T03-36-01-107Z.sqlite error=database is locked
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T10-43-50-921Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-09T16-34-21-740Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-09T16-05-50-176Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY LOCAL SQLITE SKIP] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-06T10-52-18-531Z\bot.sqlite error=database disk image is malformed
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=154382 cutoff=1792426116 max=3500 reason=startup
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609372598273138268d9d65Z3maeQt) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI KEY ATTEMPT FAILED] requestId=2e031d8f-5348-48d0-a251-bc2dcf61e3e9 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609391674072268268d9d6h9YoMBKz) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[PUBLIC EVENTS COMPACT GPT ERROR] {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609391674072268268d9d6h9YoMBKz) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609418148780828268d9d6u8m389oR) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI KEY ATTEMPT FAILED] requestId=2e031d8f-5348-48d0-a251-bc2dcf61e3e9 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609434866699448268d9d6oK21xeUd) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[PUBLIC EVENTS COMPACT GPT ERROR] {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609434866699448268d9d6oK21xeUd) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609502819290278268d9d6a67ZO0Nz) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13927 source=missing-source-date-v185 publishedAt=0
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609547650898468268d9d6av0OYdHo) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI KEY ATTEMPT FAILED] requestId=mvgvpexx-0c51cf29 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609547650898468268d9d6av0OYdHo) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[EVENT RETRY ERROR] stage=vk-public-ai:rb_diesel/13927 attempt=1/1 retry=no GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609547650898468268d9d6av0OYdHo) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VK PUBLIC AI ERROR] post=rb_diesel/13927 GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609547650898468268d9d6av0OYdHo) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609537676334478268d9d6AHMwYkf6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI KEY ATTEMPT FAILED] requestId=mvgvpexx-0c51cf29 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609537676334478268d9d6AHMwYkf6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI KEY ATTEMPT FAILED] requestId=2e031d8f-5348-48d0-a251-bc2dcf61e3e9 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609520135697918268d9d6n8uYmOvg) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[PUBLIC EVENTS COMPACT GPT ERROR] {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609520135697918268d9d6n8uYmOvg) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201609593172547448268d9d6pbJJWUoW) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI KEY ATTEMPT FAILED] requestId=2e031d8f-5348-48d0-a251-bc2dcf61e3e9 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610008475195138268d9d6tPqj27A6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[PUBLIC EVENTS COMPACT GPT ERROR] {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610008475195138268d9d6tPqj27A6) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13927 source=missing-source-date-v185 publishedAt=0
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610134304686618268d9d6dMNIhmwT) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI KEY ATTEMPT FAILED] requestId=mvgvpexx-0c51cf29 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610134304686618268d9d6dMNIhmwT) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610130865098758268d9d6TMzM2gJU) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI KEY ATTEMPT FAILED] requestId=mvgvpexx-0c51cf29 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610130865098758268d9d6TMzM2gJU) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[EVENT RETRY ERROR] stage=vk-public-ai:rb_diesel/13927 attempt=1/1 retry=no GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610130865098758268d9d6TMzM2gJU) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VK PUBLIC AI ERROR] post=rb_diesel/13927 GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610130865098758268d9d6TMzM2gJU) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=deadway36/184 source=missing-source-date-v185 publishedAt=0
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610164345722438268d9d662ZFLVH3) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI KEY ATTEMPT FAILED] requestId=mvgvpexx-0c51cf29 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610164345722438268d9d662ZFLVH3) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610367885043668268d9d6EAFfwCgH) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}
+[AI KEY ATTEMPT FAILED] requestId=mvgvpexx-0c51cf29 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT API 400: Внешний провайдер отклонил запрос как некорректный (статус 400). Проверьте тело запроса, формат JSON и неподдерживаемые параметры. (request id: 202610201610367885043668268d9d6EAFfwCgH) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: 400
+}

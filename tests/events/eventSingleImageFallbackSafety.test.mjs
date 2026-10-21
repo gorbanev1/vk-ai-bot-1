@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
     eventHasSafePosterMatch,
+    getEventSourceMediaBindingAssessment,
     getEventPosterSafetyAssessment,
 } from '../../src/features/events/eventProvenance.js';
 
@@ -53,6 +54,63 @@ test('single-image fallback is fail-closed when path binding is ambiguous or gen
     })), false);
 });
 
+test('singleton source-media binding keeps a specific image usable within a retained source gallery', () => {
+    const event = fallbackEvent({
+        isMultiAnnouncement: false,
+        posterMatchReason: 'single-event-source-media-fallback',
+        imagePaths: ['vk_announcements/club/123-1.jpg', 'vk_announcements/club/123-2.jpg'],
+        posterVisionFacts: [{
+            index: 1, poster: false, posterConfidence: 90, imageType: 'ordinary-photo',
+            fallbackBinding: 'single-event-source-media', sourceMediaBinding: true,
+            sourceEventCount: 1, sourceImageCount: 2,
+            imagePath: 'vk_announcements/club/123-1.jpg', visionInspected: true, visionStatus: 'metadata_not_found',
+        }],
+    });
+    const assessment = getEventPosterSafetyAssessment(event);
+    assert.equal(assessment.accepted, true, 'an explicit mono-event source binding overrides poster metadata');
+    assert.equal(assessment.reason, 'mono-announcement-source-image');
+    const media = getEventSourceMediaBindingAssessment(event);
+    assert.equal(media.accepted, true, 'the image remains source media even though it is not a poster');
+    assert.deepEqual(media.paths, event.imagePaths);
+    assert.equal(getEventSourceMediaBindingAssessment({ ...event, isMultiAnnouncement: true }).accepted, false);
+});
+
+test('mono-announcement source image remains visible when Vision finds no event metadata', () => {
+    const imagePath = 'vk_announcements/club/123-1.jpg';
+    const event = fallbackEvent({
+        isMultiAnnouncement: false,
+        posterMatchReason: 'single-event-source-media-fallback',
+        imagePaths: [imagePath, 'vk_announcements/club/123-2.jpg'],
+        posterVisionFacts: [{
+            index: 1, poster: false, imageType: 'ordinary-photo',
+            fallbackBinding: 'single-event-source-media', sourceMediaBinding: true,
+            sourceEventCount: 1, sourceImageCount: 2, imagePath,
+            visionInspected: true, visionStatus: 'metadata_not_found',
+        }],
+    });
+    const assessment = getEventPosterSafetyAssessment(event);
+    assert.equal(assessment.accepted, true);
+    assert.equal(assessment.reason, 'mono-announcement-source-image');
+    assert.equal(assessment.boundPath, imagePath);
+    assert.equal(eventHasSafePosterMatch({ ...event, isMultiAnnouncement: true }), false);
+});
+
+test('ambiguous and explicitly multi-announcement records do not use the mono fallback', () => {
+    const imagePath = 'vk_announcements/club/123-1.jpg';
+    const candidate = fallbackEvent({
+        posterMatchStatus: 'no_safe_poster',
+        posterMatchReason: 'single-event-source-media-fallback',
+        imagePaths: [imagePath, 'vk_announcements/club/123-2.jpg'],
+        posterVisionFacts: [{
+            index: 1, poster: false, imageType: 'ordinary-photo',
+            fallbackBinding: 'single-event-source-media', sourceMediaBinding: true,
+            sourceEventCount: 1, sourceImageCount: 2, imagePath,
+        }],
+    });
+    assert.equal(eventHasSafePosterMatch({ ...candidate, isMultiAnnouncement: true }), false);
+    assert.equal(eventHasSafePosterMatch({ ...candidate, isMultiAnnouncement: undefined }), false);
+});
+
 test('ordinary Vision-positive metadata still follows normal strict matching', () => {
     const event = fallbackEvent({
         posterMatchReason: 'date+title-majority',
@@ -64,4 +122,31 @@ test('ordinary Vision-positive metadata still follows normal strict matching', (
         }],
     });
     assert.equal(eventHasSafePosterMatch(event), true);
+});
+
+test('a multi-announcement shared source image is safe only with an exact one-path binding', () => {
+    const imagePath = 'vk_announcements/club/123-1.jpg';
+    const shared = {
+        title: 'One child event',
+        eventDate: '2026-10-12',
+        isMultiAnnouncement: true,
+        imagePaths: [imagePath],
+        posterImageIndex: 1,
+        posterMatchStatus: 'shared_multi_event_source_image',
+        posterMatchReason: 'multi-event-shared-source-image',
+        posterVisionFacts: [{
+            index: 1,
+            poster: false,
+            visionStatus: 'error',
+            fallbackBinding: 'multi-event-shared-source-image',
+            sourceMediaBinding: true,
+            sourceEventCount: 3,
+            sourceImageCount: 1,
+            imagePath,
+        }],
+    };
+    assert.equal(eventHasSafePosterMatch(shared), true);
+    assert.equal(eventHasSafePosterMatch({ ...shared, imagePaths: ['vk_announcements/club/other-1.jpg'] }), false);
+    assert.equal(eventHasSafePosterMatch({ ...shared, imagePaths: [imagePath, 'vk_announcements/club/other-2.jpg'] }), false);
+    assert.equal(eventHasSafePosterMatch({ ...shared, isMultiAnnouncement: false }), false);
 });

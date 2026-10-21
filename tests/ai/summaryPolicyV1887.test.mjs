@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const source = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
+const source = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8').replace(/\r\n/gu, '\n');
 
 function loadParseSummaryRange() {
     const start = source.indexOf('const SUMMARY_USAGE_HINT = [');
@@ -60,11 +60,13 @@ test('V188.7 rolling time ranges are not silently truncated to MAX_MESSAGES', ()
     assert.doesNotMatch(rolling, /slice\(-MAX_MESSAGES\)/u);
 });
 
-test('V188.43 calendar rollup fires at local midnight boundaries, not the old 20:00 windows', () => {
+test('V188.43 calendar rollup uses local slice and long-period schedule boundaries', () => {
     assert.doesNotMatch(source, /HIERARCHICAL_PERIOD_SEND_HOUR = 20/u);
     assert.match(source, /CALENDAR_SUMMARY_MIDNIGHT_TICK_MINUTES/u);
-    assert.match(source, /if \(localClockMinutes\(\) >= CALENDAR_SUMMARY_MIDNIGHT_TICK_MINUTES\) return;/u);
-    assert.match(source, /daily=00:00-local/u);
+    assert.match(source, /shouldRunCalendarSliceBoundaryTick\(now, botTimeZone\)/u);
+    assert.match(source, /daily=23:59-local\+tail-22:30-23:59/u);
     assert.match(source, /weekly=Sunday-24:00\/Monday-00:00-local/u);
-    assert.match(source, /monthly=last-day-24:00\/next-month-00:00-local/u);
+    assert.match(source, /monthly=first-day-11:00-local/u);
+    assert.match(source, /seasonal=first-day-new-season-11:00-local/u);
+    assert.match(source, /yearly=January-1-12:00-local/u);
 });

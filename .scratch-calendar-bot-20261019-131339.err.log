@@ -1,0 +1,830 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=339364 scanned=5000 skipped=334364
+(node:30048) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:50684:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152381 cutoff=1792318429 max=3500 reason=startup
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152476 cutoff=1792320223 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152523 cutoff=1792322023 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152583 cutoff=1792323823 max=3500 reason=periodic
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152603 cutoff=1792325623 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mvf7u911-395e5873 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191216465219314408268d9d6wRYO9EtL)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf7u911-395e5873 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191217324504613728268d9d69KKTwPLx)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf7u911-395e5873 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191217447685123708268d9d6nnA2Wvpe)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf7u911-395e5873 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191218146559604218268d9d6uansOcmq)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf7u911-395e5873 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191218562931398578268d9d6qJC7XLaY)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf8djh3-6c3cf480 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191231182433213658268d9d6WLc0Ugz1)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf8djh3-6c3cf480 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191232269622258408268d9d6DTwlOMFg)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf8djh3-6c3cf480 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191232385801953068268d9d6LrJ0uJZb)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf8djh3-6c3cf480 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191233194983566508268d9d6M57AMDTh)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf8djh3-6c3cf480 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191234001722134878268d9d63oHL8ddQ)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152627 cutoff=1792327423 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mvf8wtxd-0af364fc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191246163712924168268d9d6zJmJsKah)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf8wtxd-0af364fc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191247230420219588268d9d6JYy8SCvs)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf8wtxd-0af364fc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191247352565380988268d9d6GYDhJdIQ)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf8wtxd-0af364fc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191247501527850978268d9d6gyEekePQ)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf8wtxd-0af364fc provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191248238960566148268d9d6Xoey0bhG)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf9g4df-95c73fb7 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191301451231688788268d9d6YSxPrZ5V)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf9g4df-95c73fb7 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191302516261754188268d9d6SFafRD2n)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf9g4df-95c73fb7 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191303028186800678268d9d6cjrVuBSw)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152684 cutoff=1792329223 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mvf9g4df-95c73fb7 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191313269464869858268d9d65HLPRqyR)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvf9g4df-95c73fb7 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191314010406755008268d9d6dcSCXo0G)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfaip9o-4641a0fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191331259898372728268d9d6jiccpBDr)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfaip9o-4641a0fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191332135693113988268d9d6Yz2h2jc2)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfaip9o-4641a0fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191332234709752918268d9d6YJgladDE)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfaip9o-4641a0fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191332495548728428268d9d6dnTuJahK)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfaip9o-4641a0fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191333219675887518268d9d6ThXelKVB)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152756 cutoff=1792331024 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mvfb20if-e46f0ac2 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191346201045890348268d9d6j3CxzeaX)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfb20if-e46f0ac2 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191347308841631558268d9d6KDqn6u5b)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfb20if-e46f0ac2 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191348105554807988268d9d6oztAfWNt)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfb20if-e46f0ac2 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191348472286095468268d9d675sC4sfm)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfb20if-e46f0ac2 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191349294612122688268d9d6UQ9rEtqU)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[SUMMARY QUALITY CORRECTION] model=gpt-5.6-luna inputChars=48857 inputCount=10 firstChars=194 policy=same-model-once
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfblaym-63d1aef9 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191401219290515258268d9d6amyytLPn)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfblaym-63d1aef9 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191402274998650268268d9d64Sl6WeC8)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfblaym-63d1aef9 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191402394676620508268d9d6WOofFitI)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfblaym-63d1aef9 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191402578967230668268d9d6B8o6qE7G)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfblaym-63d1aef9 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191403333604064978268d9d6CmGDP2dw)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: fetch failed',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI KEY ATTEMPT FAILED] requestId=a26ae994-fb35-4077-9fb0-be2854f6f7ed provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[ACTIVE COMMUNICATION MODEL FALLBACK] mode=default {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152801 cutoff=1792332824 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mvfc4leo-bd5f0ff5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191416448360197138268d9d6OrxFBIGh)',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfc4leo-bd5f0ff5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191417263257407788268d9d6Y6mrpmG9)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfc4leo-bd5f0ff5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191417391562554478268d9d6gjJyHtTH)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfc4leo-bd5f0ff5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191417542851741738268d9d6DFr6DriR)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfc4leo-bd5f0ff5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191418316113261048268d9d6ZOCeOUAf)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfcnvv2-b73efbb5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191431216149744858268d9d6UAhGGR2n)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfcnvv2-b73efbb5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191432077132781228268d9d6zRZ6Yk56)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfcnvv2-b73efbb5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191432238243573838268d9d6vkASkPp7)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfcnvv2-b73efbb5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191432485112848138268d9d6zpPw4QTk)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfcnvv2-b73efbb5 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191433375191111598268d9d6kGOwMZQW)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[MANUAL SCRAPER SOURCE FAILURE] source=chat:2000000022 targetClosed=false VK chat: готовность беседы не подтверждена.
+[MANUAL SCRAPER SOURCE SINGLE OPEN] source=chat:2000000022 automatic source reopen disabled; retry requires a new owner command
+[MANUAL SCRAPER ALL SOURCE ERROR] source=chat:2000000022 {
+  name: 'Error',
+  message: 'VK chat: готовность беседы не подтверждена.',
+  stack: 'Error: VK chat: готовность беседы не подтверждена.\n' +
+    '    at openLivePage (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/platforms/vk/vkChatEventScraper.js:4138:27)\n' +
+    '    at async Object.runFiniteManualPass (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/platforms/vk/vkChatEventScraper.js:4376:17)\n' +
+    '    at async startManualScraperSource (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:5805:28)\n' +
+    '    at async startManualScraperSourceWithRecoveryInner (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:6179:24)\n' +
+    '    at async startManualScraperSourceWithRecovery (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:6169:16)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:6934:28',
+  cause: undefined
+}
+[PARSER ALL SOURCE FAILED] source=chat:2000000022 VK chat: готовность беседы не подтверждена.
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY CEILING LOOKUP FAIL] peer=2000000006 client=primary-group:233007447 {
+  name: 'Error',
+  message: 'VK getConversationsById timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=152837 cutoff=1792334624 max=3500 reason=periodic
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13930 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=idmamaanarchy/949 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13922 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13914 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13913 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vavilone_rb/4673 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13921 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13916 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13915 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=mvfd76sr-40e9d06b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191446254335248358268d9d6vGHALQbw)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfd76sr-40e9d06b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191447183346903918268d9d63gjhP3XI)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfd76sr-40e9d06b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API не вернул изображение. Ответ: {"error":{"code":"prompt_blocked","message":"Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191447299019478658268d9d6mto1z1Md)","param":null,"type":"invalid_request_error"}}',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfd76sr-40e9d06b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191447548831050848268d9d6MmQEQxQ9)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mvfd76sr-40e9d06b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 400: Промпт или изображение отклонены политикой контента провайдера. Измените промпт или исходное изображение и повторите запрос. (request id: 202610191448236930003048268d9d6agQBohWJ)',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-37.vkuserphoto.ru/s/v1/ig2/dgRtkYNmB-JP9L1ZcgvfJ6hhNxKR_40RLe_tXozgej_fc8S88KENX-1sctc91QyJA93cwm4I9ZwsvX7RQA4waTKu.jpg?quality=95&crop=0,0,901,1280&as=32x45,48x68,72x102,108x153,160x227,240x341,360x511,480x { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[AI KEY ATTEMPT FAILED] requestId=dc9b38b1-a660-403a-96c6-a94639d09720 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT vision API 400: Не удалось скачать вложение. Возможно, ссылка закрыта, устарела или заблокирована. Загрузите файл заново или используйте общедоступную ссылку. (request id: 202610191450488479278828268d9d674tOdoff) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-37.vkuserphoto.ru/s/v1/ig2/dgRtkYNmB-JP9L1ZcgvfJ6hhNxKR_40RLe_tXozgej_fc8S88KENX-1sctc91QyJA93cwm4I9ZwsvX7RQA4waTKu.jpg?quality=95&crop=0,0,901,1280&as=32x45,48x68,72x102,108x153,160x227,240x341,360x511,480x { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[AI KEY ATTEMPT FAILED] requestId=dc9b38b1-a660-403a-96c6-a94639d09720 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT vision API 400: Не удалось скачать вложение. Возможно, ссылка закрыта, устарела или заблокирована. Загрузите файл заново или используйте общедоступную ссылку. (request id: 202610191450534406517328268d9d6pJ81Ug4V) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-37.vkuserphoto.ru/s/v1/ig2/dgRtkYNmB-JP9L1ZcgvfJ6hhNxKR_40RLe_tXozgej_fc8S88KENX-1sctc91QyJA93cwm4I9ZwsvX7RQA4waTKu.jpg?quality=95&crop=0,0,901,1280&as=32x45,48x68,72x102,108x153,160x227,240x341,360x511,480x { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[AI KEY ATTEMPT FAILED] requestId=dc9b38b1-a660-403a-96c6-a94639d09720 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT vision API 400: Не удалось скачать вложение. Возможно, ссылка закрыта, устарела или заблокирована. Загрузите файл заново или используйте общедоступную ссылку. (request id: 202610191450594653279468268d9d6K7GGSiXf) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-37.vkuserphoto.ru/s/v1/ig2/dgRtkYNmB-JP9L1ZcgvfJ6hhNxKR_40RLe_tXozgej_fc8S88KENX-1sctc91QyJA93cwm4I9ZwsvX7RQA4waTKu.jpg?quality=95&crop=0,0,901,1280&as=32x45,48x68,72x102,108x153,160x227,240x341,360x511,480x { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-83.vkuserphoto.ru/s/v1/ig2/uXpjV8-v3ND5vKDP6SW5hhh1Nnqg6XIVkfSnivKUO5CiUT4MpihT8VGlDDn6Kcf7Jh8aOgICLNkXTB2F13tKON6j.jpg?quality=95&crop=0,0,1919,2560&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vavilone_rb/4670 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vavilone_rb/4664 source=missing-source-date-v185 publishedAt=0
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-51.vkuserphoto.ru/s/v1/ig2/mJfGStu0dMfH9XW7jQGV-XAmyild8Rh64Ku3FiqOkn1RBlmx80R4yETtmQQfmUBBAE9ARWcU-A5O_8S7jjk4cD4QOw-nsQ.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,64 { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[AI KEY ATTEMPT FAILED] requestId=dc9b38b1-a660-403a-96c6-a94639d09720 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT vision API 400: Не удалось скачать вложение. Возможно, ссылка закрыта, устарела или заблокирована. Загрузите файл заново или используйте общедоступную ссылку. (request id: 202610191455164735846028268d9d6ObcRMOBJ) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-51.vkuserphoto.ru/s/v1/ig2/mJfGStu0dMfH9XW7jQGV-XAmyild8Rh64Ku3FiqOkn1RBlmx80R4yETtmQQfmUBBAE9ARWcU-A5O_8S7jjk4cD4QOw-nsQ.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,64 { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-46.vkuserphoto.ru/s/v1/ig2/eWGLlxzDHlqomb_WbjVhpxv8LJ5AROV8cjwmR08ihX-9zdbyKGl8K9vqYLQh3WeJ4W83dGcvaS8wPE4mqGKRENO1.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x227,240x340,360x510,480x680,540x765,640x90 { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[AI KEY ATTEMPT FAILED] requestId=dc9b38b1-a660-403a-96c6-a94639d09720 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT vision API 400: Не удалось скачать вложение. Возможно, ссылка закрыта, устарела или заблокирована. Загрузите файл заново или используйте общедоступную ссылку. (request id: 202610191455261097494288268d9d6nmE4Z5Ov) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-46.vkuserphoto.ru/s/v1/ig2/eWGLlxzDHlqomb_WbjVhpxv8LJ5AROV8cjwmR08ihX-9zdbyKGl8K9vqYLQh3WeJ4W83dGcvaS8wPE4mqGKRENO1.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x227,240x340,360x510,480x680,540x765,640x90 { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[AI KEY ATTEMPT FAILED] requestId=dc9b38b1-a660-403a-96c6-a94639d09720 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT vision API 400: Не удалось скачать вложение. Возможно, ссылка закрыта, устарела или заблокирована. Загрузите файл заново или используйте общедоступную ссылку. (request id: 202610191455309645696148268d9d6XexNi5CK) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-15.vkuserphoto.ru/s/v1/ig2/GUyejOjagonjAQYMW2rNg4b_XepRmkhwe0aKVEOHkI3g8Yp26KbvZAsswORy42FVJkob4dN0d7mYJU19mBgg8bTwNQ1DIw.jpg?quality=95&as=32x42,48x64,72x96,108x143,160x212,240x319,360x478,480x637,540x717,6 { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[AI KEY ATTEMPT FAILED] requestId=dc9b38b1-a660-403a-96c6-a94639d09720 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT vision API 400: Не удалось скачать вложение. Возможно, ссылка закрыта, устарела или заблокирована. Загрузите файл заново или используйте общедоступную ссылку. (request id: 202610191455599565905618268d9d6mNtqdVZa) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=liverpool_pub_vrn/2752 source=missing-source-date-v185 publishedAt=0
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-82.vkuserphoto.ru/s/v1/ig2/eVvs3SAB92Kr0eYYUbXNaMA88C5Y9MrqcCHF1v6xPumSF7CirFFnxet8QAIXCFrR217EmgpXss3tQ5ICwqyhQkS8shJNQA.jpg?quality=95&size=360x640 { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[VISION IMAGE DOWNLOAD ERROR] url=https://sun9-77.vkuserphoto.ru/s/v1/ig2/kOy_aIROLUFDtVzUlHvIPchdlhMXpVRJvmNpsIbMl90fkquLzKif7GrdybxGot8tdI7pIDHoTg1Bd9AGYcRCSezk.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x226,240x340,360x509,480x679,540x764,640x90 { name: 'Error', message: 'HTTP 404', code: null, status: null }
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=12bpg/12711 source=missing-source-date-v185 publishedAt=0
+[EVENT RETRY ERROR] stage=image-fingerprint:sun9-67.vkuserphoto.ru attempt=1/5 retry=no apiRequestContext.get: 429 Too Many Requests
+Response text:
+<html>
+<head><title>429 Too Many Requests</title></head>
+<body>
+<center><h1>429 Too Many Requests</h1></center>
+<hr><center>kittenx</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+
+Call log:
+[2m  - → GET https://sun9-67.vkuserphoto.ru/s/v1/ig2/IRpjvl0YOspcZE2TW-0Ee0mp5vbTYub1Hfkz8cOBmgTp8j1ybmI_RaV7kqStAtHQ1vkEjghi6fMOXR_Y42T90MSQ.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x226,240x340,360x510,480x679,540x764,640x906,720x1019,1054x1492&from=bu&u=S7aKPJsGuBlR_zipFcy36lxB5bRNjqWxxsrFWDfDOf4&cs=540x0[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+[2m  - ← 429 Too Many Requests[22m
+[2m    - server: kittenx[22m
+[2m    - date: Mon, 19 Oct 2026 14:57:41 GMT[22m
+[2m    - content-type: text/html[22m
+[2m    - content-length: 566[22m
+[2m    - connection: keep-alive[22m
+[2m    - x-frontend: front925121[22m
+[2m    - access-control-expose-headers: X-Frontend[22m
+[2m    - strict-transport-security: max-age=15768000[22m
+[2m    - access-control-allow-origin: *[22m
+[2m    - access-control-allow-methods: GET, HEAD, OPTIONS[22m
+[2m    - access-control-allow-headers: X-Quic[22m
+[2m    - x-trace-id: Esyz1MPILEp0auj3qU5t9tzABFYXxg[22m
+[2m    - server-timing: tid;desc="Esyz1MPILEp0auj3qU5t9tzABFYXxg",front;dur=0.138[22m
+
+[EVENT IMAGE FINGERPRINT ERROR] https://sun9-67.vkuserphoto.ru/s/v1/ig2/IRpjvl0YOspcZE2TW-0Ee0mp5vbTYub1Hfkz8cOBmgTp8j1ybmI_RaV7kqStAtHQ1vkEjghi6fMOXR_Y42T90MSQ.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x226,240x340,360x510,480x679,540x764,640x906,720x1019,1054x1492&from=bu&u=S7aKPJsGuBlR_zipFcy36lxB5bRNjqWxxsrFWDfDOf4&cs=540x0 attempts=1 apiRequestContext.get: 429 Too Many Requests
+Response text:
+<html>
+<head><title>429 Too Many Requests</title></head>
+<body>
+<center><h1>429 Too Many Requests</h1></center>
+<hr><center>kittenx</center>
+</body>
+</html>
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+<!-- a padding to disable MSIE and Chrome friendly error page -->
+
+Call log:
+[2m  - → GET https://sun9-67.vkuserphoto.ru/s/v1/ig2/IRpjvl0YOspcZE2TW-0Ee0mp5vbTYub1Hfkz8cOBmgTp8j1ybmI_RaV7kqStAtHQ1vkEjghi6fMOXR_Y42T90MSQ.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x226,240x340,360x510,480x679,540x764,640x906,720x1019,1054x1492&from=bu&u=S7aKPJsGuBlR_zipFcy36lxB5bRNjqWxxsrFWDfDOf4&cs=540x0[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+[2m  - ← 429 Too Many Requests[22m
+[2m    - server: kittenx[22m
+[2m    - date: Mon, 19 Oct 2026 14:57:41 GMT[22m
+[2m    - content-type: text/html[22m
+[2m    - content-length: 566[22m
+[2m    - connection: keep-alive[22m
+[2m    - x-frontend: front925121[22m
+[2m    - access-control-expose-headers: X-Frontend[22m
+[2m    - strict-transport-security: max-age=15768000[22m
+[2m    - access-control-allow-origin: *[22m
+[2m    - access-control-allow-methods: GET, HEAD, OPTIONS[22m
+[2m    - access-control-allow-headers: X-Quic[22m
+[2m    - x-trace-id: Esyz1MPILEp0auj3qU5t9tzABFYXxg[22m
+[2m    - server-timing: tid;desc="Esyz1MPILEp0auj3qU5t9tzABFYXxg",front;dur=0.138[22m
+

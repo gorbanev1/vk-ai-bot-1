@@ -210,6 +210,7 @@ export function normalizePersistedManualScraperSources(value) {
         result.push({
             ...descriptor,
             addedAt: Number(item?.addedAt ?? 0) || 0,
+            enabled: item?.enabled !== false,
         });
     }
 

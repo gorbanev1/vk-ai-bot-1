@@ -1,0 +1,1768 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=353025 scanned=5000 skipped=348025
+(node:35464) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:51121:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=154082 cutoff=1792414437 max=3500 reason=startup
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=154172 cutoff=1792416230 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=949-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":908429,"photo":"","hash":"3e4ae09f8cf7a79439ef7067fc3454d1"}',
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=event-poster.jpg {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=154235 cutoff=1792418030 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=idmamaanarchy/949 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13927 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13922 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13930 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13927 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'UND_ERR_SOCKET',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=154267 cutoff=1792419830 max=3500 reason=periodic
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13928 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13925 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=rb_diesel/13924 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT vision API 504: The origin web server did not respond to Cloudflare within the allowed time. This typically means the origin is overloaded or a backend process is taking too long.',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vavilone_rb/4664 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[INACTIVE VK MEMBERS DATABASE FALLBACK] peer=2000000006 {
+  name: 'APIError',
+  message: "Code №917 - You don't have access to this chat",
+  code: 917,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=154300 cutoff=1792421630 max=3500 reason=periodic
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=liverpool_pub_vrn/2752 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=liverpool_pub_vrn/2753 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=deadway36/184 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=deadway36/184 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Поток ответа от внешнего провайдера неожиданно завершился раньше времени. Повторите запрос; если ошибки возникают только в этой сессии, начните новую. (request id: 202610201458325679822548268d9d6diaQUggq) Если ошибка повторяется, попробуйте сменить источник модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=b7af33e6-54c0-4982-a8b5-1e6d4750b8fd provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=12bpg/12711 source=missing-source-date-v185 publishedAt=0
+[EVENT DEDUPE AI INCOMPLETE RETRY] attempt=1/3 requested=3 returned=2
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=auto-summary.png {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK IMAGE UPLOAD RETRY FAILED] {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[PARSER RECOVERY NOTICE FAILED] {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'ECONNABORTED',
+  status: null
+}

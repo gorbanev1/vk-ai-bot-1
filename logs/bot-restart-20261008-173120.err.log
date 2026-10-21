@@ -1,0 +1,1119 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=220283 scanned=5000 skipped=215283
+[OPERATIONS INTERRUPTED BY PREVIOUS PROCESS] [{"id":"muzmblkr-7be701bc","name":"event-snapshot:stale-auto-repair","phase":"","tracePath":""}]
+(node:47760) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:49545:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131215 cutoff=1791383513 max=3500 reason=startup
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[VK PHOTO-ID MEDIA HYDRATION ERROR] photos.getById returned no response
+[VK WALL API MEDIA HYDRATION ERROR] wall.getById returned no response
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081456478660622438268d9d6JhWa8CSW) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081500127046624018268d9d6nsEKloar) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131228 cutoff=1791385377 max=3500 reason=periodic
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081503494437054428268d9d6gfllWZRj) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR upstream_stream_incomplete: Поток ответа от внешнего провайдера неожиданно завершился раньше времени. Повторите запрос; если ошибки возникают только в этой сессии, начните новую. (request id: 202610081505590692690738268d9d6efqBh8Ie) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'upstream_stream_incomplete',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznyaq1-009e82d0 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081505042246253718268d9d6mv0SShHD) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081505042246253718268d9d6mv0SShHD) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR upstream_stream_incomplete: Поток ответа от внешнего провайдера неожиданно завершился раньше времени. Повторите запрос; если ошибки возникают только в этой сессии, начните новую. (request id: 202610081506438643746258268d9d6sWF4WavV) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'upstream_stream_incomplete',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-terra reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081511189892302638268d9d6HMhpqNRl) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081514371047542598268d9d61UtLRdRf) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081514249754234508268d9d6hCJGSYpL) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081515596929487638268d9d6yv64k1Bv) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081521543874754938268d9d61Lk46GMS) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TypeError',
+  message: 'terminated',
+  code: 'UND_ERR_SOCKET',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY CEILING LOOKUP FAIL] peer=2000000006 client=primary-group:233007447 {
+  name: 'Error',
+  message: 'VK getConversationsById timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131275 cutoff=1791387177 max=3500 reason=periodic
+[AUTO SUMMARY CLOCK SYNC ERROR] {
+  name: 'Error',
+  message: 'VK server time: таймаут 3000 мс',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=vinzavodpro/2711 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=balagan.city/17114 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=literabar/8800 source=missing-source-date-v185 publishedAt=0
+[EVENT RETRY ERROR] stage=image-fingerprint:sun9-8.vkuserphoto.ru attempt=1/5 retry=no apiRequestContext.get: Request context disposed.
+Call log:
+[2m  - → GET https://sun9-8.vkuserphoto.ru/s/v1/ig2/KlQgvb0jgiHf1w_V5Y38fExUTA6JuwMJ5EmEbv2GniL_6EF3NqqSyKO8BNYf2Fmt41Is6_2SE3chTaEFtM66WONHhVG-sQ.jpg?quality=95&crop=0,0,1280,720&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720&from=bu&u=H0_gC_J9Ksm4dq2bSWP6__kO0ZQDicpO2qWCCJENjU4&cs=640x0[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+
+[EVENT IMAGE FINGERPRINT ERROR] https://sun9-8.vkuserphoto.ru/s/v1/ig2/KlQgvb0jgiHf1w_V5Y38fExUTA6JuwMJ5EmEbv2GniL_6EF3NqqSyKO8BNYf2Fmt41Is6_2SE3chTaEFtM66WONHhVG-sQ.jpg?quality=95&crop=0,0,1280,720&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720&from=bu&u=H0_gC_J9Ksm4dq2bSWP6__kO0ZQDicpO2qWCCJENjU4&cs=640x0 attempts=1 apiRequestContext.get: Request context disposed.
+Call log:
+[2m  - → GET https://sun9-8.vkuserphoto.ru/s/v1/ig2/KlQgvb0jgiHf1w_V5Y38fExUTA6JuwMJ5EmEbv2GniL_6EF3NqqSyKO8BNYf2Fmt41Is6_2SE3chTaEFtM66WONHhVG-sQ.jpg?quality=95&crop=0,0,1280,720&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720&from=bu&u=H0_gC_J9Ksm4dq2bSWP6__kO0ZQDicpO2qWCCJENjU4&cs=640x0[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+
+[EVENT RETRY ERROR] stage=image-fingerprint:sun9-82.vkuserphoto.ru attempt=1/5 retry=no apiRequestContext.get: Request context disposed.
+Call log:
+[2m  - → GET https://sun9-82.vkuserphoto.ru/s/v1/ig2/p0t6azXjup1o1_tzXKrXyCaiG1yal5zyAru_g3dqKXDL1ACyt6zDuU1HOfIb_j1P_VnG8q7Xh7eb1vSkkib-Pv_6Dqlc4g.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720&from=bu&u=g1FM4ruIH2p9W8nKf0isHd7wBBx3qpwjsQDyXWklCs4&cs=640x0[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+
+[EVENT IMAGE FINGERPRINT ERROR] https://sun9-82.vkuserphoto.ru/s/v1/ig2/p0t6azXjup1o1_tzXKrXyCaiG1yal5zyAru_g3dqKXDL1ACyt6zDuU1HOfIb_j1P_VnG8q7Xh7eb1vSkkib-Pv_6Dqlc4g.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720&from=bu&u=g1FM4ruIH2p9W8nKf0isHd7wBBx3qpwjsQDyXWklCs4&cs=640x0 attempts=1 apiRequestContext.get: Request context disposed.
+Call log:
+[2m  - → GET https://sun9-82.vkuserphoto.ru/s/v1/ig2/p0t6azXjup1o1_tzXKrXyCaiG1yal5zyAru_g3dqKXDL1ACyt6zDuU1HOfIb_j1P_VnG8q7Xh7eb1vSkkib-Pv_6Dqlc4g.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720&from=bu&u=g1FM4ruIH2p9W8nKf0isHd7wBBx3qpwjsQDyXWklCs4&cs=640x0[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+
+[EVENT RETRY ERROR] stage=image-fingerprint:sun9-83.vkuserphoto.ru attempt=1/5 retry=no apiRequestContext.get: Request context disposed.
+Call log:
+[2m  - → GET https://sun9-83.vkuserphoto.ru/s/v1/ig2/p3GpZ2TLXQF9NOEQ_blu8OwK6pdwmJIOW7-uYnks56zAHZnLzifvQHe14u4GywRImKrXB1pQhGc935jRHySk3Yz4.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720&from=bu&u=u1XL852wqZpTfgLS_OfOkMyEY36G6Q6C82huT3UBp74&cs=640x0[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+
+[EVENT IMAGE FINGERPRINT ERROR] https://sun9-83.vkuserphoto.ru/s/v1/ig2/p3GpZ2TLXQF9NOEQ_blu8OwK6pdwmJIOW7-uYnks56zAHZnLzifvQHe14u4GywRImKrXB1pQhGc935jRHySk3Yz4.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720&from=bu&u=u1XL852wqZpTfgLS_OfOkMyEY36G6Q6C82huT3UBp74&cs=640x0 attempts=1 apiRequestContext.get: Request context disposed.
+Call log:
+[2m  - → GET https://sun9-83.vkuserphoto.ru/s/v1/ig2/p3GpZ2TLXQF9NOEQ_blu8OwK6pdwmJIOW7-uYnks56zAHZnLzifvQHe14u4GywRImKrXB1pQhGc935jRHySk3Yz4.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720&from=bu&u=u1XL852wqZpTfgLS_OfOkMyEY36G6Q6C82huT3UBp74&cs=640x0[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081538439060724338268d9d6T2AB5Ekb) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081552330067174828268d9d6kSCmHj8n)',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081552330067174828268d9d6kSCmHj8n)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131315 cutoff=1791388977 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081600419748493598268d9d6mp3ISWfz) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081605339135124968268d9d6Evr1xZ66) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=xlambar/16114 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=pinta_haus/7787 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081609481357957998268d9d6oBba4y6X) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081610140199221658268d9d6wst0b7UQ) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081612145927974958268d9d6S1l6Q7qO) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081612145927974958268d9d6S1l6Q7qO) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=d7e20bb207a39fe8 currentRevision=42aa2a446d10e4b4 snapshotRaw=61 currentRaw=64 fallback=sqlite
+[EVENT POSTER REJECTED] event="Открывашка" date=2026-10-08 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Открывашка" date=2026-10-08 source=
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=d7e20bb207a39fe8 currentRevision=42aa2a446d10e4b4 snapshotRaw=61 currentRaw=64 fallback=sqlite
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="ЦЕНТР ОСЕНИ" date=2026-10-09 source=https://vk.ru/wall-226190294_1198
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081612258144144588268d9d6Q7pNPBrE) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[EVENT POSTER REJECTED] event="Бриолин" date=2026-10-17 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Бриолин" date=2026-10-17 source=https://vk.ru/wall-95062430_2725
+[EVENT POSTER REJECTED] event="Открывашка" date=2026-10-08 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Открывашка" date=2026-10-08 source=
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Следующая встреча «Культура. Воронеж»" date=2026-10-10 source=https://vk.ru/wall-230415917_8
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT vision API 502: The origin web server returned an invalid or incomplete response to Cloudflare. This typically indicates the origin is overloaded or misconfigured.',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=d7e20bb207a39fe8 currentRevision=42aa2a446d10e4b4 snapshotRaw=61 currentRaw=64 fallback=sqlite
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="ЦЕНТР ОСЕНИ" date=2026-10-09 source=https://vk.ru/wall-226190294_1198
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=598-1.jpg {
+  name: 'Error',
+  message: 'Сервер загрузки VK не вернул server/photo/hash: {"server":922528,"photo":"","hash":"88cf3d756cf2af319cb2f7f8c2e4e448"}',
+  code: null,
+  status: null
+}
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=d7e20bb207a39fe8 currentRevision=42aa2a446d10e4b4 snapshotRaw=61 currentRaw=64 fallback=sqlite
+[EVENT POSTER REJECTED] event="Открывашка" date=2026-10-08 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Открывашка" date=2026-10-08 source=
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=event-poster.jpg {
+  name: 'APIError',
+  message: 'Code №100 - One of the parameters specified was missing or invalid: photo is undefined',
+  stack: 'APIError: Code №100 - One of the parameters specified was missing or invalid: photo is undefined\n' +
+    '    at SequentialWorker.execute (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:1854:44)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)',
+  cause: undefined
+}
+[VK EVENT POSTER UPLOAD RETRY] method=direct-multipart attempt=1/3 file=13730-1.jpg {
+  name: 'Error',
+  message: `Сервер загрузки VK вернул не JSON (HTTP 504): <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN"> <html> <head> <title>The page is temporarily unavailable</title> <style> body { font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Open Sans', 'Helvetica Neue', sans-serif, Geneva, arial, Tahoma, verdana; } </style> </head> <body bgcolor="white" text="black"> <table width="100%" height="100%"> <tr> <td align="center" valign="middle"> The page you are looking for is temporarily unavailable.<br/> Please try again later. </td> </tr> </table> </body> </html>`,
+  code: null,
+  status: null
+}
+[VK IMAGE UPLOAD FALLBACK] method=vk-io-buffer file=event-poster.jpg {
+  name: 'Error',
+  message: 'Gateway Time-out',
+  stack: 'Error: Gateway Time-out\n' +
+    '    at Upload.upload (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8927:23)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async Upload.conduct (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8824:26)\n' +
+    '    at async Upload.messagePhoto (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/vk-io@4.10.1/node_modules/vk-io/lib/index.mjs:8353:25)\n' +
+    '    at async uploadGeneratedImageBuffer (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:43167:26)\n' +
+    '    at async uploadEventImageAttachment (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:25762:36)\n' +
+    '    at async getEventAttachments (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:26897:32)\n' +
+    '    at async sendPublicEventMessages (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:26954:34)\n' +
+    '    at async sendPublicEventsForRange (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:27135:15)\n' +
+    '    at async handleRequest (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:33543:9)',
+  cause: undefined
+}
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081614206808184898268d9d6m8cyadVL) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081614206808184898268d9d6m8cyadVL) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Следующая встреча «Культура. Воронеж»" date=2026-10-10 source=https://vk.ru/wall-230415917_8
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[EVENT VERIFIED SNAPSHOT STALE] snapshotRevision=d7e20bb207a39fe8 currentRevision=42aa2a446d10e4b4 snapshotRaw=61 currentRaw=64 fallback=sqlite
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081616257348251978268d9d6xeTJX7pj) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081616257348251978268d9d6xeTJX7pj) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081616079491936068268d9d6qCUjgs3h) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=0c8b7d00-939b-473d-bb9a-784110a28f5d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081616079491936068268d9d6qCUjgs3h) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=0c8b7d00-939b-473d-bb9a-784110a28f5d provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="ЦЕНТР ОСЕНИ" date=2026-10-09 source=https://vk.ru/wall-226190294_1198
+[EVENT POSTER REJECTED] event="Бриолин" date=2026-10-17 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Бриолин" date=2026-10-17 source=https://vk.ru/wall-95062430_2725
+[EVENT POSTER REJECTED] event="Открывашка" date=2026-10-08 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Открывашка" date=2026-10-08 source=
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Следующая встреча «Культура. Воронеж»" date=2026-10-10 source=https://vk.ru/wall-230415917_8
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=131331 fetch failed
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 502). Попробуйте позже. (request id: 202610081620317614234248268d9d6KhTgWp9x) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081632480651690558268d9d6fz5ji32Y) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR: Внешний провайдер временно недоступен (статус 503). Попробуйте позже. (request id: 202610081631214404006158268d9d6UPF3ZwvK) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'GPT_STREAM_ERROR',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131377 cutoff=1791390777 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR upstream_stream_incomplete: Поток ответа от внешнего провайдера неожиданно завершился раньше времени. Повторите запрос; если ошибки возникают только в этой сессии, начните новую. (request id: 202610081637188042892718268d9d6ylZYoy4L) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'upstream_stream_incomplete',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR upstream_stream_incomplete: Поток ответа от внешнего провайдера неожиданно завершился раньше времени. Повторите запрос; если ошибки возникают только в этой сессии, начните новую. (request id: 202610081638422839380508268d9d6e1gk07tG) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'upstream_stream_incomplete',
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}
+[MANUAL EVENT VK WALL API ERROR] https://vk.ru/wall-44237214_5180 {
+  name: 'APIError',
+  message: 'Code №27 - Group authorization failed: method is unavailable with group auth.',
+  code: 27,
+  status: null
+}
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[EVENT RETRY ERROR] stage=image-fingerprint:cdn4.telesco.pe attempt=1/5 retry=no apiRequestContext.get: 500 Internal Server Error
+Response text:
+<html>
+<head><title>500 Internal Server Error</title></head>
+<body bgcolor="white">
+<center><h1>500 Internal Server Error</h1></center>
+<hr><center>nginx/1.0.11</center>
+<pre></pre>
+
+</body>
+</html>
+Call log:
+[2m  - → GET https://cdn4.telesco.pe/file/ksyouCbIQAj5stv1CQHRHGJJCdHhnz44-F8h-nEec5mn9H7DWFcnlFrLQB1NNe2prcEgvTCZgDYayDpa2VNEH1Sjs6An1V3c6AG2HHzbvYkr19DENF02GMfEx_MQES1f4ItWJbpeOw5q9ynuOoBHHcpMpHK2M1lEzCm0XJEBbA7EYJjLjiLxHFx3WdeSkTt-TiiEtrVBDhKvP2H0Qlv5PcfSguaVQs3zdECZ8yKmVza0pZ0mF63ld0trJjg031NFIweMf1OSo3LXdkbpcAp7IMJyf0llKgnVwP4VbyfCqh4iG8mfhLrOTOWU2NWK_RuwEXDMXQCZt1UPXvsln77B5Q.jpg[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+[2m  - ← 500 Internal Server Error[22m
+[2m    - server: nginx/1.30.1[22m
+[2m    - date: Thu, 08 Oct 2026 16:47:18 GMT[22m
+[2m    - content-type: text/html; charset=UTF-8[22m
+[2m    - content-length: 198[22m
+[2m    - connection: keep-alive[22m
+[2m    - access-control-allow-origin: *[22m
+[2m    - x-content-type-options: nosniff[22m
+[2m    - content-security-policy: default-src 'none'; sandbox[22m
+[2m    - x-frame-options: DENY[22m
+[2m    - x-xss-protection: 1; mode=block[22m
+[2m    - access-control-expose-headers: Accept-Ranges, Content-Range, Content-Length[22m
+[2m    - x-debug:[22m
+[2m    - x-client-ip: 185.82.73.92[22m
+[2m    - strict-transport-security: max-age=31536000; includeSubDomains; preload[22m
+
+[EVENT IMAGE FINGERPRINT ERROR] https://cdn4.telesco.pe/file/ksyouCbIQAj5stv1CQHRHGJJCdHhnz44-F8h-nEec5mn9H7DWFcnlFrLQB1NNe2prcEgvTCZgDYayDpa2VNEH1Sjs6An1V3c6AG2HHzbvYkr19DENF02GMfEx_MQES1f4ItWJbpeOw5q9ynuOoBHHcpMpHK2M1lEzCm0XJEBbA7EYJjLjiLxHFx3WdeSkTt-TiiEtrVBDhKvP2H0Qlv5PcfSguaVQs3zdECZ8yKmVza0pZ0mF63ld0trJjg031NFIweMf1OSo3LXdkbpcAp7IMJyf0llKgnVwP4VbyfCqh4iG8mfhLrOTOWU2NWK_RuwEXDMXQCZt1UPXvsln77B5Q.jpg attempts=1 apiRequestContext.get: 500 Internal Server Error
+Response text:
+<html>
+<head><title>500 Internal Server Error</title></head>
+<body bgcolor="white">
+<center><h1>500 Internal Server Error</h1></center>
+<hr><center>nginx/1.0.11</center>
+<pre></pre>
+
+</body>
+</html>
+Call log:
+[2m  - → GET https://cdn4.telesco.pe/file/ksyouCbIQAj5stv1CQHRHGJJCdHhnz44-F8h-nEec5mn9H7DWFcnlFrLQB1NNe2prcEgvTCZgDYayDpa2VNEH1Sjs6An1V3c6AG2HHzbvYkr19DENF02GMfEx_MQES1f4ItWJbpeOw5q9ynuOoBHHcpMpHK2M1lEzCm0XJEBbA7EYJjLjiLxHFx3WdeSkTt-TiiEtrVBDhKvP2H0Qlv5PcfSguaVQs3zdECZ8yKmVza0pZ0mF63ld0trJjg031NFIweMf1OSo3LXdkbpcAp7IMJyf0llKgnVwP4VbyfCqh4iG8mfhLrOTOWU2NWK_RuwEXDMXQCZt1UPXvsln77B5Q.jpg[22m
+[2m    - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36[22m
+[2m    - accept: */*[22m
+[2m    - accept-encoding: gzip,deflate,br[22m
+[2m  - ← 500 Internal Server Error[22m
+[2m    - server: nginx/1.30.1[22m
+[2m    - date: Thu, 08 Oct 2026 16:47:18 GMT[22m
+[2m    - content-type: text/html; charset=UTF-8[22m
+[2m    - content-length: 198[22m
+[2m    - connection: keep-alive[22m
+[2m    - access-control-allow-origin: *[22m
+[2m    - x-content-type-options: nosniff[22m
+[2m    - content-security-policy: default-src 'none'; sandbox[22m
+[2m    - x-frame-options: DENY[22m
+[2m    - x-xss-protection: 1; mode=block[22m
+[2m    - access-control-expose-headers: Accept-Ranges, Content-Range, Content-Length[22m
+[2m    - x-debug:[22m
+[2m    - x-client-ip: 185.82.73.92[22m
+[2m    - strict-transport-security: max-age=31536000; includeSubDomains; preload[22m
+
+[EVENT POSTER REJECTED] event="Открывашка" date=2026-10-08 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Открывашка" date=2026-10-08 source=
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="ЦЕНТР ОСЕНИ" date=2026-10-09 source=https://vk.ru/wall-226190294_1198
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Следующая встреча «Культура. Воронеж»" date=2026-10-10 source=https://vk.ru/wall-230415917_8
+[EVENT POSTER REJECTED] event="Бриолин" date=2026-10-17 images=1 status=no_safe_poster reason=untrusted-poster-status
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Бриолин" date=2026-10-17 source=https://vk.ru/wall-95062430_2725
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дата: 17 октября" date=2026-10-17 source=https://t.me/kurazhcity/4080
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Дивные люди. Дивногорье и ещё 2 автораДействияПраздник Урожая в Башне Первое событие в новом Культурном пространстве \"Башня\" . Ещё утром пылесосили многодесятилетнюю пыль, днём снимали паутину с окон, а вечером пели, пил" date=2026-10-31 source=https://vk.ru/wall90815_2910
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Важная информация! Новости по концерту, который состоится" date=2026-11-07 source=https://vk.ru/wall-18735960_1131
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="El Mental" date=2026-11-14 source=https://vk.ru/wall-117292629_13821
+[EVENT POSTER UNRESOLVED — REAL SOURCE IMAGE NOT PROVEN] title="Existenter" date=2026-11-14 source=https://vk.ru/wall-227219886_186
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=b3ee2aee-6961-4669-8e47-4472d425328b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI RUNTIME TRANSPORT FALLBACK DISABLED] model=gpt-5.6-luna reasoning=none transport=stream {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=37e914c3-ca68-43be-bf87-8a228d346382 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=37e914c3-ca68-43be-bf87-8a228d346382 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=12bpg/12703 source=missing-source-date-v185 publishedAt=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=12bpg/12697 source=missing-source-date-v185 publishedAt=0
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'Vision не вернул запрошенные структурированные metadata',
+  code: 'VISION_UNSTRUCTURED_METADATA',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR upstream_stream_incomplete: Поток ответа от внешнего провайдера неожиданно завершился раньше времени. Повторите запрос; если ошибки возникают только в этой сессии, начните новую. (request id: 202610081700031444408278268d9d6piAA63TH) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'upstream_stream_incomplete',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VOICE TRANSCRIPT ERROR] platform=vk peer=2000000006 cmid=131422 The operation was aborted due to timeout
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131430 cutoff=1791392580 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'GPT vision stream produced no bytes for 150000 ms',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=balagan.city/17108 source=missing-source-date-v185 publishedAt=0
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'Error',
+  message: 'GPT STREAM ERROR upstream_stream_incomplete: Поток ответа от внешнего провайдера неожиданно завершился раньше времени. Повторите запрос; если ошибки возникают только в этой сессии, начните новую. (request id: 202610081707394894884818268d9d69Vwquqe6) Если ошибка повторяется, попробуйте сменить источник или канал модели. Текущий источник: «GPT Team/Plus».',
+  code: 'upstream_stream_incomplete',
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[AI KEY ATTEMPT FAILED] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna attempt=1/1 {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ROTATE] requestId=muznmive-e9e10e68 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-5.6-luna reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=naryadny.rest/226 source=missing-source-date-v185 publishedAt=0
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK PUBLIC PUBLISHED DATE FALLBACK] post=naryadny.rest/226 source=missing-source-date-v185 publishedAt=0
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=131439 cutoff=1791394380 max=3500 reason=periodic
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[STT KEY ROTATE] key=OPENAI_COMPAT_API_KEY reason=three-failures
+[GPT6 LUNA HEALTH PROBE ERROR] {
+  name: 'TypeError',
+  message: 'error.slice is not a function',
+  code: null,
+  status: null
+}

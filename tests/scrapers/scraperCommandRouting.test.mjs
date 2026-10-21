@@ -12,6 +12,10 @@ const positiveCases = [
     ['парсеры', '', false, false, true],
     ['парсер все', '', false, true, false],
     ['парсер все чисто', '', false, true, false],
+    ['парсер все новые', '', false, true, false],
+    ['Гигорейв парсер всё новые', '', false, true, false],
+    ['парсер все восстановить', '', false, true, false],
+    ['тусы парсер все восстановить', '', false, true, false],
     ['тусы парсер все чисто', '', false, true, false],
     ['тусы парсер все', '', false, true, false],
     ['Гигорейв тусы парсер все', '', false, true, false],
@@ -48,6 +52,41 @@ for (const input of ['парсер статус', 'обычный вопрос',
     assert.equal(parseScraperStartCommand(input).matched, false, input);
 }
 
+for (const input of ['обработать ошибки парсера', 'обработать ошибку парсера', 'повторить ошибки парсера']) {
+    const parsed = parseScraperStartCommand(input);
+    assert.equal(parsed.matched, true, input);
+    assert.equal(parsed.parserErrors, true, input);
+    assert.equal(parsed.all, false, input);
+}
+
+for (const input of [
+    'турбо3 2фазы новые быдлячьи парсер все',
+    'быдлячьи новые парсер все 2фазы турбо3',
+    'парсер быдлячьи 2фазы турбо3 новые все',
+]) {
+    const parsed = parseScraperStartCommand(input);
+    assert.equal(parsed.matched, true, input);
+    assert.equal(parsed.partyPool, 'secondary', input);
+    assert.equal(parsed.all, true, input);
+    assert.equal(parsed.cleanOnly, true, input);
+    assert.equal(parsed.phaseCount, 2, input);
+    assert.equal(parsed.turboMode, 'turbo3', input);
+}
+
+for (const input of [
+    'турбо4 новые парсер все 2фазы',
+    'парсер все новые 2фазы турбо4',
+    '2фазы турбо4 все новые парсер',
+]) {
+    const parsed = parseScraperStartCommand(input);
+    assert.equal(parsed.matched, true, input);
+    assert.equal(parsed.partyPool, 'primary', input);
+    assert.equal(parsed.all, true, input);
+    assert.equal(parsed.cleanOnly, true, input);
+    assert.equal(parsed.phaseCount, 2, input);
+    assert.equal(parsed.turboMode, 'turbo4', input);
+}
+
 
 
 assert.equal(
@@ -82,8 +121,8 @@ const applicationSource = await import('node:fs/promises')
         'utf8',
     ));
 
-assert.match(applicationSource, /async function startAllManualScraperSources\(\{ incrementalOnly = false \} = \{\}\)/u);
-assert.match(applicationSource, /Запускаю сбор всех настроенных источников/u);
+assert.match(applicationSource, /async function startAllManualScraperSources\(\{ incrementalOnly = false, partyPool = PARTY_POOL_PRIMARY, recovery = null[^\n]*phaseCount = 2[^\n]*\} = \{\}\)/u);
+assert.match(applicationSource, /Запускаю сбор \(/u);
 assert.match(applicationSource, /Гигорейв парсер все/u);
 assert.match(applicationSource, /events-v\d+-[a-z0-9-]+/u);
 assert.match(applicationSource, /handleManualScraperCommand/u);
@@ -101,3 +140,21 @@ assert.equal(singleReparse.help, false);
 const singleReparseShort = parseScraperStartCommand('парсер https://vk.ru/wall-240894883_12');
 assert.equal(singleReparseShort.matched, true);
 assert.equal(singleReparseShort.reparseUrl, 'https://vk.ru/wall-240894883_12');
+assert.equal(parseScraperStartCommand('парсер все новые').cleanOnly, true);
+assert.equal(parseScraperStartCommand('парсер все восстановить').recover, true);
+assert.equal(parseScraperStartCommand('парсер все').cleanOnly, false);
+for (const [input, partyPool, includeAllPools] of [
+    ['источники', 'primary', false],
+    ['источник', 'primary', false],
+    ['источники второстепенные', 'secondary', false],
+    ['Гигорейв источники второстепенные', 'secondary', false],
+    ['источники быдлячьи', 'secondary', false],
+    ['Гигорейв источники', 'primary', false],
+    ['источники все', 'primary', true],
+]) {
+    const parsed = parseScraperStartCommand(input);
+    assert.equal(parsed.matched, true, input);
+    assert.equal(parsed.listSources, true, input);
+    assert.equal(parsed.partyPool, partyPool, input);
+    assert.equal(parsed.includeAllPools, includeAllPools, input);
+}

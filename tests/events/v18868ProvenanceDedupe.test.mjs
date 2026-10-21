@@ -29,7 +29,9 @@ test('parent schedule child and linked direct wall merge by canonical provenance
         canonicalOrigin: 'direct-wall',
     };
     const comparison = compareEventsDeterministic(parentChild, direct);
-    assert.equal(comparison.verdict, 'same');
+    // Same canonical post is a strong deterministic signal, but the current
+    // contract still routes non-identical titles through mandatory AI review.
+    assert.equal(comparison.verdict, 'ambiguous');
     assert.ok(comparison.reasons.includes('same-canonical-post'));
     const merged = mergeDuplicateEvents(parentChild, direct, comparison);
     assert.equal(merged.sourceUrl, 'https://vk.ru/wall-240444315_7');
@@ -48,10 +50,10 @@ test('V188.75 canonical provenance cannot merge DIESEL Hall with DIESEL Bar', ()
         canonicalPostUrl: 'https://vk.ru/wall-1_2', sourceUrl: 'https://vk.ru/wall-1_2',
     };
     const comparison = compareEventsDeterministic(left, right);
-    assert.equal(comparison.verdict, 'different');
-    assert.ok(comparison.hardConflicts.includes('different-venue'));
+    assert.equal(comparison.verdict, 'ambiguous');
+    assert.ok(comparison.reasons.includes('venue-conflict'));
 });
 
 test('dedupe algorithm version invalidates old verified snapshot identity', () => {
-    assert.match(EVENT_DEDUPE_ALGORITHM_VERSION, /v18875/u);
+    assert.match(EVENT_DEDUPE_ALGORITHM_VERSION, /v18899/u);
 });

@@ -1,3 +1,5 @@
+import { storedEventDateSupported } from '../../features/events/dateFreeEventEvidence.js';
+import { extractExplicitDates } from '../../features/events/publicPostDateEvidence.js';
 /**
  * SQLite-слой приложения: схема, мягкие миграции и функции чтения/записи. Модуль не должен знать о VK/Telegram Context и не отправляет сообщения.
  */
@@ -11,6 +13,8 @@ import {
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
+import { createVoiceTranscriptJobStore } from './voiceTranscriptJobs.js';
+import { createVkInactivityQueries } from './vkInactivityQueries.js';
 
 import {
     createAutoSummaryStateStore,
@@ -68,6 +72,7 @@ export const QTICKETS_DATABASE_PATH = qticketsDatabasePath;
 export const RUNTIME_DATA_DIRECTORY = dataDirectory;
 
 const database = new DatabaseSync(databasePath);
+export const voiceTranscriptJobs = createVoiceTranscriptJobStore(database);
 const qticketsDatabase = new DatabaseSync(qticketsDatabasePath);
 
 qticketsDatabase.exec(`
@@ -196,6 +201,8 @@ database.exec(`
     CREATE INDEX IF NOT EXISTS communication_settings_due_idx
     ON communication_settings (is_group, persona, next_outburst_at);
 
+
+
     /*
      * V148: минимальная статистика обращений к боту без хранения текста ЛС.
      * request_key идемпотентен для одного входящего сообщения, поэтому
@@ -310,7 +317,8 @@ database.exec(`
         created_by_platform TEXT NOT NULL DEFAULT 'vk',
         created_by INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL,
-        updated_at INTEGER NOT NULL
+        updated_at INTEGER NOT NULL,
+        is_multi_announcement INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE INDEX IF NOT EXISTS manual_events_date_idx
@@ -341,11 +349,7 @@ database.exec(`
     CREATE INDEX IF NOT EXISTS event_proposals_pending_idx
     ON event_proposals (status, expires_at, id);
 
-    /*
-     * V103: non-destructive registry of duplicate groups. Raw event rows remain
-     * source evidence; the registry records which rows were collapsed into one
-     * canonical event by the current dedupe algorithm.
-     */
+    /* Duplicate decisions remain auditable after repeated event rows are purged. */
     CREATE TABLE IF NOT EXISTS event_dedupe_groups (
         scope TEXT NOT NULL,
         group_key TEXT NOT NULL,
@@ -370,6 +374,33 @@ database.exec(`
 
     CREATE INDEX IF NOT EXISTS event_dedupe_members_group_idx
     ON event_dedupe_members (scope, group_key, role);
+
+    /*
+     * Recovery and moderation also address a member by its source identity,
+     * while public reads filter duplicate rows by scope and role. The primary
+     * key starts with scope/source_type/event_id, so keep these access paths
+     * explicit instead of relying on a table scan or on the group index.
+     */
+    CREATE INDEX IF NOT EXISTS event_dedupe_members_identity_idx
+    ON event_dedupe_members (source_type, event_id);
+
+    CREATE INDEX IF NOT EXISTS event_dedupe_members_duplicate_idx
+    ON event_dedupe_members (scope, role, source_type, event_id);
+
+    CREATE TABLE IF NOT EXISTS event_dedupe_archive (
+        source_type TEXT NOT NULL,
+        event_id INTEGER NOT NULL,
+        canonical_source_type TEXT NOT NULL DEFAULT '',
+        canonical_event_id INTEGER NOT NULL DEFAULT 0,
+        group_key TEXT NOT NULL DEFAULT '',
+        algorithm_version TEXT NOT NULL DEFAULT '',
+        event_row_json TEXT NOT NULL,
+        archived_at INTEGER NOT NULL,
+        PRIMARY KEY (source_type, event_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS event_dedupe_archive_canonical_idx
+    ON event_dedupe_archive (canonical_source_type, canonical_event_id, archived_at);
 
     CREATE TABLE IF NOT EXISTS interaction_memory (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -474,6 +505,15 @@ database.exec(`
         updated_at INTEGER NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS vk_user_name_history (
+        user_id INTEGER NOT NULL,
+        full_name TEXT NOT NULL,
+        effective_at INTEGER NOT NULL,
+        PRIMARY KEY (user_id, effective_at)
+    );
+    CREATE INDEX IF NOT EXISTS vk_user_name_history_lookup_idx
+        ON vk_user_name_history (user_id, effective_at DESC);
+
     /*
      * V182: restart-safe automatic leaver reports. The interval is measured
      * from the moment the command is enabled; last_run_at marks the beginning
@@ -523,6 +563,9 @@ database.exec(`
 
     CREATE INDEX IF NOT EXISTS vk_message_archive_peer_created_idx
     ON vk_message_archive (peer_id, created_at, conversation_message_id);
+
+    CREATE INDEX IF NOT EXISTS vk_message_archive_peer_message_sender_idx
+    ON vk_message_archive (peer_id, conversation_message_id, sender_id);
 
     CREATE INDEX IF NOT EXISTS vk_message_archive_peer_action_idx
     ON vk_message_archive (peer_id, action_type, created_at, conversation_message_id);
@@ -740,6 +783,15 @@ qticketsDatabase.exec(`
 
     CREATE INDEX IF NOT EXISTS qtickets_events_listing_idx
     ON qtickets_events (listing_url, status, updated_at);
+
+    CREATE TABLE IF NOT EXISTS qtickets_listing_cards (
+        detail_url TEXT PRIMARY KEY,
+        listing_url TEXT NOT NULL DEFAULT '',
+        card_hash TEXT NOT NULL DEFAULT '',
+        updated_at INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE INDEX IF NOT EXISTS qtickets_listing_cards_listing_idx
+    ON qtickets_listing_cards (listing_url);
 `);
 
 // V188.88: отдельный индекс метаданных агрегированного раздела «Вообще все тусы».
@@ -763,6 +815,8 @@ database.exec(`
 `);
 ensureTableColumn('all_party_metadata', 'venue_key', "TEXT NOT NULL DEFAULT ''");
 ensureTableColumn('all_party_metadata', 'tags_json', "TEXT NOT NULL DEFAULT '[]'");
+ensureTableColumn('event_proposals', 'submitter_external_username', "TEXT NOT NULL DEFAULT ''");
+ensureTableColumn('event_proposals', 'submitter_display_name', "TEXT NOT NULL DEFAULT ''");
 
 
 
@@ -906,6 +960,7 @@ ensureTableColumn(
     'external_username',
     "TEXT NOT NULL DEFAULT ''",
 );
+
 
 
 /* V119: transport/reasoning policy learned by the full live AI audit. */
@@ -1147,6 +1202,7 @@ database.exec(`
         status TEXT NOT NULL DEFAULT 'pending'
             CHECK (status IN ('approved', 'pending', 'ignored')),
         updated_at INTEGER NOT NULL,
+        is_multi_announcement INTEGER NOT NULL DEFAULT 0,
         UNIQUE (channel, message_id, event_index),
         FOREIGN KEY (channel, message_id)
             REFERENCES telegram_source_posts(channel, message_id)
@@ -1181,6 +1237,8 @@ ensureTableColumn(
     'image_fingerprints_json',
     "TEXT NOT NULL DEFAULT '[]'",
 );
+ensureTableColumn('telegram_source_posts', 'image_vision_facts_json', "TEXT NOT NULL DEFAULT '[]'");
+ensureTableColumn('telegram_source_posts', 'image_vision_status_json', "TEXT NOT NULL DEFAULT '[]'");
 
 const selectPlatformIdentityStatement = database.prepare(`
     SELECT internal_id
@@ -1847,6 +1905,7 @@ const clearAllCommunicationBanterStatement = database.prepare(`
     DELETE FROM communication_banter_state
 `);
 
+
 const updateActiveCommunicationStateStatement = database.prepare(`
     UPDATE communication_settings
     SET active_chat_enabled = ?,
@@ -1988,6 +2047,7 @@ const selectManualUpcomingEventsStatement = database.prepare(`
         source_url,
         image_paths_json,
         status,
+        is_multi_announcement,
         created_by_platform,
         created_by,
         created_at,
@@ -2532,6 +2592,8 @@ const selectTelegramPostMetaStatement = database.prepare(`
         raw_text,
         text_fingerprint,
         image_fingerprints_json,
+        image_vision_facts_json,
+        image_vision_status_json,
         image_paths_json,
         (
             SELECT COUNT(*)
@@ -2670,7 +2732,8 @@ const selectTelegramUpcomingEventsStatement = database.prepare(`
         e.parse_method,
         e.status,
         p.published_at,
-        p.raw_text
+        p.raw_text,
+        p.image_vision_facts_json
     FROM telegram_events AS e
     INNER JOIN telegram_source_posts AS p
         ON p.channel = e.channel
@@ -3436,7 +3499,7 @@ function safeJsonArray(value) {
     return value
         .map((item) => String(item ?? '').trim())
         .filter(Boolean)
-        .slice(0, 100);
+        .slice(0, 1000);
 }
 
 function currentIsoDate() {
@@ -3464,6 +3527,8 @@ export function getTelegramPostMeta({ channel, messageId }) {
         rawText: String(row.raw_text ?? ''),
         textFingerprint: String(row.text_fingerprint ?? ''),
         imageFingerprintsJson: String(row.image_fingerprints_json ?? '[]'),
+        imageVisionFactsJson: String(row.image_vision_facts_json ?? '[]'),
+        imageVisionStatusesJson: String(row.image_vision_status_json ?? '[]'),
         imagePathsJson: String(row.image_paths_json ?? '[]'),
         eventCount: Number(row.event_count ?? 0),
         eventsWithoutImages: Number(row.events_without_images ?? 0),
@@ -3486,6 +3551,7 @@ export function upsertTelegramSourcePost({
     parseStatus,
     fetchedAt,
 }) {
+    const normalizedFacts = normalizeVisionFacts(imageVisionFacts);
     upsertTelegramSourcePostStatement.run(
         String(channel ?? '').trim(),
         Number(messageId),
@@ -3496,7 +3562,7 @@ export function upsertTelegramSourcePost({
         JSON.stringify(safeJsonArray(imagePaths)),
         String(contentHash ?? '').trim(),
         String(textFingerprint ?? '').trim(),
-        JSON.stringify(Array.isArray(imageFingerprints) ? imageFingerprints.slice(0, 16) : []),
+        JSON.stringify(Array.isArray(imageFingerprints) ? imageFingerprints.slice(0, 1000) : []),
         String(parseStatus ?? 'pending').trim(),
         Number(fetchedAt),
     );
@@ -3504,8 +3570,8 @@ export function upsertTelegramSourcePost({
         UPDATE telegram_source_posts SET image_vision_facts_json = ?, image_vision_status_json = ?
         WHERE channel = ? AND message_id = ?
     `).run(
-        JSON.stringify(Array.isArray(imageVisionFacts) ? imageVisionFacts : []),
-        JSON.stringify(Array.isArray(imageVisionStatuses) && imageVisionStatuses.length ? imageVisionStatuses : deriveImageVisionStatuses(imageVisionFacts, imageUrls)),
+        JSON.stringify(normalizedFacts),
+        JSON.stringify(Array.isArray(imageVisionStatuses) && imageVisionStatuses.length ? imageVisionStatuses : deriveImageVisionStatuses(normalizedFacts, imageUrls)),
         String(channel ?? '').trim(),
         Number(messageId),
     );
@@ -3518,6 +3584,7 @@ export function replaceTelegramEventsForPost({
     imagePaths,
     events,
     updatedAt,
+    preserveUnmatchedStoredEvents = false,
 }) {
     const safeChannel = String(channel ?? '').trim();
     const safeMessageId = Number(messageId);
@@ -3525,10 +3592,24 @@ export function replaceTelegramEventsForPost({
     const storedRows = database.prepare(`
         SELECT * FROM telegram_events WHERE channel = ? AND message_id = ? ORDER BY event_index ASC, id ASC
     `).all(safeChannel, safeMessageId);
-    let safeEvents = incomingEvents.map((event, index) => mergeIncomingEventWithStoredRow(
-        event,
-        selectStoredEventForIncoming(storedRows, event, index),
-    ));
+    const matchedStoredIds = new Set();
+    let safeEvents = incomingEvents.map((event, index) => {
+        const stored = selectStoredEventForIncoming(storedRows, event, index, { allowIndexFallback: !preserveUnmatchedStoredEvents });
+        if (stored?.id != null) matchedStoredIds.add(Number(stored.id));
+        return mergeIncomingEventWithStoredRow(event, stored);
+    });
+    if (preserveUnmatchedStoredEvents) {
+        safeEvents = [
+            ...safeEvents,
+            ...storedRows
+                .filter((row) => !matchedStoredIds.has(Number(row.id)))
+                .map(storedRowToEvent),
+        ];
+    }
+    const sourceIsMulti = safeEvents.length > 1 || safeEvents.some((event) =>
+        Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement) ||
+        String(event?.structureDecision ?? event?.structure_decision ?? '') === 'multiple_events');
+    safeEvents = safeEvents.map((event) => ({ ...event, isMultiAnnouncement: sourceIsMulti ? 1 : 0 }));
     const sourceMeta = database.prepare(`
         SELECT image_urls_json, source_url, image_vision_facts_json, raw_text FROM telegram_source_posts
         WHERE channel = ? AND message_id = ? LIMIT 1
@@ -3679,10 +3760,10 @@ export function getTelegramUpcomingEvents({
             String(fromDate ?? currentIsoDate()),
             scanLimit,
         )
-        .filter((row) => isEventDateConsistentWithSource({
-            eventDate: row.event_date,
+        .filter((row) => storedEventDateSupported({ ...readEventV18867MetadataForType('telegram', row.id), eventDate: row.event_date, title: row.title, participants: row.participants, venue: row.venue }, {
             sourceText: row.raw_text,
             publishedAt: row.published_at,
+            imageVisionFacts: row.image_vision_facts_json,
         }))
         .slice(0, safeLimit)
         .map((row) => ({
@@ -4055,6 +4136,14 @@ export function getAllAutoSummarySettings() {
 
 export function getAutoSummaryStateDatabasePath() {
     return autoSummaryStateStore.databasePath;
+}
+
+export function getAutoSummaryStateMeta(key, fallback = '') {
+    return autoSummaryStateStore.getMeta(key, fallback);
+}
+
+export function saveAutoSummaryStateMeta(key, value) {
+    return autoSummaryStateStore.saveMeta(key, value);
 }
 
 export function getAutoSummaryRun(peerId, summaryDate, slotLabel) {
@@ -4821,6 +4910,17 @@ const upsertVkUserNameCacheStatement = database.prepare(`
         full_name = excluded.full_name,
         updated_at = excluded.updated_at
 `);
+const insertVkUserNameHistoryStatement = database.prepare(`
+    INSERT OR IGNORE INTO vk_user_name_history (user_id, full_name, effective_at)
+    VALUES (?, ?, ?)
+`);
+const selectVkUserNameHistoryStatement = database.prepare(`
+    SELECT user_id, full_name, effective_at
+    FROM vk_user_name_history
+    WHERE user_id IN (SELECT value FROM json_each(?))
+      AND effective_at <= ?
+    ORDER BY user_id ASC, effective_at DESC
+`);
 
 const selectChatLeaverAutoSettingsStatement = database.prepare(`
     SELECT peer_id, platform, endpoint_key, external_peer_id, interval_days,
@@ -5025,6 +5125,8 @@ export function getVkCachedUserNames(userIds = []) {
     return names;
 }
 
+export const vkInactivityQueries = createVkInactivityQueries(database);
+
 export function saveVkUserNames(users = []) {
     const now = Math.floor(Date.now() / 1000);
     let saved = 0;
@@ -5039,10 +5141,31 @@ export function saveVkUserNames(users = []) {
         ).replace(/\s+/gu, ' ').trim();
         if (!Number.isSafeInteger(userId) || userId <= 0 || !fullName) continue;
         upsertVkUserNameCacheStatement.run(userId, fullName, now);
+        insertVkUserNameHistoryStatement.run(userId, fullName, now);
         saved += 1;
     }
 
     return saved;
+}
+
+export function getVkUserNamesAt(userIds = [], effectiveAt = Math.floor(Date.now() / 1000)) {
+    const ids = [...new Set((Array.isArray(userIds) ? userIds : [])
+        .map((value) => Number(value))
+        .filter((value) => Number.isSafeInteger(value) && value > 0))];
+    if (!ids.length) return new Map();
+    const result = new Map();
+    for (const row of database.prepare(`
+        SELECT h.user_id, h.full_name
+        FROM vk_user_name_history h
+        JOIN (SELECT user_id, MAX(effective_at) AS effective_at
+              FROM vk_user_name_history
+              WHERE user_id IN (${ids.map(() => '?').join(',')}) AND effective_at <= ?
+              GROUP BY user_id) latest
+          ON latest.user_id = h.user_id AND latest.effective_at = h.effective_at
+    `).all(...ids, Number(effectiveAt) || 0)) {
+        result.set(Number(row.user_id), String(row.full_name || '').trim());
+    }
+    return result;
 }
 
 export function getPeerHistoryMigration({ platform = 'vk', targetPeerId = 0 } = {}) {
@@ -6077,7 +6200,7 @@ export function saveManualEvent({
         sourceText,
         posterVisionFacts,
     });
-    if (!permanentCheck.events.length) return 0;
+    if (!ownerManual && !permanentCheck.events.length) return 0;
 
     const result = insertManualEventStatement.run(
         String(title ?? '').trim(),
@@ -6301,6 +6424,16 @@ export function replaceQticketsEvents(events = [], {
             );
             if (existing) updated += 1;
             else inserted += 1;
+            if (String(event?.listingCardHash || '').trim()) {
+                qticketsDatabase.prepare(`
+                    INSERT INTO qtickets_listing_cards (detail_url, listing_url, card_hash, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(detail_url) DO UPDATE SET
+                        listing_url = excluded.listing_url,
+                        card_hash = excluded.card_hash,
+                        updated_at = excluded.updated_at
+                `).run(detailUrl, String(event?.listingUrl || listingUrl || '').trim(), String(event.listingCardHash), now);
+            }
         }
 
         const activeListingUrls = [...new Set([
@@ -6338,6 +6471,46 @@ export function replaceQticketsEvents(events = [], {
     };
 }
 
+export function getQticketsListingCardHashes(detailUrls = []) {
+    const urls = [...new Set((Array.isArray(detailUrls) ? detailUrls : [])
+        .map((value) => String(value || '').trim()).filter(Boolean))];
+    if (!urls.length) return new Map();
+    const rows = qticketsDatabase.prepare(`
+        SELECT detail_url, card_hash
+        FROM qtickets_listing_cards
+        WHERE detail_url IN (${urls.map(() => '?').join(', ')})
+    `).all(...urls);
+    return new Map(rows.map((row) => [String(row.detail_url), String(row.card_hash || '')]));
+}
+
+export function saveQticketsListingCardHashes(cards = [], { listingUrl = '', updatedAt = Math.floor(Date.now() / 1000) } = {}) {
+    const source = Array.isArray(cards) ? cards : [];
+    const rows = [...new Map(source
+        .map((card) => [String(card?.detailUrl || '').trim(), String(card?.cardHash || '').trim()])
+        .filter(([url, hash]) => url && hash))];
+    if (!rows.length) return 0;
+    const now = Number(updatedAt) || Math.floor(Date.now() / 1000);
+    const statement = qticketsDatabase.prepare(`
+        INSERT INTO qtickets_listing_cards (detail_url, listing_url, card_hash, updated_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(detail_url) DO UPDATE SET
+            listing_url = excluded.listing_url,
+            card_hash = excluded.card_hash,
+            updated_at = excluded.updated_at
+    `);
+    qticketsDatabase.exec('BEGIN IMMEDIATE');
+    try {
+        for (const [detailUrl, cardHash] of rows) {
+            statement.run(detailUrl, String(listingUrl || '').trim(), cardHash, now);
+        }
+        qticketsDatabase.exec('COMMIT');
+    } catch (error) {
+        qticketsDatabase.exec('ROLLBACK');
+        throw error;
+    }
+    return rows.length;
+}
+
 export function getQticketsUpcomingEvents({
     fromDate = '0000-00-00',
     limit = 500,
@@ -6365,6 +6538,8 @@ export function getQticketsUpcomingEvents({
 export function createEventProposal({
     submitterPlatform = 'vk',
     submitterExternalId = '',
+    submitterExternalUsername = '',
+    submitterDisplayName = '',
     submitterInternalId = 0,
     rawSubmission = '',
     sourceUrl = '',
@@ -6374,13 +6549,15 @@ export function createEventProposal({
 }) {
     const result = database.prepare(`
         INSERT INTO event_proposals (
-            submitter_platform, submitter_external_id, submitter_internal_id,
+            submitter_platform, submitter_external_id, submitter_external_username, submitter_display_name, submitter_internal_id,
             raw_submission, source_url, parsed_events_json, status,
             submitted_at, expires_at, resolved_at, reviewed_by_platform, reviewed_by
-        ) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?, 0, '', 0)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, 0, '', 0)
     `).run(
         String(submitterPlatform ?? 'vk'),
         String(submitterExternalId ?? ''),
+        String(submitterExternalUsername ?? ''),
+        String(submitterDisplayName ?? ''),
         Number(submitterInternalId) || 0,
         String(rawSubmission ?? '').trim(),
         String(sourceUrl ?? '').trim(),
@@ -6404,6 +6581,8 @@ function mapEventProposalRow(row) {
         id: Number(row.id),
         submitterPlatform: String(row.submitter_platform ?? ''),
         submitterExternalId: String(row.submitter_external_id ?? ''),
+        submitterExternalUsername: String(row.submitter_external_username ?? ''),
+        submitterDisplayName: String(row.submitter_display_name ?? ''),
         submitterInternalId: Number(row.submitter_internal_id ?? 0),
         rawSubmission: String(row.raw_submission ?? ''),
         sourceUrl: String(row.source_url ?? ''),
@@ -6430,6 +6609,32 @@ export function getLatestPendingEventProposal() {
         ORDER BY id DESC
         LIMIT 1
     `).get());
+}
+
+// One durable submission per actor-scoped draft token, including crash/retry.
+export function createEventProposalOnce(token, input) {
+    database.exec('SAVEPOINT event_proposal_submit');
+    try {
+        const key = 'event-proposal-submitted:' + token;
+        const existing = getMaintenanceState(key)?.details?.id;
+        const id = existing || createEventProposal(input);
+        if (!existing) setMaintenanceState(key, { details: { id } });
+        database.exec('RELEASE event_proposal_submit');
+        return getEventProposal(id);
+    } catch (error) {
+        database.exec('ROLLBACK TO event_proposal_submit; RELEASE event_proposal_submit');
+        throw error;
+    }
+}
+
+export function getPendingEventProposals() {
+    return database.prepare("SELECT * FROM event_proposals WHERE status = 'pending' ORDER BY id ASC").all().map(mapEventProposalRow);
+}
+
+export function updatePendingEventProposal(id, parsedEvents, sourceUrl = '') {
+    const result = database.prepare("UPDATE event_proposals SET parsed_events_json = ?, source_url = ? WHERE id = ? AND status = 'pending'")
+        .run(JSON.stringify(parsedEvents), String(sourceUrl), Number(id));
+    return result.changes ? getEventProposal(id) : null;
 }
 
 export function getDueEventProposals(now = Math.floor(Date.now() / 1000), limit = 50) {
@@ -6548,6 +6753,7 @@ export function getManualUpcomingEvents(
                 evidence: String(row.evidence ?? ''),
                 sourceUrl: String(row.source_url ?? ''),
                 imagePaths,
+                isMultiAnnouncement: Number(row.is_multi_announcement ?? 0) !== 0,
                 parseMethod: 'manual_owner_strict',
                 status: String(row.status ?? 'approved'),
                 sourceType: 'manual',
@@ -6675,13 +6881,19 @@ export function getAllUpcomingEventRecordsForDedupe({
     };
 
     const telegram = database.prepare(`
-        SELECT id, channel, message_id, event_index, title, event_date, event_time,
-               venue, participants, price, description, source_url,
-               image_paths_json, parse_method, status
-        FROM telegram_events
-        WHERE status IN ('approved', 'pending')
-          AND event_date >= ?
-        ORDER BY event_date ASC, COALESCE(event_time, '23:59') ASC, id ASC
+        SELECT events.id, events.channel, events.message_id, events.event_index, events.title, events.event_date, events.event_time,
+               events.venue, events.participants, events.price, events.description, events.source_url, events.is_multi_announcement,
+               events.image_paths_json, events.parse_method, events.status,
+               source.source_url AS original_source_url, source.raw_text AS original_source_text,
+               source.image_urls_json AS source_image_urls_json, source.image_paths_json AS source_image_paths_json,
+               source.image_vision_facts_json AS source_image_vision_facts_json,
+               source.image_vision_status_json AS source_image_vision_status_json
+        FROM telegram_events AS events
+        LEFT JOIN telegram_source_posts AS source
+          ON source.channel = events.channel AND source.message_id = events.message_id
+        WHERE events.status IN ('approved', 'pending')
+          AND events.event_date >= ?
+        ORDER BY events.event_date ASC, COALESCE(events.event_time, '23:59') ASC, events.id ASC
         LIMIT ?
     `).all(safeDate, safeLimit).map((row) => ({
         id: Number(row.id),
@@ -6699,24 +6911,45 @@ export function getAllUpcomingEventRecordsForDedupe({
         price: String(row.price ?? ''),
         description: String(row.description ?? ''),
         sourceUrl: String(row.source_url ?? ''),
+        sourceOriginalUrl: String(row.original_source_url ?? row.source_url ?? ''),
+        canonicalPostUrl: String(row.original_source_url ?? row.source_url ?? ''),
+        sourceText: String(row.original_source_text ?? ''),
+        rawSource: String(row.original_source_text ?? ''),
+        imageUrls: parseImages(row.source_image_urls_json),
+        sourceImagePaths: parseImages(row.source_image_paths_json),
+        imageVisionFacts: parseStoredPosterFacts(row.source_image_vision_facts_json),
+        imageVisionStatuses: parseStoredPosterFacts(row.source_image_vision_status_json),
+        isMultiAnnouncement: Boolean(Number(row.is_multi_announcement ?? 0)),
+        sourceItemId: `telegram:${String(row.channel ?? '')}:${Number(row.message_id ?? 0)}`,
+        sourceRole: Number(row.is_multi_announcement ?? 0) ? 'multi' : 'mono',
+        sourceProcessed: true,
         imagePaths: parseImages(row.image_paths_json),
         parseMethod: String(row.parse_method ?? ''),
         status: String(row.status ?? ''),
     }));
 
     const vk = database.prepare(`
-        SELECT id, screen_name, post_id, event_index, title, event_date, event_time,
-               venue, participants, price, description, source_url,
-               image_paths_json, parse_method, status
-        FROM vk_events
-        WHERE status IN ('approved', 'pending')
-          AND event_date >= ?
-        ORDER BY event_date ASC, COALESCE(event_time, '23:59') ASC, id ASC
+        SELECT events.id, events.screen_name, events.post_id, events.event_index, events.title, events.event_date, events.event_time,
+               events.venue, events.participants, events.price, events.description, events.source_url, events.is_multi_announcement,
+               events.image_paths_json, events.parse_method, events.status,
+               source.source_url AS original_source_url, source.raw_text AS original_source_text,
+               source.image_urls_json AS source_image_urls_json, source.image_paths_json AS source_image_paths_json,
+               source.image_vision_facts_json AS source_image_vision_facts_json,
+               source.image_vision_status_json AS source_image_vision_status_json
+        FROM vk_events AS events
+        LEFT JOIN vk_source_posts AS source
+          ON source.screen_name = events.screen_name AND source.post_id = events.post_id
+        WHERE events.status IN ('approved', 'pending')
+          AND events.event_date >= ?
+        ORDER BY events.event_date ASC, COALESCE(events.event_time, '23:59') ASC, events.id ASC
         LIMIT ?
     `).all(safeDate, safeLimit).map((row) => ({
         id: Number(row.id),
-        sourceType: 'vk',
         ...readEventV18867MetadataForType('vk', row.id),
+        // Provenance stores `vk_wall`, while the event table namespace and
+        // dedupe registry use `vk`.  Keep the public identity after the
+        // metadata spread so legacy provenance never changes the registry key.
+        sourceType: 'vk',
         sourceName: String(row.screen_name ?? ''),
         screenName: String(row.screen_name ?? ''),
         postId: Number(row.post_id ?? 0),
@@ -6729,6 +6962,18 @@ export function getAllUpcomingEventRecordsForDedupe({
         price: String(row.price ?? ''),
         description: String(row.description ?? ''),
         sourceUrl: String(row.source_url ?? ''),
+        sourceOriginalUrl: String(row.original_source_url ?? row.source_url ?? ''),
+        canonicalPostUrl: String(row.original_source_url ?? row.source_url ?? ''),
+        sourceText: String(row.original_source_text ?? ''),
+        rawSource: String(row.original_source_text ?? ''),
+        imageUrls: parseImages(row.source_image_urls_json),
+        sourceImagePaths: parseImages(row.source_image_paths_json),
+        imageVisionFacts: parseStoredPosterFacts(row.source_image_vision_facts_json),
+        imageVisionStatuses: parseStoredPosterFacts(row.source_image_vision_status_json),
+        isMultiAnnouncement: Boolean(Number(row.is_multi_announcement ?? 0)),
+        sourceItemId: `vk:${String(row.screen_name ?? '')}:${Number(row.post_id ?? 0)}`,
+        sourceRole: Number(row.is_multi_announcement ?? 0) ? 'multi' : 'mono',
+        sourceProcessed: true,
         imagePaths: parseImages(row.image_paths_json),
         parseMethod: String(row.parse_method ?? ''),
         status: String(row.status ?? ''),
@@ -6739,8 +6984,16 @@ export function getAllUpcomingEventRecordsForDedupe({
                events.event_index, source.conversation_name,
                events.title, events.event_date, events.event_time,
                events.venue, events.participants, events.price,
-               events.description, events.source_url, events.image_paths_json,
-               events.parse_method, events.status
+               events.description, events.source_url, events.image_paths_json, events.is_multi_announcement,
+               events.parse_method, events.status,
+               COALESCE(NULLIF(source.canonical_post_url, ''),
+                        NULLIF(events.canonical_post_url, ''),
+                        NULLIF(events.source_original_url, ''),
+                        NULLIF(events.source_url, '')) AS original_source_url,
+               source.raw_text AS original_source_text, source.image_urls_json AS source_image_urls_json,
+               source.image_paths_json AS source_image_paths_json,
+               source.image_vision_facts_json AS source_image_vision_facts_json,
+               source.image_vision_status_json AS source_image_vision_status_json
         FROM vk_chat_events AS events
         LEFT JOIN vk_chat_source_messages AS source
           ON source.peer_id = events.peer_id
@@ -6754,6 +7007,8 @@ export function getAllUpcomingEventRecordsForDedupe({
         sourceType: 'vk_chat',
         ...readEventV18867MetadataForType('vk_chat', row.id),
         sourceName: String(row.conversation_name ?? `Беседа ${row.peer_id}`),
+        sourceOriginalUrl: String(row.original_source_url ?? row.source_url ?? ''),
+        canonicalPostUrl: String(row.original_source_url ?? row.source_url ?? ''),
         peerId: Number(row.peer_id ?? 0),
         conversationMessageId: Number(row.conversation_message_id ?? 0),
         eventIndex: Number(row.event_index ?? 0),
@@ -6765,6 +7020,18 @@ export function getAllUpcomingEventRecordsForDedupe({
         price: String(row.price ?? ''),
         description: String(row.description ?? ''),
         sourceUrl: String(row.source_url ?? ''),
+        sourceOriginalUrl: String(row.original_source_url ?? row.source_url ?? ''),
+        canonicalPostUrl: String(row.original_source_url ?? row.source_url ?? ''),
+        sourceText: String(row.original_source_text ?? ''),
+        rawSource: String(row.original_source_text ?? ''),
+        imageUrls: parseImages(row.source_image_urls_json),
+        sourceImagePaths: parseImages(row.source_image_paths_json),
+        imageVisionFacts: parseStoredPosterFacts(row.source_image_vision_facts_json),
+        imageVisionStatuses: parseStoredPosterFacts(row.source_image_vision_status_json),
+        isMultiAnnouncement: Boolean(Number(row.is_multi_announcement ?? 0)),
+        sourceItemId: `vk_chat:${Number(row.peer_id ?? 0)}:${Number(row.conversation_message_id ?? 0)}`,
+        sourceRole: Number(row.is_multi_announcement ?? 0) ? 'multi' : 'mono',
+        sourceProcessed: true,
         imagePaths: parseImages(row.image_paths_json),
         parseMethod: String(row.parse_method ?? ''),
         status: String(row.status ?? ''),
@@ -6772,7 +7039,7 @@ export function getAllUpcomingEventRecordsForDedupe({
 
     const manual = database.prepare(`
         SELECT id, title, event_date, event_time, venue, participants, price,
-               description, evidence, source_url, image_paths_json, status, owner_manual
+               description, evidence, source_url, source_text, image_paths_json, status, owner_manual, is_multi_announcement
         FROM manual_events
         WHERE status IN ('approved', 'pending')
           AND event_date >= ?
@@ -6791,7 +7058,10 @@ export function getAllUpcomingEventRecordsForDedupe({
         price: String(row.price ?? ''),
         description: String(row.description ?? ''),
         evidence: String(row.evidence ?? ''),
+        sourceText: String(row.source_text ?? row.evidence ?? row.description ?? ''),
+        rawSource: String(row.source_text ?? row.evidence ?? row.description ?? ''),
         sourceUrl: String(row.source_url ?? ''),
+        isMultiAnnouncement: Number(row.is_multi_announcement ?? 0) !== 0,
         imagePaths: parseImages(row.image_paths_json),
         parseMethod: 'manual_owner_strict',
         ownerManual: Boolean(row.owner_manual),
@@ -6837,10 +7107,34 @@ export function markStartupMediaRepairV18883Complete() {
 function parseStoredPosterFacts(value) {
     try {
         const parsed = JSON.parse(value ?? '[]');
-        return Array.isArray(parsed) ? parsed : [];
+        return normalizeVisionFacts(parsed);
     } catch {
         return [];
     }
+}
+
+// Vision facts are persisted evidence. Never let an accidental implicit
+// object-to-string conversion turn a fact into the unusable literal
+// "[object Object]". JSON-looking strings are recovered; opaque strings are
+// discarded and remain retryable via the source row.
+function normalizeVisionFacts(value) {
+    if (!Array.isArray(value)) return [];
+    const result = [];
+    for (const item of value) {
+        if (item && typeof item === 'object' && !Array.isArray(item)) {
+            result.push(item);
+            continue;
+        }
+        const text = String(item ?? '').trim();
+        if (!text || text === '[object Object]') continue;
+        if ((text.startsWith('{') && text.endsWith('}')) || (text.startsWith('[') && text.endsWith(']'))) {
+            try {
+                const parsed = JSON.parse(text);
+                if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) result.push(parsed);
+            } catch { /* keep malformed evidence retryable */ }
+        }
+    }
+    return result;
 }
 
 /**
@@ -6869,6 +7163,7 @@ export function getStartupPosterRepairGroupsV18877({
         participants: String(row.participants ?? ''),
         description: String(row.description ?? ''),
         sourceUrl: String(row.source_url ?? ''),
+        isMultiAnnouncement: Boolean(Number(row.is_multi_announcement ?? 0)),
         imagePaths: parseStoredImagePaths(row.event_image_paths_json),
         posterMatchStatus: String(row.poster_match_status ?? ''),
         posterMatchReason: String(row.poster_match_reason ?? ''),
@@ -6878,7 +7173,7 @@ export function getStartupPosterRepairGroupsV18877({
     });
 
     const vkRows = database.prepare(`
-        SELECT e.id, e.screen_name, e.post_id, e.event_index, e.title, e.event_date,
+        SELECT e.id, e.screen_name, e.post_id, e.event_index, e.title, e.event_date, e.is_multi_announcement,
                e.event_time, e.venue, e.participants, e.description, e.source_url,
                e.image_paths_json AS event_image_paths_json, e.parse_method,
                e.poster_match_status, e.poster_match_reason, e.poster_image_index,
@@ -6918,7 +7213,7 @@ export function getStartupPosterRepairGroupsV18877({
     groups.push(...vkByKey.values());
 
     const tgRows = database.prepare(`
-        SELECT e.id, e.channel, e.message_id, e.event_index, e.title, e.event_date,
+        SELECT e.id, e.channel, e.message_id, e.event_index, e.title, e.event_date, e.is_multi_announcement,
                e.event_time, e.venue, e.participants, e.description, e.source_url,
                e.image_paths_json AS event_image_paths_json, e.parse_method,
                e.poster_match_status, e.poster_match_reason, e.poster_image_index,
@@ -6954,7 +7249,7 @@ export function getStartupPosterRepairGroupsV18877({
     groups.push(...tgByKey.values());
 
     const chatRows = database.prepare(`
-        SELECT e.id, e.peer_id, e.conversation_message_id, e.event_index, e.title,
+        SELECT e.id, e.peer_id, e.conversation_message_id, e.event_index, e.title, e.is_multi_announcement,
                e.event_date, e.event_time, e.venue, e.participants, e.description,
                e.source_url, e.image_paths_json AS event_image_paths_json, e.parse_method,
                e.poster_match_status, e.poster_match_reason, e.poster_image_index,
@@ -7001,12 +7296,12 @@ export function getStartupPosterRepairGroupsV18877({
 // Owner-initiated full image audit also includes raw source records that have
 // no accepted event yet (e.g. an image-only announcement needing reparse).
 // Reuses the existing source tables; never turns image metadata into an Event.
-export function getAllStoredSourceImageAuditGroupsV188100() {
-    const groups = getStartupPosterRepairGroupsV18877({ fromDate: '0001-01-01', limitPerTable: 20_000 });
+export function getAllStoredSourceImageAuditGroupsV188100({ fromDate = '0001-01-01', includeOrphans = true } = {}) {
+    const groups = getStartupPosterRepairGroupsV18877({ fromDate, limitPerTable: 20_000 });
     const existing = new Set(groups.map((group) => `${group.sourceType}:${group.sourceKey}`));
     const add = (type, sourceKey, row, extra = {}, options = {}) => {
         const key = `${type}:${sourceKey}`;
-        if (existing.has(key)) return;
+        if (existing.has(key) || !includeOrphans) return;
         const urls = safeStoredJsonArray(row.image_urls_json).map(String).filter(Boolean);
         const storedPaths = parseStoredImagePaths(row.image_paths_json);
         const paths = options.recoverDirectory
@@ -7409,6 +7704,7 @@ export function updateStoredEventRecordFromReparse({
     event,
     // Only the explicit future-refresh command uses this guard.
     onlyIfMissingPoster = false,
+    forceReplace = false,
     updatedAt = Math.floor(Date.now() / 1000),
 }) {
     const safeType = String(sourceType ?? '').trim();
@@ -7426,6 +7722,23 @@ export function updateStoredEventRecordFromReparse({
     if (!table) return 0;
     const previous = database.prepare(`SELECT * FROM ${table} WHERE id = ? LIMIT 1`).get(eventId);
     if (!previous) return 0;
+    if (forceReplace) {
+        const title = String(event?.title ?? '').trim();
+        const eventDate = String(event?.eventDate ?? '').trim();
+        if (!title || !eventDate) return 0;
+        const imagePaths = Array.isArray(event?.imagePaths) ? event.imagePaths.map((value) => String(value ?? '').trim()).filter(Boolean) : [];
+        const values = [title, eventDate, String(event?.eventTime ?? '').trim() || null,
+            String(event?.venue ?? '').trim(), String(event?.participants ?? '').trim(),
+            String(event?.price ?? '').trim(), String(event?.description ?? '').trim(),
+            String(event?.evidence ?? '').trim(), String(event?.sourceUrl ?? previous?.source_url ?? '').trim(),
+            JSON.stringify(imagePaths)];
+        const parseMethod = String(event?.parseMethod ?? 'source_link_reparse_force_no_poster').trim();
+        const result = safeType === 'manual'
+            ? database.prepare(`UPDATE manual_events SET title=?,event_date=?,event_time=?,venue=?,participants=?,price=?,description=?,evidence=?,source_url=?,image_paths_json=?,status='approved',updated_at=? WHERE id=?`).run(...values, Number(updatedAt), eventId)
+            : database.prepare(`UPDATE ${table} SET title=?,event_date=?,event_time=?,venue=?,participants=?,price=?,description=?,evidence=?,source_url=?,image_paths_json=?,parse_method=?,poster_image_index=?,poster_match_status=?,poster_match_reason=?,poster_vision_facts_json=?,poster_review_candidates_json=?,status='approved',updated_at=? WHERE id=?`).run(...values, parseMethod, Number(event?.posterImageIndex || (imagePaths.length ? 1 : 0)), String(event?.posterMatchStatus || (imagePaths.length ? 'exact_poster_match' : 'no_safe_poster')), String(event?.posterMatchReason || 'force-reparse-no-poster'), JSON.stringify(Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : []), JSON.stringify(Array.isArray(event?.posterReviewCandidates) ? event.posterReviewCandidates : []), Number(updatedAt), eventId);
+        writeEventV18867Metadata(table, eventId, event, { venue: String(event?.venue ?? '').trim() });
+        return Number(result.changes ?? 0);
+    }
     if (onlyIfMissingPoster) {
         let currentPaths = [];
         let currentFacts = [];
@@ -7434,8 +7747,7 @@ export function updateStoredEventRecordFromReparse({
             if (Array.isArray(paths)) currentPaths = paths;
         } catch {}
         try {
-            const facts = JSON.parse(previous.poster_vision_facts_json || '[]');
-            if (Array.isArray(facts)) currentFacts = facts;
+            currentFacts = parseStoredPosterFacts(previous.poster_vision_facts_json);
         } catch {}
         const selectedIndex = Number(previous.poster_image_index || 0);
         const selectedPath = currentPaths.find((path) =>
@@ -7498,15 +7810,15 @@ export function updateStoredEventRecordFromReparse({
         const parsed = JSON.parse(previous?.image_paths_json ?? '[]');
         oldImagePaths = Array.isArray(parsed) ? parsed : [];
     } catch {}
-    const incomingImagePaths = Array.isArray(event?.imagePaths)
-        ? event.imagePaths.map((value) => String(value ?? '').trim()).filter(Boolean)
-        : [];
+    const incomingImagePaths = [
+        ...(Array.isArray(event?.imagePaths) ? event.imagePaths : []),
+        ...(Array.isArray(event?._sourceImagePaths) ? event._sourceImagePaths : []),
+    ].map((value) => String(value ?? '').trim()).filter(Boolean);
     let incomingFacts = Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : [];
     let storedFacts = [];
     try {
-        const parsed = JSON.parse(previous?.poster_vision_facts_json ?? '[]');
-        storedFacts = Array.isArray(parsed) ? parsed : [];
-    } catch {}
+        storedFacts = parseStoredPosterFacts(previous?.poster_vision_facts_json);
+    } catch { storedFacts = []; }
     let storedTags = [];
     let storedReviewCandidates = [];
     try { storedTags = JSON.parse(previous?.event_tags_json ?? '[]'); } catch { storedTags = []; }
@@ -7526,17 +7838,37 @@ export function updateStoredEventRecordFromReparse({
     const incomingAudit = eventPosterBindingAudit(comparisonEvent, incomingFacts, incomingIndex);
     const storedAudit = storedRowPosterBindingAudit(comparisonEvent, previous, storedFacts);
     const incomingSafe = storedPosterStatusIsSafe(event?.posterMatchStatus, incomingFacts) && incomingAudit.accepted;
-    const storedSafe = storedPosterStatusIsSafe(previous?.poster_match_status, storedFacts) && storedAudit.accepted;
+    const storedStatusTrusted = [
+        'exact_poster_match', 'verified_multi_event_poster',
+        'verified_title_date_poster', 'legacy_manual_poster',
+    ].includes(String(previous?.poster_match_status || '').trim());
+    // A reparse with no fresh media/facts cannot invalidate an already bound
+    // source image. Keep its prior status and metadata while the source remains
+    // available for a later Vision retry.
+    const storedSafe = (storedPosterStatusIsSafe(previous?.poster_match_status, storedFacts) && storedAudit.accepted) ||
+        (oldImagePaths.length > 0 && storedStatusTrusted && !incomingImagePaths.length && !incomingFacts.length);
     const storedMetadataPending = oldImagePaths.length > 0 && !posterPathIsGeneratedV18892(oldImagePaths[0]) && !posterFactForIndex(storedFacts, storedIndex);
     const resolvedPosterPath = incomingSafe ? resolveSafeReparsePosterPath(table, previous, event) : '';
     // Hard durability rule: compatible stored poster > unknown stored poster >
     // compatible fresh poster > no poster. An incompatible Vision-positive image
     // can never replace a known-good image.
-    const imagePaths = (storedSafe || storedMetadataPending) && oldImagePaths.length
-        ? oldImagePaths.slice(0, 1)
+    const reparseIsMulti = Number(event?.isMultiAnnouncement ?? event?.is_multi_announcement ?? previous?.is_multi_announcement ?? 0) ? 1 : 0;
+    const incomingMonoSourcePaths = !reparseIsMulti
+        ? incomingImagePaths.filter((path) => !posterPathIsGeneratedV18892(path))
+        : [];
+    // A mono announcement owns its source media even when Vision has not
+    // produced facts or explicitly classified the image as non-poster. Keep
+    // every real source path so a later Vision retry can enrich the same card.
+    const preservedMonoSourcePaths = !reparseIsMulti
+        ? [...new Set([...oldImagePaths, ...incomingMonoSourcePaths].filter((path) => !posterPathIsGeneratedV18892(path)))]
+        : [];
+    const imagePaths = !reparseIsMulti && preservedMonoSourcePaths.length
+        ? preservedMonoSourcePaths
+        : (storedSafe || storedMetadataPending) && oldImagePaths.length
+            ? oldImagePaths.slice(0, 1)
         : incomingSafe
             ? ([resolvedPosterPath || incomingImagePaths[0]].filter(Boolean).slice(0, 1))
-            : [];
+            : incomingMonoSourcePaths;
     const merged = {
         ...event,
         title: pick(event?.title, previous?.title),
@@ -7626,6 +7958,7 @@ export function updateStoredEventSemanticFieldsByOwner({
     id,
     event,
     sourceText = '',
+    invalidatePosterOnIdentityChange = true,
     updatedAt = Math.floor(Date.now() / 1000),
 }) {
     const safeType = String(sourceType ?? '').trim();
@@ -7709,7 +8042,7 @@ export function updateStoredEventSemanticFieldsByOwner({
     );
     let posterMatchStatus = String(previousMeta.posterMatchStatus || '');
     let posterMatchReason = String(previousMeta.posterMatchReason || '');
-    if (identityChanged && storedPosterStatusIsSafe(posterMatchStatus, previousMeta.posterVisionFacts)) {
+    if (invalidatePosterOnIdentityChange && identityChanged && storedPosterStatusIsSafe(posterMatchStatus, previousMeta.posterVisionFacts)) {
         const posterAudit = eventPosterBindingAudit({
             title,
             eventDate,
@@ -7745,9 +8078,14 @@ export function updateStoredEventSemanticFieldsByOwner({
 export function replaceEventDedupeRegistry(groups, {
     scope = 'configured',
     now = Math.floor(Date.now() / 1000),
+    purgeDuplicateRows = false,
+    algorithmVersion = '',
 } = {}) {
     const safeScope = String(scope ?? 'configured').trim().slice(0, 64) || 'configured';
     const safeGroups = Array.isArray(groups) ? groups : [];
+    if (purgeDuplicateRows && safeScope !== 'configured') {
+        throw new Error('Duplicate event rows may only be purged from the configured scope');
+    }
     const deleteMembers = database.prepare(`
         DELETE FROM event_dedupe_members WHERE scope = ?
     `);
@@ -7764,8 +8102,25 @@ export function replaceEventDedupeRegistry(groups, {
             scope, source_type, event_id, group_key, role, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?)
     `);
+    const eventTables = { manual: 'manual_events', telegram: 'telegram_events', vk: 'vk_events', vk_chat: 'vk_chat_events' };
+    const archiveDuplicate = database.prepare(`
+        INSERT INTO event_dedupe_archive (
+            source_type, event_id, canonical_source_type, canonical_event_id,
+            group_key, algorithm_version, event_row_json, archived_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(source_type, event_id) DO UPDATE SET
+            canonical_source_type = excluded.canonical_source_type,
+            canonical_event_id = excluded.canonical_event_id,
+            group_key = excluded.group_key,
+            algorithm_version = excluded.algorithm_version,
+            event_row_json = excluded.event_row_json,
+            archived_at = excluded.archived_at
+    `);
 
     let memberCount = 0;
+    let groupCount = 0;
+    let purgedDuplicateRows = 0;
+    const purged = [];
     database.exec('BEGIN IMMEDIATE');
     try {
         deleteMembers.run(safeScope);
@@ -7778,21 +8133,30 @@ export function replaceEventDedupeRegistry(groups, {
                 : {};
             const members = Array.isArray(group?.members) ? group.members : [];
             if (!groupKey || members.length < 2) continue;
+            const keepKey = String(group?.keepKey ?? '').trim();
+            const registryMembers = purgeDuplicateRows
+                ? members.filter((member) => `${String(member?.ref?.sourceType ?? '').trim()}:${Number(member?.ref?.id ?? 0)}` === keepKey)
+                : members;
+            if (!registryMembers.length) continue;
 
             insertGroup.run(
                 safeScope,
                 groupKey,
                 JSON.stringify(canonical),
-                members.length,
+                registryMembers.length,
                 Number(now),
             );
+            groupCount += 1;
 
-            const keepKey = String(group?.keepKey ?? '').trim();
-            for (const member of members) {
+            const keep = group?.keep && typeof group.keep === 'object' ? group.keep : {};
+            const canonicalSourceType = String(keep.sourceType ?? '').trim();
+            const canonicalEventId = Number(keep.id ?? 0);
+            for (const member of registryMembers) {
                 const sourceType = String(member?.ref?.sourceType ?? '').trim();
                 const eventId = Number(member?.ref?.id ?? 0);
                 const refKey = `${sourceType}:${eventId}`;
                 if (!sourceType || !Number.isInteger(eventId) || eventId <= 0) continue;
+                if (purgeDuplicateRows && refKey !== keepKey) continue;
                 insertMember.run(
                     safeScope,
                     sourceType,
@@ -7802,6 +8166,81 @@ export function replaceEventDedupeRegistry(groups, {
                     Number(now),
                 );
                 memberCount += 1;
+            }
+
+            if (purgeDuplicateRows && safeScope === 'configured') {
+                const canonicalTable = eventTables[canonicalSourceType];
+                if (!canonicalTable || !Number.isSafeInteger(canonicalEventId) || canonicalEventId <= 0) {
+                    throw new Error(`Invalid canonical event reference for dedupe group ${groupKey}`);
+                }
+                const canonicalRow = database.prepare(`SELECT * FROM ${canonicalTable} WHERE id = ? LIMIT 1`).get(canonicalEventId);
+                if (!canonicalRow) throw new Error(`Canonical event ${canonicalSourceType}:${canonicalEventId} is missing`);
+                const field = (value) => String(value ?? '').trim();
+                const imagePathsJson = JSON.stringify(safeJsonArray(canonical.imagePaths));
+                database.prepare(`
+                    UPDATE ${canonicalTable}
+                    SET title = CASE WHEN ? <> '' THEN ? ELSE title END,
+                        event_date = CASE WHEN ? <> '' THEN ? ELSE event_date END,
+                        event_time = CASE WHEN ? <> '' THEN ? ELSE event_time END,
+                        venue = CASE WHEN ? <> '' THEN ? ELSE venue END,
+                        participants = CASE WHEN ? <> '' THEN ? ELSE participants END,
+                        price = CASE WHEN ? <> '' THEN ? ELSE price END,
+                        description = CASE WHEN ? <> '' THEN ? ELSE description END,
+                        evidence = CASE WHEN ? <> '' THEN ? ELSE evidence END,
+                        source_url = CASE WHEN ? <> '' THEN ? ELSE source_url END,
+                        image_paths_json = CASE WHEN ? <> '[]' THEN ? ELSE image_paths_json END,
+                        updated_at = ?
+                    WHERE id = ?
+                `).run(
+                    field(canonical.title), field(canonical.title), field(canonical.eventDate), field(canonical.eventDate),
+                    field(canonical.eventTime), field(canonical.eventTime), field(canonical.venue), field(canonical.venue),
+                    field(canonical.participants), field(canonical.participants), field(canonical.price), field(canonical.price),
+                    field(canonical.description), field(canonical.description), field(canonical.evidence), field(canonical.evidence),
+                    field(canonical.sourceUrl), field(canonical.sourceUrl), imagePathsJson, imagePathsJson,
+                    Number(now), canonicalEventId,
+                );
+                writeEventV18867Metadata(canonicalTable, canonicalEventId, canonical);
+                for (const duplicateRef of Array.isArray(group?.ignore) ? group.ignore : []) {
+                    const sourceType = String(duplicateRef?.sourceType ?? '').trim();
+                    const eventId = Number(duplicateRef?.id ?? 0);
+                    const table = eventTables[sourceType];
+                    if (!table || !Number.isSafeInteger(eventId) || eventId <= 0 ||
+                        (sourceType === canonicalSourceType && eventId === canonicalEventId)) continue;
+                    const row = database.prepare(`SELECT * FROM ${table} WHERE id = ? LIMIT 1`).get(eventId);
+                    if (!row) continue;
+                    const allPartyMetadata = database.prepare(`
+                        SELECT * FROM all_party_metadata WHERE source_type = ? AND event_id = ? LIMIT 1
+                    `).get(sourceType, eventId) || null;
+                    let sourceRow = null;
+                    if (sourceType === 'vk') {
+                        sourceRow = database.prepare('SELECT * FROM vk_source_posts WHERE screen_name = ? AND post_id = ? LIMIT 1')
+                            .get(String(row.screen_name || ''), Number(row.post_id || 0)) || null;
+                    } else if (sourceType === 'vk_chat') {
+                        sourceRow = database.prepare('SELECT * FROM vk_chat_source_messages WHERE peer_id = ? AND conversation_message_id = ? LIMIT 1')
+                            .get(Number(row.peer_id || 0), Number(row.conversation_message_id || 0)) || null;
+                    } else if (sourceType === 'telegram') {
+                        sourceRow = database.prepare('SELECT * FROM telegram_source_posts WHERE channel = ? AND message_id = ? LIMIT 1')
+                            .get(String(row.channel || ''), Number(row.message_id || 0)) || null;
+                    }
+                    archiveDuplicate.run(sourceType, eventId, canonicalSourceType, canonicalEventId, groupKey,
+                        String(algorithmVersion ?? '').trim(), JSON.stringify({ eventRow: row, allPartyMetadata, sourceRow }), Number(now));
+                    if (!database.prepare('SELECT 1 FROM event_dedupe_archive WHERE source_type = ? AND event_id = ?')
+                        .get(sourceType, eventId)) {
+                        throw new Error(`Failed to archive duplicate event ${sourceType}:${eventId}`);
+                    }
+                    database.prepare(`
+                        UPDATE event_dedupe_archive
+                        SET canonical_source_type = ?, canonical_event_id = ?, group_key = ?
+                        WHERE source_type = ? AND event_id = ?
+                    `).run(canonicalSourceType, canonicalEventId, groupKey, sourceType, eventId);
+                    database.prepare('DELETE FROM all_party_metadata WHERE source_type = ? AND event_id = ?')
+                        .run(sourceType, eventId);
+                    const removed = database.prepare(`DELETE FROM ${table} WHERE id = ?`).run(eventId);
+                    if (Number(removed.changes || 0)) {
+                        purgedDuplicateRows += 1;
+                        purged.push({ sourceType, id: eventId, canonicalSourceType, canonicalId: canonicalEventId });
+                    }
+                }
             }
         }
 
@@ -7818,9 +8257,11 @@ export function replaceEventDedupeRegistry(groups, {
 
     return {
         scope: safeScope,
-        groups: safeGroups.length,
+        groups: groupCount,
         members: memberCount,
-        duplicateMembers: Math.max(0, memberCount - safeGroups.length),
+        duplicateMembers: purgeDuplicateRows ? 0 : Math.max(0, memberCount - groupCount),
+        purgedDuplicateRows,
+        purged,
     };
 }
 
@@ -7841,6 +8282,22 @@ export function getEventDedupeRegistryStats(scope = 'configured') {
         members: Number(memberRow?.count ?? 0),
         duplicateMembers: Number(memberRow?.duplicates ?? 0),
     };
+}
+
+// Public reads need the same duplicate suppression as the scraper-specific
+// queries.  Keep this as a small identity set so callers that intentionally
+// read raw rows (audits/rebuilds) can still do so without accidentally
+// publishing duplicate members.
+export function getEventDedupeDuplicateRefs(scope = 'configured') {
+    const safeScope = String(scope ?? 'configured').trim().slice(0, 64) || 'configured';
+    return database.prepare(`
+        SELECT source_type, event_id
+        FROM event_dedupe_members
+        WHERE scope = ? AND role = 'duplicate'
+    `).all(safeScope).map((row) => ({
+        sourceType: String(row?.source_type ?? '').trim(),
+        id: Number(row?.event_id ?? 0),
+    })).filter((row) => row.sourceType && Number.isInteger(row.id) && row.id > 0);
 }
 
 export function auditInvalidEventRecords({
@@ -8619,6 +9076,7 @@ database.exec(`
         status TEXT NOT NULL DEFAULT 'pending'
             CHECK (status IN ('approved', 'pending', 'ignored')),
         updated_at INTEGER NOT NULL,
+        is_multi_announcement INTEGER NOT NULL DEFAULT 0,
         UNIQUE (screen_name, post_id, event_index),
         FOREIGN KEY (screen_name, post_id)
             REFERENCES vk_source_posts(screen_name, post_id)
@@ -8657,6 +9115,10 @@ ensureTableColumn(
     'image_media_json',
     "TEXT NOT NULL DEFAULT '[]'",
 );
+// Prepared source metadata queries are created before the later compatibility
+// migration block, so these columns must exist before those statements compile.
+ensureTableColumn('vk_source_posts', 'image_vision_facts_json', "TEXT NOT NULL DEFAULT '[]'");
+ensureTableColumn('vk_source_posts', 'image_vision_status_json', "TEXT NOT NULL DEFAULT '[]'");
 
 /*
  * Одноразовая миграция v8: старые версии могли сохранить публикации как
@@ -8822,6 +9284,8 @@ const selectVkPostMetaStatement = database.prepare(`
         image_urls_json,
         image_paths_json,
         image_media_json,
+        image_vision_facts_json,
+        image_vision_status_json,
         (
             SELECT COUNT(*)
             FROM vk_events
@@ -8987,7 +9451,8 @@ const selectVkUpcomingEventsStatement = database.prepare(`
         e.parse_method,
         e.status,
         p.published_at,
-        p.raw_text
+        p.raw_text,
+        p.image_vision_facts_json
     FROM vk_events AS e
     INNER JOIN vk_source_posts AS p
         ON p.screen_name = e.screen_name
@@ -9028,6 +9493,8 @@ export function getVkPostMeta({ screenName, postId }) {
         imageUrlsJson: String(row.image_urls_json ?? '[]'),
         imagePathsJson: String(row.image_paths_json ?? '[]'),
         imageMediaJson: String(row.image_media_json ?? '[]'),
+        imageVisionFactsJson: String(row.image_vision_facts_json ?? '[]'),
+        imageVisionStatusJson: String(row.image_vision_status_json ?? '[]'),
         eventCount: Number(row.event_count ?? 0),
         eventsWithoutImages: Number(row.events_without_images ?? 0),
     };
@@ -9086,6 +9553,7 @@ export function upsertVkSourcePost({
     parseStatus,
     fetchedAt,
 }) {
+    const normalizedFacts = normalizeVisionFacts(imageVisionFacts);
     upsertVkSourcePostStatement.run(
         String(screenName ?? '').trim(),
         Number(ownerId ?? 0),
@@ -9097,7 +9565,7 @@ export function upsertVkSourcePost({
         JSON.stringify(safeJsonArray(imagePaths)),
         String(contentHash ?? '').trim(),
         String(textFingerprint ?? '').trim(),
-        JSON.stringify(Array.isArray(imageFingerprints) ? imageFingerprints.slice(0, 16) : []),
+        JSON.stringify(Array.isArray(imageFingerprints) ? imageFingerprints.slice(0, 1000) : []),
         String(parseStatus ?? 'pending').trim(),
         Number(fetchedAt),
     );
@@ -9105,9 +9573,9 @@ export function upsertVkSourcePost({
         UPDATE vk_source_posts SET image_vision_facts_json = ?, image_vision_status_json = ?, image_media_json = ?
         WHERE screen_name = ? AND post_id = ?
     `).run(
-        JSON.stringify(Array.isArray(imageVisionFacts) ? imageVisionFacts : []),
-        JSON.stringify(Array.isArray(imageVisionStatuses) && imageVisionStatuses.length ? imageVisionStatuses : deriveImageVisionStatuses(imageVisionFacts, imageUrls)),
-        JSON.stringify(Array.isArray(imageMedia) ? imageMedia.slice(0, 24) : []),
+        JSON.stringify(normalizedFacts),
+        JSON.stringify(Array.isArray(imageVisionStatuses) && imageVisionStatuses.length ? imageVisionStatuses : deriveImageVisionStatuses(normalizedFacts, imageUrls)),
+        JSON.stringify(Array.isArray(imageMedia) ? imageMedia.slice(0, 1000) : []),
         String(screenName ?? '').trim(),
         Number(postId),
     );
@@ -9118,6 +9586,33 @@ function sourceMediaIndexFromPathV18886(value) {
     const match = clean.match(/-(\d+)(?:-[a-f0-9]{8,64})?\.(?:png|jpe?g|webp|gif)$/iu);
     const parsed = Number(match?.[1] || 0);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : 0;
+}
+
+// Keep Vision evidence path-bound to the source gallery.  A reparse can merge
+// facts from an older capture with a freshly downloaded gallery whose order
+// changed; trusting the old imagePath then binds poster index 1 to image 2
+// (typically a square logo/thumbnail).  The source gallery is authoritative
+// for the index, while Vision remains authoritative for the metadata.
+function alignPosterFactPathsToSourceV18899(facts, sourcePaths) {
+    const list = Array.isArray(facts) ? facts : [];
+    const paths = safeJsonArray(sourcePaths).map((value) => String(value ?? '').trim().replace(/\\+/gu, '/')).filter(Boolean);
+    if (!paths.length) return list;
+    const pathForIndex = (index) => paths.find((path) => sourceMediaIndexFromPathV18886(path) === Number(index || 0)) || '';
+    return list.map((fact) => {
+        const index = Number(fact?.index || 0);
+        if (!Number.isInteger(index) || index <= 0) return fact;
+        const sourcePath = pathForIndex(index);
+        if (!sourcePath) return fact;
+        const factPath = String(fact?.imagePath || '').trim().replace(/\\+/gu, '/');
+        // A missing path is intentionally left missing: adding one here would
+        // turn metadata-only historical evidence into a falsely durable
+        // binding. Repair only an explicit stale path whose numeric index is
+        // contradicted by the current source gallery.
+        if (!factPath) return fact;
+        const factIndex = sourceMediaIndexFromPathV18886(factPath);
+        if (factPath === sourcePath && factIndex === index) return fact;
+        return { ...fact, imagePath: sourcePath, imageFilename: basename(sourcePath) };
+    });
 }
 
 function enrichPosterFactsWithStoredMediaV18886(facts, relativePath, sourceIndex) {
@@ -9156,6 +9651,17 @@ function eventPosterBindingAudit(event, facts, imageIndex) {
     const index = Number(imageIndex || 0);
     const fact = posterFactForIndex(facts, index);
     const fallbackReason = String(event?.posterMatchReason || '').trim().toLowerCase();
+    if (fallbackReason === 'multi-event-shared-source-image' && index > 0) {
+        const paths = safeJsonArray(event?.imagePaths).map((value) => String(value ?? '').trim().replace(/\\+/gu, '/')).filter(Boolean);
+        const factPath = String(fact?.imagePath || '').trim().replace(/\\+/gu, '/');
+        const generated = /(?:^|\/)event_message_cards\/|(?:^|\/)event_generated_fallbacks\/|-event-\d+\.png$/iu.test(factPath);
+        if (Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement) && paths.length === 1 &&
+            fact?.fallbackBinding === 'multi-event-shared-source-image' && fact?.sourceMediaBinding === true &&
+            Number(fact?.sourceEventCount || 0) > 1 && Number(fact?.sourceImageCount || 0) === 1 &&
+            factPath && paths[0] === factPath && !generated) {
+            return { index, fact, accepted: true, score: 0, reason: 'multi-event-shared-source-image', dateMatched: false };
+        }
+    }
     if (fallbackReason === 'single-event-single-source-image-fallback' && index === 1) {
         const paths = safeJsonArray(event?.imagePaths).map((value) => String(value ?? '').trim()).filter(Boolean);
         const factPath = String(fact?.imagePath || '').trim().replace(/\\+/gu, '/');
@@ -9165,8 +9671,38 @@ function eventPosterBindingAudit(event, facts, imageIndex) {
             return { index, fact, accepted: true, score: 0, reason: 'single-event-single-source-image-fallback', dateMatched: false };
         }
     }
+    // A Vision fact is never valid for a different file than the selected
+    // poster.  Older reparses could keep imagePaths from the previous gallery
+    // while replacing facts from a new capture; the numeric index then made a
+    // logo/thumbnail look like the poster.  Require both the path and its
+    // source-gallery index to agree whenever the evidence carries a path.
+    const boundPath = String(fact?.imagePath || '').trim().replace(/\\+/gu, '/');
+    const eventPaths = safeJsonArray(event?.imagePaths)
+        .map((value) => String(value ?? '').trim().replace(/\\+/gu, '/'))
+        .filter(Boolean);
+    if (boundPath && eventPaths.length) {
+        if (!eventPaths.includes(boundPath)) {
+            return { index, fact, accepted: false, score: -1000, reason: 'fact-path-not-bound-to-selected-image', dateMatched: false };
+        }
+        const boundIndex = sourceMediaIndexFromPathV18886(boundPath);
+        if (boundIndex > 0 && index > 0 && boundIndex !== index) {
+            return { index, fact, accepted: false, score: -1000, reason: 'fact-index-path-mismatch', dateMatched: false };
+        }
+    }
     const match = fact ? evaluatePosterFactForEvent(event, fact) : { accepted: false, score: -1000, reason: 'missing-image-metadata' };
     return { index, fact, ...match };
+}
+
+function singletonSourceMediaPaths(event, paths, facts) {
+    if (Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement)) return [];
+    const binding = (Array.isArray(facts) ? facts : []).find((fact) =>
+        ['single-event-single-image', 'single-event-source-media'].includes(fact?.fallbackBinding) &&
+        fact?.sourceMediaBinding === true && Number(fact?.sourceEventCount || 0) === 1);
+    if (!binding) return [];
+    const factPath = String(binding.imagePath || '').trim().replace(/\\+/gu, '/');
+    const cleanPaths = (Array.isArray(paths) ? paths : []).map((path) => String(path || '').trim()).filter(Boolean);
+    return factPath && cleanPaths.includes(factPath) && Number(binding.sourceImageCount || 0) >= cleanPaths.length
+        ? cleanPaths : [];
 }
 
 function storedRowPosterBindingAudit(event, storedRow, storedFacts) {
@@ -9189,26 +9725,90 @@ function applyCurrentSourceSafePosterBindings(events, sourcePaths, sourceUrls = 
     if (!rows.length) return rows;
     const cleanSourcePaths = safeJsonArray(sourcePaths);
     const sourceFacts = Array.isArray(sourceVisionFacts) ? sourceVisionFacts : [];
+    const sharedMultiSourcePath = rows.length > 1 && cleanSourcePaths.length === 1 &&
+        Array.isArray(sourceUrls) && sourceUrls.length === 1 &&
+        !posterPathIsGeneratedV18892(cleanSourcePaths[0])
+        ? cleanSourcePaths[0].replace(/\\+/gu, '/')
+        : '';
+    const singletonSourceGallery = (event) => {
+        if (rows.length !== 1 || Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement)) return [];
+        return cleanSourcePaths.filter((path, index) => {
+            const url = String(sourceUrls[index] || '').trim();
+            if (/(?:[?&])ava=1(?:&|$)|(?:^|[/?&._-])(?:avatar|emoji|sticker|reaction|icon)(?:[/?&._=-]|$)/iu.test(url)) return false;
+            return !posterPathIsGeneratedV18892(path);
+        });
+    };
     const pathForIndex = (index) => cleanSourcePaths.find((path) => sourceMediaIndexFromPathV18886(path) === Number(index || 0)) || '';
 
     return rows.map((event) => {
-        const eventFacts = Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : [];
+        const eventFacts = alignPosterFactPathsToSourceV18899(
+            Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : [],
+            cleanSourcePaths,
+        );
         const byFactIndex = new Map();
         for (const fact of [...eventFacts, ...sourceFacts]) {
             const factIndex = Number(fact?.index || 0);
             if (!Number.isInteger(factIndex) || factIndex <= 0 || byFactIndex.has(factIndex)) continue;
             byFactIndex.set(factIndex, fact);
         }
-        const facts = [...byFactIndex.values()];
+        const facts = alignPosterFactPathsToSourceV18899([...byFactIndex.values()], cleanSourcePaths);
         const existingPaths = safeJsonArray(event?.imagePaths);
         const existingIndex = Number(event?.posterImageIndex || sourceMediaIndexFromPathV18886(existingPaths[0]) || 0);
+        if (sharedMultiSourcePath && Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement)) {
+            const sharedIndex = sourceMediaIndexFromPathV18886(sharedMultiSourcePath);
+            if (sharedIndex > 0) {
+                const prior = facts.find((fact) => Number(fact?.index || 0) === sharedIndex) || {};
+                const sourceVisionFact = sourceFacts.find((fact) => Number(fact?.index || 0) === sharedIndex) || {};
+                const factBase = prior?.imageType === 'source-image-fallback'
+                    ? { ...prior, ...sourceVisionFact }
+                    : { ...sourceVisionFact, ...prior };
+                const visionStatus = String(sourceVisionFact?.visionStatus || prior?.visionStatus || 'not_run');
+                const sharedFact = {
+                    ...factBase,
+                    index: sharedIndex,
+                    imagePath: sharedMultiSourcePath,
+                    imageFilename: String(factBase.imageFilename || sharedMultiSourcePath.split('/').pop() || ''),
+                    fallbackBinding: 'multi-event-shared-source-image',
+                    sourceMediaBinding: true,
+                    sourceEventCount: rows.length,
+                    sourceImageCount: 1,
+                    visionInspected: Boolean(sourceVisionFact.visionInspected || prior.visionInspected || visionStatus !== 'not_run'),
+                    visionStatus,
+                };
+                const sharedFacts = [...facts.filter((fact) => Number(fact?.index || 0) !== sharedIndex), sharedFact];
+                return {
+                    ...event,
+                    imagePaths: [sharedMultiSourcePath],
+                    posterImageIndex: sharedIndex,
+                    posterMatchStatus: 'shared_multi_event_source_image',
+                    posterMatchReason: 'multi-event-shared-source-image',
+                    posterVisionFacts: sharedFacts,
+                };
+            }
+        }
         const existingAudit = eventPosterBindingAudit(event, facts, existingIndex);
         const existingSafe = storedPosterStatusIsSafe(event?.posterMatchStatus, facts) && existingAudit.accepted;
+        const sourceGallery = singletonSourceGallery(event);
+        if (sourceGallery.length && (!existingPaths.length || sourceGallery.length > existingPaths.length)) {
+            return { ...event, imagePaths: sourceGallery, posterImageIndex: existingIndex,
+                posterMatchStatus: existingSafe ? String(event?.posterMatchStatus || 'no_safe_poster') : 'no_safe_poster',
+                posterMatchReason: existingSafe ? String(event?.posterMatchReason || 'single-event-source-gallery-preserved') : 'single-event-source-gallery-preserved',
+                posterVisionFacts: facts };
+        }
 
         // Hard invariant: once the currently persisted source image is metadata-
         // compatible with the event, automatic source refresh cannot replace it
         // with another gallery image. A later explicit owner repair can still
         // change it after a fresh Vision comparison.
+        const preservedSingletonPaths = rows.length === 1 && !Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement)
+            ? singletonSourceMediaPaths(event, existingPaths.length ? existingPaths : cleanSourcePaths, facts)
+            : [];
+        if (preservedSingletonPaths.length) {
+            return { ...event, imagePaths: preservedSingletonPaths, posterImageIndex: existingIndex,
+                posterMatchStatus: existingSafe ? String(event?.posterMatchStatus || 'no_safe_poster') : 'no_safe_poster',
+                posterMatchReason: existingSafe ? String(event?.posterMatchReason || 'single-event-source-media-preserved') : 'single-event-source-media-preserved',
+                posterVisionFacts: facts };
+        }
         if (existingSafe && existingPaths.length) {
             const existingPath = existingPaths.find((path) => sourceMediaIndexFromPathV18886(path) === existingIndex) || existingPaths[0];
             return {
@@ -9292,8 +9892,9 @@ export function replaceVkEventsForPost({
     sourceUrl,
     imagePaths,
     events,
-    updatedAt,
+    updatedAt = Math.floor(Date.now() / 1000),
     mergeStoredEvents = true,
+    preserveUnmatchedStoredEvents = false,
 }) {
     const safeScreenName = String(screenName ?? '').trim();
     const safePostId = Number(postId);
@@ -9301,10 +9902,24 @@ export function replaceVkEventsForPost({
     const storedRows = mergeStoredEvents ? database.prepare(`
         SELECT * FROM vk_events WHERE screen_name = ? AND post_id = ? ORDER BY event_index ASC, id ASC
     `).all(safeScreenName, safePostId) : [];
-    let safeEvents = incomingEvents.map((event, index) => mergeIncomingEventWithStoredRow(
-        event,
-        selectStoredEventForIncoming(storedRows, event, index),
-    ));
+    const matchedStoredIds = new Set();
+    let safeEvents = incomingEvents.map((event, index) => {
+        const stored = selectStoredEventForIncoming(storedRows, event, index, { allowIndexFallback: !preserveUnmatchedStoredEvents });
+        if (stored?.id != null) matchedStoredIds.add(Number(stored.id));
+        return mergeIncomingEventWithStoredRow(event, stored);
+    });
+    if (preserveUnmatchedStoredEvents) {
+        safeEvents = [
+            ...safeEvents,
+            ...storedRows
+                .filter((row) => !matchedStoredIds.has(Number(row.id)))
+                .map(storedRowToEvent),
+        ];
+    }
+    const sourceIsMulti = safeEvents.length > 1 || safeEvents.some((event) =>
+        Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement) ||
+        String(event?.structureDecision ?? event?.structure_decision ?? '') === 'multiple_events');
+    safeEvents = safeEvents.map((event) => ({ ...event, isMultiAnnouncement: sourceIsMulti ? 1 : 0 }));
     const sourceMeta = database.prepare(`
         SELECT image_urls_json, source_url, image_vision_facts_json, raw_text FROM vk_source_posts
         WHERE screen_name = ? AND post_id = ? LIMIT 1
@@ -9451,10 +10066,10 @@ export function getVkUpcomingEvents({
             String(fromDate ?? currentIsoDate()),
             scanLimit,
         )
-        .filter((row) => isEventDateConsistentWithSource({
-            eventDate: row.event_date,
+        .filter((row) => storedEventDateSupported({ ...readEventV18867MetadataForType('vk', row.id), eventDate: row.event_date, title: row.title, participants: row.participants, venue: row.venue }, {
             sourceText: row.raw_text,
             publishedAt: row.published_at,
+            imageVisionFacts: row.image_vision_facts_json,
         }))
         .slice(0, safeLimit)
         .map((row) => ({
@@ -9527,6 +10142,7 @@ database.exec(`
         status TEXT NOT NULL DEFAULT 'pending'
             CHECK (status IN ('approved', 'pending', 'ignored')),
         updated_at INTEGER NOT NULL,
+        is_multi_announcement INTEGER NOT NULL DEFAULT 0,
         UNIQUE (peer_id, conversation_message_id, event_index),
         FOREIGN KEY (peer_id, conversation_message_id)
             REFERENCES vk_chat_source_messages(peer_id, conversation_message_id)
@@ -9585,6 +10201,15 @@ database.exec(`
 
     CREATE INDEX IF NOT EXISTS event_permanent_blocks_date_idx
     ON event_permanent_blocks (event_date, active, id);
+
+    CREATE INDEX IF NOT EXISTS event_permanent_blocks_source_item_idx
+    ON event_permanent_blocks (source_item_id, active);
+
+    CREATE INDEX IF NOT EXISTS event_permanent_blocks_source_url_idx
+    ON event_permanent_blocks (source_url, active);
+
+    CREATE INDEX IF NOT EXISTS event_permanent_blocks_canonical_url_idx
+    ON event_permanent_blocks (canonical_post_url, active);
 `);
 
 /* V188.67: persistent event provenance and provable poster binding. */
@@ -9654,9 +10279,9 @@ function writeEventV18867Metadata(tableName, id, event = {}, defaults = {}) {
     const eventId = Number(id);
     if (!Number.isSafeInteger(eventId) || eventId <= 0) return;
     const facts = Array.isArray(event?.posterVisionFacts)
-        ? event.posterVisionFacts
+        ? normalizeVisionFacts(event.posterVisionFacts)
         : Array.isArray(defaults?.posterVisionFacts)
-            ? defaults.posterVisionFacts
+            ? normalizeVisionFacts(defaults.posterVisionFacts)
             : [];
     const structureDecision = String(event?.structureDecision ?? event?.structure_decision ?? defaults?.structureDecision ?? '').trim();
     const values = {
@@ -9863,7 +10488,7 @@ function posterVisionFactsExplicitlyConfirmPoster(value) {
     if (!Array.isArray(facts)) return false;
     return facts.some((fact) => {
         if (!fact || typeof fact !== 'object') return false;
-        if (fact.sourceMediaBinding === true && String(fact.imagePath || '').trim()) return true;
+        if (fact.poster === false) return false;
         if (fact.poster === true) return Number(fact.posterConfidence ?? 100) >= 55;
         const text = String(fact.text ?? '').toLowerCase().replace(/ё/gu, 'е');
         return /(?:это\s+)?афиша\s+события\s*:\s*да(?:\b|[.!;,])/iu.test(text) ||
@@ -9882,11 +10507,12 @@ function storedPosterStatusIsSafe(value, posterVisionFacts = []) {
         'exact_poster_match',
         'verified_multi_event_poster',
         'verified_title_date_poster',
+        'shared_multi_event_source_image',
         'legacy_manual_poster',
     ].includes(status);
 }
 
-function selectStoredEventForIncoming(rows, event, index) {
+function selectStoredEventForIncoming(rows, event, index, { allowIndexFallback = true } = {}) {
     const list = Array.isArray(rows) ? rows : [];
     const date = String(event?.eventDate ?? '').trim();
     const title = normalizedEventIdentityText(event?.title || event?.participants || '');
@@ -9901,12 +10527,58 @@ function selectStoredEventForIncoming(rows, event, index) {
         const sameDate = list.filter((row) => String(row?.event_date ?? '').trim() === date);
         if (sameDate.length === 1) return sameDate[0];
     }
-    return list.find((row) => Number(row?.event_index ?? -1) === Number(index)) || null;
+    return allowIndexFallback
+        ? list.find((row) => Number(row?.event_index ?? -1) === Number(index)) || null
+        : null;
+}
+
+// Rehydrate an unmatched stored row when a partial phase-two response is
+// merged.  Keeping this conversion here makes the three source tables use the
+// same non-destructive replacement contract.
+function storedRowToEvent(row) {
+    if (!row) return null;
+    let imagePaths = [];
+    let posterVisionFacts = [];
+    let eventTags = [];
+    let posterReviewCandidates = [];
+    let programItems = [];
+    try { imagePaths = JSON.parse(row.image_paths_json || '[]'); } catch {}
+    try { posterVisionFacts = parseStoredPosterFacts(row.poster_vision_facts_json); } catch {}
+    try { eventTags = JSON.parse(row.event_tags_json || '[]'); } catch {}
+    try { posterReviewCandidates = JSON.parse(row.poster_review_candidates_json || '[]'); } catch {}
+    try { programItems = JSON.parse(row.program_items_json || '[]'); } catch {}
+    return {
+        title: String(row.title || ''), eventDate: String(row.event_date || ''),
+        eventTime: row.event_time ? String(row.event_time) : null,
+        venue: String(row.venue || ''), participants: String(row.participants || ''),
+        price: String(row.price || ''), description: String(row.description || ''),
+        evidence: String(row.evidence || ''), sourceUrl: String(row.source_url || ''),
+        imagePaths: Array.isArray(imagePaths) ? imagePaths : [],
+        parseMethod: String(row.parse_method || ''), status: String(row.status || 'pending'),
+        posterVisionFacts, eventTags: Array.isArray(eventTags) ? eventTags : [],
+        posterReviewCandidates: Array.isArray(posterReviewCandidates) ? posterReviewCandidates : [],
+        programItems: Array.isArray(programItems) ? programItems : [],
+        isMultiAnnouncement: Boolean(Number(row.is_multi_announcement || 0)),
+        posterMatchStatus: String(row.poster_match_status || ''),
+        posterMatchReason: String(row.poster_match_reason || ''),
+        posterImageIndex: Number(row.poster_image_index || 0),
+        canonicalPostUrl: String(row.canonical_post_url || ''),
+        sourceSegment: String(row.source_segment_text || ''),
+        structureDecision: String(row.structure_decision || ''),
+        structureReason: String(row.structure_reason || ''),
+    };
 }
 
 function mergeIncomingEventWithStoredRow(event, storedRow) {
     if (!storedRow) return {
         ...event,
+        // Keep the event row's source text; compact summaries belong only to
+        // the numbered public listing and are generated on that read path.
+        description: (Number(event?.isMultiAnnouncement ?? event?.is_multi_announcement) === 1
+            ? String(event?.sourceSegment ?? event?.source_segment ?? '').trim()
+            : '')
+            || String(event?.description ?? '').trim()
+            || String(event?.announcement ?? '').trim(),
         venue: normalizedPersistedVenue(event?.venue),
     };
     const pick = (incoming, stored) => String(incoming ?? '').trim() || String(stored ?? '').trim();
@@ -9923,9 +10595,8 @@ function mergeIncomingEventWithStoredRow(event, storedRow) {
     const storedImages = parseStoredImagePaths(storedRow?.image_paths_json);
     let storedFacts = [];
     try {
-        const parsed = JSON.parse(storedRow?.poster_vision_facts_json ?? '[]');
-        storedFacts = Array.isArray(parsed) ? parsed : [];
-    } catch {}
+        storedFacts = parseStoredPosterFacts(storedRow?.poster_vision_facts_json);
+    } catch { storedFacts = []; }
     const incomingFacts = Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : [];
     let storedTags = [];
     let storedReviewCandidates = [];
@@ -9940,15 +10611,19 @@ function mergeIncomingEventWithStoredRow(event, storedRow) {
     const incomingSafe = storedPosterStatusIsSafe(event?.posterMatchStatus, incomingFacts) && incomingAudit.accepted;
     const storedSafe = storedPosterStatusIsSafe(storedRow?.poster_match_status, storedFacts) && storedAudit.accepted;
     const storedFact = posterFactForIndex(storedFacts, storedIndex);
-    const storedMetadataPending = storedImages.length > 0 && !posterPathIsGeneratedV18892(storedImages[0]) && !storedFact;
+    const storedMetadataPending = !incomingSafe && storedImages.length > 0 && !posterPathIsGeneratedV18892(storedImages[0]) && !storedFact;
     // A metadata-compatible stored poster is sticky. If metadata is missing,
     // preserve the existing bytes and queue them for explicit owner backfill;
     // automatic parse/merge is not allowed to replace an unknown old image.
+    const incomingIsMulti = Number(event?.isMultiAnnouncement ?? event?.is_multi_announcement ?? storedRow?.is_multi_announcement ?? 0) ? 1 : 0;
+    const incomingMonoSourcePaths = !incomingIsMulti
+        ? incomingImages.filter((path) => !posterPathIsGeneratedV18892(path))
+        : [];
     const imagePaths = (storedSafe || storedMetadataPending) && storedImages.length
         ? storedImages.slice(0, 1)
         : incomingSafe && incomingImages.length
             ? incomingImages.slice(0, 1)
-            : [];
+            : incomingMonoSourcePaths;
     return {
         ...event,
         title: pick(event?.title, storedRow?.title),
@@ -9957,7 +10632,9 @@ function mergeIncomingEventWithStoredRow(event, storedRow) {
         venue,
         participants: pick(event?.participants, storedRow?.participants),
         price: pick(event?.price, storedRow?.price),
-        description: pick(event?.description, storedRow?.description),
+        description: (incomingIsMulti ? String(event?.sourceSegment ?? event?.source_segment ?? '').trim() : '')
+            || pick(event?.description, storedRow?.description)
+            || pick(event?.announcement, storedRow?.announcement),
         evidence: pick(event?.evidence, storedRow?.evidence),
         announcement: pick(event?.announcement, storedRow?.announcement),
         sourceSegment: pick(event?.sourceSegment ?? event?.source_segment, storedRow?.source_segment_text),
@@ -9966,7 +10643,7 @@ function mergeIncomingEventWithStoredRow(event, storedRow) {
         programItems: Array.isArray(event?.programItems ?? event?.program_items)
             ? (event?.programItems ?? event?.program_items)
             : (() => { try { const parsed = JSON.parse(storedRow?.program_items_json ?? '[]'); return Array.isArray(parsed) ? parsed : []; } catch { return []; } })(),
-        isMultiAnnouncement: Number(event?.isMultiAnnouncement ?? event?.is_multi_announcement ?? storedRow?.is_multi_announcement ?? 0) ? 1 : 0,
+        isMultiAnnouncement: incomingIsMulti,
         imagePaths,
         canonicalPostUrl: pick(event?.canonicalPostUrl, storedRow?.canonical_post_url),
         provenanceSourceType: pick(event?.provenanceSourceType, storedRow?.source_type),
@@ -10012,8 +10689,7 @@ function parseEventV18867Metadata(row) {
     let eventTags = [];
     let programItems = [];
     try {
-        const parsed = JSON.parse(row?.poster_vision_facts_json ?? '[]');
-        posterVisionFacts = Array.isArray(parsed) ? parsed : [];
+        posterVisionFacts = parseStoredPosterFacts(row?.poster_vision_facts_json);
     } catch { posterVisionFacts = []; }
     try {
         const parsed = JSON.parse(row?.poster_review_candidates_json ?? '[]');
@@ -10096,6 +10772,7 @@ function parsePermanentEventBlockRow(row) {
         participants: String(row.participants || fingerprint.participants || ''),
         sourceType: String(row.source_type || fingerprint.sourceType || ''),
         sourceItemId: String(row.source_item_id || fingerprint.sourceItemId || ''),
+        isMultiAnnouncement: Boolean(fingerprint.isMultiAnnouncement),
         sourceUrl: String(row.source_url || fingerprint.sourceUrl || ''),
         canonicalPostUrl: String(row.canonical_post_url || fingerprint.canonicalPostUrl || ''),
         fingerprint,
@@ -10134,6 +10811,49 @@ export function findPermanentEventBlockMatch(event, blocks = null) {
         if (!best || comparison.score > best.score) best = { block, ...comparison };
     }
     return best;
+}
+
+export function isPermanentlyBlockedMonoSource({ sourceType = '', sourceItemId = '', sourceUrl = '', canonicalPostUrl = '' } = {}) {
+    const type = String(sourceType || '').trim();
+    const itemId = String(sourceItemId || '').trim();
+    const canonicalUrl = normalizePermanentBlockUrl(canonicalPostUrl);
+    const source = normalizePermanentBlockUrl(sourceUrl);
+    if (!itemId && !canonicalUrl && !source) return false;
+    const blocks = database.prepare(`
+        SELECT source_type, source_item_id, source_url, canonical_post_url, fingerprint_json
+        FROM event_permanent_blocks
+        WHERE active = 1 AND (
+            (? <> '' AND source_item_id = ?) OR
+            (? <> '' AND canonical_post_url = ?) OR
+            (? <> '' AND source_url = ?)
+        )
+    `).all(itemId, itemId, canonicalUrl, canonicalUrl, source, source);
+    return blocks.some((row) => {
+        let fingerprint = {};
+        try { fingerprint = JSON.parse(String(row.fingerprint_json || '{}')) || {}; } catch {}
+        if (Boolean(fingerprint.isMultiAnnouncement)) return false;
+        const blockedType = String(fingerprint.sourceType || row.source_type || '').trim();
+        const compatibleType = !type || !blockedType || blockedType === type ||
+            (type === 'vk' && blockedType === 'vk_wall');
+        if (!compatibleType) return false;
+        const sameItem = itemId && String(row.source_item_id || fingerprint.sourceItemId || '').trim() === itemId;
+        const blockedCanonical = normalizePermanentBlockUrl(row.canonical_post_url || fingerprint.canonicalPostUrl);
+        const blockedSource = normalizePermanentBlockUrl(row.source_url || fingerprint.sourceUrl);
+        return Boolean(sameItem || (canonicalUrl && blockedCanonical && canonicalUrl === blockedCanonical) ||
+            (source && blockedSource && source === blockedSource));
+    });
+}
+
+function normalizePermanentBlockUrl(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    try {
+        const url = new URL(raw);
+        url.hash = '';
+        return url.toString().replace(/\/$/u, '').toLowerCase();
+    } catch {
+        return raw.replace(/\/$/u, '').toLowerCase();
+    }
 }
 
 export function createPermanentEventBlock(event, {
@@ -10234,43 +10954,138 @@ function storedEventsForDeletionV18894() {
     return out;
 }
 
-function markStoredEventIgnoredV18894(event, updatedAt) {
-    const sourceType = String(event?.sourceType || '').trim();
-    const id = Number(event?.id || 0);
-    if (!Number.isSafeInteger(id) || id <= 0) return 0;
-    if (sourceType === 'qtickets') {
-        return Number(qticketsDatabase.prepare(`UPDATE qtickets_events SET status = 'ignored', updated_at = ? WHERE id = ?`).run(updatedAt, id).changes || 0);
-    }
-    const table = {
+function deleteStoredEventRowsV18900(identities) {
+    const mainTables = {
         manual: 'manual_events',
         telegram: 'telegram_events',
         vk: 'vk_events',
         vk_chat: 'vk_chat_events',
-    }[sourceType];
-    if (!table) return 0;
-    database.prepare(`DELETE FROM event_dedupe_members WHERE source_type = ? AND event_id = ?`).run(sourceType, id);
-    return Number(database.prepare(`UPDATE ${table} SET status = 'ignored', updated_at = ? WHERE id = ?`).run(updatedAt, id).changes || 0);
+    };
+    const valid = new Map();
+    for (const identity of identities) {
+        const sourceType = String(identity?.sourceType || '').trim();
+        const id = Number(identity?.id || 0);
+        if (!Number.isSafeInteger(id) || id <= 0) continue;
+        if (sourceType === 'qtickets' || mainTables[sourceType]) valid.set(`${sourceType}:${id}`, { sourceType, id });
+    }
+    if (!valid.size) return { changed: 0, rows: [] };
+
+    const groupKeys = new Map();
+    const changedRows = [];
+    const mainIdentities = [...valid.values()].filter((item) => item.sourceType !== 'qtickets');
+    const qticketsIdentities = [...valid.values()].filter((item) => item.sourceType === 'qtickets');
+    if (mainIdentities.length) {
+        const ownsTransaction = !database.isTransaction;
+        if (ownsTransaction) database.exec('BEGIN IMMEDIATE');
+        try {
+            for (const identity of mainIdentities) {
+                const memberships = database.prepare(`
+                    SELECT scope, group_key FROM event_dedupe_members
+                    WHERE source_type = ? AND event_id = ?
+                `).all(identity.sourceType, identity.id);
+                for (const row of memberships) {
+                    groupKeys.set(`${row.scope}:${row.group_key}`, { scope: String(row.scope), groupKey: String(row.group_key) });
+                }
+                database.prepare('DELETE FROM all_party_metadata WHERE source_type = ? AND event_id = ?').run(identity.sourceType, identity.id);
+                database.prepare('DELETE FROM event_dedupe_members WHERE source_type = ? AND event_id = ?').run(identity.sourceType, identity.id);
+                const result = database.prepare(`DELETE FROM ${mainTables[identity.sourceType]} WHERE id = ?`).run(identity.id);
+                if (Number(result.changes || 0)) changedRows.push(identity);
+            }
+            for (const { scope, groupKey } of groupKeys.values()) {
+                database.prepare(`
+                    DELETE FROM event_dedupe_groups
+                    WHERE scope = ? AND group_key = ?
+                      AND NOT EXISTS (SELECT 1 FROM event_dedupe_members WHERE scope = ? AND group_key = ?)
+                `).run(scope, groupKey, scope, groupKey);
+            }
+            if (ownsTransaction) database.exec('COMMIT');
+        } catch (error) {
+            if (ownsTransaction) database.exec('ROLLBACK');
+            throw error;
+        }
+    }
+    for (const identity of qticketsIdentities) {
+        database.prepare('DELETE FROM all_party_metadata WHERE source_type = ? AND event_id = ?').run(identity.sourceType, identity.id);
+        const result = qticketsDatabase.prepare('DELETE FROM qtickets_events WHERE id = ?').run(identity.id);
+        if (Number(result.changes || 0)) changedRows.push(identity);
+    }
+    return { changed: changedRows.length, rows: changedRows };
 }
 
-export function softDeleteMatchingStoredEvents(event, {
-    updatedAt = Math.floor(Date.now() / 1000),
-} = {}) {
+export function softDeleteMatchingStoredEvents(event) {
     const fingerprint = buildPermanentEventFingerprint(event);
-    const changed = [];
+    const matched = [];
     for (const candidate of storedEventsForDeletionV18894()) {
         const comparison = compareEventToPermanentFingerprint(candidate, fingerprint);
         if (!comparison.matched) continue;
-        if (markStoredEventIgnoredV18894(candidate, Number(updatedAt) || Math.floor(Date.now() / 1000))) {
-            changed.push({ sourceType: candidate.sourceType, id: candidate.id, title: candidate.title, score: comparison.score, reasons: comparison.reasons });
+        matched.push({ sourceType: candidate.sourceType, id: candidate.id, title: candidate.title, score: comparison.score, reasons: comparison.reasons });
+    }
+    const deleted = deleteStoredEventRowsV18900(matched);
+    const deletedKeys = new Set(deleted.rows.map((row) => `${row.sourceType}:${row.id}`));
+    const rows = matched.filter((row) => deletedKeys.has(`${row.sourceType}:${row.id}`));
+    return { changed: rows.length, rows, fingerprint };
+}
+
+// Exact owner action removes only the selected row and confirmed registry
+// duplicates. Source posts remain available for a later reparse.
+export function softDeleteStoredEventByIdentity({ sourceType = '', id = 0 } = {}) {
+    const normalizedType = String(sourceType ?? '').trim();
+    const eventId = Number(id);
+    if (!normalizedType || !Number.isSafeInteger(eventId) || eventId <= 0) {
+        return { changed: 0 };
+    }
+    if (normalizedType === 'qtickets') {
+        return deleteStoredEventRowsV18900([{ sourceType: normalizedType, id: eventId }]);
+    }
+    if (!['manual', 'telegram', 'vk', 'vk_chat'].includes(normalizedType)) return { changed: 0 };
+    const groupRows = database.prepare(`
+        SELECT members.source_type, members.event_id, selected.scope, selected.group_key
+        FROM event_dedupe_members AS selected
+        JOIN event_dedupe_members AS members
+          ON members.scope = selected.scope AND members.group_key = selected.group_key
+        WHERE selected.scope IN ('configured', 'all-db')
+          AND selected.source_type = ? AND selected.event_id = ?
+    `).all(normalizedType, eventId);
+    const identities = new Map([[`${normalizedType}:${eventId}`, { sourceType: normalizedType, id: eventId }]]);
+    for (const row of groupRows) {
+        const memberType = String(row.source_type || '');
+        const memberId = Number(row.event_id || 0);
+        if (memberType && Number.isSafeInteger(memberId) && memberId > 0) {
+            identities.set(`${memberType}:${memberId}`, { sourceType: memberType, id: memberId });
         }
     }
-    return { changed: changed.length, rows: changed, fingerprint };
+    return deleteStoredEventRowsV18900([...identities.values()]);
 }
 
 export function permanentlyDeleteStoredEvent(event, options = {}) {
-    const created = createPermanentEventBlock(event, options);
-    const deleted = softDeleteMatchingStoredEvents(event, { updatedAt: options.createdAt || Math.floor(Date.now() / 1000) });
-    return { ...created, deleted };
+    const ownsTransaction = !database.isTransaction;
+    if (ownsTransaction) database.exec('BEGIN IMMEDIATE');
+    try {
+        const created = createPermanentEventBlock(event, options);
+        const deleted = softDeleteMatchingStoredEvents(event);
+        if (ownsTransaction) database.exec('COMMIT');
+        return { ...created, deleted };
+    } catch (error) {
+        if (ownsTransaction) database.exec('ROLLBACK');
+        throw error;
+    }
+}
+
+export function permanentlyDeleteStoredEventByIdentity(event, options = {}) {
+    const ownsTransaction = !database.isTransaction;
+    if (ownsTransaction) database.exec('BEGIN IMMEDIATE');
+    try {
+        const created = createPermanentEventBlock(event, options);
+        const deleted = softDeleteStoredEventByIdentity({
+            sourceType: event?.sourceType,
+            id: event?.id,
+        });
+        if (ownsTransaction) database.exec('COMMIT');
+        return { ...created, deleted };
+    } catch (error) {
+        if (ownsTransaction) database.exec('ROLLBACK');
+        throw error;
+    }
 }
 
 export function restorePermanentEventBlocks(query) {
@@ -10488,6 +11303,68 @@ function backfillEventProvenanceV18867() {
     }
 }
 
+// V189.03: VK chat cards must publish the original wall post, never the
+// private conversation URL.  Older rows were populated from conversation_url
+// before repost provenance was persisted. Repair them once from every durable
+// evidence field; rows without a wall link remain message-only.
+function repairVkChatCanonicalPostUrlsV18903() {
+    const migrationKey = 'events-v18903-vk-chat-canonical-wall-url-v1';
+    if (database.prepare('SELECT 1 FROM bot_code_migrations WHERE migration_key = ? LIMIT 1').get(migrationKey)) return { updated: 0, skipped: true };
+    const rows = database.prepare(`
+        SELECT e.id, e.peer_id, e.conversation_message_id, e.source_url,
+               s.raw_text, s.links_json, s.repost_urls_json, s.attachment_links_json,
+               s.canonical_post_url AS source_canonical_post_url
+        FROM vk_chat_events e
+        LEFT JOIN vk_chat_source_messages s
+          ON s.peer_id = e.peer_id AND s.conversation_message_id = e.conversation_message_id
+    `).all();
+    const canonicalFrom = (values) => {
+        for (const value of values) {
+            if (Array.isArray(value)) {
+                for (const item of value) {
+                    const match = String(item ?? '').match(/(?:[?&]w=|\/)(wall-?\d+_\d+)/iu);
+                    if (match) return `https://vk.ru/${String(match[1]).toLowerCase()}`;
+                }
+            } else {
+                const match = String(value ?? '').match(/(?:[?&]w=|\/)(wall-?\d+_\d+)/iu);
+                if (match) return `https://vk.ru/${String(match[1]).toLowerCase()}`;
+            }
+        }
+        return '';
+    };
+    let updated = 0;
+    database.exec('BEGIN IMMEDIATE');
+    try {
+        for (const row of rows) {
+            const parse = (value) => { try { const parsed = JSON.parse(String(value ?? '[]')); return Array.isArray(parsed) ? parsed : []; } catch { return []; } };
+            const canonical = canonicalFrom([row.source_canonical_post_url, parse(row.repost_urls_json), row.raw_text, parse(row.attachment_links_json), parse(row.links_json), row.source_url]);
+            if (!canonical) continue;
+            const eventResult = database.prepare(`
+                UPDATE vk_chat_events
+                SET source_url = ?, canonical_post_url = ?, source_original_url = ?, canonical_origin = CASE WHEN canonical_origin IN ('', 'chat-message-only', 'chat-attachment') THEN 'chat-repost' ELSE canonical_origin END
+                WHERE id = ? AND (source_url LIKE '%/im?%' OR source_url = '' OR canonical_post_url = '' OR canonical_post_url LIKE '%/im?%')
+            `).run(canonical, canonical, canonical, Number(row.id));
+            const sourceResult = database.prepare(`
+                UPDATE vk_chat_source_messages
+                SET canonical_post_url = ?, canonical_origin = CASE WHEN canonical_origin IN ('', 'chat-message-only', 'chat-attachment') THEN 'chat-repost' ELSE canonical_origin END
+                WHERE peer_id = ? AND conversation_message_id = ?
+            `).run(canonical, Number(row.peer_id), Number(row.conversation_message_id));
+            updated += Number(eventResult.changes || 0) + Number(sourceResult.changes || 0);
+        }
+        database.prepare('INSERT INTO bot_code_migrations (migration_key, applied_at) VALUES (?, ?)').run(migrationKey, Math.floor(Date.now() / 1000));
+        database.exec('COMMIT');
+    } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+    }
+    if (updated) console.log('[V18903 VK CHAT CANONICAL URL REPAIR]', `updated=${updated}`);
+    return { updated, skipped: false };
+}
+
+try { repairVkChatCanonicalPostUrlsV18903(); } catch (error) {
+    console.warn('[V18903 VK CHAT URL REPAIR ERROR]', String(error?.message || error));
+}
+
 // V188.94: legacy event migration no longer auto-runs at import: backfillEventProvenanceV18867();
 
 /*
@@ -10570,7 +11447,6 @@ function backfillLegacyPosterBindingsV18867Compat() {
         const rightSet = new Set((Array.isArray(right) ? right : []).map((value) => String(value ?? '').trim()).filter(Boolean));
         return (Array.isArray(left) ? left : []).map((value) => String(value ?? '').trim()).filter((value) => value && rightSet.has(value));
     };
-
     database.exec('BEGIN IMMEDIATE');
     try {
         const vkSources = database.prepare(`
@@ -10781,6 +11657,35 @@ export function backfillCleanLegacyPosterBindingsV18868({ force = false } = {}) 
         return (Array.isArray(left) ? left : []).map((value) => String(value ?? '').trim()).filter((value) => value && rightSet.has(value));
     };
 
+    const preserveSingletonSourceImage = (table, row, sourcePaths, cleanSourcePaths) => {
+        if (Number(row.is_multi_announcement || 0) !== 0 || cleanSourcePaths.length === 0) return false;
+        const facts = parseStoredPosterFacts(row.poster_vision_facts_json);
+        const existingPaths = parseStoredImagePaths(row.image_paths_json);
+        const event = { title: String(row.title || ''), eventDate: String(row.event_date || ''), eventTime: String(row.event_time || ''), venue: String(row.venue || ''), participants: String(row.participants || '') };
+        const compatible = facts.find((fact) => {
+            const path = cleanSourcePaths.find((value) => value === String(fact?.imagePath || '').replace(/\\+/gu, '/'));
+            return Boolean(path && fact?.poster === true && evaluatePosterFactForEvent(event, fact).accepted);
+        });
+        const existing = existingPaths.find((value) => cleanSourcePaths.includes(value));
+        const path = compatible ? cleanSourcePaths.find((value) => value === String(compatible.imagePath || '').replace(/\\+/gu, '/')) : (existing || cleanSourcePaths[0]);
+        const index = Math.max(1, sourcePaths.indexOf(path) + 1);
+        const prior = facts.find((value) => Number(value?.index || 0) === index) || {};
+        const fact = { ...prior, index, imagePath: path, fallbackBinding: 'single-event-source-media', sourceMediaBinding: true,
+            sourceEventCount: 1, sourceImageCount: cleanSourcePaths.length,
+            visionInspected: Boolean(prior.visionInspected || prior.visionStatus),
+            visionStatus: String(prior.visionStatus || (prior.visionInspected ? 'metadata_not_found' : 'not_run')) };
+        const nextFacts = facts.filter((value) => Number(value?.index || 0) !== index);
+        nextFacts.push(fact);
+        const statement = 'UPDATE ' + table + ' SET image_paths_json = ?, poster_match_status = ?, poster_match_reason = ?, poster_image_index = ?, poster_vision_facts_json = ? WHERE id = ?';
+        database.prepare(statement).run(
+            JSON.stringify(cleanSourcePaths),
+            compatible ? 'exact_poster_match' : 'no_safe_poster',
+            compatible ? 'single-event-source-metadata-confirmed' : 'single-event-source-media-preserved',
+            compatible ? index : 0, JSON.stringify(nextFacts), Number(row.id),
+        );
+        return true;
+    };
+
     database.exec('BEGIN IMMEDIATE');
     try {
         for (const spec of [
@@ -10799,7 +11704,8 @@ export function backfillCleanLegacyPosterBindingsV18868({ force = false } = {}) 
         ]) {
             const sources = database.prepare(`SELECT ${spec.sourceKeys.join(', ')}, image_urls_json, image_paths_json FROM ${spec.sourceTable}`).all();
             const eventQuery = database.prepare(`
-                SELECT id, image_paths_json, poster_match_status, poster_vision_facts_json
+                SELECT id, image_paths_json, poster_match_status, poster_vision_facts_json,
+                       is_multi_announcement, title, event_date, event_time, venue, participants
                 FROM ${spec.eventTable}
                 WHERE ${spec.eventKeys[0]} = ? AND ${spec.eventKeys[1]} = ?
                 ORDER BY id ASC
@@ -10848,6 +11754,7 @@ export function backfillCleanLegacyPosterBindingsV18868({ force = false } = {}) 
                     }
                     const eventClean = cleanLegacyPosterPaths(parseStoredImagePaths(row.image_paths_json));
                     const candidates = intersect(eventClean, cleanSourcePaths);
+                    if (rows.length === 1 && preserveSingletonSourceImage(spec.eventTable, row, sourcePaths, cleanSourcePaths)) continue;
                     if (rows.length === 1 && cleanSourcePaths.length >= 1) {
                         reject(spec.eventTable, row.id, 'single-event-source-media-not-confirmed-as-poster');
                         continue;
@@ -10872,7 +11779,7 @@ export function backfillCleanLegacyPosterBindingsV18868({ force = false } = {}) 
         // announcement. Multi-event chat messages remain poster-matched per child.
         const chatRows = database.prepare(`
             SELECT e.id, e.peer_id, e.conversation_message_id, e.image_paths_json,
-                   e.poster_match_status, e.canonical_post_url,
+                   e.poster_match_status, e.poster_vision_facts_json, e.is_multi_announcement, e.canonical_post_url,
                    s.image_urls_json AS source_image_urls_json,
                    s.image_paths_json AS source_image_paths_json
             FROM vk_chat_events e
@@ -10909,6 +11816,12 @@ export function backfillCleanLegacyPosterBindingsV18868({ force = false } = {}) 
             }
             const cleanSourcePaths = cleanLegacySourcePosterPaths(sourcePaths, sourceUrls);
             if (cleanSourcePaths.length >= 1) {
+                // A single non-multi announcement owns its source media even when
+                // Vision found no metadata. Multi-announcement messages still
+                // require an exact image-to-event match.
+                if (preserveSingletonSourceImage('vk_chat_events', row, sourcePaths, cleanSourcePaths)) {
+                    continue;
+                }
                 reject('vk_chat_events', row.id, 'single-event-chat-source-media-not-confirmed-as-poster');
                 continue;
             }
@@ -10958,11 +11871,11 @@ export function invalidateUnverifiedSingleEventSourceMediaV18873({ force = false
     database.exec('BEGIN IMMEDIATE');
     try {
         for (const table of ['vk_events', 'telegram_events', 'vk_chat_events']) {
-            const result = database.prepare(`
-                UPDATE ${table}
-                SET image_paths_json = '[]', poster_match_status = 'no_safe_poster',
-                    poster_match_reason = 'v18873-requires-vision-poster-binding', poster_image_index = 0
+            const rows = database.prepare(`
+                SELECT id, is_multi_announcement, image_paths_json, poster_match_status, poster_vision_facts_json
+                FROM ${table}
                 WHERE poster_match_status IN (
+                    'verified_single_event_source_media',
                     'legacy_single_source_poster',
                     'legacy_unique_source_poster',
                     'legacy_single_repost_poster',
@@ -10970,8 +11883,45 @@ export function invalidateUnverifiedSingleEventSourceMediaV18873({ force = false
                     'legacy_clean_unique_source_poster',
                     'legacy_clean_single_repost_poster'
                 )
-            `).run();
-            updated += Number(result?.changes || 0);
+            `).all();
+            const clearBinding = database.prepare(`
+                UPDATE ${table}
+                SET image_paths_json = '[]', poster_match_status = 'no_safe_poster',
+                    poster_match_reason = 'v18873-requires-vision-poster-binding', poster_image_index = 0
+                WHERE id = ?
+            `);
+            const preserveSourceMedia = database.prepare(`
+                UPDATE ${table}
+                SET poster_match_status = 'no_safe_poster',
+                    poster_match_reason = 'single-event-source-media-preserved', poster_image_index = 0
+                WHERE id = ?
+            `);
+            for (const row of rows) {
+                const paths = parseStoredImagePaths(row.image_paths_json);
+                const facts = parseStoredPosterFacts(row.poster_vision_facts_json);
+                const positivePoster = posterVisionFactsExplicitlyConfirmPoster(facts);
+                if (String(row.poster_match_status || '') === 'verified_single_event_source_media' && positivePoster) continue;
+                const sourceBinding = Number(row.is_multi_announcement || 0) === 0 && facts.some((fact) => {
+                    const path = String(fact?.imagePath || '').trim().replace(/\\+/gu, '/');
+                    return ['single-event-single-image', 'single-event-source-media'].includes(fact?.fallbackBinding) &&
+                        fact?.sourceMediaBinding === true && Number(fact?.sourceEventCount || 0) === 1 &&
+                        Number(fact?.sourceImageCount || 0) >= paths.length && paths.includes(path);
+                });
+                if (sourceBinding) preserveSourceMedia.run(Number(row.id));
+                else if (Number(row.is_multi_announcement || 0) === 0 && paths.length) {
+                    // Mono-announcement media is durable source evidence. Keep
+                    // the existing real path even when Vision has not produced a
+                    // fact; only the metadata trust status remains negative.
+                    database.prepare(`
+                        UPDATE ${table}
+                        SET poster_match_status = 'no_safe_poster',
+                            poster_match_reason = 'single-event-source-media-preserved',
+                            poster_image_index = 0
+                        WHERE id = ?
+                    `).run(Number(row.id));
+                } else clearBinding.run(Number(row.id));
+                updated += 1;
+            }
         }
         if (!force) {
             database.prepare('INSERT INTO bot_code_migrations (migration_key, applied_at) VALUES (?, ?)').run(
@@ -11235,6 +12185,10 @@ database.exec(`
 
     CREATE INDEX IF NOT EXISTS manual_parser_seen_items_last_seen_idx
     ON manual_parser_seen_items (source_id, last_seen_at DESC);
+
+    /* Recovery diagnostics and retry inspection filter a source by status. */
+    CREATE INDEX IF NOT EXISTS manual_parser_seen_items_status_idx
+    ON manual_parser_seen_items (source_id, parse_status, last_seen_at DESC);
 `);
 
 const manualParserSeenColumns = new Set(
@@ -11449,6 +12403,28 @@ export function isManualParserSeenItemFinalStatus(value) {
     return MANUAL_PARSER_FINAL_STATUSES.has(String(value ?? '').trim());
 }
 
+// The old phase-two joint/text gate finalized some confirmed dated posters
+// as not-events. Reopen only those zero-card sources once after this upgrade,
+// so «парсер все новые» can repair them without replaying successful cards.
+const phaseTwoRepairKey = 'phase-two-confirmed-poster-admission-v2';
+if (!database.prepare('SELECT 1 FROM scraper_code_migrations WHERE migration_key=?').get(phaseTwoRepairKey)) {
+    const reopened = [];
+    for (const [type, key, item, prefix] of [['vk', 'screen_name', 'post_id', 'vk'], ['telegram', 'channel', 'message_id', 'tg']]) {
+        const rows = database.prepare(`SELECT p.${key} AS name,p.${item} AS item,p.published_at,p.image_vision_facts_json
+            FROM ${type}_source_posts p WHERE NOT EXISTS (SELECT 1 FROM ${type}_events e WHERE e.${key}=p.${key} AND e.${item}=p.${item})`).all();
+        for (const row of rows) {
+            let facts; try { facts = JSON.parse(row.image_vision_facts_json); } catch { continue; }
+            if (!Array.isArray(facts) || !facts.some(f=>f.poster===true && extractExplicitDates(f.text, row.published_at).some(d=>d>=currentIsoDate()))) continue;
+            const sourceId = `${prefix}:${row.name}`;
+            const result = database.prepare(`UPDATE manual_parser_seen_items SET parse_status='captured',attempt_count=0,processed_at=0,last_error='phase-two-policy-upgrade'
+                WHERE source_id=? AND item_id=? AND parse_status IN ('processed_not_event','processed_rejected','processed_unresolved','not_event')`).run(sourceId, String(row.item));
+            if (result.changes) reopened.push(`${sourceId}:${row.item}`);
+        }
+    }
+    database.prepare('INSERT INTO scraper_code_migrations(migration_key,applied_at) VALUES (?,?)').run(phaseTwoRepairKey, Math.floor(Date.now()/1000));
+    if (reopened.length) console.log('[PHASE TWO POLICY REOPEN]', JSON.stringify(reopened));
+}
+
 export function markManualParserSeenItemProcessing({
     sourceId,
     itemId,
@@ -11473,12 +12449,14 @@ export function finalizeManualParserSeenItem({
 }) {
     const status = String(parseStatus ?? '').trim();
     if (!status) throw new Error('finalizeManualParserSeenItem requires parseStatus');
+    const retryable = status === 'failed_retryable' || status === 'processed_unresolved' || status === 'processing';
+    const effectiveProcessedAt = retryable ? 0 : Number(processedAt ?? Math.floor(Date.now() / 1000));
     return Number(finalizeManualParserSeenItemStatement.run(
         status,
-        Number(processedAt ?? Math.floor(Date.now() / 1000)),
+        effectiveProcessedAt,
         String(error ?? '').slice(0, 2000),
         String(runId ?? '').trim(),
-        Number(processedAt ?? Math.floor(Date.now() / 1000)),
+        Math.floor(Date.now() / 1000),
         String(sourceId ?? '').trim(),
         String(itemId ?? '').trim(),
     ).changes || 0);
@@ -11511,6 +12489,8 @@ const selectVkChatMessageMetaStatement = database.prepare(`
         image_urls_json,
         image_paths_json,
         image_media_json,
+        image_vision_facts_json,
+        image_vision_status_json,
         (
             SELECT COUNT(*)
             FROM vk_chat_events
@@ -11859,12 +12839,27 @@ export function getVkChatMessageMeta({ peerId, conversationMessageId }) {
     return {
         contentHash: String(row.content_hash ?? ''),
         rawText: String(row.raw_text ?? ''),
+        imageVisionFactsJson: String(row.image_vision_facts_json ?? '[]'),
+        imageVisionStatusesJson: String(row.image_vision_status_json ?? '[]'),
         imageUrlsJson: String(row.image_urls_json ?? '[]'),
         imagePathsJson: String(row.image_paths_json ?? '[]'),
         imageMediaJson: String(row.image_media_json ?? '[]'),
         eventCount: Number(row.event_count ?? 0),
         eventsWithoutImages: Number(row.events_without_images ?? 0),
     };
+}
+
+export function saveVkChatSourceVisionFacts({ peerId, conversationMessageId, imageVisionFacts = [] } = {}) {
+    const facts = normalizeVisionFacts(imageVisionFacts);
+    return Number(database.prepare(`
+        UPDATE vk_chat_source_messages
+        SET image_vision_facts_json = ?, image_vision_status_json = ?
+        WHERE peer_id = ? AND conversation_message_id = ?
+    `).run(
+        JSON.stringify(facts),
+        JSON.stringify(deriveImageVisionStatuses(facts)),
+        Number(peerId), Number(conversationMessageId),
+    ).changes || 0);
 }
 
 export function upsertVkChatSourceMessage({
@@ -11912,9 +12907,9 @@ export function upsertVkChatSourceMessage({
     `).run(
         JSON.stringify(safeJsonArray(repostUrls)),
         JSON.stringify(safeJsonArray(attachmentLinks)),
-        JSON.stringify(Array.isArray(imageVisionFacts) ? imageVisionFacts : []),
-        JSON.stringify(Array.isArray(imageVisionStatuses) && imageVisionStatuses.length ? imageVisionStatuses : deriveImageVisionStatuses(imageVisionFacts, imageUrls)),
-        JSON.stringify(Array.isArray(imageMedia) ? imageMedia.slice(0, 24) : []),
+        JSON.stringify(normalizeVisionFacts(imageVisionFacts)),
+        JSON.stringify(Array.isArray(imageVisionStatuses) && imageVisionStatuses.length ? imageVisionStatuses : deriveImageVisionStatuses(normalizeVisionFacts(imageVisionFacts), imageUrls)),
+        JSON.stringify(Array.isArray(imageMedia) ? imageMedia.slice(0, 1000) : []),
         String(provenance?.canonicalPostUrl || '').trim(),
         String(provenance?.canonicalPostUrl || '').trim(),
         String(provenance?.canonicalOrigin || '').trim(),
@@ -11932,6 +12927,7 @@ export function replaceVkChatEventsForMessage({
     events,
     updatedAt,
     provenance = {},
+    preserveUnmatchedStoredEvents = false,
 }) {
     const safePeerId = Number(peerId);
     const safeMessageId = Number(conversationMessageId);
@@ -11939,10 +12935,24 @@ export function replaceVkChatEventsForMessage({
     const storedRows = database.prepare(`
         SELECT * FROM vk_chat_events WHERE peer_id = ? AND conversation_message_id = ? ORDER BY event_index ASC, id ASC
     `).all(safePeerId, safeMessageId);
-    let safeEvents = incomingEvents.map((event, index) => mergeIncomingEventWithStoredRow(
-        event,
-        selectStoredEventForIncoming(storedRows, event, index),
-    ));
+    const matchedStoredIds = new Set();
+    let safeEvents = incomingEvents.map((event, index) => {
+        const stored = selectStoredEventForIncoming(storedRows, event, index, { allowIndexFallback: !preserveUnmatchedStoredEvents });
+        if (stored?.id != null) matchedStoredIds.add(Number(stored.id));
+        return mergeIncomingEventWithStoredRow(event, stored);
+    });
+    if (preserveUnmatchedStoredEvents) {
+        safeEvents = [
+            ...safeEvents,
+            ...storedRows
+                .filter((row) => !matchedStoredIds.has(Number(row.id)))
+                .map(storedRowToEvent),
+        ];
+    }
+    const sourceIsMulti = safeEvents.length > 1 || safeEvents.some((event) =>
+        Boolean(event?.isMultiAnnouncement ?? event?.is_multi_announcement) ||
+        String(event?.structureDecision ?? event?.structure_decision ?? '') === 'multiple_events');
+    safeEvents = safeEvents.map((event) => ({ ...event, isMultiAnnouncement: sourceIsMulti ? 1 : 0 }));
     const sourceMeta = database.prepare(`
         SELECT image_urls_json, image_paths_json, canonical_post_url, image_vision_facts_json, raw_text
         FROM vk_chat_source_messages

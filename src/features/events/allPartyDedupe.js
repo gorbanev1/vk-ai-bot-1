@@ -68,18 +68,8 @@ export function allPartyMetadataKey(record) {
     return `${String(record?.sourceType ?? '').trim().toLowerCase()}:${Number(record?.eventId ?? 0)}`;
 }
 
-function compatibleAllPartyPools(left, right) {
-    const a = String(left?.partyPool || '').trim().toLowerCase();
-    const b = String(right?.partyPool || '').trim().toLowerCase();
-    // Unknown/legacy pool values cannot prove conflicting identity.
-    if (!a || !b || a === b) return true;
-    // QTickets is a shared aggregator, but must never bridge the two pools.
-    return a === 'qtickets' || b === 'qtickets';
-}
-
 export function findAllPartySharedTitleWord(left, right) {
     if (!left || !right) return '';
-    if (!compatibleAllPartyPools(left, right)) return '';
     if (String(left.eventDate ?? '') !== String(right.eventDate ?? '')) return '';
     const rightTokens = new Set(Array.isArray(right.titleTokens) ? right.titleTokens : []);
     return (Array.isArray(left.titleTokens) ? left.titleTokens : [])
@@ -149,8 +139,10 @@ function chooseWinner(events) {
 /**
  * Realtime dedupe only for «Вообще все тусы».
  * Rule: same event date + at least one shared standalone title word >3 chars.
- * Venue is retained in metadata/audit but never blocks or creates a duplicate.
- * QTickets wins a duplicate group. If its own poster is absent, a proven poster
+ * This aggregate includes primary, secondary, and QTickets records, so pool
+ * boundaries do not block cross-source matching. Venue is retained in
+ * metadata/audit but never blocks or creates a duplicate. QTickets wins a
+ * duplicate group. If its own poster is absent, a proven poster
  * from a duplicate member may be carried as verifiedImagePaths without changing
  * QTickets title/text/source identity.
  */
@@ -193,7 +185,7 @@ export function dedupeAllPartiesRealtime(events, metadataByKey = new Map()) {
                 if (leftRoot === rightRoot) continue;
                 const leftMembers = indexes.filter((index) => find(index) === leftRoot);
                 const rightMembers = indexes.filter((index) => find(index) === rightRoot);
-                // Union-find transitivity must not bypass pool or title checks.
+                // Union-find transitivity must not bypass pairwise title checks.
                 const groupCompatible = leftMembers.every((leftMember) =>
                     rightMembers.every((rightMember) => Boolean(
                         findAllPartySharedTitleWord(metadata[leftMember], metadata[rightMember]),

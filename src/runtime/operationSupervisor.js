@@ -1,14 +1,14 @@
 import {
-    appendFileSync,
-    mkdirSync,
     readdirSync,
     readFileSync,
     renameSync,
     writeFileSync,
 } from 'node:fs';
+import { appendFile, mkdir, rename, writeFile } from 'node:fs/promises';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { classifyInterruptedOperation } from './operationRecoveryPolicy.js';
 
 export const DEFAULT_OPERATION_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 export const MAX_OPERATION_TIMEOUT_MS = Math.max(
@@ -21,6 +21,9 @@ export const OPERATION_CHECKPOINT_DIRECTORY = resolve('data/operation-checkpoint
 
 const operationStorage = new AsyncLocalStorage();
 const activeOperations = new Map();
+const auditWriteTails = new Map();
+const auditWriteErrors = new Map();
+const CHECKPOINT_DEFER_MS = 1_500;
 
 function isoNow() {
     return new Date().toISOString();
@@ -71,19 +74,82 @@ function jsonSafe(value, depth = 0, seen = new WeakSet()) {
     return output;
 }
 
-function ensureDirectory(path) {
-    mkdirSync(path, { recursive: true });
-}
-
 function appendAuditRow(row) {
     try {
-        ensureDirectory(OPERATION_LOG_DIRECTORY);
         const path = join(OPERATION_LOG_DIRECTORY, `${dayKey()}.jsonl`);
-        appendFileSync(path, `${JSON.stringify(row)}\n`, 'utf8');
+        const previous = auditWriteTails.get(path) || Promise.resolve();
+        const serialized = `${JSON.stringify(row)}\n`;
+        const write = previous
+            .then(async () => {
+                await mkdir(OPERATION_LOG_DIRECTORY, { recursive: true });
+                await appendFile(path, serialized, 'utf8');
+            })
+            .catch((error) => {
+                const count = Number(auditWriteErrors.get(path) || 0) + 1;
+                auditWriteErrors.set(path, count);
+                if (count === 1 || count % 100 === 0) {
+                    setImmediate(() => process.stderr.write(
+                        `[OPERATION AUDIT WRITE ERROR] path=${path} count=${count} ${error?.code || ''} ${error?.message || error}\n`,
+                    ));
+                }
+            });
+        auditWriteTails.set(path, write);
+        return write;
     } catch (error) {
         // Logging must never break the bot. Avoid console here to prevent recursion.
         void error;
+        return Promise.resolve(false);
     }
+}
+
+function compactAuditSnapshot(value) {
+    if (!value || typeof value !== 'object') return value ?? null;
+    const output = {};
+    for (const key of [
+        'kind', 'phase', 'partyPool', 'sourceId', 'sourceCount', 'total', 'totalCandidates',
+        'completed', 'completedCandidates', 'candidateCount', 'completedPosterGateRequests',
+        'totalPosterGateRequests', 'phaseTwoModels', 'tracePath', 'runId', 'error', 'reason',
+        'status', 'stopped', 'turboMode',
+    ]) {
+        if (!Object.prototype.hasOwnProperty.call(value, key)) continue;
+        if (key === 'phaseTwoModels') {
+            const models = value.phaseTwoModels?.models || {};
+            output.phaseTwoModels = {
+                stopped: Boolean(value.phaseTwoModels?.stopped),
+                lunaFailureRatio: Number(value.phaseTwoModels?.lunaFailureRatio || 0),
+                terraFailureRatio: Number(value.phaseTwoModels?.terraFailureRatio || 0),
+                models: Object.fromEntries(Object.entries(models).map(([model, row]) => [model, {
+                    attempts: Number(row?.attempts || 0),
+                    completed: Number(row?.completed || 0),
+                    successes: Number(row?.successes || 0),
+                    failures: Number(row?.failures || 0),
+                    capabilities: Object.fromEntries(Object.entries(row?.capabilities || {}).map(([capability, stats]) => [capability, {
+                        attempts: Number(stats?.attempts || 0),
+                        successes: Number(stats?.successes || 0),
+                        failures: Number(stats?.failures || 0),
+                    }])),
+                }])) ,
+            };
+        } else {
+            output[key] = jsonSafe(value[key]);
+        }
+    }
+    if (!Object.keys(output).length) {
+        output.keys = Object.keys(value).slice(0, 40);
+    }
+    return output;
+}
+
+function compactAuditResult(value) {
+    if (value == null || typeof value !== 'object') return jsonSafe(value);
+    if (Array.isArray(value)) return { type: 'array', length: value.length };
+    const summary = compactAuditSnapshot(value);
+    summary.keys = Object.keys(value).slice(0, 60);
+    for (const key of ['results', 'items', 'events', 'sources', 'failures']) {
+        if (Array.isArray(value[key])) summary[`${key}Count`] = value[key].length;
+    }
+    if (typeof value.message === 'string') summary.messageChars = value.message.length;
+    return summary;
 }
 
 function collectRuntimeDiagnostics() {
@@ -146,7 +212,7 @@ function buildUnfinishedState(record) {
     });
 }
 
-function operationSnapshot(record) {
+function operationSnapshot(record, { includeCheckpoint = true } = {}) {
     return {
         id: record.id,
         name: record.name,
@@ -159,7 +225,7 @@ function operationSnapshot(record) {
         elapsedMs: Math.max(0, Date.now() - record.startedAtMs),
         metadata: jsonSafe(record.metadata),
         progress: jsonSafe(record.progress),
-        checkpoint: jsonSafe(record.checkpoint),
+        ...(includeCheckpoint ? { checkpoint: jsonSafe(record.checkpoint) } : {}),
         stopReason: record.stopReason || '',
         timedOut: Boolean(record.timedOut),
         abortRequested: Boolean(record.abortRequested),
@@ -168,22 +234,54 @@ function operationSnapshot(record) {
 }
 
 function persistCheckpoint(record, reason = 'update') {
-    try {
-        ensureDirectory(OPERATION_CHECKPOINT_DIRECTORY);
-        const target = join(OPERATION_CHECKPOINT_DIRECTORY, `${record.id}.json`);
-        const temporary = `${target}.tmp-${process.pid}-${Date.now()}`;
-        const payload = {
-            version: 1,
-            reason,
-            savedAt: isoNow(),
-            operation: operationSnapshot(record),
-        };
-        writeFileSync(temporary, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
-        renameSync(temporary, target);
-        return target;
-    } catch {
-        return '';
+    if (record.checkpointWriteTimer) {
+        clearTimeout(record.checkpointWriteTimer);
+        record.checkpointWriteTimer = null;
     }
+    const target = join(OPERATION_CHECKPOINT_DIRECTORY, `${record.id}.json`);
+    const temporary = `${target}.tmp-${process.pid}-${randomUUID()}`;
+    const payload = {
+        version: 2,
+        reason,
+        savedAt: isoNow(),
+        recovery: classifyInterruptedOperation(record),
+        operation: operationSnapshot(record),
+    };
+    const serialized = `${JSON.stringify(payload, null, 2)}\n`;
+    const previous = record.checkpointWriteTail || Promise.resolve();
+    const write = previous
+        .then(async () => {
+            await mkdir(OPERATION_CHECKPOINT_DIRECTORY, { recursive: true });
+            await writeFile(temporary, serialized, 'utf8');
+            await rename(temporary, target);
+        })
+        .catch((error) => {
+            setImmediate(() => process.stderr.write(
+                `[OPERATION CHECKPOINT WRITE ERROR] id=${record.id} ${error?.code || ''} ${error?.message || error}\n`,
+            ));
+            return '';
+        });
+    record.checkpointWriteTail = write;
+    return target;
+}
+
+function scheduleCheckpointPersistence(record, reason) {
+    if (!record.checkpointWriteTimer) {
+        record.checkpointWriteTimer = setTimeout(() => {
+            record.checkpointWriteTimer = null;
+            persistCheckpoint(record, reason);
+        }, CHECKPOINT_DEFER_MS);
+        record.checkpointWriteTimer.unref?.();
+    }
+    return join(OPERATION_CHECKPOINT_DIRECTORY, `${record.id}.json`);
+}
+
+export async function flushOperationCheckpoints() {
+    const records = [...activeOperations.values()];
+    for (const record of records) {
+        if (record.checkpointWriteTimer) persistCheckpoint(record, 'shutdown-flush');
+    }
+    await Promise.all(records.map((record) => record.checkpointWriteTail));
 }
 
 export class OperationTimeoutError extends Error {
@@ -214,7 +312,7 @@ export function getCurrentOperationSignal() {
 
 export function auditRuntimeEvent(type, data = {}, { level = 'info', operation = null } = {}) {
     const current = operation || getCurrentOperation();
-    appendAuditRow({
+    const row = {
         ts: isoNow(),
         level,
         type: String(type || 'runtime.event'),
@@ -222,7 +320,12 @@ export function auditRuntimeEvent(type, data = {}, { level = 'info', operation =
         operationName: current?.name || '',
         operationCategory: current?.category || '',
         data: jsonSafe(data),
-    });
+    };
+    return appendAuditRow(row);
+}
+
+export async function flushRuntimeAudit() {
+    await Promise.all([...auditWriteTails.values()]);
 }
 
 export function updateOperationProgress(progress = {}, { checkpoint = false, event = 'operation.progress' } = {}) {
@@ -233,18 +336,21 @@ export function updateOperationProgress(progress = {}, { checkpoint = false, eve
         ...(progress && typeof progress === 'object' ? jsonSafe(progress) : { value: jsonSafe(progress) }),
     };
     record.updatedAt = isoNow();
-    auditRuntimeEvent(event, { progress: record.progress }, { operation: record });
+    auditRuntimeEvent(event, { progress: compactAuditSnapshot(record.progress) }, { operation: record });
     if (checkpoint) persistCheckpoint(record, event);
-    return operationSnapshot(record);
+    return operationSnapshot(record, { includeCheckpoint: false });
 }
 
-export function saveOperationCheckpoint(checkpoint = {}, { event = 'operation.checkpoint' } = {}) {
+export function saveOperationCheckpoint(checkpoint = {}, { event = 'operation.checkpoint', deferPersist = false } = {}) {
     const record = getCurrentOperation();
     if (!record) return null;
-    record.checkpoint = jsonSafe(checkpoint);
+    record.checkpoint = deferPersist ? { ...checkpoint } : jsonSafe(checkpoint);
     record.updatedAt = isoNow();
-    const path = persistCheckpoint(record, event);
-    auditRuntimeEvent(event, { checkpoint: record.checkpoint, path }, { operation: record });
+    const path = deferPersist
+        ? scheduleCheckpointPersistence(record, event)
+        : persistCheckpoint(record, event);
+    auditRuntimeEvent(event, { checkpoint: compactAuditSnapshot(record.checkpoint), path }, { operation: record });
+    if (deferPersist) return { id: record.id, checkpointPath: path, deferred: true };
     return { ...operationSnapshot(record), checkpointPath: path };
 }
 
@@ -326,8 +432,8 @@ function abortRecord(record, reason, { timedOut = false } = {}) {
         deadlineAt: record.deadlineAt,
         elapsedMs: Math.max(0, Date.now() - record.startedAtMs),
         metadata: record.metadata,
-        progress: record.progress,
-        checkpoint: record.checkpoint,
+        progress: compactAuditSnapshot(record.progress),
+        checkpoint: compactAuditSnapshot(record.checkpoint),
         unfinished: buildUnfinishedState(record),
         stopHandlerCount: record.stopHandlers.size,
         runtime: collectRuntimeDiagnostics(),
@@ -386,19 +492,48 @@ export function reconcileInterruptedOperationCheckpoints({
             const payload = JSON.parse(readFileSync(path, 'utf8'));
             const operation = payload?.operation;
             if (!operation || !['running', 'stopping', 'timed-out-stopping'].includes(String(operation.status || ''))) continue;
+            // VK message handlers are short user requests, not resumable jobs.
+            // Older checkpoints for them had no phase and were incorrectly reported after restart.
+            if (String(operation.name || '') === 'vk-message' || String(operation.category || '') === 'user-request' || String(operation.category || '').startsWith('test')) {
+                operation.status = 'abandoned';
+                operation.stopReason = String(operation.category || '').startsWith('test')
+                    ? 'test-artifact-ignored-on-restart'
+                    : 'non-resumable-short-request';
+                operation.finishedAt = finishedAt;
+                operation.updatedAt = finishedAt;
+                operation.underlyingSettled = true;
+                payload.recovery = classifyInterruptedOperation(operation);
+                payload.reason = String(operation.category || '').startsWith('test')
+                    ? 'ignored-test-artifact'
+                    : 'ignored-non-resumable-request';
+                payload.savedAt = finishedAt;
+                const temporary = path + '.tmp-' + process.pid + '-' + Date.now();
+                writeFileSync(temporary, JSON.stringify(payload, null, 2) + '\n', 'utf8');
+                renameSync(temporary, path);
+                continue;
+            }
             operation.status = 'interrupted';
             operation.stopReason = operation.stopReason || 'process-restarted-before-operation-settled';
             operation.finishedAt = finishedAt;
             operation.updatedAt = finishedAt;
             operation.underlyingSettled = false;
+            payload.version = 2;
             payload.reason = 'process-restarted';
             payload.savedAt = finishedAt;
+            payload.recovery = classifyInterruptedOperation(operation);
             const temporary = `${path}.tmp-${process.pid}-${Date.now()}`;
             writeFileSync(temporary, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
             renameSync(temporary, path);
-            recovered.push({ id: String(operation.id || name.replace(/\.json$/u, '')), name: String(operation.name || ''), checkpoint: operation.checkpoint || {}, progress: operation.progress || {} });
+            recovered.push({
+                id: String(operation.id || name.replace(/\.json$/u, '')),
+                name: String(operation.name || ''),
+                category: String(operation.category || ''),
+                checkpoint: operation.checkpoint || {},
+                progress: operation.progress || {},
+                recovery: payload.recovery,
+            });
             if (writeAudit) {
-                appendAuditRow({ ts: finishedAt, level: 'error', type: 'operation.interrupted-after-restart', operationId: operation.id || '', operationName: operation.name || '', operationCategory: operation.category || '', data: { stopReason: operation.stopReason, checkpoint: operation.checkpoint || {}, progress: operation.progress || {} } });
+                appendAuditRow({ ts: finishedAt, level: 'error', type: 'operation.interrupted-after-restart', operationId: operation.id || '', operationName: operation.name || '', operationCategory: operation.category || '', data: { stopReason: operation.stopReason, checkpoint: compactAuditSnapshot(operation.checkpoint || {}), progress: compactAuditSnapshot(operation.progress || {}) } });
             }
         } catch {
             // One damaged checkpoint must not block bot startup or other recoveries.
@@ -457,6 +592,8 @@ export async function runSupervisedOperation({
         timedOut: false,
         stopReason: '',
         underlyingSettled: false,
+        checkpointWriteTimer: null,
+        checkpointWriteTail: Promise.resolve(),
     };
     activeOperations.set(id, record);
     persistCheckpoint(record, 'start');
@@ -514,9 +651,9 @@ export async function runSupervisedOperation({
                     : 'operation.late-completion-after-cancel';
                 auditRuntimeEvent(event, {
                     stopReason: record.stopReason,
-                    progress: record.progress,
-                    checkpoint: record.checkpoint,
-                    result: jsonSafe(value),
+                    progress: compactAuditSnapshot(record.progress),
+                    checkpoint: compactAuditSnapshot(record.checkpoint),
+                    result: compactAuditResult(value),
                 }, { level: 'warn', operation: record });
                 persistCheckpoint(record, record.timedOut
                     ? 'late-completion-after-timeout'
@@ -532,8 +669,8 @@ export async function runSupervisedOperation({
                 record.finishedAt = isoNow();
                 auditRuntimeEvent('operation.underlying-stopped', {
                     error: normalizeError(error),
-                    progress: record.progress,
-                    checkpoint: record.checkpoint,
+                    progress: compactAuditSnapshot(record.progress),
+                    checkpoint: compactAuditSnapshot(record.checkpoint),
                 }, { level: 'warn', operation: record });
                 persistCheckpoint(record, 'underlying-stopped');
                 activeOperations.delete(id);
@@ -559,13 +696,15 @@ export async function runSupervisedOperation({
         record.status = record.abortRequested ? 'cancelled' : 'completed';
         record.finishedAt = isoNow();
         record.updatedAt = record.finishedAt;
-        auditRuntimeEvent('operation.complete', {
+        const completionAudit = auditRuntimeEvent('operation.complete', {
             durationMs: Date.now() - startedAtMs,
-            progress: record.progress,
-            checkpoint: record.checkpoint,
-            result: jsonSafe(result),
+            progress: compactAuditSnapshot(record.progress),
+            checkpoint: compactAuditSnapshot(record.checkpoint),
+            result: compactAuditResult(result),
         }, { operation: record });
         persistCheckpoint(record, 'complete');
+        await record.checkpointWriteTail;
+        await completionAudit;
         activeOperations.delete(id);
         return result;
     } catch (error) {
@@ -579,19 +718,21 @@ export async function runSupervisedOperation({
                 : 'failed';
         record.finishedAt = record.underlyingSettled || (!timedOut && !cancelled) ? isoNow() : '';
         record.updatedAt = isoNow();
-        auditRuntimeEvent(timedOut ? 'operation.timeout-result' : cancelled ? 'operation.cancelled' : 'operation.failed', {
+        const failureAudit = auditRuntimeEvent(timedOut ? 'operation.timeout-result' : cancelled ? 'operation.cancelled' : 'operation.failed', {
             error: normalizeError(error),
             durationMs: Date.now() - startedAtMs,
             startedAt: record.startedAt,
             deadlineAt: record.deadlineAt,
             metadata: record.metadata,
-            progress: record.progress,
-            checkpoint: record.checkpoint,
+            progress: compactAuditSnapshot(record.progress),
+            checkpoint: compactAuditSnapshot(record.checkpoint),
             unfinished: buildUnfinishedState(record),
             underlyingSettled: record.underlyingSettled,
             runtime: collectRuntimeDiagnostics(),
         }, { level: 'error', operation: record });
         persistCheckpoint(record, timedOut ? 'timeout-result' : cancelled ? 'cancelled' : 'failed');
+        await record.checkpointWriteTail;
+        await failureAudit;
         if (record.underlyingSettled || (!timedOut && !cancelled)) {
             activeOperations.delete(id);
         }

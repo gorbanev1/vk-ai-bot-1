@@ -4,6 +4,8 @@
  * афиша без служебного мусора интерфейсов VK/Telegram и дублей шапки.
  */
 
+import { buildEventTitleContractPrompt } from './eventIdentityTokens.js';
+
 const SERVICE_ONLY_LINE = /^(?:анонс|встреча|билеты|действия|источник|view in telegram|please open telegram to view this post|показать полностью|ещ[её]\s+\d+\s+автор(?:а|ов)?|и\s+ещ[её]\s+\d+\s+автор(?:а|ов)?)\s*:?[\s.]*$/iu;
 const DUPLICATE_METADATA_LINE = /^(?:когда|что|кто|где|поч[её]м|дата|время|начало|старт|двери|название|мероприятие|событие|место|адрес|площадка|стоимость|цена|вход|билеты?|участники|лайн-?ап|line[ -]?up)\s*(?::|;|：|[—–-])/iu;
 const HASHTAG_ONLY_LINE = /^(?:\s*#[\p{L}\p{N}_-]+\s*)+$/iu;
@@ -44,13 +46,17 @@ function stripGiveawaySentences(value) {
     const source = normalizeWhitespace(value);
     if (!source) return '';
     return source
-        .split(/(?<=[.!?])\s+|\n+/u)
-        .map((part) => part.trim())
+        .split(/\n{2,}/u)
+        .map((paragraph) => paragraph
+            .split(/(?<=[.!?])\s+|\n+/u)
+            .map((part) => part.trim())
+            .filter(Boolean)
+            .filter((part) => !GIVEAWAY_NOISE.test(part))
+            .join(' ')
+            .replace(/\s+/gu, ' ')
+            .trim())
         .filter(Boolean)
-        .filter((part) => !GIVEAWAY_NOISE.test(part))
-        .join(' ')
-        .replace(/\s+/gu, ' ')
-        .trim();
+        .join('\n\n');
 }
 
 function hasExplicitTimeEvidence(original, candidate) {
@@ -152,14 +158,14 @@ export function buildEventNormalizationSystemPrompt() {
         'Используй ТОЛЬКО факты из входного JSON. Ничего не додумывай и не улучшай фактами из памяти.',
         'Верни только JSON без Markdown: {"events":[...]}. Для каждого входного key верни ровно один объект с тем же key.',
         'Поля результата: key, title, displayDate, timeLabel, eventType, venue, participants, price, announcement.',
-        'title — короткое человеческое название самого события. Не используй случайную рекламную фразу вроде «это будет незабываемо» как название, если в rawSource есть явное имя мероприятия.',
+        buildEventTitleContractPrompt(),
         'displayDate — понятная дата. Сначала проверь rawSource: если там явно указан диапазон дат (например 07.08.26–09.08.26), сохрани именно диапазон; иначе используй suppliedDateLabel.',
         'timeLabel — только реально указанное ВРЕМЯ или расписание. Не превращай фрагмент даты вроде 07.08 в время 07:08. Если несколько этапов в разных местах/временах, кратко сохрани их здесь. Если времени нет — пустая строка.',
         'eventType — концерт/вечеринка/фестиваль/маркет/лекция и т.п., только если это понятно из фактов; иначе пусто.',
         'venue — место/адрес. Если несколько последовательных площадок, кратко перечисли. Если место не дано — пусто. Если прямо сказано «место сообщим позже» или аналогично, сохрани эту формулировку.',
         'participants — только реальные артисты/участники/ведущие; без слов интерфейса, шуток автора и приписок вроде «+ налоги + на пиво».',
         'price — только фактическая стоимость ВХОДА/БИЛЕТА и условия посещения. Не путай сумму сертификата, приза, скидки, розыгрыша, коктейля или мерча со стоимостью события. Если цена входа не указана — пустая строка. Удали шутки и эмоциональные приписки вроде «скока-скока», но сохрани реальные тарифы и условия.',
-        'announcement — чистый понятный анонс примерно 2–7 коротких абзацев: что будет происходить, программа, важные особенности и условия. Пиши редакторски нейтрально и понятно, не копируй бессмысленные шутки/подколы источника, если они не несут факта о событии.',
+        'announcement — содержательное описание события по исходнику: что будет происходить, программа и важные особенности. Если исходник короткий, сохрани почти все его полезные детали и структуру; если длинный, аккуратно упрости и сократи его лишь частично, сохранив основную часть конкретных сведений. Не своди подробный исходник к одной общей короткой фразе. Не повторяй уже вынесенные поля и ничего не додумывай. Не оставляй описание пустым, если в исходнике есть сведения о событии.',
         'Из announcement обязательно убери повтор уже вынесенных полей (дата, время, место, цена, список участников), если они просто дублируются.',
         'Полностью исключи из announcement розыгрыши и конкурсы: просьбы вступить во встречу, нажать "Точно пойду", сделать репост, написать "Хочу на концерт", условия участия, итоги конкурса, призы и победителей. Это не описание мероприятия.',
         'Удали служебный мусор платформ: «Встреча», «Билеты» как одиночные кнопки, «Действия», «Please open Telegram...», «VIEW IN TELEGRAM», реакции и их счётчики, хэштеги, число авторов, навигационные подписи, кнопки, UI-текст.',
@@ -205,13 +211,20 @@ export function mergeNormalizedEvent(original, normalized) {
     const normalizedAnnouncement = has('announcement')
         ? stripEventServiceArtifacts(normalized?.announcement || '').slice(0, 12000)
         : '';
+    const paragraphSource = stripEventPlatformArtifacts(original?.description || '');
+    const originalParagraphCount = paragraphSource
+        ? paragraphSource.split(/\n{2,}/u).map((part) => part.trim()).filter(Boolean).length
+        : 0;
+    const normalizedMinimumLength = Math.max(160, Math.floor(originalAnnouncement.length * 0.5));
     const normalizedLooksTooThin = Boolean(
         originalAnnouncement.length >= 100 && (
-            normalizedAnnouncement.length < 60 ||
+            normalizedAnnouncement.length < normalizedMinimumLength ||
             /^(?:двери|начало|старт|время)\s*[:—–-]\s*(?:[01]?\d|2[0-3]):\d{2}[.!]?$/iu.test(normalizedAnnouncement)
         )
     );
-    const announcement = normalizedAnnouncement && !normalizedLooksTooThin
+    const announcement = originalParagraphCount <= 3 && originalAnnouncement
+        ? originalAnnouncement
+        : normalizedAnnouncement && !normalizedLooksTooThin
         ? normalizedAnnouncement
         : originalAnnouncement;
 

@@ -1,0 +1,256 @@
+[TEST ISOLATION] data=C:\Users\Adm\AppData\Local\Temp\gigorave-test-f4HDf9\data
+(node:32968) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ three initial pauses, one notice, late success replies once and logs real times (19.5438ms)
+✔ autonomous selection stays silent without transcript and still answers late (1.1352ms)
+✔ two-hour deadline expires without any guessed autonomous answer (2.9194ms)
+✔ unselected message finishes after three checks without a notice (0.8546ms)
+✔ immediate transcript needs zero VK requests (0.6846ms)
+✔ overlapping ticks and duplicate updates do not repeat request or answer (0.6662ms)
+✔ API errors count as attempts, stay in logs, and do not leak into chat (0.907ms)
+✔ partial speech never triggers an answer and success stops later polls (0.7198ms)
+✔ SQLite report isolation and command aliases (0.866ms)
+✔ reconstructed VK context replies to original voice through real SDK (1.0511ms)
+✔ VK handler selects voice once and never starts response code without transcript (6.4502ms)
+✔ active-chat counter can select a pending voice without generating anything (1.6395ms)
+✔ log command uses current chat and explicit/replied voice, with no AI routing (4.5277ms)
+✔ finished jobs stay finished after reopening SQLite store and failed delivery stays visible (1.9242ms)
+[STT MODEL FAILURE] {
+  provider: 'audio-tests',
+  model: 'invalid-sentinel',
+  error: {
+    name: 'Error',
+    message: 'audio-tests invalid-sentinel: распознавание не вернуло полный текст речи.',
+    code: 'VOICE_TRANSCRIPT_INVALID',
+    status: null
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'audio-tests',
+  model: 'empty',
+  error: {
+    name: 'Error',
+    message: 'audio-tests empty: распознавание не вернуло полный текст речи.',
+    code: 'VOICE_TRANSCRIPT_INVALID',
+    status: null
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'audio-tests',
+  model: 'html',
+  error: {
+    name: 'Error',
+    message: 'audio-tests html: распознавание не вернуло полный текст речи.',
+    code: 'VOICE_TRANSCRIPT_INVALID',
+    status: null
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'audio-tests',
+  model: 'gpt-transcribe',
+  error: {
+    name: 'Error',
+    message: 'audio-tests gpt-transcribe: распознавание не вернуло полный текст речи.',
+    code: 'VOICE_TRANSCRIPT_INVALID',
+    status: null
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'audio-tests',
+  attempt: 1,
+  round: 1,
+  durationMs: 2,
+  retryable: false,
+  error: {
+    name: 'Error',
+    message: 'audio-tests gpt-transcribe: распознавание не вернуло полный текст речи.',
+    code: 'VOICE_TRANSCRIPT_INVALID',
+    status: null
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'unavailable-model',
+  model: 'gpt-transcribe',
+  error: {
+    name: 'Error',
+    message: 'unavailable-model gpt-transcribe: HTTP 404 — model not found',
+    code: 'VOICE_TRANSCRIPTION_UPSTREAM_ERROR',
+    status: 404
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'unavailable-model',
+  attempt: 1,
+  round: 1,
+  durationMs: 1,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'unavailable-model gpt-transcribe: HTTP 404 — model not found',
+    code: 'VOICE_TRANSCRIPTION_UPSTREAM_ERROR',
+    status: 404
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'audio-tests',
+  model: 'router-unavailable',
+  error: {
+    name: 'Error',
+    message: 'audio-tests router-unavailable: HTTP 200 — no source for this model',
+    code: 'VOICE_TRANSCRIPTION_UPSTREAM_ERROR',
+    status: 200
+  }
+}
+✔ rejects decorated no-speech sentinels and provider refusals at every entry point (3.2186ms)
+✔ one VK voice keeps its cache identity when VK rotates access keys (0.1986ms)
+✔ text from replies or caption cannot bypass a missing voice transcript (0.3156ms)
+✔ VK transcript polling waits 40 seconds and stops as soon as VK returns the voice transcript (0.8221ms)
+✔ VK voice polling returns no guessed text after three transcript-free API refreshes (0.2352ms)
+✔ STT configuration uses separate GPT audio models and numbered keys without importing the chat ladder (0.6046ms)
+✔ STT sends the original audio bytes as multipart speech input without a chat persona (14.8683ms)
+✔ invalid speech results advance to the next audio model instead of becoming a successful transcript (4.3737ms)
+✔ invalid transcript responses allow failover to a different transcription provider (2.4465ms)
+✔ an unavailable audio endpoint advances to the next provider (1.6704ms)
+✔ a provider error wrapped in HTTP 200 also advances to the next transcription model (0.942ms)
+[STT MODEL FAILURE] {
+  provider: 'test-budget',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'test-budget whisper-1: HTTP 503 — unavailable',
+    code: null,
+    status: 503
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'test-budget',
+  attempt: 1,
+  round: 1,
+  durationMs: 16,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'test-budget whisper-1: HTTP 503 — unavailable',
+    code: null,
+    status: 503
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'test-budget',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'test-budget whisper-1: HTTP 503 — unavailable',
+    code: null,
+    status: 503
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'test-budget',
+  attempt: 2,
+  round: 1,
+  durationMs: 1,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'test-budget whisper-1: HTTP 503 — unavailable',
+    code: null,
+    status: 503
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'test-budget',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'test-budget whisper-1: HTTP 503 — unavailable',
+    code: null,
+    status: 503
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'test-budget',
+  attempt: 3,
+  round: 1,
+  durationMs: 0,
+  retryable: true,
+  error: {
+    name: 'Error',
+    message: 'test-budget whisper-1: HTTP 503 — unavailable',
+    code: null,
+    status: 503
+  }
+}
+[STT KEY ROTATE] key=test-budget reason=three-failures
+✔ STT ends after three failures without another recovery round (24.1289ms)
+[STT MODEL FAILURE] {
+  provider: 'test-budget',
+  model: 'whisper-1',
+  error: {
+    name: 'TimeoutError',
+    message: 'The operation was aborted due to timeout',
+    code: 23,
+    status: null
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'test-budget',
+  attempt: 1,
+  round: 1,
+  durationMs: 45,
+  retryable: true,
+  error: {
+    name: 'TimeoutError',
+    message: 'The operation was aborted due to timeout',
+    code: 23,
+    status: null
+  }
+}
+[STT MODEL FAILURE] {
+  provider: 'test-budget',
+  model: 'whisper-1',
+  error: {
+    name: 'Error',
+    message: 'test-budget whisper-1: HTTP 200 — no transcript',
+    code: 'VOICE_TRANSCRIPTION_UPSTREAM_ERROR',
+    status: 200
+  }
+}
+[STT ATTEMPT FAILURE] {
+  provider: 'test-budget',
+  attempt: 1,
+  round: 1,
+  durationMs: 1,
+  retryable: false,
+  error: {
+    name: 'Error',
+    message: 'test-budget whisper-1: HTTP 200 — no transcript',
+    code: 'VOICE_TRANSCRIPTION_UPSTREAM_ERROR',
+    status: 200
+  }
+}
+✔ STT total budget aborts a hanging fetch (45.7205ms)
+✔ STT cancelled before dispatch sends no request (0.3321ms)
+✔ STT does not accept error JSON as a successful transcript (1.749ms)
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=15 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=15 messageId=801 sent=-
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=30 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=30 messageId=801 sent=-
+message reply transport tests: OK
+✔ tests\platforms\messageReplyTransport.test.mjs (126.8608ms)
+botAddressing tests: OK
+✔ tests\shared\botAddressing.test.mjs (46.0956ms)
+[SCRAPER V130 DATE CLEANUP] telegramRemoved=0 vkRemoved=0
+[SCRAPER V147 DB REPAIR] vkSharedMediaCleared=0 telegramSharedMediaCleared=0 generatedCleared=0
+V164 voice transcription tests: OK
+(node:26924) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tests\v164\voiceTranscriptionV164.test.mjs (277.3649ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 874.0494

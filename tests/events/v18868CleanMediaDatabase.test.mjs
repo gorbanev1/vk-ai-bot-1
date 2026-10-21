@@ -21,7 +21,7 @@ function putImage(root, relativePath, width, height, bytes) {
     writeFileSync(absolute, fakePng(width, height, bytes));
 }
 
-test('V188.86 single-event source media is never promoted without positive Vision poster proof', async () => {
+test('V188.86 preserves singleton source images while multi-event media needs an exact poster match', async () => {
     const dataDirectory = mkdtempSync(join(tmpdir(), 'gigorave-v18868-db-'));
     process.env.NODE_ENV = 'test';
     process.env.GIGORAVE_DATA_DIR = dataDirectory;
@@ -102,6 +102,26 @@ test('V188.86 single-event source media is never promoted without positive Visio
         }],
     });
 
+    const singletonChatPhoto = 'vk_chat_announcements/vk-chat-22/4929-1.jpg';
+    putImage(dataDirectory, singletonChatPhoto, 640, 960, 16_000);
+    dbApi.upsertVkChatSourceMessage({
+        peerId: 22, conversationMessageId: 4929,
+        conversationUrl: 'https://vk.com/im?sel=c22', conversationName: 'Беседа 22',
+        senderId: 1, createdAt: now, rawText: 'Одиночный анонс 12 октября',
+        imageUrls: ['https://img/singleton'], imagePaths: [singletonChatPhoto],
+        contentHash: 'chat-singleton-photo', parseStatus: 'events-found', fetchedAt: now,
+    });
+    dbApi.replaceVkChatEventsForMessage({
+        peerId: 22, conversationMessageId: 4929, sourceUrl: 'https://vk.com/im?sel=c22',
+        imagePaths: [singletonChatPhoto], updatedAt: now,
+        events: [{
+            title: 'Одиночный анонс', eventDate: '2099-10-12', venue: 'Бар',
+            imagePaths: [singletonChatPhoto], posterMatchStatus: 'verified_single_event_source_media',
+            posterMatchReason: 'legacy-uninspected-source-image', posterImageIndex: 1,
+            posterVisionFacts: [], parseMethod: 'fixture', status: 'approved',
+        }],
+    });
+
     dbApi.backfillCleanLegacyPosterBindingsV18868({ force: true });
 
     const check = new DatabaseSync(join(dataDirectory, 'bot.sqlite'));
@@ -109,12 +129,13 @@ test('V188.86 single-event source media is never promoted without positive Visio
         const publicRow = check.prepare(`SELECT poster_match_status, poster_image_index FROM vk_events WHERE screen_name = ? AND post_id = ?`).get('vavilone_rb', 7);
         assert.equal(publicRow.poster_match_status, 'no_safe_poster');
         assert.equal(Number(publicRow.poster_image_index), 0);
+        assert.deepEqual(JSON.parse(check.prepare(`SELECT image_paths_json FROM vk_events WHERE screen_name = ? AND post_id = ?`).get('vavilone_rb', 7).image_paths_json), [poster]);
 
         const chatRow = check.prepare(`SELECT poster_match_status, poster_match_reason, poster_image_index, image_paths_json FROM vk_chat_events WHERE peer_id = ? AND conversation_message_id = ?`).get(22, 4928);
         assert.equal(chatRow.poster_match_status, 'no_safe_poster');
-        assert.match(chatRow.poster_match_reason, /no-safe-poster|unsafe|legacy|not-confirmed-as-poster/u);
+        assert.equal(chatRow.poster_match_reason, 'single-event-source-media-preserved');
         assert.equal(Number(chatRow.poster_image_index), 0);
-        assert.deepEqual(JSON.parse(chatRow.image_paths_json), []);
+        assert.deepEqual(JSON.parse(chatRow.image_paths_json), [chatPhoto1, chatPhoto2]);
         const repairedChatPaths = JSON.parse(check.prepare(`SELECT image_paths_json FROM vk_chat_source_messages WHERE peer_id = ? AND conversation_message_id = ?`).get(22, 4928).image_paths_json);
         assert.deepEqual(repairedChatPaths, [chatPhoto1, chatPhoto2]);
 
@@ -122,6 +143,13 @@ test('V188.86 single-event source media is never promoted without positive Visio
         assert.equal(publicMedia.length, 2);
         const chatMedia = JSON.parse(check.prepare(`SELECT image_media_json FROM vk_chat_source_messages WHERE peer_id = ? AND conversation_message_id = ?`).get(22, 4928).image_media_json);
         assert.equal(chatMedia[0].origin, 'repost-wall');
+
+        const singletonChatRow = check.prepare("SELECT poster_match_status, poster_match_reason, poster_image_index, image_paths_json, poster_vision_facts_json FROM vk_chat_events WHERE peer_id = ? AND conversation_message_id = ?").get(22, 4929);
+        assert.equal(singletonChatRow.poster_match_status, 'no_safe_poster');
+        assert.equal(singletonChatRow.poster_match_reason, 'single-event-source-media-preserved');
+        assert.equal(Number(singletonChatRow.poster_image_index), 0);
+        assert.deepEqual(JSON.parse(singletonChatRow.image_paths_json), [singletonChatPhoto]);
+        assert.equal(JSON.parse(singletonChatRow.poster_vision_facts_json)[0].visionStatus, 'not_run');
     } finally {
         check.close();
     }

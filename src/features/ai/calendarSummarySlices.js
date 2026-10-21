@@ -3,17 +3,21 @@ import { zonedDateTimeToUtcMilliseconds } from '../../shared/date.js';
 
 /**
  * V188.45 fixed intraday summary slices.
- * Labels are the user-visible delivery times. The final 23:59 slice owns the
- * interval through local midnight; a late message becomes an immutable delta
- * revision of the same slice instead of reopening already-paid messages.
+ * Labels are the user-visible delivery times. The calendar starts with a
+ * compact overnight slice at 03:00, then uses the daytime boundaries 09:00,
+ * 12:00, 15:00, 18:00 and 21:00. The 22:30 and 23:59 slices are explicit
+ * tail batches: the 22:30 batch may be delivered normally, while the latter
+ * owns the final 90 minutes and is folded into the 23:59 daily rollup only.
  */
 export const CALENDAR_SUMMARY_SLICE_SLOTS = Object.freeze([
-    Object.freeze({ label: '09:00', startMinute: 0, endMinute: 9 * 60 }),
-    Object.freeze({ label: '13:00', startMinute: 9 * 60, endMinute: 13 * 60 }),
-    Object.freeze({ label: '15:00', startMinute: 13 * 60, endMinute: 15 * 60 }),
+    Object.freeze({ label: '03:00', startMinute: 0, endMinute: 3 * 60 }),
+    Object.freeze({ label: '09:00', startMinute: 3 * 60, endMinute: 9 * 60 }),
+    Object.freeze({ label: '12:00', startMinute: 9 * 60, endMinute: 12 * 60 }),
+    Object.freeze({ label: '15:00', startMinute: 12 * 60, endMinute: 15 * 60 }),
     Object.freeze({ label: '18:00', startMinute: 15 * 60, endMinute: 18 * 60 }),
     Object.freeze({ label: '21:00', startMinute: 18 * 60, endMinute: 21 * 60 }),
-    Object.freeze({ label: '23:59', startMinute: 21 * 60, endMinute: 24 * 60 }),
+    Object.freeze({ label: '22:30', startMinute: 21 * 60, endMinute: 22 * 60 + 30 }),
+    Object.freeze({ label: '23:59', startMinute: 22 * 60 + 30, endMinute: 24 * 60 }),
 ]);
 
 export const CALENDAR_SUMMARY_SLICE_LABELS = Object.freeze(
@@ -75,5 +79,8 @@ export function shouldRunCalendarSliceBoundaryTick(date = new Date(), timeZone =
     }).formatToParts(date);
     const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
     const clock = `${String(map.hour || '00').padStart(2, '0')}:${String(map.minute || '00').padStart(2, '0')}`;
-    return CALENDAR_SUMMARY_SLICE_LABELS.includes(clock) || clock === '00:00';
+    // 20:00 is a calendar rollup boundary (weekend/month-end). It is not a
+    // raw batch boundary, so keep it in the maintenance tick separately.
+    return CALENDAR_SUMMARY_SLICE_LABELS.includes(clock) ||
+        ['00:00', '11:00', '12:00', '20:00'].includes(clock);
 }

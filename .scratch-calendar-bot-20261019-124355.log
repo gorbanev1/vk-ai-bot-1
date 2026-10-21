@@ -1,0 +1,254 @@
+[DB PREFLIGHT] healthy backup current=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-19T07-30-58-252Z.sqlite
+[DB HEALTHY BACKUP SCHEDULER] intervalHours=6 retained=15
+[LIVE MESSAGE JOURNAL REPLAY] parsed=11 replayed=11 invalid=0
+[VK MESSAGE ARCHIVE JOURNAL REPLAY] parsed=11 replayed=11 invalid=0
+[PROJECT AUDIT CONFIG] mode=multipass inputMode=text transport=stream concurrency=1
+[BOT BUILD] V188.146
+[BOT PATCH] V188.146
+[STRICT EVENT AUDIT NON-DESTRUCTIVE] telegram=0 vk=0 vkChat=0 manual=0 orphanSources=85
+Проверяю необязательное подключение к GigaChat…
+[EVENT DEDUPE PERSISTENT FAST REBUILD] reason=startup-v147-db-repair raw=84 canonical=84 groups=0 duplicates=0
+Имя бота: гигорейв
+ID основного VK-сообщества: 233007447
+Часовой пояс: Europe/Moscow
+Сессия участника в каждой конфе: 2 часа.
+ЛС включены без обязательного обращения; содержимое ЛС не сохраняется и не логируется.
+Запускаю VK Long Poll: 1 сообществ(а)…
+[VK LONG POLL STARTED] role=primary groupId=233007447
+Бот запущен: оба VK-сообщества и настроенные дополнительные платформы активны.
+[BOT READY] historyRecoveryDelayedMs=5000 commands=available-now
+[LEGACY EVENT STARTUP REPAIRS] disabled=v18892 mode=explicit-owner-command-only
+[SCRAPER MODE] Основной пул: новые раз в 3 дня, в пятницу после 2 дней. Второстепенный: раз в неделю и в пятницу. Только ночью 02:00–06:00 без пересечения операций. timeZone=Europe/Moscow nextSecondaryAutoAt=1792198800 manualFull=«тусы быдлячьи парсер все» manualClean=«тусы быдлячьи парсер все чисто»
+[PERSONALIZATION V187] database=C:\Users\Adm\AppData\Local\Gigorave\state\personalization-v187.sqlite dossier=command-only styleBatch=500 startupBackfill=disabled
+[SUMMARY V188 CACHE] database=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite contextTokens=128000 rawInputBudget~=24000 pruned=0
+[HIERARCHY V188] database=C:\Users\Adm\AppData\Local\Gigorave\state\hierarchical-summary-v188.sqlite peers=2000000001,2000000004,2000000006,2000000007,8138353801,8138961901,8141076491,8196547900,8196547901,8196547902,8196547903,8202627500,8202627501,8202627502,8202627503,8223773400,8223773401,8223773402,8223773403,2000000022 daily=23:59-local+tail-22:30-23:59 weekly=Sunday-24:00/Monday-00:00-local monthly=last-day-20:00-local slices=03:00,09:00,12:00,15:00,18:00,21:00,22:30,23:59 pipeline=raw-once>intraday-batch>daily>week-segment>month rawLeafBudget~=32000 late=immutable-delta auto=default-on
+[AUTO SUMMARY LEGACY SCHEDULER DISABLED] calendar rollup owns scheduled summaries; set LEGACY_AUTO_SUMMARY_SCHEDULER_ENABLED=1 only for rollback compatibility
+[CHAT LEAVERS AUTO STATE] enabled=1 repaired=0
+[COMMUNICATION STATE RESTORED FROM SQLITE] restart-safe=true legacyOutburstsCleared=0 legacyBanterCleared=0
+[TELEGRAM CONNECT ATTEMPT] reason=startup attempt=1/3
+GPT router подключён. Текстовые GPT-модели: grok-4.6, gpt-6-sol, grok-4.5, gpt-5.6-terra, gpt-5.6-luna, gpt-6-astra, gpt-6-luna, gpt-5.5, gpt-6.1-sol, grok-4.7, gpt-5.6-sol
+GPT image-модели: grok-imagine-image-2.0, gpt-image-2.5-flare-4k, gpt-image-2.5-sunburst-4k, gpt-image-2, gpt-image-2.5, gpt-image-2.5-flare-2k, gpt-image-2.5-sunburst, gpt-image-2.5-sunburst-2k, gpt-image-2.5-flare
+[TELEGRAM BOT STARTED] id=8965960830 username=@Gigorave_bot offset=813863460
+[TELEGRAM CONNECTED] reason=startup username=@Gigorave_bot
+[VK LONG POLL ACTIVE] role=primary groupId=233007447
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-19T07-30-58-252Z.sqlite rows=145310 target=2000000006
+Telegram подключён: @Gigorave_bot
+[TEXT RECOVERY STARTUP] method=GET-only legacyJobId=d0e42598-b6f5-4c34-8e8b-c7e51877b144
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-19T01-30-58-250Z.sqlite rows=144666 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text=""
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-18T19-30-58-243Z.sqlite rows=144200 target=2000000006
+[COMMAND ROUTE] selected=gpt-explicit-action reason=explicit-gpt-prefix candidates=gpt-explicit-action explicitMode=none modelKeyPolicy=absent suppressed=none context=dm
+[GPT ROUTE] action=chat requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=implicit astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=no packet=none
+[AI RUNTIME TRANSPORT] requestId=b272658e-712f-47d5-b9fa-d6f3bf71ceae model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-18T12-23-01-617Z.sqlite rows=143987 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-18T03-36-01-135Z.sqlite rows=143628 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-17T21-36-01-125Z.sqlite rows=143481 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-17T15-36-01-122Z.sqlite rows=142540 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-17T09-36-01-119Z.sqlite rows=141767 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-17T03-36-01-107Z.sqlite rows=141406 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="12:48"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-16T21-36-01-102Z.sqlite rows=141193 target=2000000006
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 4785,
+  completion_tokens: 16,
+  total_tokens: 4801,
+  prompt_tokens_details: {
+    cached_tokens: 4224,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=b272658e-712f-47d5-b9fa-d6f3bf71ceae operationId=mvf2lr29-be5e7f60 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=4785 output=16 total=4801 cached=4224 reasoning=0 estimatedText=0 durationMs=88675
+[AI TOKEN TOTAL] requestId=b272658e-712f-47d5-b9fa-d6f3bf71ceae operationId=mvf2lr29-be5e7f60 operation=manual-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=4785 output=16 total=4801 cached=4224 reasoning=0 estimatedText=0
+[GPT UNKNOWN TERMS] terms=1 resolved=0 unresolved=1 values=прикреплённый файл
+[GPT ROUTE RESOLVED] requestedMode=default effectiveMode=default model=gpt-6-luna packet=none
+[AI RUNTIME TRANSPORT] requestId=b272658e-712f-47d5-b9fa-d6f3bf71ceae model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT TELEGRAM FILE INPUT] requestId=b272658e-712f-47d5-b9fa-d6f3bf71ceae model=gpt-5.6-luna files=1 bytes=15340 stream=false background=false generatedFileRelay=false transport=responses-file-input-nonstream
+[GPT RESPONSES USAGE] {
+  input_tokens: 1841,
+  input_tokens_details: { cached_tokens: 0, cache_write_tokens: 0 },
+  output_tokens: 35,
+  output_tokens_details: { reasoning_tokens: 0 },
+  total_tokens: 1876,
+  attribution: {
+    items: {
+      msg_0e0d8772fc329943016ad5e778e6d88190a2f256e0b8bf87f5: [Object],
+      msg_0e0d8772fc329943016ad5e77a7fe48190ab5f6456b0a84e05: [Object]
+    },
+    request_fields: { instructions: [Object] }
+  }
+}
+[AI TOKEN USAGE] requestId=b272658e-712f-47d5-b9fa-d6f3bf71ceae operationId=mvf2lr29-be5e7f60 operation=chat-reply provider=compat model=gpt-5.6-luna capability=text transport=responses-file-input-nonstream source=provider input=1841 output=35 total=1876 cached=0 reasoning=0 estimatedText=0 durationMs=4767
+[AI TOKEN TOTAL] requestId=b272658e-712f-47d5-b9fa-d6f3bf71ceae operationId=mvf2lr29-be5e7f60 operation=chat-reply provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=1841 output=35 total=1876 cached=0 reasoning=0 estimatedText=0
+[GPT ANSWER] mode=default model=gpt-5.6-luna length=standard paragraphs=1 chars=105  
+[TELEGRAM AI REPLY LENGTH] model=gpt-5.6-luna rawChars=105 finalChars=105 visibleChars=130 streamObserved=false
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=130 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=130 messageId=15501 sent=-
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\bot.sqlite.before-targeted-browser-reparse-20261016.sqlite rows=140917 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\bot.sqlite.before-no-poster-force-reparse-20261016.sqlite rows=140763 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Накурит кто ???"
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="поверь мне, я даж варить замороженные продукты иногда проваливаюсь"
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Ахахаха"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-16T15-36-01-098Z.sqlite rows=140712 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Типа степени двойки, эзотерическое значение пиздец, кармическое число зверя, альфа ПВП дрочить в подъезде инкогнито"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-16T09-35-59-951Z.sqlite rows=140127 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Только соль."
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Есть???"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-16T03-35-59-948Z.sqlite rows=139472 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Приезжай"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-15T21-35-59-935Z.sqlite rows=138493 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Не могу, у меня тут беспилотник в квартире"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-15T15-35-59-925Z.sqlite rows=137933 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Че молчишь петух"
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Понятннно))))))"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Кто петух"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\poster-recovery-2026-10-13.sqlite rows=134080 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Где"
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Ты уйдешь на войну"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-10-12T12-00-07-161Z\bot.sqlite rows=132135 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Солод вроде спит"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-shared-multi-image-repair-20260929-161322.sqlite rows=96203 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Это хмель братишка"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-no-poster-delete-20260925.sqlite rows=91933 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Ты будешь меня ждать?"
+[VK MESSAGE] peerId=2000000006 senderId=181824119 isChat=true text=""
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-no-poster-purge-2026-09-25T08-43-31-878Z.sqlite rows=91933 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-no-poster-purge-2026-09-25T08-44-45-833Z.sqlite rows=91933 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Тебя уже там ждут"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-configured-registry-20260924-135409.sqlite rows=88476 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Братишка, я тебе покушать принёс"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-dedupe-apply-2026-09-24.sqlite rows=87534 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Да именно ты и уйдешь"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-mono-image-restore-2026-09-24.sqlite rows=87523 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-targeted-audit-2026-09-24.sqlite rows=87467 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-pre-poster-repair-2026-09-23T124500.sqlite rows=85496 target=2000000006
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="- Не иди туда, тебя там ждут неприятности\n- Ну как же не идти, они же ждут"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Уверен, что у тебя талант, и даже неудачи наивкуснейше получаются"
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Поздравляю)))"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-pre-poster-repair-2026-09-23.sqlite rows=85392 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\bot_debug_copy.sqlite rows=60585 target=2000000006
+[VK HISTORY LOCAL SQLITE READ COPY] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T12-11-57-845Z\readable-salvage.sqlite copy=C:\Users\Adm\AppData\Local\Temp\gigorave-history-snapshot-pPdUgr\readable-salvage.sqlite
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text="С таким кучерявым базаром тебе тут скорее  по носу щёлкнут, чем накурят😂😂😂"
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T12-11-57-845Z\readable-salvage.sqlite rows=25066 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\corruption-backups\2026-09-13T12-11-57-845Z\bot.sqlite rows=52530 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\pre-v170-20260907-000244\bot.sqlite rows=21 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\db-manual\bot — копия.sqlite rows=748 target=2000000006
+[VK HISTORY LOCAL SQLITE] file=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\backups\bot-before-history-link-1787835274725.sqlite rows=9022 target=2000000006
+[VK HISTORY LOCAL SQLITE DONE] peer=2000000006 files=42 readable=36 rows=3718672 checkpointRows=145512 coverageMaxCmid=210111 coverageRows=145512 checkpoint=v2
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1792317165 max=3500 reason=startup
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152204-152303
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=98 new=1 existing=96 cmid=152204-152303
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152104-152203
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=152004-152103
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=152079 type=joined member=1011622830 actor=16296974
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=152084 type=left member=1011622830 actor=1011622830
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151904-152003
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151804-151903
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151704-151803
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151604-151703
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151504-151603
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Туполева 7, я ща беспилотник собью и приеду с колбой"
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151404-151503
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151304-151403
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=997 new=1 existing=970 cmid=151304-151403
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151204-151303
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151104-151203
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=151004-151103
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=151096 type=joined member=39231201 actor=19170665
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=150904-151003
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=150804-150903
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=150704-150803
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=16 requested=1600 received=1597 new=1 existing=1466 cmid=150704-150803
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1600 received=1597 new=1 existing=1466 cutoff=1792317165 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Ладно, давайте о чем-нибудь хорошем"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Всем хорошей недели"
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="А уже поздно"
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="Хорошего ,нюхай"
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text="До встречи"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Что поздно что нюхать какая встреча"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="С кем она разговаривает?"
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="оййй, не смущай 🥰🥰"
+[VK MESSAGE] peerId=2000000006 senderId=181824119 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="да поебитесь уже"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Яна злая"
+[STYLE PERSONALIZATION SEED] peerId=2000000006 userId=137426455 cursor=1792403389:152285 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1011622830 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=181824119 isChat=true text="Который день"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="Тимасин просто ушел и не возвращается"
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="А че, больше ноги никто не лобызает?"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Егор Котлубаев"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Сексуальная"
+[VK MESSAGE] peerId=2000000006 senderId=456319058 isChat=true text="Если у неё не ласты то можно!!"
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="Ды полчата)"
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="https://www.bigo.tv/ru/Blonda777"
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="танюхаа"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Полчата типо сыны полка?"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Закладку идёшь?"
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="надо просмотров набить шалаве"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Полк наркоманов рейверов и ебланов"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Упоротые Войска России"
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="она наркоманка солевая"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Я"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Алеся, хочу тебя"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Я бы пяточки алеси"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Можно даже как Панин любил"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Не Евгений"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А актер"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ну вы поняли \nНадеюсь"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Вооо"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Что за Танюха"
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="Пятки яны полижи. У нас добрый чатик, а она все портит"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Хочу Алесю"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Не могу"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Она тимасина любит"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Но когда нибудь я устрою с Яной и с тимасином"
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="И тебя полюбит"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Если разведусь, обязательно разорву эту сучьку"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ма ты понимаешь \nОна меня не любит"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="И эту"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Бля в пизду надо поработат."
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="И эту"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А эту в целом и прям щас бы порвал"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Эдик и Ждик \nОДИН И ТОТ ЖЕ ЧЕЛОВЕК"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="жду!"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="разводиться на самом деле необязательно"
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="Какие-то сегодня одни рвуны в чятике. Бодунят, наверн"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Оч сильно"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Нехуй было так бухать"
+[VK MESSAGE] peerId=2000000006 senderId=196514685 isChat=true text="похмелье с выходных"
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="Я и говорю"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Дети орут паясничают"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Цветы жизни"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Как ?"
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="А могли бы НА ЗАВОДЕ ХУЯРИТЬ"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="3 л выпил"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Мб больше чуть"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Чтоб весь день потом блевать"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Я не блюю"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Прост хуево"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Это частушки любителя снюса и мотора Кирилла Эдмундовича Ебуна"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Поэт прозаик алкаш"
+[VK MESSAGE] peerId=2000000006 senderId=1126872974 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=283656478 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=1055206327 isChat=true text="Ебать, + 2к сообщений. Меньше суток в ВК не заходил..."
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Заставка как будто видос про шизотерику"
+[VK MESSAGE] peerId=2000000006 senderId=283038299 isChat=true text="Энергии чакры аффирмации Елена Блаватская открыла дверь все вахуе"

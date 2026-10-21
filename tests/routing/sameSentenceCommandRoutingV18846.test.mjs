@@ -98,6 +98,13 @@ test('VK mentions and Telegram username use the same same-sentence router', () =
     assert.equal(routeAddressed('id @Gigorave_bot').route, 'id');
 });
 
+test('Markdown VK bot link keeps addressed persona commands local', () => {
+    const value = '[Гигорейв](https://vk.ru/gigorave) будь лохом';
+    assert.equal(tools.containsBotMention(value), true);
+    assert.deepEqual(candidates(value), ['будь лохом']);
+    assert.equal(routeAddressed(value).route, 'communication-style');
+});
+
 test('special fast-path command families accept command before/after bot name', () => {
     const matrix = [
         [parseAutoSummaryCommand, 'резюмирование статус', (p) => p?.matched && p.action === 'status'],

@@ -1,0 +1,49 @@
+[TEST ISOLATION] data=C:\Users\Adm\AppData\Local\Temp\gigorave-test-nne9wu\data
+✔ V188.12 approved proposal does not await the expensive verified snapshot rebuild (1.0102ms)
+✔ owner moderation goes through a shared lock before generic proposal routing (0.6874ms)
+✔ V188.14 a fresh VK/Telegram source link escapes pending draft-edit state (1.1889ms)
+✔ V188.14 correction containing a generic URL is not blindly treated as a new proposal (0.1567ms)
+✔ proposal links now enrich a durable draft instead of restarting it (1.0075ms)
+✔ V188.14 Diesel Bar post resolves venue, date, start time and price locally (34.9179ms)
+✔ V188.14 semantic venue audit uses poster facts and respects is_event=false (1.2509ms)
+[SCRAPER V130 DATE CLEANUP] telegramRemoved=0 vkRemoved=0
+[SCRAPER V147 DB REPAIR] vkSharedMediaCleared=0 telegramSharedMediaCleared=0 generatedCleared=0
+(node:1192) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ durable submission token prevents duplicates and edits only pending proposals (1.6827ms)
+✔ entry aliases for all users preserve owner direct-add route (1.081ms)
+✔ submission requirements differ from autoapproval, contacts/photo optional (1.2457ms)
+✔ complete draft requires confirmation and duplicate submit creates one proposal (2.782ms)
+✔ incomplete as-is explicitly confirms missing fields; contacts not requested (1.2416ms)
+✔ cancel during parse discards late result; old buttons cannot affect new draft (3.9043ms)
+✔ cancel during prepare creates nothing (1.4519ms)
+✔ back undoes changes; stale confirm cannot send modified draft (1.552ms)
+✔ restart preserves draft; explicit command does not discard it (0.5244ms)
+✔ new photo and link enrich existing draft, do not replace manual fields or old photo (1.3187ms)
+✔ parse failure and timeout retain previous data and controls (7.6824ms)
+✔ owner reply requires confirmation, preserves moderation, nonowner cannot moderate (0.9348ms)
+✔ cross-user callback cannot access draft (0.2734ms)
+✔ multi-event enrichment requires explicit target; contacts correction survives (0.9274ms)
+✔ photo persistence failure retains draft and permits explicit removal (0.5929ms)
+✔ failed reply retains moderation and back restores reply input (0.2746ms)
+✔ cancel then a fresh parse does not allow older parser to release its lock (1.7463ms)
+✔ V130 proposal hard requirements: date and venue are mandatory, time is optional (2.4665ms)
+✔ V130 explicitly deferred venue is valid and still allows missing time (0.2218ms)
+✔ V130 past dates never submit (0.207ms)
+✔ V130 corrections can fill required and optional fields (18.5623ms)
+telegram bot tests: OK
+(node:55052) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tests\platforms\telegramBot.test.mjs (202.1765ms)
+✔ proposal prompt supplies a native copy button while retaining the back menu (1.899ms)
+✔ V130 explicit parser command escapes pending proposal menu state (31.5965ms)
+✔ V130 image-only message in proposal mode becomes proposal command and keeps media path open (0.6451ms)
+✔ TG back reaches durable proposal; reset escapes every menu state (1.1142ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 945.9544

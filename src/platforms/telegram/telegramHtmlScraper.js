@@ -1,3 +1,4 @@
+import { applyPosterGateResult } from '../../features/scrapers/posterGateResult.js';
 /**
  * Скрейпер публичных Telegram-каналов через браузер: читает посты, сохраняет источники и передаёт только строгие события.
  */
@@ -20,6 +21,8 @@ import {
     markManualParserSeenItemProcessing,
     upsertManualParserSeenItem,
     getTelegramPostMeta,
+    isPermanentlyBlockedMonoSource,
+    upsertTelegramSourcePost,
     getTelegramScraperState,
     getTelegramUpcomingEvents,
     persistTelegramSourceAndEvents,
@@ -37,6 +40,7 @@ import {
     assignEventImageIndexesFromFacts,
     applyPosterDerivedVenueFallback,
     parseIndexedImageFacts,
+    serializeIndexedImageFacts,
     filterEventsWithAnnouncementImages,
 } from '../../features/events/eventAssets.js';
 
@@ -54,6 +58,8 @@ import {
     explainPublicPostEventCandidate,
     parsePublicPostLocally,
     publicPostLooksLikeEventCandidate,
+    selectPublicAiEventsForPersistence,
+    setPublicAiResponseMetadata,
     validatePublicAiEvents,
 } from '../../features/events/publicPostLocalParser.js';
 
@@ -71,6 +77,9 @@ import {
 
 import {
     shouldPreserveStoredEventsOnEmptyReparse,
+    shouldRetryEntireEventBatchAfterValidation,
+    shouldPreserveStoredEventsOnPartialReparse,
+    getSourceEventLedgerStatus,
 } from '../../features/events/sourceEventPersistence.js';
 
 import {
@@ -79,6 +88,7 @@ import {
 
 import {
     storedImageResultIsReusable,
+    pendingVisionImageIndexes,
     textEventsAreComplete,
     visionSkipReason,
 } from '../../features/events/eventVisionPolicy.js';
@@ -126,7 +136,7 @@ export {
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_HTML_BYTES = 5 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
-const MAX_IMAGES_PER_POST = 12;
+const MAX_IMAGES_PER_POST = 1000;
 const MAX_PAGES_PER_RUN = 30;
 
 const activeRunPromises = new Map();
@@ -961,7 +971,7 @@ async function fingerprintTelegramPostImages(post, {
     return fingerprintRemoteImages({
         imageUrls: post.imageUrls,
         maximum: MAX_IMAGES_PER_POST,
-        posterOnly: true,
+        includeUiImages: true,
         fetchBuffer: browserFallback
             ? (url) => browserDownloadBuffer({
                 url,
@@ -988,6 +998,7 @@ async function processPost(post, {
     timeZone,
     manualRun = false,
     forceReprocess = false,
+    incrementalOnly = false,
     ledgerContext = null,
     traceAi = null,
 }) {
@@ -997,7 +1008,29 @@ async function processPost(post, {
         channel: post.channel,
         messageId: post.messageId,
     });
+    if (isPermanentlyBlockedMonoSource({
+        sourceType: 'telegram',
+        sourceItemId: `telegram:${post.channel}:${post.messageId}`,
+        sourceUrl: post.sourceUrl,
+        canonicalPostUrl: post.sourceUrl,
+    })) {
+        traceAi?.('database.skip', { reason: 'permanent-mono-source-block' });
+        console.log('[PERMANENT EVENT SOURCE SKIP]', `source=telegram:${post.channel}/${post.messageId}`);
+        return { changed: false, eventCount: 0, skippedPermanentSource: true };
+    }
     const previousImageFingerprints = parseImageFingerprints(previous?.imageFingerprintsJson);
+    let storedImageVisionFacts = [];
+    try {
+        const parsed = JSON.parse(String(previous?.imageVisionFactsJson || '[]'));
+        storedImageVisionFacts = Array.isArray(parsed) ? parsed : [];
+    } catch {
+        storedImageVisionFacts = [];
+    }
+    const expectedStoredImageCount = Math.max(
+        previousImageFingerprints.length,
+        Array.isArray(post?.imageUrls) ? post.imageUrls.length : 0,
+    );
+    const hasPendingVisionImage = pendingVisionImageIndexes(expectedStoredImageCount, storedImageVisionFacts).length > 0;
     const previousImagePaths = (() => {
         try {
             const parsed = JSON.parse(String(previous?.imagePathsJson ?? '[]'));
@@ -1010,14 +1043,14 @@ async function processPost(post, {
     );
     const onlyGeneratedFallbacks = previousImagePaths.length > 0 && previousImagePaths.every((path) => /-event-\d+\.png$/iu.test(path));
     const hasMissingLocalImage = previousImagePaths.some((path) => !existsSync(join(dataDirectory, path)));
-    const needsStrictImageRevalidation = Number(previous?.eventCount ?? 0) > 0 && (
+    const needsStrictImageRevalidation = (Number(previous?.eventCount ?? 0) > 0 && (
         Number(previous?.eventsWithoutImages ?? 0) > 0 ||
         !previousImagePaths.length || onlyGeneratedFallbacks || hasMissingLocalImage
-    );
+    )) || hasPendingVisionImage;
 
     if (sourceContentHashMatches(previous?.contentHash, post, {
         legacyParserVersions: TELEGRAM_LEGACY_HASH_VERSIONS,
-    }) && fingerprintsBackfilled && !needsStrictImageRevalidation && !forceReprocess) {
+    }) && fingerprintsBackfilled && !needsStrictImageRevalidation && !forceReprocess && incrementalOnly && Number(previous.eventCount || 0) > 0) {
         return { changed: false, eventCount: Number(previous.eventCount ?? 0) };
     }
 
@@ -1114,6 +1147,11 @@ async function processPost(post, {
     const visionImageUrls = [...new Set(imageFingerprints
         .map((item) => String(item?.url ?? '').trim())
         .filter((url) => /^https?:\/\//iu.test(url)))];
+    const phaseTwoFacts = (post?.__dateFreeVisionPhase ? parseIndexedImageFacts(post?.__posterGateFacts || '') : [])
+        .map((fact) => ({ ...fact, index: visionImageUrls.indexOf(post.imageUrls?.[Number(fact.index) - 1]) + 1 }))
+        .filter((fact) => fact.index > 0);
+    const pendingVisionIndexes = pendingVisionImageIndexes(visionImageUrls.length, [...storedImageVisionFacts, ...phaseTwoFacts]);
+    const allVisionImagesTerminal = visionImageUrls.length > 0 && pendingVisionIndexes.length === 0;
     const skipVisionReason = visionSkipReason({
         textComplete,
         storedImageReusable,
@@ -1122,22 +1160,52 @@ async function processPost(post, {
     });
 
     let enrichedPost = post;
-    let imageFacts = String(post?.__posterGateFacts || '').trim();
+    let imageFacts = [
+        serializeIndexedImageFacts(storedImageVisionFacts),
+        String(post?.__posterGateFacts || '').trim(),
+    ].filter(Boolean).join('\n\n');
     const shouldRunVision = Boolean(
-        !imageFacts &&
-        !skipVisionReason &&
-        (!nearDuplicateText || imageChanged)
+        typeof extractImageFactsWithAi === 'function' &&
+        visionImageUrls.length > 0 &&
+        !allVisionImagesTerminal &&
+        (!skipVisionReason || skipVisionReason === 'same-image-already-materialized-in-db')
     );
     if (shouldRunVision) {
         try {
+            const durableFacts = new Map(storedImageVisionFacts
+                .map((fact) => [Number(fact?.index || 0), fact])
+                .filter(([index]) => index > 0));
+            const persistVisionProgress = () => {
+                upsertTelegramSourcePost({
+                    channel: post.channel, messageId: post.messageId, sourceUrl: post.sourceUrl,
+                    publishedAt: post.publishedAt, rawText: post.text, imageUrls: post.imageUrls,
+                    imagePaths: previousImagePaths, contentHash, textFingerprint, imageFingerprints,
+                    imageVisionFacts: [...durableFacts.values()], parseStatus: 'vision_processing',
+                    fetchedAt: Math.floor(Date.now() / 1000),
+                });
+            };
             imageFacts = String(await runEventOperationWithRetries(
                 () => extractImageFactsWithAi({
                     ...post,
                     imageUrls: visionImageUrls,
                     imageFingerprints,
+                    __storedImageVisionFacts: serializeIndexedImageFacts([...durableFacts.values()]),
+                    __onImageVisionResult: ({ imageNumber, factText, retryable = false } = {}) => {
+                        const fact = parseIndexedImageFacts(String(factText || ''))
+                            .find((item) => Number(item?.index || 0) === Number(imageNumber || 0));
+                        if (!fact) return;
+                        durableFacts.set(Number(imageNumber), {
+                            ...fact,
+                            ...(retryable ? { visionInspected: false, visionStatus: 'error' } : {}),
+                            imageUrl: String(visionImageUrls[Number(imageNumber) - 1] || ''),
+                        });
+                        persistVisionProgress();
+                    },
                 }),
                 {
                     label: `telegram-public-vision:${post.channel}/${post.messageId}`,
+                    // Vision may transiently return 503/empty output. Retry
+                    // the operation while preserving per-image progress.
                     maxAttempts: 1,
                     onAttemptError: ({ round, maxRounds, willRetry, delayMs, errorMessage }) => {
                         const row = { stage: 'vision', round, maxRounds, willRetry, delayMs, error: errorMessage };
@@ -1159,6 +1227,7 @@ async function processPost(post, {
                     },
                 },
             ) ?? '').trim();
+            persistVisionProgress();
         } catch (error) {
             console.error('[TG HTML VISION ERROR]', `post=${post.channel}/${post.messageId}`, String(error?.message ?? error));
         }
@@ -1172,6 +1241,7 @@ async function processPost(post, {
         enrichedPost = {
             ...post,
             text: [post.text, '[Факты с афиши]', imageFacts].filter(Boolean).join('\n\n'),
+            ...(post.__dateFreeVisionPhase ? { __sourceAnnouncementText: String(post.text || '') } : {}),
         };
     }
 
@@ -1180,18 +1250,23 @@ async function processPost(post, {
     // После чтения афиши финальная семантическая сверка нужна даже если текст
     // сам по себе выглядел полным: poster facts могут исправить дату/место/title.
     const canCallAi = typeof extractEventsWithAi === 'function' &&
-        (!nearDuplicateText || imageChanged) &&
+        (acceptedDateFreePoster(post) || !nearDuplicateText || imageChanged) &&
         (publicPostLooksLikeEventCandidate(enrichedPost) || Boolean(imageFacts));
     let aiRawCount = 0;
     let aiValidatedCount = 0;
     let aiError = '';
+    let aiEvents = null;
+    let validatedAiEvents = null;
+    const aiDecisionRequired = Boolean(canCallAi);
 
     if (canCallAi) {
         try {
-            const aiEvents = await runEventOperationWithRetries(
+            aiEvents = await runEventOperationWithRetries(
                 () => extractEventsWithAi(enrichedPost),
                 {
                     label: `telegram-public-ai:${post.channel}/${post.messageId}`,
+                    // Keep a failed item retryable instead of terminating the
+                    // current parser batch on the first model error.
                     maxAttempts: 1,
                     onAttemptError: ({ round, maxRounds, willRetry, delayMs, errorMessage }) => {
                         const row = { stage: 'ai-extraction', round, maxRounds, willRetry, delayMs, error: errorMessage };
@@ -1213,20 +1288,45 @@ async function processPost(post, {
                     },
                 },
             );
+            if (Array.isArray(aiEvents) && typeof aiEvents.aiResponseValid !== 'boolean') {
+                setPublicAiResponseMetadata(aiEvents, {
+                    structure: aiEvents.aiStructureDecision ?? aiEvents[0]?._structure ?? aiEvents[0]?.structure ?? '',
+                    reason: aiEvents.aiStructureReason ?? aiEvents[0]?._structureReason ?? '',
+                    valid: false,
+                    error: 'extractor-did-not-provide-response-validation',
+                });
+            }
             aiRawCount = Array.isArray(aiEvents) ? aiEvents.length : 0;
-            const validated = validatePublicAiEvents(aiEvents, enrichedPost).map((event) => ({
+            const validatedRaw = validatePublicAiEvents(aiEvents, enrichedPost);
+            validatedAiEvents = validatedRaw.map((event) => ({
                 ...event,
                 structureDecision: String(aiEvents?.[0]?._structure || aiEvents?.[0]?.structure || '').trim(),
                 structureReason: String(aiEvents?.[0]?._structureReason || aiEvents?.[0]?.structure_reason || '').trim(),
             }));
-            aiValidatedCount = validated.length;
-            if (validated.length) events = validated;
+            setPublicAiResponseMetadata(validatedAiEvents, {
+                structure: validatedRaw.aiStructureDecision,
+                reason: validatedRaw.aiStructureReason,
+                valid: validatedRaw.aiResponseValid,
+                error: validatedRaw.aiResponseError,
+            });
+            aiValidatedCount = validatedAiEvents.length;
         } catch (error) {
             aiError = String(error?.message ?? error);
             console.error('[TG HTML GIGACHAT ERROR]', `post=${post.channel}/${post.messageId}`, aiError);
         }
     }
 
+    const aiOutcome = selectPublicAiEventsForPersistence({
+        localEvents: events,
+        aiEvents,
+        validatedEvents: validatedAiEvents,
+        aiRequired: aiDecisionRequired,
+        aiCalled: canCallAi && Boolean(aiEvents),
+        aiError,
+        post: enrichedPost,
+        timeZone,
+    });
+    events = aiOutcome.events;
     const parsedEvents = events;
     const rejectedEvents = [];
     events = parsedEvents.filter((event) => {
@@ -1234,7 +1334,7 @@ async function processPost(post, {
             rejectedEvents.push({ event, reason: 'event-date-before-today' });
             return false;
         }
-        if (!isEventDateConsistentWithSource({
+        if (!acceptedDateFreePoster(post) && !isEventDateConsistentWithSource({
             eventDate: event?.eventDate,
             sourceText: enrichedPost.text,
             publishedAt: post.publishedAt,
@@ -1243,17 +1343,33 @@ async function processPost(post, {
             rejectedEvents.push({ event, reason: 'event-date-not-supported-by-source' });
             return false;
         }
-        const strict = explainStrictEventRecord(event, { sourceText: enrichedPost.text });
+        const strict = explainStrictEventRecord(event, { sourceText: enrichedPost.text, trustedPosterEvent: acceptedDateFreePoster(post) });
         if (!strict.ok) {
             rejectedEvents.push({ event, reason: `strict:${strict.reason}` });
             return false;
         }
         return true;
     });
+    // A confirmed poster in phase 2 is sufficient evidence by itself.  Do not
+    // discard valid events merely because another event in the same AI batch
+    // failed strict validation; keep that rejection in the audit instead.
+    if (shouldRetryEntireEventBatchAfterValidation({
+        aiRequired: aiDecisionRequired, notEvent: aiOutcome.notEvent,
+        confirmedPoster: acceptedDateFreePoster(post),
+        parsedCount: aiOutcome.events.length, acceptedCount: events.length,
+        rejectedReasons: rejectedEvents.map((row) => row.reason),
+    })) {
+        events = [];
+        aiOutcome.resolved = false;
+        aiOutcome.unresolved = true;
+        aiOutcome.reason = 'ai-event-failed-final-validation';
+    }
+    const aiUnresolvedAfterValidation = Boolean(aiOutcome.unresolved && aiDecisionRequired);
 
     const posterBindingAudit = [];
     if (events.length) {
         events = assignEventImageIndexesFromFacts(events, imageFacts, {
+            dateFreePhase: acceptedDateFreePoster(post),
             onAudit: ({ event, imageIndex, accepted, reason, score, imageType, poster, posterConfidence, textReadability, facts }) => {
                 const eventLabel = `${event?.eventDate || '?'} ${String(event?.title || '').slice(0, 80)}`;
                 console.log('[EVENT POSTER MATCH]', eventLabel, `image=${imageIndex || 'none'}`, accepted ? `accepted:${reason}` : `rejected:${reason}`);
@@ -1302,18 +1418,26 @@ async function processPost(post, {
     )))];
     // Same poster already produced DB rows earlier: never erase them merely because
     // this pass intentionally skipped paid vision.
-    const preserveStoredEvents = shouldPreserveStoredEventsOnEmptyReparse({
+    const preserveStoredEvents = aiUnresolvedAfterValidation || shouldPreserveStoredEventsOnEmptyReparse({
         previousEventCount: previous?.eventCount,
         acceptedEventCount: events.length,
+    }) || shouldPreserveStoredEventsOnPartialReparse({
+        previousEventCount: previous?.eventCount,
+        acceptedEventCount: events.length,
+        phaseTwo: acceptedDateFreePoster(post),
     });
     const imagePaths = preserveStoredEvents ? previousImagePaths : newImagePaths;
-    const effectiveEventCount = preserveStoredEvents ? Number(previous.eventCount) : events.length;
+    const effectiveEventCount = aiUnresolvedAfterValidation
+        ? Number(previous?.eventCount || 0)
+        : preserveStoredEvents ? Number(previous?.eventCount || 0) : events.length;
     const fetchedAt = Math.floor(Date.now() / 1000);
 
     const candidate = publicPostLooksLikeEventCandidate(enrichedPost) || Boolean(imageFacts);
     const ledgerToCommit = ledgerContext &&
-        !(candidate && canCallAi && aiError && !effectiveEventCount)
-        ? { ...ledgerContext, parseStatus: effectiveEventCount > 0 ? 'processed_event' : 'processed_not_event' }
+        !aiUnresolvedAfterValidation
+        ? { ...ledgerContext, parseStatus: getSourceEventLedgerStatus({
+            events: parsedEvents, rejectedEvents, acceptedEventCount: effectiveEventCount,
+        }) }
         : null;
     await runEventOperationWithRetries(
         () => persistTelegramSourceAndEvents({
@@ -1329,17 +1453,18 @@ async function processPost(post, {
             textFingerprint,
             imageFingerprints,
             imageVisionFacts: parseIndexedImageFacts(imageFacts),
-            parseStatus: effectiveEventCount ? 'event' : 'not_event',
+            parseStatus: aiUnresolvedAfterValidation ? 'failed_retryable' : effectiveEventCount ? 'event' : 'not_event',
             fetchedAt,
             },
             ledger: ledgerToCommit,
-            replacement: preserveStoredEvents ? null : {
+            replacement: aiUnresolvedAfterValidation || !events.length ? null : {
             channel: post.channel,
             messageId: post.messageId,
             sourceUrl: post.sourceUrl,
             imagePaths,
             events,
             updatedAt: fetchedAt,
+            preserveUnmatchedStoredEvents: preserveStoredEvents,
             },
         }),
         { label: `telegram-source-and-events-db:${post.channel}/${post.messageId}` },
@@ -1351,9 +1476,11 @@ async function processPost(post, {
         sourceKey: post.channel,
         itemId: post.messageId,
         sourceUrl: post.sourceUrl,
-        status: effectiveEventCount ? 'stored-event' : 'rejected-or-not-event',
-        reason: preserveStoredEvents
-            ? 'preserved-existing-events-after-empty-reparse'
+        status: aiUnresolvedAfterValidation ? 'retryable-unresolved' : effectiveEventCount ? 'stored-event' : 'rejected-or-not-event',
+        reason: aiUnresolvedAfterValidation
+            ? 'ai-structure-unresolved'
+            : preserveStoredEvents
+                ? 'preserved-existing-events-after-empty-reparse'
             : effectiveEventCount
                 ? 'stored-in-telegram_events'
                 : parsedEvents.length
@@ -1397,6 +1524,9 @@ async function processPost(post, {
     return {
         changed: true,
         eventCount: effectiveEventCount,
+        nonEventLabel: !effectiveEventCount && aiOutcome.notEvent
+            ? String(aiOutcome.structureReason || '').trim()
+            : '',
         ledgerFinalized: Boolean(ledgerToCommit),
         eventsCreatedCount: Number(previous?.eventCount || 0) > 0 ? 0 : effectiveEventCount,
         eventsUpdatedCount: Number(previous?.eventCount || 0) > 0 ? effectiveEventCount : 0,
@@ -1405,7 +1535,7 @@ async function processPost(post, {
         posterMatchRejectedCount: posterBindingAudit.filter((item) => !item?.accepted).length,
         candidate,
         aiError,
-        unresolved: Boolean(candidate && canCallAi && aiError && !effectiveEventCount),
+        unresolved: aiUnresolvedAfterValidation,
     };
 }
 
@@ -1545,6 +1675,10 @@ export function createTelegramHtmlScraper({
         processingConcurrency = getManualParserProcessingConcurrency(),
         processingLimiter = null,
         incrementalOnly = false,
+        cachedItems = null,
+        resumeCompletedSince = 0,
+        phaseCount = 2,
+        itemIds = null,
     } = {}) {
         if (activeRunPromises.has(channel)) {
             return activeRunPromises.get(channel);
@@ -1555,7 +1689,9 @@ export function createTelegramHtmlScraper({
             const startedAt = Math.floor(Date.now() / 1000);
             const state = getTelegramScraperState(channel);
             const initialMode = forceInitial || !state?.initialCompleted;
-            const posts = initialMode
+            const posts = Array.isArray(cachedItems)
+                ? cachedItems.map((item) => ({ ...item }))
+                : initialMode
                 ? await collectInitialPosts({
                     channel,
                     targetCount: safeInitialMessages,
@@ -1582,7 +1718,7 @@ export function createTelegramHtmlScraper({
             finiteSourcePage = !keepPageOpen ? posts?.sourcePage : null;
             const stoppedByOwner = Boolean(posts?.stoppedByOwner);
 
-            if (!posts.length) {
+            if (!posts.length && !Array.isArray(cachedItems)) {
                 if (stoppedByOwner) {
                     const now = Math.floor(Date.now() / 1000);
                     updateTelegramScraperState({
@@ -1631,6 +1767,7 @@ export function createTelegramHtmlScraper({
                 const rawContentHash = hashPost(post);
                 const incrementalKnown = shouldSkipUnchangedCapturedItem({
                     incrementalOnly,
+                    resumeCompletedSince,
                     previous: ledgerBefore,
                     contentHash: rawContentHash,
                     isFinalStatus: isManualParserSeenItemFinalStatus,
@@ -1652,13 +1789,15 @@ export function createTelegramHtmlScraper({
                         publishedAt: Number(post?.publishedAt || 0),
                         referenceNow: post?.referenceNow,
                         timeZone,
+                        allowDateFreeImage: Number(phaseCount) !== 1,
+                        hasImage: Array.isArray(post?.imageUrls) && post.imageUrls.length > 0,
                     })
                     : null;
                 const decision = incrementalKnown
                     ? { candidate: false, aiEligible: false, score: -1000, reasons: ['clean-mode-content-hash-known'], evidence: { contentHashMatched: true }, aiAdmission: { rejectionReason: 'clean-mode-content-hash-known', dateSource: 'not-evaluated', contentHashMatched: true } }
                     : secondaryMode
                         ? {
-                            candidate: Boolean(secondaryTextGate?.visionEligible),
+                            candidate: Boolean(secondaryTextGate?.visionEligible || (post.__dateFreeVisionPhase && acceptedDateFreePoster(post))),
                             aiEligible: false,
                             score: Number(secondaryTextGate?.eventIntentConfidence || 0) + Number(secondaryTextGate?.titleConfidence || 0),
                             reasons: [secondaryTextGate?.route || 'blocked', ...(secondaryTextGate?.eventIntentReasons || [])],
@@ -1678,32 +1817,39 @@ export function createTelegramHtmlScraper({
                     : null;
                 // Full secondary reparse means reparse ALL captured posts. Existing
                 // DB evidence is retained in audit, but does not suppress AI.
-                const existing = (secondaryMode || (incrementalOnly && !incrementalKnown))
-                    ? null : existingEvidence;
+                // Full parser runs always process eligible captures; matches remain diagnostic.
+                const existing = (incrementalOnly && !incrementalKnown)
+                    ? null : (incrementalOnly ? existingEvidence : null);
                 if (existing) databaseSkippedCount += 1;
                 if (decision.candidate && !decision.aiEligible && !secondaryMode) aiRejectedCount += 1;
                 if (!decision.candidate && !incrementalKnown) trashCount += 1;
-                const aiCandidate = secondaryMode ? false : Boolean(decision.aiEligible && !existing);
+                const aiCandidate = secondaryMode ? false : Boolean(decision.aiEligible && (!incrementalOnly || !existing));
                 const priority = (aiCandidate || (secondaryMode && secondaryTextGate?.visionEligible)) ? decision.score : -1000;
                 const posterGateImageUrls = [...new Set((Array.isArray(post?.imageUrls) ? post.imageUrls : [])
                     .map((value) => String(value ?? '').trim())
-                    .filter((url) => /^https?:\/\//iu.test(url)))]
-                    .slice(0, 12);
-                const posterGatePending = secondaryMode
+                    .filter((url) => /^https?:\/\//iu.test(url))
+                    .filter((url) => !/(?:[?&])type=(?:audio|emoji|reaction|sticker|gift|icon)(?:&|$)/iu.test(url))
+                    .filter((url) => !/(?:^|[/?&._-])(?:emoji|reaction|sticker|favicon|badge|smile|avatar)(?:[/?&._=-]|$)/iu.test(url)))]
+                    .slice(0, 1000);
+                const phase1DateCandidate = Boolean(secondaryMode ? secondaryTextGate?.hasCalendarDateInBody : (decision?.evidence?.hasDate || decision?.aiAdmission?.hasCalendarDate));
+                const posterGatePending = (Number(phaseCount) === 1 && !phase1DateCandidate) ? false : secondaryMode
                     ? Boolean(!incrementalKnown && secondaryTextGate?.visionEligible && !existing && posterGateImageUrls.length)
-                    : Boolean(!incrementalKnown && !decision.aiEligible && !existing && posterGateImageUrls.length);
+                    : Boolean(!incrementalKnown && !decision.aiAdmission?.pastOnly && !decision.aiEligible && (!incrementalOnly || !existing) && posterGateImageUrls.length);
                 candidateDecisions.set(itemId, {
                     ...decision, existing, existingEvidence, aiCandidate, priority, bodyAiEligible: Boolean(decision.aiEligible),
                     posterGatePending, posterGateImageUrls, incrementalKnown, ledgerBefore, secondaryTextGate,
+                    visionPhase: phase1DateCandidate ? 'phase1' : 'phase2-date-free-image',
                 });
                 if (posterGatePending) {
                     posterGateRequests.push({
                         itemId, source: `t.me/${channel}`, sourceUrl: String(post?.sourceUrl || ''),
                         imageUrls: posterGateImageUrls, priority: Number(decision.score || 0),
+                        originalImageUrls: post.imageUrls,
                         score: Number(decision.score || 0), preview: parserCandidatePreview(post?.text),
                         sourceText: String(post?.text || ''),
                         secondaryJointGate: secondaryMode,
                         secondaryTextGate,
+                        visionPhase: phase1DateCandidate ? 'phase1' : 'phase2-date-free-image',
                     });
                 }
                 if (aiCandidate) candidateIds.add(itemId);
@@ -1812,6 +1958,8 @@ export function createTelegramHtmlScraper({
                     const itemId = String(post?.messageId ?? '');
                     const decision = candidateDecisions.get(itemId) || {};
                     return {
+                        visionPhase: decision.visionPhase,
+                        imageUrls: decision.posterGateImageUrls || [],
                         itemId,
                         source: `t.me/${channel}`,
                         sourceUrl: String(post?.sourceUrl || ''),
@@ -1851,24 +1999,25 @@ export function createTelegramHtmlScraper({
                     : null;
                 if (gate?.attempted) {
                     posterGateCheckedCount += 1;
-                    post.__posterGateVisionAttempted = true;
-                    post.__posterGateFacts = String(gate?.facts || '');
-                    post.__posterGateError = String(gate?.error || '');
+                    applyPosterGateResult(post, gate);
                 }
                 const secondaryTextGate = before.secondaryTextGate || null;
+                const dateFreeVisionAccepted = acceptedDateFreePoster(post);
                 const jointVisionAccepted = Boolean(
                     secondaryMode &&
-                    secondaryTextGate?.visionEligible &&
                     gate?.attempted &&
-                    secondaryJointVisionAccepted(gate?.facts)
+                    (post.__dateFreeVisionPhase ? dateFreeVisionAccepted : secondaryTextGate?.visionEligible && secondaryJointVisionAccepted(gate?.facts))
                 );
+                // Phase 2 is poster-first. A confirmed poster carries its own
+                // event evidence; text is enrichment and cannot veto it.
+                const phaseTwoPosterAccepted = Boolean(secondaryMode && dateFreeVisionAccepted);
                 if (secondaryMode) post.__secondaryJointVisionAccepted = jointVisionAccepted;
                 const decision = before.incrementalKnown
                     ? { candidate: false, aiEligible: false, score: -1000, reasons: ['clean-mode-content-hash-known'], evidence: { contentHashMatched: true }, aiAdmission: { rejectionReason: 'clean-mode-content-hash-known', dateSource: 'not-evaluated', contentHashMatched: true } }
                     : secondaryMode
                         ? {
-                            candidate: Boolean(secondaryTextGate?.visionEligible),
-                            aiEligible: jointVisionAccepted,
+                            candidate: Boolean(secondaryTextGate?.visionEligible || dateFreeVisionAccepted),
+                            aiEligible: phaseTwoPosterAccepted || jointVisionAccepted,
                             score: Number(before.score || 0),
                             reasons: [
                                 ...(Array.isArray(before.reasons) ? before.reasons : []),
@@ -1880,7 +2029,7 @@ export function createTelegramHtmlScraper({
                                 posterGateAttempted: Boolean(gate?.attempted),
                             },
                             aiAdmission: {
-                                eligible: jointVisionAccepted,
+                                eligible: phaseTwoPosterAccepted || jointVisionAccepted,
                                 admissionPath: 'secondary-joint-text-image',
                                 rejectionReason: jointVisionAccepted
                                     ? ''
@@ -1894,6 +2043,7 @@ export function createTelegramHtmlScraper({
                                 dateSource: 'semantic-post-text-only',
                                 secondaryTextGate,
                                 jointVisionAccepted,
+                                posterFirstAccepted: phaseTwoPosterAccepted,
                                 posterVisionAttempted: Boolean(gate?.attempted),
                                 posterVisionError: String(gate?.error || ''),
                                 posterFacts: String(gate?.facts || ''),
@@ -1902,13 +2052,13 @@ export function createTelegramHtmlScraper({
                         : explainPublicPostEventCandidate(post);
                 if (decision.candidate) structuralCandidateCount += 1;
                 const existing = (incrementalOnly && !before.incrementalKnown)
-                    ? null : (before.existing || null);
+                    ? null : (incrementalOnly ? (before.existing || null) : null);
                 if (existing) databaseSkippedCount += 1;
                 if (decision.candidate && !decision.aiEligible) aiRejectedCount += 1;
                 if (!decision.candidate && !before.incrementalKnown) trashCount += 1;
-                const aiCandidate = Boolean(decision.aiEligible && !existing);
+                const aiCandidate = Boolean(decision.aiEligible && (!incrementalOnly || !existing));
                 const priority = aiCandidate ? Number(decision.score || 0) : -1000;
-                if (secondaryMode && jointVisionAccepted) {
+                if (secondaryMode && (phaseTwoPosterAccepted || jointVisionAccepted)) {
                     posterGateRescuedCount += 1;
                 } else if (!secondaryMode && !before.bodyAiEligible && decision.aiEligible && decision?.aiAdmission?.dateSource === 'poster-vision') {
                     posterGateRescuedCount += 1;
@@ -1925,6 +2075,7 @@ export function createTelegramHtmlScraper({
                     secondaryMode,
                     secondaryTextGate,
                     jointVisionAccepted,
+                    phaseTwoPosterAccepted,
                     posterGateAttempted: Boolean(gate?.attempted),
                     posterGateFacts: String(gate?.facts || ''),
                     posterGateError: String(gate?.error || ''),
@@ -1948,6 +2099,7 @@ export function createTelegramHtmlScraper({
                 const itemId = String(post?.messageId ?? '');
                 const decision = candidateDecisions.get(itemId) || {};
                 return { itemId, source: `t.me/${channel}`, sourceUrl: String(post?.sourceUrl || ''),
+                    visionPhase: decision.visionPhase, imageUrls: decision.posterGateImageUrls || [],
                     preview: parserCandidatePreview(post?.text), candidate: Boolean(decision.candidate),
                     aiEligible: Boolean(decision.aiEligible), aiCandidate: Boolean(decision.aiCandidate),
                     reasons: Array.isArray(decision.reasons) ? decision.reasons : [], aiAdmission: decision.aiAdmission || null,
@@ -1983,9 +2135,12 @@ export function createTelegramHtmlScraper({
             let visionCheckedImageCount = 0;
             let posterMatchAcceptedCount = 0;
             let posterMatchRejectedCount = 0;
+            const nonEventLabels = new Map();
             let processedPosts = 0;
             let processedLastMessageId = Number(state?.lastMessageId ?? 0);
             const processingPosts = orderedPosts
+                .filter((post) => !Array.isArray(itemIds) || itemIds.map(String).includes(String(post?.messageId ?? '')))
+                .filter((post) => Number(phaseCount) !== 1 || candidateDecisions.get(String(post?.messageId ?? ''))?.visionPhase !== 'phase2-date-free-image' || !candidateDecisions.get(String(post?.messageId ?? ''))?.posterGateImageUrls?.length)
                 .filter((post) => !incrementalOnly || !candidateDecisions.get(String(post?.messageId ?? ''))?.incrementalKnown)
                 .sort((left, right) => {
                 const leftDecision = candidateDecisions.get(String(left?.messageId ?? '')) || {};
@@ -2046,7 +2201,8 @@ export function createTelegramHtmlScraper({
                             notifyAttention,
                             timeZone,
                             manualRun: keepPageOpen,
-                            forceReprocess: recoveringLedger,
+                            forceReprocess: recoveringLedger || resumeCompletedSince > 0,
+                            incrementalOnly: Boolean(incrementalOnly),
                             ledgerContext: { sourceId, itemId, runId: ledgerRunId },
                             traceAi: (stage, data = {}) => diagnostics?.log?.(`item.ai.${stage}`, {
                                 sourceId,
@@ -2088,6 +2244,8 @@ export function createTelegramHtmlScraper({
                     visionCheckedImageCount += Number(result?.visionCheckedImageCount || 0);
                     posterMatchAcceptedCount += Number(result?.posterMatchAcceptedCount || 0);
                     posterMatchRejectedCount += Number(result?.posterMatchRejectedCount || 0);
+                    const nonEventLabel = String(result?.nonEventLabel || '').trim();
+                    if (nonEventLabel) nonEventLabels.set(nonEventLabel, Number(nonEventLabels.get(nonEventLabel) || 0) + 1);
                     processedLastMessageId = Math.max(
                         processedLastMessageId,
                         Number(post.messageId ?? 0),
@@ -2131,16 +2289,31 @@ export function createTelegramHtmlScraper({
                     },
                 },
             );
-            processingResults.forEach((entry, index) => {
-                if (entry?.status !== 'rejected') return;
+            for (const [index, entry] of processingResults.entries()) {
+                if (entry?.status !== 'rejected') continue;
                 const post = processingPosts[index];
+                const exhausted = entry?.reason?.code === 'MANUAL_PARSER_RETRY_EXHAUSTED';
+                if (exhausted) {
+                    finalizeManualParserSeenItem({
+                        sourceId,
+                        itemId: String(post?.messageId ?? ''),
+                        runId: ledgerRunId,
+                        parseStatus: 'processed_unresolved',
+                        error: String(entry?.reason?.message ?? entry?.reason ?? ''),
+                    });
+                    const unresolvedError = entry?.reason || new Error('Parser exhausted recovery for unresolved item');
+                    unresolvedError.code = unresolvedError.code || 'MANUAL_PARSER_RETRY_EXHAUSTED';
+                    await diagnostics?.onParserItemError?.({ sourceId, itemId: String(post?.messageId ?? ''), sourceKind: 'telegram', item: post, error: unresolvedError, stage: 'processing-unresolved', sourceLabel: `Telegram @${channel}`, sourceUrl: post?.sourceUrl || `https://t.me/${channel}/${post?.messageId || ''}`, partyPool });
+                    continue;
+                }
                 markManualParserSeenItemFailed({
                     sourceId,
                     itemId: String(post?.messageId ?? ''),
                     runId: ledgerRunId,
                     error: String(entry?.reason?.message ?? entry?.reason ?? ''),
                 });
-            });
+                await diagnostics?.onParserItemError?.({ sourceId, itemId: String(post?.messageId ?? ''), sourceKind: 'telegram', item: post, error: entry?.reason, stage: 'processing-error', sourceLabel: `Telegram @${channel}`, sourceUrl: post?.sourceUrl || `https://t.me/${channel}/${post?.messageId || ''}`, partyPool });
+            }
             const failedProcessingItems = processingResults.filter((item) => item?.status === 'rejected').length;
             const timedOut = false;
             diagnostics?.log?.('source.processing.finish', {
@@ -2211,6 +2384,7 @@ export function createTelegramHtmlScraper({
                 visionCheckedImageCount,
                 posterMatchAcceptedCount,
                 posterMatchRejectedCount,
+                nonEventLabels: Object.fromEntries(nonEventLabels),
                 incrementalKnownSkippedCount,
                 incrementalNewCount,
                 timedOut,
@@ -2313,3 +2487,4 @@ export function createTelegramHtmlScraper({
         start,
     };
 }
+import { acceptedDateFreePoster } from '../../features/events/dateFreeEventEvidence.js';

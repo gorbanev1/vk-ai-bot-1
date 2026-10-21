@@ -29,16 +29,10 @@ test('V188.14 correction containing a generic URL is not blindly treated as a ne
     );
 });
 
-test('V188.14 restart routing executes before pending review corrections', () => {
-    const restartPos = appSource.indexOf('extractEventProposalRestartSource(commandText)');
-    const reviewPos = appSource.indexOf("if (pending.mode === 'review')", restartPos);
-    assert.ok(restartPos > 0);
-    assert.ok(reviewPos > restartPos);
-
-    const block = appSource.slice(restartPos - 500, reviewPos);
-    assert.match(block, /EVENT PROPOSAL NEW SOURCE RESTART/u);
-    assert.match(block, /mode: 'awaiting-input'/u);
-    assert.match(block, /return handleEventProposalSubmission\(context, restartSubmission\)/u);
+test('proposal links now enrich a durable draft instead of restarting it', () => {
+    const flow = readFileSync(new URL('../../src/features/events/eventProposalSubmission.js', import.meta.url), 'utf8');
+    assert.match(flow, /mergeProposalMaterial\(oldEvents, parsed.events\)/u);
+    assert.doesNotMatch(appSource, /EVENT PROPOSAL NEW SOURCE RESTART/u);
 });
 
 test('V188.14 Diesel Bar post resolves venue, date, start time and price locally', () => {

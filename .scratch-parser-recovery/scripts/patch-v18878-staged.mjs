@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+const p='src/platforms/vk/vkStagedDomParser.js';
+let s=fs.readFileSync(p,'utf8');
+s=s.replace("export function extractVkMessengerDomStaged({ peerId = 0 } = {}) {\n    const rootDocument = document;", "export function extractVkMessengerDomStaged({ peerId = 0, snapshotHtml = '', baseUrl = 'https://vk.ru/' } = {}) {\n    const rootDocument = snapshotHtml ? new DOMParser().parseFromString(String(snapshotHtml), 'text/html') : document;");
+s=s.replace("export function extractVkPublicDomStaged({ screenName = '' } = {}) {", "export function extractVkPublicDomStaged({ screenName = '', snapshotHtml = '', baseUrl = 'https://vk.ru/' } = {}) {\n    const rootDocument = snapshotHtml ? new DOMParser().parseFromString(String(snapshotHtml), 'text/html') : document;");
+const pubStart=s.indexOf('export function extractVkPublicDomStaged');
+if(pubStart<0) throw new Error('public staged parser not found');
+let before=s.slice(0,pubStart), pub=s.slice(pubStart);
+pub=pub.replace(/\bdocument\./g,'rootDocument.');
+pub=pub.replace(/new URL\(raw, location\.href\)/g,"new URL(raw, baseUrl || location.href)");
+s=before+pub;
+fs.writeFileSync(p,s);
+console.log('patched staged parser roots');

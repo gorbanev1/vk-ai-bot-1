@@ -35,19 +35,23 @@ test('degraded CDN fingerprints must never suppress a retry/vision, even when UR
     assert.equal(imageFingerprintSetsEqual([actual], [actual]), true);
 });
 
-test('primary and secondary cannot be merged by a shared title', () => {
+test('all-party aggregate merges primary and secondary when date and title identity match', () => {
     const primary = event(1, 'primary', 'STONEHAND концерт');
-    const secondary = event(2, 'secondary', 'STONEHAND встреча');
-    assert.equal(findAllPartySharedTitleWord(primary, secondary), '');
-    assert.equal(dedupeAllPartiesRealtime([primary, secondary]).events.length, 2);
+    const secondary = event(2, 'secondary', 'STONEHAND вечер');
+    const primaryMetadata = { ...primary, titleTokens: ['stonehand'] };
+    const secondaryMetadata = { ...secondary, titleTokens: ['stonehand', 'вечер'] };
+    assert.equal(findAllPartySharedTitleWord(primaryMetadata, secondaryMetadata), 'stonehand');
+    const result = dedupeAllPartiesRealtime([primary, secondary]);
+    assert.equal(result.events.length, 1);
+    assert.equal(result.groups.length, 1);
 });
 
-test('QTickets still dedupes against primary but cannot bridge primary to secondary', () => {
+test('QTickets can dedupe records across both pools in the all-party aggregate', () => {
     const primary = event(1, 'primary', 'STONEHAND концерт');
     const aggregator = event(2, 'qtickets', 'STONEHAND шоу', 'qtickets');
     const secondary = event(3, 'secondary', 'STONEHAND вечер');
     const output = dedupeAllPartiesRealtime([primary, aggregator, secondary]);
-    assert.equal(output.events.length, 2);
+    assert.equal(output.events.length, 1);
     assert.equal(output.events.filter((item) => item.sourceType === 'qtickets').length, 1);
 });
 

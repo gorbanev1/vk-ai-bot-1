@@ -1,0 +1,511 @@
+[TEST ISOLATION] data=C:\Users\Adm\AppData\Local\Temp\gigorave-test-4dXCdV\data
+✔ V18836 strong current/future repost candidate outranks old/noisy chat lines (30.9511ms)
+✔ global limiter arbitrates first free slots by candidate priority (90.2325ms)
+✔ diagnostic run persists verbatim DOM, parsed report and run manifest together (14.8665ms)
+✔ VK sources record exact-vs-fallback reasons and keep last DOM on interrupted public capture (0.5736ms)
+✖ parser-all invalidates stale display/image snapshot caches and audits final DB visibility (2.5316ms)
+✖ V188.58: parser poster vision no longer silently recaps configured 75s timeout to 25/30s (10.3603ms)
+✔ V188.58: legacy VK public fallback is constrained to routerState owner (2.3119ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 5
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 327.0724
+
+✖ failing tests:
+
+test at tests\scrapers\parserDiagnosticsV18836.test.mjs:96:1
+✖ parser-all invalidates stale display/image snapshot caches and audits final DB visibility (2.5316ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /label: `vk-public-vision:[^`]+`[\s\S]{0,100}maxAttempts: 1/u. Input:
+  
+  '/**\r\n' +
+    ' * Скрейпер публичных VK-страниц. Переиспользует общий браузер и строгую проверку событий.\r\n' +
+    ' */\r\n' +
+    "import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';\r\n" +
+    "import { createHash, randomInt } from 'node:crypto';\r\n" +
+    "import { extname, join } from 'node:path';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    findExistingAnnouncementEvidence,\r\n' +
+    '    finalizeManualParserSeenItem,\r\n' +
+    '    getManualParserSeenItem,\r\n' +
+    '    isManualParserSeenItemFinalStatus,\r\n' +
+    '    markManualParserSeenItemFailed,\r\n' +
+    '    markManualParserSeenItemProcessing,\r\n' +
+    '    upsertManualParserSeenItem,\r\n' +
+    '    getVkEventsForPostRefresh,\r\n' +
+    '    getVkPostMeta,\r\n' +
+    '    isPermanentlyBlockedMonoSource,\r\n' +
+    '    getVkScraperState,\r\n' +
+    '    getVkUpcomingEvents,\r\n' +
+    '    persistVkSourceAndEvents,\r\n' +
+    '    upsertVkSourcePost,\r\n' +
+    '    saveStartupPosterRepairVisionFactsV18877,\r\n' +
+    '    updateStoredEventRecordFromReparse,\r\n' +
+    '    updateVkScraperState,\r\n' +
+    "} from '../../infrastructure/database/index.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    browserDownloadBuffer,\r\n' +
+    '    openScraperPage,\r\n' +
+    '    settleScraperPage,\r\n' +
+    '    waitForManualAccess,\r\n' +
+    "} from '../../infrastructure/browser/browserGrabber.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    explainPublicPostEventCandidate,\r\n' +
+    '    parsePublicPostLocally,\r\n' +
+    '    publicPostLooksLikeEventCandidate,\r\n' +
+    '    selectPublicAiEventsForPersistence,\r\n' +
+    '    setPublicAiResponseMetadata,\r\n' +
+    '    validatePublicAiEvents,\r\n' +
+    "} from '../../features/events/publicPostLocalParser.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    prepareEventImages,\r\n' +
+    '    assignEventImageIndexesFromFacts,\r\n' +
+    '    applyPosterDerivedVenueFallback,\r\n' +
+    '    parseIndexedImageFacts,\r\n' +
+    '    serializeIndexedImageFacts,\r\n' +
+    '    filterEventsWithAnnouncementImages,\r\n' +
+    "} from '../../features/events/eventAssets.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    isScraperTargetClosedError,\r\n' +
+    "} from '../../features/scrapers/browserRecoveryPolicy.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    getManualParserProcessingConcurrency,\r\n' +
+    '    parserCandidatePreview,\r\n' +
+    '    runManualParserPoolUntilSettled,\r\n' +
+    "} from '../../features/scrapers/manualProcessingPool.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    rankEventImageCandidates,\r\n' +
+    "} from '../../features/events/eventImageSelection.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    cleanVkEventText,\r\n' +
+    "} from '../../features/events/eventText.js';\r\n" +
+    'import {\r\n' +
+    '    sanitizeEventBodyText,\r\n' +
+    "} from '../../features/events/eventTextSanitation.js';\r\n" +
+    'import {\r\n' +
+    '    attachVkChildSourceProvenance,\r\n' +
+    '    boundedVkEventSourceLinks,\r\n' +
+    '    classifyVkEventSourceUrl,\r\n' +
+    '    resolveVkShortUrlControlled,\r\n' +
+    "} from '../../features/events/vkEventLinkEnrichment.js';\r\n" +
+    'import {\r\n' +
+    '    mergeVkCapturedImageMedia,\r\n' +
+    "} from '../../features/events/vkCapturedMediaMerge.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    classifyVkSourcePageHealth,\r\n' +
+    "} from './vkSourcePageHealth.js';\r\n" +
+    '\r\n' +
+    '// The staged parser is serialized into page.evaluate() and is the stable\r\n' +
+    '// structure based fallback for immutable VK DOM snapshots.  Keep the legacy\r\n' +
+    '// extractor below as the exact contour; the staged parser is only admitted\r\n' +
+    '// when that contour cannot recover a post, so adaptive/heuristic recovery\r\n' +
+    '// never changes a healthy exact result.\r\n' +
+    "import { extractVkPublicDomStaged } from './vkStagedDomParser.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    explainStrictEventRecord,\r\n' +
+    "} from '../../features/events/eventValidation.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    appendEventIngestAudit,\r\n' +
+    "} from '../../features/events/eventIngestAudit.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    shouldPreserveStoredEventsOnEmptyReparse,\r\n' +
+    "} from '../../features/events/sourceEventPersistence.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    mergeStoredEventWithFreshSource,\r\n' +
+    '    selectFreshEventForStoredEvent,\r\n' +
+    "} from '../../features/events/eventSourceRefresh.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    runEventOperationWithRetries,\r\n' +
+    "} from '../../features/events/eventRetry.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    storedImageResultIsReusable,\r\n' +
+    '    pendingVisionImageIndexes,\r\n' +
+    '    textEventsAreComplete,\r\n' +
+    '    visionSkipReason,\r\n' +
+    "} from '../../features/events/eventVisionPolicy.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    extractRawDateMentions,\r\n' +
+    '    isEventDateConsistentWithSource,\r\n' +
+    '    parseVkPublishedAtLabel,\r\n' +
+    "} from '../../features/events/publicPostDateEvidence.js';\r\n" +
+    '\r\n' +
+    'import {\r\n' +
+    '    createSourceTextFingerprint,\r\n' +
+    '    fingerprintRemoteImages,\r\n' +
+    '    imageFingerprintSetsEqual,\r\n' +
+    '    parseImageFingerprints,\r\n' +
+    '    sourceTextSimilarity,\r\n' +
+    '    isLikelyVkNonPosterUiImageUrl,\r\n' +
+    "} from '../../features/events/sourcePostFingerprint.js';\r\n" +
+    '\r\n' +
+    '\r\n' +
+    'import {\r\n' +
+    '    explainSecondaryPartyTextGate,\r\n' +
+    '    secondaryJointVisionAccepted,\r\n' +
+    "} from '../../features/events/secondaryPartyAdmission.js';\r\n" +
+    "import { createVkPublicCaptureHash } from '../../features/events/vkPublicContentHash.js';\r\n" +
+    "import { shouldSkipUnchangedCapturedItem } from '../../features/scrapers/manualParserCleanSkip.js';\r\n" +
+    '\r\n' +
+    "const VK_PARSER_VERSION = 'vk-public-parser-multi-announcement-poster-repair-v18861';\r\n" +
+    'const ONE_DAY_MS = 24 * 60 * 60 * 1000;\r\n' +
+    'const MAX_HTML_BYTES = 8 * 1024 * 1024;\r\n' +
+    'const MAX_IMAGE_BYTES = 15 * 1024 * 1024;\r\n' +
+    'const MAX_IMAGES_PER_POST = 1000;\r\n' +
+    'const DEFAULT_USER_AGENT = [\r\n' +
+    "    'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',\r\n" +
+    "    'AppleWebKit/537.36 (KHTML, like Gecko)',\r\n" +
+    "    'Chrome/126.0.0.0 Safari/537.36',\r\n" +
+    "].join(' ');\r\n" +
+    'const activeRunPromises = new Map();\r\n' +
+    'const keptManualPages = new Map();\r\n' +
+    'const manualLiveLoops = new Map();\r\n' +
+    '\r\n' +
+    'function currentIsoDate(timeZone) {\r\n' +
+    "    const parts = new Intl.DateTimeFormat('en-CA', {\r\n" +
+    '        timeZone,\r\n' +
+    "        year: 'numeric',\r\n" +
+    "        month: '2-digit',\r\n" +
+    "        day: '2-digit',\r\n" +
+    '    }).formatToParts(new Date());\r\n' +
+    '    const map = Object.fromEntries(\r\n' +
+    '        parts.map((part) => [part.type, part.value]),\r\n' +
+    '    );\r\n' +
+    '    return `${map.year}-${map.month}-${map.day}`;\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    'function sleep(milliseconds) {\r\n' +
+    '    return new Promise((resolve) => setTimeout(resolve, milliseconds));\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    'function clampInteger(value, minimum, maximum, fallback) {\r\n' +
+    '    const parsed = Number(value);\r\n' +
+    '\r\n' +
+    '    if (!Number.isFinite(parsed)) {\r\n' +
+    '        return fallback;\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    '    return Math.min(maximum, Math.max(minimum, Math.trunc(parsed)));\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    'function normalizeScreenName(value) {\r\n' +
+    "    const source = String(value ?? '').trim();\r\n" +
+    '    const match = source.match(\r\n' +
+    '        /^(?:https?:\\/\\/)?(?:www\\.)?(?:vk\\.com|vk\\.ru|m\\.vk\\.com)\\/([A-Za-z0-9_.-]+)\\/?(?:\\?.*)?$/iu,\r\n' +
+    '    );\r\n' +
+    "    const screenName = (match?.[1] ?? source.replace(/^@/u, '')).trim();\r\n" +
+    '\r\n' +
+    '    if (!/^[A-Za-z0-9_.-]{2,}$/u.test(screenName)) {\r\n' +
+    '        throw new Error(`Некорректное имя VK-паблика: ${source}`);\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    '    return screenName;\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    'function decodeHtmlEntities(value) {\r\n' +
+    '    const named = {\r\n' +
+    `        amp: '&', apos: "'", gt: '>', lt: '<', nbsp: ' ', quot: '"',\r\n` +
+    "        laquo: '«', raquo: '»', mdash: '—', ndash: '–', hellip: '…', shy: '',\r\n" +
+    '    };\r\n' +
+    '\r\n' +
+    "    return String(value ?? '').replace(\r\n" +
+    '        /&(#x?[0-9a-f]+|[a-z][a-z0-9]+);/giu,\r\n' +
+    '        (entity, code) => {\r\n' +
+    '            const lower = String(code).toLowerCase();\r\n' +
+    '\r\n' +
+    "            if (lower.startsWith('#x')) {\r\n" +
+    '                const point = Number.parseInt(lower.slice(2), 16);\r\n' +
+    '                return Number.isFinite(point) ? String.fromCodePoint(point) : entity;\r\n' +
+    '            }\r\n' +
+    '\r\n' +
+    "            if (lower.startsWith('#')) {\r\n" +
+    '                const point = Number.parseInt(lower.slice(1), 10);\r\n' +
+    '                return Number.isFinite(point) ? String.fromCodePoint(point) : entity;\r\n' +
+    '            }\r\n' +
+    '\r\n' +
+    '            return Object.hasOwn(named, lower) ? named[lower] : entity;\r\n' +
+    '        },\r\n' +
+    '    );\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    'function htmlToText(value) {\r\n' +
+    '    return decodeHtmlEntities(\r\n' +
+    "        String(value ?? '')\r\n" +
+    "            .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/giu, '')\r\n" +
+    "            .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/giu, '')\r\n" +
+    "            .replace(/<br\\s*\\/?>/giu, '\\n')\r\n" +
+    "            .replace(/<\\/(?:div|p|li|blockquote|h[1-6])\\s*>/giu, '\\n')\r\n" +
+    "            .replace(/<[^>]+>/gu, ''),\r\n" +
+    '    )\r\n' +
+    "        .replace(/\\u00a0/gu, ' ')\r\n" +
+    "        .replace(/[ \\t]+\\n/gu, '\\n')\r\n" +
+    "        .replace(/\\n[ \\t]+/gu, '\\n')\r\n" +
+    "        .replace(/\\n{3,}/gu, '\\n\\n')\r\n" +
+    '        .trim();\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    "function cleanPublicPostText(value, screenName = '') {\r\n" +
+    "    const normalizedSource = String(screenName ?? '').trim().toLowerCase();\r\n" +
+    '    const lines = cleanVkEventText(value)\r\n' +
+    "        .split('\\n')\r\n" +
+    "        .map((line) => line.replace(/^действия\\s+(?=\\d)/iu, '').trim())\r\n" +
+    '        .filter(Boolean);\r\n' +
+    '\r\n' +
+    '    while (lines.length) {\r\n' +
+    '        const first = lines[0];\r\n' +
+    "        const isDieselHeading = normalizedSource === 'rb_diesel' &&\r\n" +
+    '            /^rock\\s+bar\\s+diesel(?:\\s*&\\s*diesel\\s+hall)?$/iu.test(first);\r\n' +
+    "        const isOverlockHeading = normalizedSource === 'overlockbar' &&\r\n" +
+    '            /^(?:overlock|overlock\\s+bar)$/iu.test(first);\r\n' +
+    '\r\n' +
+    '        if (!isDieselHeading && !isOverlockHeading) {\r\n' +
+    '            break;\r\n' +
+    '        }\r\n' +
+    '\r\n' +
+    '        lines.shift();\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    "    return lines.join('\\n').trim().slice(0, 12_000);\r\n" +
+    '}\r\n' +
+    '\r\n' +
+    'const VK_SOURCE_VALIDATION_EVIDENCE = new Map([\r\n' +
+    "    ['rb_diesel', 'Rock Bar DIESEL & DIESEL Hall, Воронеж'],\r\n" +
+    "    ['overlockbar', 'Overlock Bar, Воронеж'],\r\n" +
+    "    ['vavilone_rb', 'The Last of Vavilone, Воронеж'],\r\n" +
+    "    ['liverpool_pub_vrn', 'Liverpool Pub, Воронеж'],\r\n" +
+    "    ['idmamaanarchy', 'Паб Мама Анархия, Воронеж'],\r\n" +
+    "    ['meetbowling.club', 'Митбоулинг Клуб, Воронеж'],\r\n" +
+    ']);\r\n' +
+    '\r\n' +
+    'function buildVkValidationSourceText(post) {\r\n' +
+    "    const source = String(post?.screenName ?? '').trim().toLowerCase();\r\n" +
+    '    return [\r\n' +
+    "        String(post?.text ?? '').trim(),\r\n" +
+    "        VK_SOURCE_VALIDATION_EVIDENCE.get(source) || '',\r\n" +
+    "    ].filter(Boolean).join('\\n');\r\n" +
+    '}\r\n' +
+    '\r\n' +
+    'function getAttribute(tag, attributeName) {\r\n' +
+    '    const pattern = new RegExp(\r\n' +
+    '        `\\\\b${attributeName}\\\\s*=\\\\s*(?:"([^"]*)"|\'([^\']*)\')`,\r\n' +
+    "        'iu',\r\n" +
+    '    );\r\n' +
+    "    const match = String(tag ?? '').match(pattern);\r\n" +
+    "    return decodeHtmlEntities(match?.[1] ?? match?.[2] ?? '');\r\n" +
+    '}\r\n' +
+    '\r\n' +
+    'async function readResponseBuffer(response, maximumBytes) {\r\n' +
+    "    const length = Number(response.headers.get('content-length') ?? 0);\r\n" +
+    '\r\n' +
+    '    if (length > maximumBytes) {\r\n' +
+    '        throw new Error(`Ответ слишком большой: ${length} байт`);\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    '    const buffer = Buffer.from(await response.arrayBuffer());\r\n' +
+    '\r\n' +
+    '    if (buffer.length > maximumBytes) {\r\n' +
+    '        throw new Error(`Ответ превысил ${maximumBytes} байт`);\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    '    return buffer;\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    'async function fetchWithTimeout(url, {\r\n' +
+    '    timeoutMs = 35_000,\r\n' +
+    '    maximumBytes = MAX_HTML_BYTES,'... 264660 more characters
+  
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/scrapers/parserDiagnosticsV18836.test.mjs:104:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/**\r\n * Скрейпер публичных VK-страниц. Переиспользует общий браузер и строгую проверку событий.\r\n */\r\nimport { existsSync, mkdirSync, readFileSync, writeFileSync } from \'node:fs\';\r\nimport { createHash, randomInt } from \'node:crypto\';\r\nimport { extname, join } from \'node:path\';\r\n\r\nimport {\r\n    findExistingAnnouncementEvidence,\r\n    finalizeManualParserSeenItem,\r\n    getManualParserSeenItem,\r\n    isManualParserSeenItemFinalStatus,\r\n    markManualParserSeenItemFailed,\r\n    markManualParserSeenItemProcessing,\r\n    upsertManualParserSeenItem,\r\n    getVkEventsForPostRefresh,\r\n    getVkPostMeta,\r\n    isPermanentlyBlockedMonoSource,\r\n    getVkScraperState,\r\n    getVkUpcomingEvents,\r\n    persistVkSourceAndEvents,\r\n    upsertVkSourcePost,\r\n    saveStartupPosterRepairVisionFactsV18877,\r\n    updateStoredEventRecordFromReparse,\r\n    updateVkScraperState,\r\n} from \'../../infrastructure/database/index.js\';\r\n\r\nimport {\r\n    browserDownloadBuffer,\r\n    openScraperPage,\r\n    settleScraperPage,\r\n    waitForManualAccess,\r\n} from \'../../infrastructure/browser/browserGrabber.js\';\r\n\r\nimport {\r\n    explainPublicPostEventCandidate,\r\n    parsePublicPostLocally,\r\n    publicPostLooksLikeEventCandidate,\r\n    selectPublicAiEventsForPersistence,\r\n    setPublicAiResponseMetadata,\r\n    validatePublicAiEvents,\r\n} from \'../../features/events/publicPostLocalParser.js\';\r\n\r\nimport {\r\n    prepareEventImages,\r\n    assignEventImageIndexesFromFacts,\r\n    applyPosterDerivedVenueFallback,\r\n    parseIndexedImageFacts,\r\n    serializeIndexedImageFacts,\r\n    filterEventsWithAnnouncementImages,\r\n} from \'../../features/events/eventAssets.js\';\r\n\r\nimport {\r\n    isScraperTargetClosedError,\r\n} from \'../../features/scrapers/browserRecoveryPolicy.js\';\r\n\r\nimport {\r\n    getManualParserProcessingConcurrency,\r\n    parserCandidatePreview,\r\n    runManualParserPoolUntilSettled,\r\n} from \'../../features/scrapers/manualProcessingPool.js\';\r\n\r\nimport {\r\n    rankEventImageCandidates,\r\n} from \'../../features/events/eventImageSelection.js\';\r\n\r\nimport {\r\n    cleanVkEventText,\r\n} from \'../../features/events/eventText.js\';\r\nimport {\r\n    sanitizeEventBodyText,\r\n} from \'../../features/events/eventTextSanitation.js\';\r\nimport {\r\n    attachVkChildSourceProvenance,\r\n    boundedVkEventSourceLinks,\r\n    classifyVkEventSourceUrl,\r\n    resolveVkShortUrlControlled,\r\n} from \'../../features/events/vkEventLinkEnrichment.js\';\r\nimport {\r\n    mergeVkCapturedImageMedia,\r\n} from \'../../features/events/vkCapturedMediaMerge.js\';\r\n\r\nimport {\r\n    classifyVkSourcePageHealth,\r\n} from \'./vkSourcePageHealth.js\';\r\n\r\n// The staged parser is serialized into page.evaluate() and is the stable\r\n// structure based fallback for immutable VK DOM snapshots.  Keep the legacy\r\n// extractor below as the exact contour; the staged parser is only admitted\r\n// when that contour cannot recover a post, so adaptive/heuristic recovery\r\n// never changes a healthy exact result.\r\nimport { extractVkPublicDomStaged } from \'./vkStagedDomParser.js\';\r\n\r\nimport {\r\n    explainStrictEventRecord,\r\n} from \'../../features/events/eventValidation.js\';\r\n\r\nimport {\r\n    appendEventIngestAudit,\r\n} from \'../../features/events/eventIngestAudit.js\';\r\n\r\nimport {\r\n    shouldPreserveStoredEventsOnEmptyReparse,\r\n} from \'../../features/events/sourceEventPersistence.js\';\r\n\r\nimport {\r\n    mergeStoredEventWithFreshSource,\r\n    selectFreshEventForStoredEvent,\r\n} from \'../../features/events/eventSourceRefresh.js\';\r\n\r\nimport {\r\n    runEventOperationWithRetries,\r\n} from \'../../features/events/eventRetry.js\';\r\n\r\nimport {\r\n    storedImageResultIsReusable,\r\n    pendingVisionImageIndexes,\r\n    textEventsAreComplete,\r\n    visionSkipReason,\r\n} from \'../../features/events/eventVisionPolicy.js\';\r\n\r\nimport {\r\n    extractRawDateMentions,\r\n    isEventDateConsistentWithSource,\r\n    parseVkPublishedAtLabel,\r\n} from \'../../features/events/publicPostDateEvidence.js\';\r\n\r\nimport {\r\n    createSourceTextFingerprint,\r\n    fingerprintRemoteImages,\r\n    imageFingerprintSetsEqual,\r\n    parseImageFingerprints,\r\n    sourceTextSimilarity,\r\n    isLikelyVkNonPosterUiImageUrl,\r\n} from \'../../features/events/sourcePostFingerprint.js\';\r\n\r\n\r\nimport {\r\n    explainSecondaryPartyTextGate,\r\n    secondaryJointVisionAccepted,\r\n} from \'../../features/events/secondaryPartyAdmission.js\';\r\nimport { createVkPublicCaptureHash } from \'../../features/events/vkPublicContentHash.js\';\r\nimport { shouldSkipUnchangedCapturedItem } from \'../../features/scrapers/manualParserCleanSkip.js\';\r\n\r\nconst VK_PARSER_VERSION = \'vk-public-parser-multi-announcement-poster-repair-v18861\';\r\nconst ONE_DAY_MS = 24 * 60 * 60 * 1000;\r\nconst MAX_HTML_BYTES = 8 * 1024 * 1024;\r\nconst MAX_IMAGE_BYTES = 15 * 1024 * 1024;\r\nconst MAX_IMAGES_PER_POST = 1000;\r\nconst DEFAULT_USER_AGENT = [\r\n    \'Mozilla/5.0 (Windows NT 10.0; Win64; x64)\',\r\n    \'AppleWebKit/537.36 (KHTML, like Gecko)\',\r\n    \'Chrome/126.0.0.0 Safari/537.36\',\r\n].join(\' \');\r\nconst activeRunPromises = new Map();\r\nconst keptManualPages = new Map();\r\nconst manualLiveLoops = new Map();\r\n\r\nfunction currentIsoDate(timeZone) {\r\n    const parts = new Intl.DateTimeFormat(\'en-CA\', {\r\n        timeZone,\r\n        year: \'numeric\',\r\n        month: \'2-digit\',\r\n        day: \'2-digit\',\r\n    }).formatToParts(new Date());\r\n    const map = Object.fromEntries(\r\n        parts.map((part) => [part.type, part.value]),\r\n    );\r\n    return `${map.year}-${map.month}-${map.day}`;\r\n}\r\n\r\nfunction sleep(milliseconds) {\r\n    return new Promise((resolve) => setTimeout(resolve, milliseconds));\r\n}\r\n\r\nfunction clampInteger(value, minimum, maximum, fallback) {\r\n    const parsed = Number(value);\r\n\r\n    if (!Number.isFinite(parsed)) {\r\n        return fallback;\r\n    }\r\n\r\n    return Math.min(maximum, Math.max(minimum, Math.trunc(parsed)));\r\n}\r\n\r\nfunction normalizeScreenName(value) {\r\n    const source = String(value ?? \'\').trim();\r\n    const match = source.match(\r\n        /^(?:https?:\\/\\/)?(?:www\\.)?(?:vk\\.com|vk\\.ru|m\\.vk\\.com)\\/([A-Za-z0-9_.-]+)\\/?(?:\\?.*)?$/iu,\r\n    );\r\n    const screenName = (match?.[1] ?? source.replace(/^@/u, \'\')).trim();\r\n\r\n    if (!/^[A-Za-z0-9_.-]{2,}$/u.test(screenName)) {\r\n        throw new Error(`Некорректное имя VK-паблика: ${source}`);\r\n    }\r\n\r\n    return screenName;\r\n}\r\n\r\nfunction decodeHtmlEntities(value) {\r\n    const named = {\r\n        amp: \'&\', apos: "\'", gt: \'>\', lt: \'<\', nbsp: \' \', quot: \'"\',\r\n        laquo: \'«\', raquo: \'»\', mdash: \'—\', ndash: \'–\', hellip: \'…\', shy: \'\',\r\n    };\r\n\r\n    return String(value ?? \'\').replace(\r\n        /&(#x?[0-9a-f]+|[a-z][a-z0-9]+);/giu,\r\n        (entity, code) => {\r\n            const lower = String(code).toLowerCase();\r\n\r\n            if (lower.startsWith(\'#x\')) {\r\n                const point = Number.parseInt(lower.slice(2), 16);\r\n                return Number.isFinite(point) ? String.fromCodePoint(point) : entity;\r\n            }\r\n\r\n            if (lower.startsWith(\'#\')) {\r\n                const point = Number.parseInt(lower.slice(1), 10);\r\n                return Number.isFinite(point) ? String.fromCodePoint(point) : entity;\r\n            }\r\n\r\n            return Object.hasOwn(named, lower) ? named[lower] : entity;\r\n        },\r\n    );\r\n}\r\n\r\nfunction htmlToText(value) {\r\n    return decodeHtmlEntities(\r\n        String(value ?? \'\')\r\n            .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script>/giu, \'\')\r\n            .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/giu, \'\')\r\n            .replace(/<br\\s*\\/?>/giu, \'\\n\')\r\n            .replace(/<\\/(?:div|p|li|blockquote|h[1-6])\\s*>/giu, \'\\n\')\r\n            .replace(/<[^>]+>/gu, \'\'),\r\n    )\r\n        .replace(/\\u00a0/gu, \' \')\r\n        .replace(/[ \\t]+\\n/gu, \'\\n\')\r\n        .replace(/\\n[ \\t]+/gu, \'\\n\')\r\n        .replace(/\\n{3,}/gu, \'\\n\\n\')\r\n        .trim();\r\n}\r\n\r\nfunction cleanPublicPostText(value, screenName = \'\') {\r\n    const normalizedSource = String(screenName ?? \'\').trim().toLowerCase();\r\n    const lines = cleanVkEventText(value)\r\n        .split(\'\\n\')\r\n        .map((line) => line.replace(/^действия\\s+(?=\\d)/iu, \'\').trim())\r\n        .filter(Boolean);\r\n\r\n    while (lines.length) {\r\n        const first = lines[0];\r\n        const isDieselHeading = normalizedSource === \'rb_diesel\' &&\r\n            /^rock\\s+bar\\s+diesel(?:\\s*&\\s*diesel\\s+hall)?$/iu.test(first);\r\n        const isOverlockHeading = normalizedSource === \'overlockbar\' &&\r\n            /^(?:overlock|overlock\\s+bar)$/iu.test(first);\r\n\r\n        if (!isDieselHeading && !isOverlockHeading) {\r\n            break;\r\n        }\r\n\r\n        lines.shift();\r\n    }\r\n\r\n    return lines.join(\'\\n\').trim().slice(0, 12_000);\r\n}\r\n\r\nconst VK_SOURCE_VALIDATION_EVIDENCE = new Map([\r\n    [\'rb_diesel\', \'Rock Bar DIESEL & DIESEL Hall, Воронеж\'],\r\n    [\'overlockbar\', \'Overlock Bar, Воронеж\'],\r\n    [\'vavilone_rb\', \'The Last of Vavilone, Воронеж\'],\r\n    [\'liverpool_pub_vrn\', \'Liverpool Pub, Воронеж\'],\r\n    [\'idmamaanarchy\', \'Паб Мама Анархия, Воронеж\'],\r\n    [\'meetbowling.club\', \'Митбоулинг Клуб, Воронеж\'],\r\n]);\r\n\r\nfunction buildVkValidationSourceText(post) {\r\n    const source = String(post?.screenName ?? \'\').trim().toLowerCase();\r\n    return [\r\n        String(post?.text ?? \'\').trim(),\r\n        VK_SOURCE_VALIDATION_EVIDENCE.get(source) || \'\',\r\n    ].filter(Boolean).join(\'\\n\');\r\n}\r\n\r\nfunction getAttribute(tag, attributeName) {\r\n    const pattern = new RegExp(\r\n        `\\\\b${attributeName}\\\\s*=\\\\s*(?:"([^"]*)"|\'([^\']*)\')`,\r\n        \'iu\',\r\n    );\r\n    const match = String(tag ?? \'\').match(pattern);\r\n    return decodeHtmlEntities(match?.[1] ?? match?.[2] ?? \'\');\r\n}\r\n\r\nasync function readResponseBuffer(response, maximumBytes) {\r\n    const length = Number(response.headers.get(\'content-length\') ?? 0);\r\n\r\n    if (length > maximumBytes) {\r\n        throw new Error(`Ответ слишком большой: ${length} байт`);\r\n    }\r\n\r\n    const buffer = Buffer.from(await response.arrayBuffer());\r\n\r\n    if (buffer.length > maximumBytes) {\r\n        throw new Error(`Ответ превысил ${maximumBytes} байт`);\r\n    }\r\n\r\n    return buffer;\r\n}\r\n\r\nasync function fetchWithTimeout(url, {\r\n    timeoutMs = 35_000,\r\n    maximumBytes = MAX_HTML_BYTES,'... 264660 more characters,
+    expected: /label: `vk-public-vision:[^`]+`[\s\S]{0,100}maxAttempts: 1/u,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests\scrapers\parserRuntimeAuditV18858.test.mjs:5:1
+✖ V188.58: parser poster vision no longer silently recaps configured 75s timeout to 25/30s (10.3603ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /15_000,[\s\S]{0,80}180_000/u. Input:
+  
+  'async function readManualEventImageFacts({\r\n' +
+    '    imageUrls,\r\n' +
+    '    imageIndexes = null,\r\n' +
+    '    onImageVisionResult = null,\r\n' +
+    '    postText,\r\n' +
+    '    requestTimeoutMs = OPENAI_REQUEST_TIMEOUT_MS,\r\n' +
+    '    trace = null,\r\n' +
+    "    traceStage = 'proposal.image_facts',\r\n" +
+    "    sourceUrl = '',\r\n" +
+    '}) {\r\n' +
+    '    const rawUrls = (Array.isArray(imageUrls) ? imageUrls : [])\r\n' +
+    "        .map((url) => String(url ?? '').trim())\r\n" +
+    '        .filter((url) => /^https?:\\/\\//iu.test(url));\r\n' +
+    '    const urls = [...new Map(rawUrls.map((url, offset) => [url, {\r\n' +
+    '        url, imageNumber: Number(imageIndexes?.[offset] || offset + 1),\r\n' +
+    '    }])).values()]\r\n' +
+    '        .slice(0, EVENT_PROPOSAL_MAX_POST_IMAGES);\r\n' +
+    '\r\n' +
+    "    if (!urls.length) return '';\r\n" +
+    '\r\n' +
+    '    // Одна attachment -> одна афиша. Не отправляем несколько постеров одним\r\n' +
+    '    // vision-запросом, чтобы модель не склеивала разные события в одну карточку.\r\n' +
+    '    const facts = [];\r\n' +
+    '    const completedImageNumbers = [];\r\n' +
+    '    const failedImageNumbers = [];\r\n' +
+    '    const boundedTimeoutMs = clampInteger(\r\n' +
+    '        Number(requestTimeoutMs),\r\n' +
+    '        15_000,\r\n' +
+    '        900_000,\r\n' +
+    '        EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,\r\n' +
+    '    );\r\n' +
+    '\r\n' +
+    '    trace?.(`${traceStage}.batch_start`, {\r\n' +
+    '        sourceUrl,\r\n' +
+    '        discovered: urls.length,\r\n' +
+    '        imageNumbers: urls.map((item) => item.imageNumber),\r\n' +
+    '    });\r\n' +
+    '\r\n' +
+    '    for (let offset = 0; offset < urls.length; offset += 1) {\r\n' +
+    '        const imageNumber = urls[offset].imageNumber;\r\n' +
+    '        const imageUrl = urls[offset].url;\r\n' +
+    '        try {\r\n' +
+    '            const response = await generateOpenAIVisionText({\r\n' +
+    "                mode: 'default',\r\n" +
+    '                systemPrompt: [\r\n' +
+    "                    'Ты считываешь ОДНУ афишу/фотографию из поста мероприятия.',\r\n" +
+    '                    buildEventTitleContractPrompt(),\r\n' +
+    '                    `Это изображение [IMAGE ${imageNumber}].`,\r\n' +
+    "                    'Верни только факты, явно видимые на этой картинке.',\r\n" +
+    "                    'Начни строго с [IMAGE N], затем отдельными строками: Тип изображения: poster / ordinary-photo / event-photo / album-cover / logo / avatar / ui / other, Это афиша события: да/нет, Уверенность афиши: 0-100, Читаемость текста: 0-100, Название:, Дата:, Время:, Начало:, Окончание:, Место:, Город:, Населенный пункт:, Адрес:, Участники:, Цена:, Возраст:, Программа:, Теги:, Распознанный текст:, Причина:.',\r\n" +
+    "                    'Обычная фотография, концертный репортаж, фото людей, логотип, обложка альбома, аватар или UI — НЕ афиша. Ставь «да» только когда сама картинка является визуальным анонсом события и содержит читаемые event-факты.',\r\n" +
+    "                    'Для календарной/общей афиши в поле Дата перечисли ВСЕ явно напечатанные даты, а в Название/Участники — все явно относящиеся к ним события/исполнителей.',\r\n" +
+    "                    'Если числовая дата или время напечатаны на афише, перепиши их точно. Не угадывай отсутствующие поля.',\r\n" +
+    "                    'Не описывай дизайн. Не смешивай факты с другими изображениями или соседними постами.',\r\n" +
+    '                    formatEventTagPromptInstruction(),\r\n' +
+    "                ].join(' '),\r\n" +
+    '                userPrompt: [\r\n' +
+    "                    'Текст исходного поста и всей доступной цепочки репостов дан только как контекст:',\r\n" +
+    "                    String(postText ?? '').slice(0, 12_000),\r\n" +
+    "                    '',\r\n" +
+    '                    `Считай факты с [IMAGE ${imageNumber}].`,\r\n' +
+    "                ].join('\\n'),\r\n" +
+    '                imageUrls: [imageUrl],\r\n' +
+    '                maxTokens: 1200,\r\n' +
+    '                requestTimeoutMs: boundedTimeoutMs,\r\n' +
+    '                // Each model/key gets three attempts, then the request moves\r\n' +
+    '                // up the configured default -> gpt54 -> gpt55 -> pro ladder.\r\n' +
+    "                // One full ladder is bounded by the parser's 3-hour supervisor.\r\n" +
+    '                failoverMaxRounds: 1,\r\n' +
+    '                failuresBeforeQuarantine: 3,\r\n' +
+    '                maxCandidates: 0,\r\n' +
+    '                escalateToAdvanced: true,\r\n' +
+    '                useCredentialHealth: false,\r\n' +
+    '                oneCandidatePerMode: true,\r\n' +
+    "                validateVisionResult: (value) => parseIndexedImageFacts(String(value || '')).some((fact) => Number(fact.index) === imageNumber && typeof fact.poster === 'boolean'),\r\n" +
+    '                streamOverride: true,\r\n' +
+    '                onFailoverEvent: (event) => {\r\n' +
+    '                    trace?.(`${traceStage}.model`, {\r\n' +
+    '                        sourceUrl,\r\n' +
+    '                        imageNumber,\r\n' +
+    '                        ...event,\r\n' +
+    '                    });\r\n' +
+    '                },\r\n' +
+    "                tokenUsageOperation: 'event-parser:poster-vision',\r\n" +
+    '                tokenUsageMetadata: { sourceUrl, imageNumber },\r\n' +
+    '            });\r\n' +
+    "            const text = String(response ?? '').trim();\r\n" +
+    '            const parsedFact = parseIndexedImageFacts(text)\r\n' +
+    '                .find((item) => Number(item?.index || 0) === imageNumber);\r\n' +
+    "            if (!parsedFact) throw new Error('Vision вернул пустой или неструктурированный ответ');\r\n" +
+    '            completedImageNumbers.push(imageNumber);\r\n' +
+    '            facts.push(text);\r\n' +
+    '            // Persist one-image outcomes immediately, before the next model\r\n' +
+    '            // request. An interrupted batch can then resume without redoing\r\n' +
+    '            // completed images.\r\n' +
+    '            onImageVisionResult?.({ imageNumber, factText: text });\r\n' +
+    '            trace?.(`${traceStage}.image`, {\r\n' +
+    '                sourceUrl,\r\n' +
+    '                imageNumber,\r\n' +
+    '                imageUrl,\r\n' +
+    '                factChars: text.length,\r\n' +
+    '                responseText: text,\r\n' +
+    '            });\r\n' +
+    '        } catch (error) {\r\n' +
+    '            if (getCurrentOperationSignal()?.aborted) throw error;\r\n' +
+    '            failedImageNumbers.push(imageNumber);\r\n' +
+    '            // Persist an explicit retryable fact. A missing block would be\r\n' +
+    '            // indistinguishable from a never-inspected image after restart.\r\n' +
+    '            facts.push([\r\n' +
+    '                `[IMAGE ${imageNumber}]`,\r\n' +
+    "                'Тип изображения: other',\r\n" +
+    "                'Это афиша события: нет',\r\n" +
+    '                `Причина: Vision error: ${String(error?.message || error).slice(0, 300)}`,\r\n' +
+    "            ].join('\\n'));\r\n" +
+    '            onImageVisionResult?.({ imageNumber, factText: facts.at(-1), retryable: true });\r\n' +
+    '            trace?.(`${traceStage}.image_error`, {\r\n' +
+    '                sourceUrl,\r\n' +
+    '                imageNumber,\r\n' +
+    '                imageUrl,\r\n' +
+    '                error,\r\n' +
+    '            });\r\n' +
+    "            console.error('[MANUAL EVENT IMAGE VISION ERROR]', `image=${imageNumber}`, formatPrivateError(error));\r\n" +
+    '            // Ошибка одной афиши не должна останавливать остальные изображения.\r\n' +
+    '        }\r\n' +
+    '    }\r\n' +
+    '\r\n' +
+    "    const joined = facts.join('\\n\\n');\r\n" +
+    '    trace?.(`${traceStage}.batch_complete`, {\r\n' +
+    '        sourceUrl,\r\n' +
+    '        discovered: urls.length,\r\n' +
+    '        completed: completedImageNumbers.length,\r\n' +
+    '        failed: failedImageNumbers.length,\r\n' +
+    '        withFacts: facts.length,\r\n' +
+    '        completedImageNumbers,\r\n' +
+    '        failedImageNumbers,\r\n' +
+    '    });\r\n' +
+    '    console.log(\r\n' +
+    "        '[MANUAL EVENT IMAGE VISION]',\r\n" +
+    '        `images=${urls.length}`,\r\n' +
+    '        `completed=${completedImageNumbers.length}`,\r\n' +
+    '        `failed=${failedImageNumbers.length}`,\r\n' +
+    '        `facts=${facts.length}`,\r\n' +
+    '        `factsChars=${joined.length}`,\r\n' +
+    '    );\r\n' +
+    '    return joined;\r\n' +
+    '}\r\n' +
+    '\r'
+  
+      at TestContext.<anonymous> (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/tests/scrapers/parserRuntimeAuditV18858.test.mjs:11:12)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: "async function readManualEventImageFacts({\r\n    imageUrls,\r\n    imageIndexes = null,\r\n    onImageVisionResult = null,\r\n    postText,\r\n    requestTimeoutMs = OPENAI_REQUEST_TIMEOUT_MS,\r\n    trace = null,\r\n    traceStage = 'proposal.image_facts',\r\n    sourceUrl = '',\r\n}) {\r\n    const rawUrls = (Array.isArray(imageUrls) ? imageUrls : [])\r\n        .map((url) => String(url ?? '').trim())\r\n        .filter((url) => /^https?:\\/\\//iu.test(url));\r\n    const urls = [...new Map(rawUrls.map((url, offset) => [url, {\r\n        url, imageNumber: Number(imageIndexes?.[offset] || offset + 1),\r\n    }])).values()]\r\n        .slice(0, EVENT_PROPOSAL_MAX_POST_IMAGES);\r\n\r\n    if (!urls.length) return '';\r\n\r\n    // Одна attachment -> одна афиша. Не отправляем несколько постеров одним\r\n    // vision-запросом, чтобы модель не склеивала разные события в одну карточку.\r\n    const facts = [];\r\n    const completedImageNumbers = [];\r\n    const failedImageNumbers = [];\r\n    const boundedTimeoutMs = clampInteger(\r\n        Number(requestTimeoutMs),\r\n        15_000,\r\n        900_000,\r\n        EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS,\r\n    );\r\n\r\n    trace?.(`${traceStage}.batch_start`, {\r\n        sourceUrl,\r\n        discovered: urls.length,\r\n        imageNumbers: urls.map((item) => item.imageNumber),\r\n    });\r\n\r\n    for (let offset = 0; offset < urls.length; offset += 1) {\r\n        const imageNumber = urls[offset].imageNumber;\r\n        const imageUrl = urls[offset].url;\r\n        try {\r\n            const response = await generateOpenAIVisionText({\r\n                mode: 'default',\r\n                systemPrompt: [\r\n                    'Ты считываешь ОДНУ афишу/фотографию из поста мероприятия.',\r\n                    buildEventTitleContractPrompt(),\r\n                    `Это изображение [IMAGE ${imageNumber}].`,\r\n                    'Верни только факты, явно видимые на этой картинке.',\r\n                    'Начни строго с [IMAGE N], затем отдельными строками: Тип изображения: poster / ordinary-photo / event-photo / album-cover / logo / avatar / ui / other, Это афиша события: да/нет, Уверенность афиши: 0-100, Читаемость текста: 0-100, Название:, Дата:, Время:, Начало:, Окончание:, Место:, Город:, Населенный пункт:, Адрес:, Участники:, Цена:, Возраст:, Программа:, Теги:, Распознанный текст:, Причина:.',\r\n                    'Обычная фотография, концертный репортаж, фото людей, логотип, обложка альбома, аватар или UI — НЕ афиша. Ставь «да» только когда сама картинка является визуальным анонсом события и содержит читаемые event-факты.',\r\n                    'Для календарной/общей афиши в поле Дата перечисли ВСЕ явно напечатанные даты, а в Название/Участники — все явно относящиеся к ним события/исполнителей.',\r\n                    'Если числовая дата или время напечатаны на афише, перепиши их точно. Не угадывай отсутствующие поля.',\r\n                    'Не описывай дизайн. Не смешивай факты с другими изображениями или соседними постами.',\r\n                    formatEventTagPromptInstruction(),\r\n                ].join(' '),\r\n                userPrompt: [\r\n                    'Текст исходного поста и всей доступной цепочки репостов дан только как контекст:',\r\n                    String(postText ?? '').slice(0, 12_000),\r\n                    '',\r\n                    `Считай факты с [IMAGE ${imageNumber}].`,\r\n                ].join('\\n'),\r\n                imageUrls: [imageUrl],\r\n                maxTokens: 1200,\r\n                requestTimeoutMs: boundedTimeoutMs,\r\n                // Each model/key gets three attempts, then the request moves\r\n                // up the configured default -> gpt54 -> gpt55 -> pro ladder.\r\n                // One full ladder is bounded by the parser's 3-hour supervisor.\r\n                failoverMaxRounds: 1,\r\n                failuresBeforeQuarantine: 3,\r\n                maxCandidates: 0,\r\n                escalateToAdvanced: true,\r\n                useCredentialHealth: false,\r\n                oneCandidatePerMode: true,\r\n                validateVisionResult: (value) => parseIndexedImageFacts(String(value || '')).some((fact) => Number(fact.index) === imageNumber && typeof fact.poster === 'boolean'),\r\n                streamOverride: true,\r\n                onFailoverEvent: (event) => {\r\n                    trace?.(`${traceStage}.model`, {\r\n                        sourceUrl,\r\n                        imageNumber,\r\n                        ...event,\r\n                    });\r\n                },\r\n                tokenUsageOperation: 'event-parser:poster-vision',\r\n                tokenUsageMetadata: { sourceUrl, imageNumber },\r\n            });\r\n            const text = String(response ?? '').trim();\r\n            const parsedFact = parseIndexedImageFacts(text)\r\n                .find((item) => Number(item?.index || 0) === imageNumber);\r\n            if (!parsedFact) throw new Error('Vision вернул пустой или неструктурированный ответ');\r\n            completedImageNumbers.push(imageNumber);\r\n            facts.push(text);\r\n            // Persist one-image outcomes immediately, before the next model\r\n            // request. An interrupted batch can then resume without redoing\r\n            // completed images.\r\n            onImageVisionResult?.({ imageNumber, factText: text });\r\n            trace?.(`${traceStage}.image`, {\r\n                sourceUrl,\r\n                imageNumber,\r\n                imageUrl,\r\n                factChars: text.length,\r\n                responseText: text,\r\n            });\r\n        } catch (error) {\r\n            if (getCurrentOperationSignal()?.aborted) throw error;\r\n            failedImageNumbers.push(imageNumber);\r\n            // Persist an explicit retryable fact. A missing block would be\r\n            // indistinguishable from a never-inspected image after restart.\r\n            facts.push([\r\n                `[IMAGE ${imageNumber}]`,\r\n                'Тип изображения: other',\r\n                'Это афиша события: нет',\r\n                `Причина: Vision error: ${String(error?.message || error).slice(0, 300)}`,\r\n            ].join('\\n'));\r\n            onImageVisionResult?.({ imageNumber, factText: facts.at(-1), retryable: true });\r\n            trace?.(`${traceStage}.image_error`, {\r\n                sourceUrl,\r\n                imageNumber,\r\n                imageUrl,\r\n                error,\r\n            });\r\n            console.error('[MANUAL EVENT IMAGE VISION ERROR]', `image=${imageNumber}`, formatPrivateError(error));\r\n            // Ошибка одной афиши не должна останавливать остальные изображения.\r\n        }\r\n    }\r\n\r\n    const joined = facts.join('\\n\\n');\r\n    trace?.(`${traceStage}.batch_complete`, {\r\n        sourceUrl,\r\n        discovered: urls.length,\r\n        completed: completedImageNumbers.length,\r\n        failed: failedImageNumbers.length,\r\n        withFacts: facts.length,\r\n        completedImageNumbers,\r\n        failedImageNumbers,\r\n    });\r\n    console.log(\r\n        '[MANUAL EVENT IMAGE VISION]',\r\n        `images=${urls.length}`,\r\n        `completed=${completedImageNumbers.length}`,\r\n        `failed=${failedImageNumbers.length}`,\r\n        `facts=${facts.length}`,\r\n        `factsChars=${joined.length}`,\r\n    );\r\n    return joined;\r\n}\r\n\r",
+    expected: /15_000,[\s\S]{0,80}180_000/u,
+    operator: 'match',
+    diff: 'simple'
+  }

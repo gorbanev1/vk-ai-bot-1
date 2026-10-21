@@ -1,0 +1,1485 @@
+[DB PREFLIGHT] healthy backup current=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-15T09-35-59-914Z.sqlite
+[DB HEALTHY BACKUP SCHEDULER] intervalHours=6 retained=15
+[LIVE MESSAGE JOURNAL REPLAY] parsed=3 replayed=3 invalid=0
+[VK MESSAGE ARCHIVE JOURNAL REPLAY] parsed=3 replayed=3 invalid=0
+[PROJECT AUDIT CONFIG] mode=multipass inputMode=text transport=stream concurrency=1
+[BOT BUILD] V188.146
+[BOT PATCH] V188.146
+[STRICT EVENT AUDIT NON-DESTRUCTIVE] telegram=0 vk=0 vkChat=0 manual=0 orphanSources=54
+Проверяю необязательное подключение к GigaChat…
+[EVENT DEDUPE PERSISTENT FAST REBUILD] reason=startup-v147-db-repair raw=97 canonical=97 groups=0 duplicates=0
+Имя бота: гигорейв
+ID основного VK-сообщества: 233007447
+Часовой пояс: Europe/Moscow
+Сессия участника в каждой конфе: 2 часа.
+ЛС включены без обязательного обращения; содержимое ЛС не сохраняется и не логируется.
+Запускаю VK Long Poll: 1 сообществ(а)…
+[VK LONG POLL STARTED] role=primary groupId=233007447
+Бот запущен: оба VK-сообщества и настроенные дополнительные платформы активны.
+[BOT READY] historyRecoveryDelayedMs=5000 commands=available-now
+[LEGACY EVENT STARTUP REPAIRS] disabled=v18892 mode=explicit-owner-command-only
+[SCRAPER MODE] Основной пул: новые раз в 3 дня, в пятницу после 2 дней. Второстепенный: раз в неделю и в пятницу. Только ночью 02:00–06:00 без пересечения операций. timeZone=Europe/Moscow nextSecondaryAutoAt=1791594000 manualFull=«тусы быдлячьи парсер все» manualClean=«тусы быдлячьи парсер все чисто»
+[PERSONALIZATION V187] database=C:\Users\Adm\AppData\Local\Gigorave\state\personalization-v187.sqlite dossier=command-only styleBatch=500 startupBackfill=disabled
+[SUMMARY V188 CACHE] database=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite contextTokens=128000 rawInputBudget~=24000 pruned=0
+[HIERARCHY V188] database=C:\Users\Adm\AppData\Local\Gigorave\state\hierarchical-summary-v188.sqlite peers=2000000001,2000000004,2000000006,8138353801,8138961901,8141076491,8196547900,8196547901,8196547902,8196547903,8202627500,8202627501,8202627502,8202627503,8223773400,8223773401,8223773402,8223773403,2000000022 daily=23:59-local+tail-22:30-23:59 weekly=Sunday-24:00/Monday-00:00-local monthly=last-day-20:00-local slices=03:00,09:00,12:00,15:00,18:00,21:00,22:30,23:59 pipeline=raw-once>intraday-batch>daily>week-segment>month rawLeafBudget~=32000 late=immutable-delta auto=default-on
+[AUTO SUMMARY LEGACY SCHEDULER DISABLED] calendar rollup owns scheduled summaries; set LEGACY_AUTO_SUMMARY_SCHEDULER_ENABLED=1 only for rollback compatibility
+[CHAT LEAVERS AUTO STATE] enabled=1 repaired=0
+[COMMUNICATION STATE RESTORED FROM SQLITE] restart-safe=true legacyOutburstsCleared=0 legacyBanterCleared=0
+[TELEGRAM CONNECT ATTEMPT] reason=startup attempt=1/3
+GPT router подключён. Текстовые GPT-модели: grok-4.6, gpt-6-sol, grok-4.5, gpt-5.6-terra, gpt-5.6-luna, gpt-6-astra, gpt-6-luna, gpt-5.5, gpt-6.1-sol, grok-4.7, gpt-5.6-sol
+GPT image-модели: grok-imagine-image-2.0, gpt-image-2.5-flare-4k, gpt-image-2.5-sunburst-4k, gpt-image-2, gpt-image-2.5, gpt-image-2.5-flare-2k, gpt-image-2.5-sunburst, gpt-image-2.5-sunburst-2k, gpt-image-2.5-flare
+[TELEGRAM BOT STARTED] id=8965960830 username=@Gigorave_bot offset=813863329
+[TELEGRAM CONNECTED] reason=startup username=@Gigorave_bot
+[VK LONG POLL ACTIVE] role=primary groupId=233007447
+[VK HISTORY LOCAL SQLITE SKIP DURABLE] peer=2000000006 database=C:\Users\Adm\AppData\Local\Gigorave\state\history-recovery-v1872.sqlite currentRows=137620 checkpointRows=137615 lastScanRows=3327034 coverageMaxCmid=210111 coverageRows=137615 sourceFiles=40 checkpoint=v2
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791978281 max=3500 reason=startup
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144040-144139
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=0 existing=97 cmid=144040-144139
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143940-144039
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143840-143939
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143740-143839
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143640-143739
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143654 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143540-143639
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143440-143539
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143340-143439
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143240-143339
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143282 type=joined member=1131892949 actor=1131892949
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143286 type=left member=1051084914 actor=1051084914
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143140-143239
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=997 new=0 existing=968 cmid=143140-143239
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143040-143139
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142940-143039
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142840-142939
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142894 type=left member=7024719 actor=7024719
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142740-142839
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1397 new=0 existing=1294 cmid=142740-142839
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1397 new=0 existing=1294 cutoff=1791978281 limit=3500
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=995 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151147576073596668268d9d6ZkVO6P9N)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=685 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151147582761041078268d9d6DNVmFzaY)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=591 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151147589104352938268d9d6IiiiBgth)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=545 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151147594772191898268d9d6ShFvt4zM)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=596 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151148000434527078268d9d6I52KeK58)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=494464822 isChat=true text="[id673887791|@timasin228]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=68/150 target=65
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=16516 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151202188610986888268d9d66LmYiXWo)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=753 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151202196119369468268d9d6x1QLuwBT)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=686 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151202203020984588268d9d6FPIGhGLy)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=697 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151202209666162768268d9d6gy4oQ0Ko)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=643 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151202216718811168268d9d6bRw4y4Hg)',
+  code: null,
+  status: null
+}
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="он?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=69/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=90087925 isChat=true text="Хватит сказки читать и нам рассказывать."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=70/150 target=65
+Telegram подключён: @Gigorave_bot
+[TEXT RECOVERY STARTUP] method=GET-only legacyJobId=d0e42598-b6f5-4c34-8e8b-c7e51877b144
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="КАРОПКА ЧИТЫРИ ЧИХОЛА"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=71/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1095773519 isChat=true text="АХ ТАКЪ?!"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=72/150 target=65
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791980075 max=3500 reason=periodic
+[SUMMARY V188 PLAN] messages=350 batches=1 batchMaxMessages=3000 inputTokenBudget~=32000 context=128000 ratio=0.9 cache=C:\Users\Adm\AppData\Local\Gigorave\state\summary-v1872.sqlite
+[AI RUNTIME TRANSPORT] requestId=mv9i3yjm-08875900 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 21531,
+  completion_tokens: 572,
+  total_tokens: 22162,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    cache_write_tokens: 21587,
+    cached_creation_tokens: 21587,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=mv9i3yjm-08875900 operationId=mv9i3yjm-08875900 operation=calendar-batch-summary:leaf provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=21531 output=572 total=22162 cached=0 reasoning=0 estimatedText=0 durationMs=17184
+[AI TOKEN TOTAL] requestId=mv9i3yjm-08875900 operationId=mv9i3yjm-08875900 operation=calendar-batch-summary:leaf provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=21531 output=572 total=22162 cached=0 reasoning=0 estimatedText=0
+[SUMMARY CACHE STORE] stage=leaf inputs=350 key=ab2bbbda1f9c
+[SUMMARY V188 LEAF] batch=1/1 messages=350 outputs=1
+[SUMMARY V188 COMPLETE] messages=350 gptCalls=1 cacheHits=0
+[CALENDAR BATCH STORE] peer=2000000006 slice=2026-10-15@15:00 revision=1 messages=350 rawHardLimitPerLeaf=3000
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=700 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151217181824637778268d9d666eA3oqg)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144049-144148
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=0 existing=96 cmid=144049-144148
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=944 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151217191380228228268d9d6hP7aO4S9)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143949-144048
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=729 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151217198077061698268d9d6XYasIpeu)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=612 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151217204962297168268d9d6Wi9tjmqN)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143849-143948
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=584 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151217211356923868268d9d6vg1sSNoe)',
+  code: null,
+  status: null
+}
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143749-143848
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143649-143748
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143654 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143549-143648
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143449-143548
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143349-143448
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143249-143348
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143282 type=joined member=1131892949 actor=1131892949
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143286 type=left member=1051084914 actor=1051084914
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143149-143248
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=997 new=0 existing=967 cmid=143149-143248
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143049-143148
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142949-143048
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142849-142948
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142894 type=left member=7024719 actor=7024719
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142749-142848
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1397 new=0 existing=1290 cmid=142749-142848
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1397 new=0 existing=1290 cutoff=1791980075 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=494464822 isChat=true text=""
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=1011 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151232025020199898268d9d6EJXZOHle)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=15468 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрос не выполнен. Если проблема повторяется, начните новую сессию. (request id: 202610151232176905789178268d9d6cg0RxbVh)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=728 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151232187518960608268d9d6WuIweJCY)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=662 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151232193296733908268d9d6h14dsD86)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=706 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151232200000264408268d9d6D7U3AcYU)',
+  code: null,
+  status: null
+}
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="[id828426900|Максим]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=73/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="А как нахуй"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=74/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Мой телефон позвонил с одной симки на другую"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=75/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Хотя я ничего не нажимал"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=76/150 target=65
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791981875 max=3500 reason=periodic
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=1549 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151247004729321598268d9d6fbGD7C4g)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=717 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151247016422238668268d9d6AqPLQ6lY)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=578 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151247022772844358268d9d6Ln8HvDvJ)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144056-144155
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=0 existing=96 cmid=144056-144155
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=15030 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151247028612931608268d9d6ffMoETvD)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143956-144055
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=609 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151247178902648948268d9d6GurmqaiN)',
+  code: null,
+  status: null
+}
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143856-143955
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143756-143855
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143656-143755
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143556-143655
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143654 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143456-143555
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143356-143455
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143256-143355
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143282 type=joined member=1131892949 actor=1131892949
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143286 type=left member=1051084914 actor=1051084914
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143156-143255
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=997 new=0 existing=967 cmid=143156-143255
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143056-143155
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142956-143055
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142856-142955
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142894 type=left member=7024719 actor=7024719
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142756-142855
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1397 new=0 existing=1243 cmid=142756-142855
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1397 new=0 existing=1243 cutoff=1791981875 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text="это спецслужбы вычисляют тебя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=77/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text="ну или военком"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=78/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text="кек"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=79/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="Да"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=80/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="Пизда солоду"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=81/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Телефон Сасун"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=82/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text="ну все суши сухари"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=83/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=11240351 isChat=true text="Разрабатывай ачько"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=84/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=85/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="[id673887791|@timasin228]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=86/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=87/150 target=65
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=7024719 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=90087925 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=88/150 target=65
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=15883 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151302184044581368268d9d6H5cxdjQL)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=638 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151302191654539158268d9d6kDa8Dws5)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=616 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151302197286128568268d9d6lJl6m6pE)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=591 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151302203524087548268d9d6okem19r5)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=597 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151302209310632588268d9d62rhSlkYn)',
+  code: null,
+  status: null
+}
+[VK MESSAGE] peerId=2000000006 senderId=90087925 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=90087925 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=89/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="[id90087925|@smoke_131] \nСкажи ты написал?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=90/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ЭТО БЕЛЫЙ ЦАРЬ, ОН ПИТУШËК"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=91/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=92/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="филя не наговаривай на людей"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=93/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="БЕЛЫЙ ЦАРЬ ЭТО КАК БЕЛЫЙ УНИТАЗ, МОЖНО В НЕГО ПОССАТЬ ИЛИ ПОСРАТЬ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=94/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="Fifa👎🏻"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=95/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="Pes💪🏻"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=96/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="БЕЛЫЙ ЦАРЬ ЛЕЖАЛ В ДУРКЕ 22 РАЗА"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=97/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="кар привет)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=98/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ЕГО ТАМ НАСИЛОВАЛ ГЛАВВРАЧ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=99/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="И САНИТАРЫ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=100/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ПО НЕЙ СРАЗУ ЭТО ПОНЯТНО😂😂😂"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=101/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ору))) пиздец филя разошолся"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=102/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="МОЙ ДРУГ АЛЛАХ РАЗБЕРЁТСЯ ЧТО С НЕЙ ДЕЛАТЬ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=103/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ясно)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=104/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="[id1045590383|Э БЛЯДЬ], ТЫ ПОЕДЕШЬ В УСТЬ-АБАКАН."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=105/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="БУДЕШЬ ТАМ РАБОТАТЬ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=106/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="НА ЦЫГАНЕЙ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=107/150 target=65
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791983675 max=3500 reason=periodic
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="филя знатный блатной))"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=108/150 target=65
+[STYLE PERSONALIZATION SEED] peerId=2000000006 userId=1045590383 cursor=1792070080:144191 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="как и весь чат с ево участием"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ентернет воины))))"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="филя пичатает)"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="БЕЛЫЙ УНИТАЗ, ПОРА В ДУРКУ"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="филя ну так отправь меня туда. а не кукарекай"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ДА ТЕБЯ РОДСТВЕННИКИ ОТПРАВЯТ"
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЕЕ ПОРА НА КРЫТКУ К ДОКТОРУ."
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ДАВНО ПОРА"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="филя иди лучше подтянись на турнике"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ДОКТОР БЫ ЗАСТАВИЛ ГРЕЧКУ ОЧКО СОСАТЬ"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ты заседелся в интернете"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="он на тебя плохо влияет"
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЕЕ ПИЗДА БУДЕТ ЛЕТАТЬ ПО ВСЕМ ХАТАМ😂😂😂"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А пациенты шляпой по губам водили"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ЗА СИГАРЕТУ"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="за сигареткУ)"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="один чат круче другова"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="вы кто госпада"
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ты как то буквально принял фразу \nХуй завёрнутый в газету \nЗаменяет сигарету"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=109/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=110/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=111/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=112/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=113/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=114/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=115/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=116/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=117/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=118/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=119/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=120/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=121/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=122/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=123/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=124/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=125/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=126/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=127/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ОНА БУДЕТ НИЗОВОЙ НА КРЫТКЕ, ЕЙ ВЫСТАВЯТ ПЕРЕДОК ЧТОБЫ ЛУЧШЕ СОСАЛА ЖОПУ."
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="вы кто"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=128/150 target=65
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=129/150 target=65
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=16397 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151317213882596658268d9d6KUXvxx1h)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=912 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151317223673338598268d9d6OJX9nb0S)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144113-144212
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=144172 type=joined member=1045590383 actor=5478448
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=1 existing=98 cmid=144113-144212
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144013-144112
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143913-144012
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=1010 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151317232008669438268d9d6kaLqypN2)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143813-143912
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143713-143812
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=1119 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151317242338318738268d9d6HlKOrnLo)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143613-143712
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143654 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143513-143612
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143413-143512
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143313-143412
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=1686 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151317253376634278268d9d6Tea2y6jg)',
+  code: null,
+  status: null
+}
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143213-143312
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143282 type=joined member=1131892949 actor=1131892949
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143286 type=left member=1051084914 actor=1051084914
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=997 new=1 existing=969 cmid=143213-143312
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143113-143212
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143013-143112
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142913-143012
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=142945 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=142813-142912
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1397 new=1 existing=1237 cmid=142813-142912
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1397 new=1 existing=1237 cutoff=1791983675 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Местный клоун куколд"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=130/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="я вас не знаю.. но уже скажешь каких вы понятий люди)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=131/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Сразу видно в тюрьме сидел"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=132/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ты?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=133/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Нет \nЯ сидел в куколд чатах \nЖену обсуждал"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=134/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ето пиздец культура"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=135/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ГРЕЧКА ТЫ ОПУЩЕН НЕ ТОЛЬКО В ЖИЗНИ НО И В ИНТЕРНЕТЕ С НЕДАВНИХ ПОР"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=136/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=137/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="если бы я был опущен.. я бы общался как ты Филя"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=138/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="увы"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=139/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ПРО НЕЕ ГОВОРИТ МОЙ ДРУГ АЛЛАХ😂😂😂"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=140/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Почему был?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=141/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="если бы"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=142/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ты инвалидом не уважаешь?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=143/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ОНА ЗАКОНТАЧЕНА."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=144/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Женя инвалид"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=145/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Работает в дельфине"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=146/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="набор не культурных слов"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=147/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Хуй"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=148/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="В УСТЬ-АБАКАНЕ ДЛЯ НЕЕ ЕСТЬ МЕСТО НА ФЕРМЕ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=149/150 target=65
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="У ЦЫГАНЕЙ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=0/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="жесть ребят вы бы вести себя в интернете научились.. а то как обиженые)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=1/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="егор гоу на турник"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=2/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="А ты обиженных много знаешь?\nПосмотри в зеркало \nТам будет главный"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=3/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ты очень хилый малый"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=4/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ээээээ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=5/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Не брат"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=6/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="турник это исправит"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=7/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Я гантели по 1.5 поднимаю"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=8/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Ну ещё бывает 0.5"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=9/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="очень слабый.. девушки таких не любят"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=10/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="так шо давай"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=11/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="дерзай)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=12/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Я тебе сказал же \nУ меня жена в куколд чатах ее обсуждаем"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=13/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="филип а ты скинь лишнии кило"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=14/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=177054012 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ДА."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=15/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ЛИШНИЕ КИЛО Я УТРОМ ТЕБЕ НА ЕБАЛО СКИНУЛ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=16/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="БУДЕТ СОСАТЬ ЖОПУ У СТАРЫХ ЦЫГАН, У НИХ ХУИ НЕ СТОЯТ, А КАЙФАНУТЬ ХОЧЕТСЯ😂😂😂"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=17/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЕЕ МОЖНО В ОБОРОТ ВЗЯТЬ КАК СОЛОДА."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=18/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ОНА ТОЖЕ БУДЕТ ДАВАТЬ ЗА ВОДКУ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=19/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ОНА НЕ ПЬЕТ, ЕЙ МАМА НЕ РАЗРЕШАЕТ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=20/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="БЕЛЫЙ ЧЕРТ ТЫ СОЛЬ ЖРЕШЬ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=21/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=54679441 isChat=true text="Так поэтому и белый"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=22/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЕСТЬ ВАРИК ДЛЯ ТЕБЯ ПЕРЕХВАТИТЬ ПОЛКУ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=23/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="БЕЛЫЙ ПОТОМУ ЧТО ОБМОРОК😂😂😂"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=24/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЕБАЛИ ГРЕБНЯ ТАК ЧТО ПОБЕЛЕЛ КАК ПАРУС В МОРЕ😂😂😂"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=25/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="НУ И ЕБЛИЩЕ😂😂😂"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=26/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="да ))"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=27/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ПОКАЗЫВАЙ ПИЗДУ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=28/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text="очень серьёзный человек."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=29/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="какой ты интернет грозный соперник"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=30/150 target=95
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="в интернете обзываюца обычно - обиженые жызнью)"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="делайте правельные выводы"
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text="расскажи об этом Тимофею, он решит вопрос. очень уважаемая личность."
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="я вас не знаю.. но очень интересно)"
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ТИМАСИН ЭТО СУКА."
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЕЕ НЕЛЬЗЯ КАСАТЬСЯ."
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text="Тимофей авторитетная личность,  может решить всё вопросы."
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="девки не любят чтоли))))) что блатными понятиями обладаете"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="вы хоть их знаете чудовищи)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=31/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=32/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=33/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=34/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=35/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=36/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=37/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=38/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=39/150 target=95
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=15610 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151332060235435598268d9d6o5oByPb9)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="-= главное быть человеком =-"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=40/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="главное правило любова блатнова"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=41/150 target=95
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=816 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151332212246241198268d9d66bVM5Wby)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=638 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151332219264674428268d9d6dUZ3aPXm)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=697 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151332225740200968268d9d6a3S5FBKu)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ТЕБЕ ПИЗДА."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=42/150 target=95
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=550 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151332232374119478268d9d6VTRnCIm7)',
+  code: null,
+  status: null
+}
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ат каво"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=43/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="МОЙ ДРУГ АЛЛАХ ДОСТАНЕТ ЛЮБОГО."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=44/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ясно парень"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=45/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ВСЕ ЗНАЮТ ЧТО ПРОИЗОШЛО С СОЛОДОМ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=46/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="мой друг мой знакомый - мажеца за меня"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=47/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="всо ясно!"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=48/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text="Что произошло ? Кар."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=49/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ИРА МОТОР ЕБАНУЛА ЕГО НОЖЕМ ПО ТРЕБОВАНИЮ МОЕГО ДРУГА АЛЛАХА."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=50/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="И ЕЩЕ ЕМУ ЕБЛИЩЕ РАЗБИЛИ И ВЫБИЛИ ЗУБ😂😂😂"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=51/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ГЛИСТА ЕБАНАЯ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=52/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ну Филя ты далеко это безапасно"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=53/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ясно короче"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=54/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="И В СУМКУ ЕМУ ЗАПИХНУЛИ ПУЗЫРЬ ВОДКИ \"ПЧЕЛКА\"."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=55/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=494464822 isChat=true text="Никита царь?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=56/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЕЕ ЗОВУТ БЕЛЫЙ ЧЕРТ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=57/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="БЕЛЫЙ УНИТАЗ, очень жаль что я далеко, а так бы я тебя только ногами бил при встрече ибо ты чепуш"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=58/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ну на словах все крутые)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=59/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ПОБЕЛЕЛА ИЗ-ЗА ТОГО ЧТО ЕБЛИ НЕЩАДНО И ВСЮ ДУШУ ВЫТРЯСЛИ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=60/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЕЕ СКОРО ЕБНУТ НА ГЛУШНЯК."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=61/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="я уже и подремал.. и покушал.. а ты филя в чатах сидишь блатнова корчишь ))"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=62/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ору"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=63/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ТЕБЕ НЕЛЬЗЯ ОБРАЩАТЬСЯ К МОЕМУ ДРУГУ ЕВГЕНИЮ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=64/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=202165894 isChat=true text="Наумов развлекается"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=65/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ТЫ ТОЛЬКО СЛУШАЕШЬ И ВЫПОЛНЯЕШ КОМАНДЫ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=66/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="парень тебе плохо? или скучно)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=67/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЕГО ЗАБАНИЛИ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=68/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="БЕЛЫЙ УНИТАЗ ТЫ БЛЕДНОЕ СЛАБОЕ УЕБИЩЕ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=69/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ни кто вам из девчат не пишет чтоли"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=70/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="ну Филя сказать можно что угодно"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=71/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="а доказать нет"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=72/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ТАКИХ В КОЛОНИИ УНИЖАЛИ ВСЕГДА"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=73/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="какой ты агресор.. прям пуза лопаеца)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=74/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ТО ЧТО ТЫ В ДУРКЕ ЛЕЖАЛ 22 РАЗА УЖЕ ДОКАЗАТЕЛЬСТВО ТОГО ЧТО ТЫ ОТСТАЛЫЙ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=75/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ОНА НА КРЫТКЕ СОСАЛА БЫ ЖОПУ ЗА СОЛЬ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=76/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="У ЦЫГАНЕЙ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=77/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text="Никита, почему ты с конкретными ошибками пишешь ?"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=78/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="та я пошутил.. прикалывался Филя.. лучше гоу прес качать пока жыром окончательно не заплыл"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=79/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ОНА НЕГРАМОТНАЯ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=80/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=482257781 isChat=true text="Нифига, тут ещё лысые появились в чате"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=81/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="сам в шоке.. шо за чат.. шо за ноу неймы"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=82/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ЕЁ НЕ НИКИТА ЗОВУТ А СЕРЁЖА ГРЕЧКА"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=83/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="орева)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=84/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ЭТО ОПУЩЕНЫЙ РАГУЛЬ ЕГО В ДУРКЕ ПОБРИЛИ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=85/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="Филя раслабся я пока далеко... можешь не кричать на все услышание)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=86/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="пишы маленькими буквами"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=87/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=482257781 isChat=true text="А, ну его в дурке, а меня просто ещё не поймали)))"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=88/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text="смешно немножко и жалко"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=89/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="жалко таких людей которые выдумывают всякую ерунду"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=90/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ТЫ ДОБРЫЙ ОЧЕНЬ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=91/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text="Добряк."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=92/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=482257781 isChat=true text="Настроение в чате, как обычно, агрессивно-шутливое (гигорейв)"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[SESSION START] mode=direct-request peerId=2000000006 senderId=482257781 mention=true replyOrQuote=false request="Настроение в чате, как обычно, агрессивно-шутливое ( )" expiresAt=2026-10-15T15:44:00.729Z
+[COMMAND ROUTE] selected=gpt-explicit-action reason=explicit-chat-context candidates=gpt-explicit-action explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat-context requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=default astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=all packet=none
+[AI RUNTIME TRANSPORT] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 379,
+  completion_tokens: 8,
+  total_tokens: 446,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 operationId=mv9lay0e-5a5df7f2 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=379 output=8 total=446 cached=0 reasoning=0 estimatedText=0 durationMs=10179
+[AI TOKEN TOTAL] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 operationId=mv9lay0e-5a5df7f2 operation=manual-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=379 output=8 total=446 cached=0 reasoning=0 estimatedText=0
+[GPT UNKNOWN TERMS] terms=0
+[AI RUNTIME TRANSPORT] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А извращения присутствуют?"
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791985475 max=3500 reason=periodic
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ХОЧЕТСЯ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=93/150 target=95
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text=""
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=16608 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151347262260371578268d9d6yksRvyBF)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144236-144335
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=99 new=0 existing=99 cmid=144236-144335
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=851 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151347275609827508268d9d61jqJAchK)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144136-144235
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=144172 type=joined member=1045590383 actor=5478448
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=913 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151347284155291098268d9d6cWQrL2kK)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144036-144135
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143936-144035
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=769 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151347293158777328268d9d6zuLTNOPX)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143836-143935
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=708 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151347300808843248268d9d6GMEDG0tO)',
+  code: null,
+  status: null
+}
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143736-143835
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143636-143735
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143654 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143536-143635
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143436-143535
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143336-143435
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=996 new=0 existing=971 cmid=143336-143435
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143236-143335
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143282 type=joined member=1131892949 actor=1131892949
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143286 type=left member=1051084914 actor=1051084914
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143136-143235
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143036-143135
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=13 requested=1300 received=1296 new=0 existing=1239 cmid=143036-143135
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1300 received=1296 new=0 existing=1239 cutoff=1791985475 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Это объясняет твое присутствие здесь"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=94/150 target=95
+[GPT FINISH] reason=stop
+[GPT USAGE] { completion_tokens: 2684, prompt_tokens: 15359, total_tokens: 18102 }
+[AI TOKEN USAGE] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 operationId=mv9lay0e-5a5df7f2 operation=calendar-all-time-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-stream source=provider input=15359 output=2684 total=18102 cached=0 reasoning=0 estimatedText=0 durationMs=56137
+[AI TOKEN TOTAL] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 operationId=mv9lay0e-5a5df7f2 operation=calendar-all-time-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=15359 output=2684 total=18102 cached=0 reasoning=0 estimatedText=0
+[SUMMARY CACHE STORE] stage=calendar-all-time-p1 inputs=14 key=eef5a770bea0
+[AI RUNTIME TRANSPORT] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="А белый это типа бот какой то? Или типа Тимохи?"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Хотя нет, Тимоха супер"
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text="брат Тимофея, очень серьёзный человек"
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text="Тимоха потешный малый"
+[VK MESSAGE] peerId=2000000006 senderId=828426900 isChat=true text="Типа Деды"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="глядя на вашы аватарки"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ДА КСТАТИ"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ОЧ ПОХОЖ"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="я понял что зашол нетуда"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="поетому ребята"
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ТОЖ ЕБОАН ОТСТАЛЫЙ КАКОЙ ТО"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="удачи вам и просветления"
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="простите я с такими людьми не контачу)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=96/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=97/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=98/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=99/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=100/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=101/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=102/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=103/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=104/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=105/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=106/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=107/150 target=95
+[AI RUNTIME TRANSPORT] requestId=d8ed549f-6985-46be-a33e-d4a9cfe29401 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ВЕРНЕШЬСЯ ЖЕ, ТЕБЕ ОБЩАТЬСЯ НЕ С КЕМ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=108/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=668159372 isChat=true text="это с какими ? друг!"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=109/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="нет"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=110/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ЛОХ ПИДР НЕТ ДРУЗЕЦ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=111/150 target=95
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 1906,
+  completion_tokens: 159,
+  total_tokens: 2124,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    cache_write_tokens: 1962,
+    cached_creation_tokens: 1962,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 operationId=mv9lay0e-5a5df7f2 operation=hierarchical-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=1906 output=159 total=2124 cached=0 reasoning=0 estimatedText=0 durationMs=19038
+[AI TOKEN TOTAL] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 operationId=mv9lay0e-5a5df7f2 operation=hierarchical-summary provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=1906 output=159 total=2124 cached=0 reasoning=0 estimatedText=0
+[AI RUNTIME TRANSPORT] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="с чево ты взял это"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=112/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ДА ПО ТЕБЕ ВИДНО"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=113/150 target=95
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 6904,
+  completion_tokens: 18,
+  total_tokens: 6981,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    cache_write_tokens: 6960,
+    cached_creation_tokens: 6960,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 operationId=mv9lay0e-5a5df7f2 operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=6904 output=18 total=6981 cached=0 reasoning=0 estimatedText=0 durationMs=24080
+[AI TOKEN TOTAL] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 operationId=mv9lay0e-5a5df7f2 operation=manual-summary provider=compat model=gpt-5.6-luna requests=2 providerRequests=2 input=7283 output=26 total=7427 cached=0 reasoning=0 estimatedText=0
+[CHAT DATABASE SUMMARY-FIRST ANALYSIS] peer=2000000006 searched=130266 summarySources=14 summaryCoverage=155252 uncovered=177 rawToAi=177 rawHardLimit=3000 rawTruncated=no chunks=1 model=gpt-6-luna purpose=text
+[AI RUNTIME TRANSPORT] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="жесть какой ты проницательный)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=114/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="БЕЛЯШ ГРЕЧНЕВЫЙ ЕБАНА"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=115/150 target=95
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 2521,
+  completion_tokens: 186,
+  total_tokens: 2766,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    cache_write_tokens: 2577,
+    cached_creation_tokens: 2577,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 operationId=mv9lay0e-5a5df7f2 operation=style-personalization provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=2521 output=186 total=2766 cached=0 reasoning=0 estimatedText=0 durationMs=8595
+[AI TOKEN TOTAL] requestId=6bb688db-3583-49f1-9f9b-e248d181bda7 operationId=mv9lay0e-5a5df7f2 operation=style-personalization provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=2521 output=186 total=2766 cached=0 reasoning=0 estimatedText=0
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="филя ору))"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=116/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=1045590383 isChat=true text="всем удачи"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=117/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=482257781 isChat=true text="О, опять белое пальто нацепили\n\n\"Я не такой, вы все фу\""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=118/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="НАХУЙ ЧЕРТ ДЕРНИ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=119/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="ТАК БЕЛЫЙ ЦАРЬ ЖЕ АХАХАХАХА"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=120/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="БЕЛЫЙ ЧЕРТ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=121/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=482257781 isChat=true text="Ну вот же, пояснялово было крутое"
+[AUTONOMOUS ROUTE BYPASS] platform=vk peer=2000000006 reason=direct-bot-interaction
+[ACTIVE REQUEST] peerId=2000000006 senderId=482257781 mention=false reply=false replyOrQuote=true request="Ну вот же, пояснялово было крутое"
+[COMMAND ROUTE] selected=default reason=no-explicit-command candidates=default explicitMode=none modelKeyPolicy=absent suppressed=none context=group
+[GPT ROUTE] action=chat requestedMode=default effectiveMode=default reasoningEffort=none reasoningSource=implicit astrology=none localCalculation=false modelCalculation=false modelFallbackAllowed=false routeReason=not-astrology localRequested=false nonLocal=false chatDatabase=no packet=none
+[AI RUNTIME TRANSPORT] requestId=c1f6c9a1-d2e3-4eeb-a7ab-cbdfcca2f033 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 372,
+  completion_tokens: 15,
+  total_tokens: 446,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=c1f6c9a1-d2e3-4eeb-a7ab-cbdfcca2f033 operationId=mv9lm2g9-9506242c operation=manual-summary provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=372 output=15 total=446 cached=0 reasoning=0 estimatedText=0 durationMs=2914
+[AI TOKEN TOTAL] requestId=c1f6c9a1-d2e3-4eeb-a7ab-cbdfcca2f033 operationId=mv9lm2g9-9506242c operation=manual-summary provider=compat model=gpt-5.6-luna requests=3 providerRequests=3 input=7655 output=41 total=7873 cached=0 reasoning=0 estimatedText=0
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=1 matches=0
+[GPT UNKNOWN TERMS] terms=1 resolved=0 unresolved=1 values=пояснялово
+[GPT ROUTE RESOLVED] requestedMode=default effectiveMode=default model=gpt-6-luna packet=none
+[EXPLICIT MEMORY SEARCH] peerId=2000000006 tokens=3 matches=1 ids=9 scores=8.667
+[DIRECT GPT CHAT CONTEXT] peer=2000000006 sender=482257781 name="Анастасия Счастливая" messages=37 chars=3336
+[AI RUNTIME TRANSPORT] requestId=c1f6c9a1-d2e3-4eeb-a7ab-cbdfcca2f033 model=gpt-5.6-luna capability=text reasoning_requested=none reasoning_audited=working preferred=non_stream fallback=stream source=audit reasoning_supported=default,none,minimal,low,medium,high,xhigh,max
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="АНАСТАСИЯ Я ХОЧУ ТЕБЯ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=122/150 target=95
+[GPT FINISH] reason=stop
+[GPT USAGE] {
+  prompt_tokens: 5450,
+  completion_tokens: 24,
+  total_tokens: 5533,
+  prompt_tokens_details: {
+    cached_tokens: 0,
+    cache_write_tokens: 5506,
+    cached_creation_tokens: 5506,
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0
+  },
+  completion_tokens_details: {
+    text_tokens: 0,
+    audio_tokens: 0,
+    image_tokens: 0,
+    reasoning_tokens: 0
+  },
+  input_tokens: 0,
+  output_tokens: 0,
+  input_tokens_details: null,
+  output_tokens_details: null,
+  claude_cache_creation_5_m_tokens: 0,
+  claude_cache_creation_1_h_tokens: 0
+}
+[AI TOKEN USAGE] requestId=c1f6c9a1-d2e3-4eeb-a7ab-cbdfcca2f033 operationId=mv9lm2g9-9506242c operation=chat-reply provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-nonstream source=provider input=5450 output=24 total=5533 cached=0 reasoning=0 estimatedText=0 durationMs=4075
+[AI TOKEN TOTAL] requestId=c1f6c9a1-d2e3-4eeb-a7ab-cbdfcca2f033 operationId=mv9lm2g9-9506242c operation=chat-reply provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=5450 output=24 total=5533 cached=0 reasoning=0 estimatedText=0
+[GPT ANSWER] mode=default model=gpt-5.6-luna length=standard paragraphs=1 chars=65  
+[GPT FINISH] reason=stop
+[GPT USAGE] { completion_tokens: 26, prompt_tokens: 3256, total_tokens: 3341 }
+[AI TOKEN USAGE] requestId=d8ed549f-6985-46be-a33e-d4a9cfe29401 operationId=mv9ljgrh-2e526832 operation=active-communication provider=compat model=gpt-5.6-luna capability=text transport=chat-completions-stream source=provider input=3256 output=26 total=3341 cached=0 reasoning=0 estimatedText=0 durationMs=60934
+[AI TOKEN TOTAL] requestId=d8ed549f-6985-46be-a33e-d4a9cfe29401 operationId=mv9ljgrh-2e526832 operation=active-communication provider=compat model=gpt-5.6-luna requests=1 providerRequests=1 input=3256 output=26 total=3341 cached=0 reasoning=0 estimatedText=0
+[ACTIVE COMMUNICATION REPLY] peer=2000000006 sender=828426900 persona=situational modelMode=default model=gpt-5.6-luna frequency=1/150 chars=71
+[VK MESSAGE] peerId=2000000006 senderId=482257781 isChat=true text="Расхоти лучше))) это не самое лучшее желание"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=123/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=357508244 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЭТО САМОЕ БОЛЬШОЕ ЖЕЛАНИЕ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=124/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="МИНЬ РАССКАЖИ КАК ТЫ ГОЛЫЙ НА ГИТАРЕ ИГРАЛ"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=125/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=482257781 isChat=true text="Добро пожаловать отсюда"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=126/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ЭТО ВООБЩЕ ГАВНО ЕБАНОЕ😂😂😂"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=127/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="МНЕ ЗА НЕЕ ПРИКАЛЫВАЛИ, МИНЬ ДЫРА ОБЩАЯ КАК СОЛОД."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=128/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=482257781 isChat=true text="Просим!"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=129/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="[id1121075683|Александр]"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=130/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="УДАЛИ!!!"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=131/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=100053616 isChat=true text="ОРИГИНАЛ."
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=132/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=89921228 isChat=true text="о холище и сюда забрался"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=133/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Ебать срача развели"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=134/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Скоро тут всё сгорит"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=135/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text=""
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text="СС Generals по сети может ебануть?"
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text="укутавшись в одеялко с вискариком 😃"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=136/150 target=95
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=137/150 target=95
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=962 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151402086748414788268d9d6pC5oCEnq)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=805 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151402094473690938268d9d6JzvCsQpg)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=592 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151402101140805098268d9d6zIQqduwJ)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=15124 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151402106987122808268d9d6jaheW6PZ)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=565 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151402258226820528268d9d6gxtMI036)',
+  code: null,
+  status: null
+}
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=26 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=26 messageId=13980 sent=-
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text=""
+[VK MESSAGE] peerId=2000000006 senderId=16296974 isChat=true text="Там вродя сделали какой-то патч чтобы можно было без хамачей которых нет уже, кент с кем играли в детстве в комп клубах говорил"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=138/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=611961369 isChat=true text="Я тоже слышал, хочется поностальгировать теперь)"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=139/150 target=95
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791987275 max=3500 reason=periodic
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144306-144405
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=144376 type=left member=1045590383 actor=1045590383
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=144388 type=joined member=1121075683 actor=5478448
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=16 existing=81 cmid=144306-144405
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144206-144305
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144106-144205
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=144172 type=joined member=1045590383 actor=5478448
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144006-144105
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143906-144005
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=4422 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151417047723550728268d9d6NnolL6AU)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143806-143905
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=662 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151417088335129588268d9d66lZANwJA)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143706-143805
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143606-143705
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143654 type=left member=1131892949 actor=1131892949
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=816 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151417096329022678268d9d6NFwEMZ5D)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143506-143605
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=583 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151417102408647848268d9d65sz5lbeK)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143406-143505
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=996 new=16 existing=954 cmid=143406-143505
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=15042 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151417108201313858268d9d6DKy4DsA9)',
+  code: null,
+  status: null
+}
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143306-143405
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143206-143305
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143282 type=joined member=1131892949 actor=1131892949
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143286 type=left member=1051084914 actor=1051084914
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143106-143205
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143006-143105
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1396 new=16 existing=1287 cmid=143006-143105
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1396 new=16 existing=1287 cutoff=1791987275 limit=3500
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text=""
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=140/150 target=95
+[VK MESSAGE] peerId=2000000006 senderId=5478448 isChat=true text="Сероп😄"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=141/150 target=95
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=1074 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151432076759644778268d9d6ZFbEcTKn)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=711 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151432084920487218268d9d6bnUa2lFV)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=669 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151432091226319448268d9d6VPZB6scc)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=675 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151432098120909058268d9d6Sj69A2Rn)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=702 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151432105243459788268d9d6FkvRH1Nh)',
+  code: null,
+  status: null
+}
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[VK HISTORY RECOVERY START] peer=2000000006 mode=windowed cutoff=1791989075 max=3500 reason=periodic
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[VK MESSAGE] peerId=2000000006 senderId=673887791 isChat=true text="Ща пиздиловку в автобусе снимал"
+[ACTIVE COMMUNICATION COUNT] peer=2000000006 count=142/150 target=95
+[SCRAPER COMMAND ABSOLUTE FASTPATH] platform=telegram route=scraper-start
+[EVENT VERIFIED SNAPSHOT MARKED STALE] reason=parser-all-start-v18836
+[PARSER ALL SOURCES CONFIGURED] count=15 expected=15 ids=tg:kurazhcity,vk:rb_diesel,vk:overlockbar,vk:storuvrn,vk:artartelchaika,vk:divludi,vk:bashnyakult,vk:deadway36,vk:liverpool_pub_vrn,vk:idmamaanarchy,vk:meetbowling.club,vk:vavilone_rb,chat:2000000022,chat:2000000003,chat:2000000014
+[PARSER ALL SOURCE OPEN START] source=tg:kurazhcity index=1/15
+[SCRAPER BROWSER LEASE ACQUIRE] active=1 reason=manual-source:tg:kurazhcity
+[PARSER ALL SOURCE OPEN START] source=vk:rb_diesel index=2/15
+[SCRAPER BROWSER LEASE ACQUIRE] active=2 reason=manual-source:vk:rb_diesel
+[PARSER ARCHIVE RETENTION] removed=1 limit=3 perLabel=true
+[TELEGRAM LONG REPLY] part-start part=1/1 chars=449 messageId=- sent=-
+[TELEGRAM LONG REPLY] part-sent part=1/1 chars=449 messageId=13983 sent=-
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=1/2 status=failure durationMs=1646 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151447094740784378268d9d6QsXaDF1V)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5 endpoint=images/generations promptChars=2037 quality=high
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1051084914 examples=0 gpt=0
+[STYLE EXAMPLES SEED] peerId=2000000006 userId=1131892949 examples=0 gpt=0
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5 attempt=2/2 status=failure durationMs=17888 {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'ECONNRESET',
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2 endpoint=images/generations promptChars=2037 quality=high
+[SCRAPER INITIAL RENDER DELAY] source=Telegram delayMs=3171
+[SCRAPER INITIAL RENDER DELAY] source=VK delayMs=3736
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144309-144408
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=144376 type=left member=1045590383 actor=1045590383
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=144388 type=joined member=1121075683 actor=5478448
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=1 requested=100 received=100 new=0 existing=97 cmid=144309-144408
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2 attempt=1/1 status=failure durationMs=566 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151447285145916008268d9d6kyPgCrB5)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-flare endpoint=images/generations promptChars=2037 quality=high
+[PARSER ALL SOURCE OPEN START] source=vk:overlockbar index=3/15
+[SCRAPER BROWSER LEASE ACQUIRE] active=3 reason=manual-source:vk:overlockbar
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144209-144308
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-flare attempt=1/1 status=failure durationMs=789 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151447292135535008268d9d6kkD3bpo6)',
+  code: null,
+  status: null
+}
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=start durationMs=0 
+[GPT IMAGE REQUEST] model=gpt-image-2.5-sunburst endpoint=images/generations promptChars=2037 quality=high
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144109-144208
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=144172 type=joined member=1045590383 actor=5478448
+[SCRAPER INITIAL RENDER DELAY] source=VK delayMs=3213
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=144009-144108
+[AUTO SUMMARY IMAGE ATTEMPT] peer=2000000006 model=gpt-image-2.5-sunburst attempt=1/1 status=failure durationMs=642 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151447298806077978268d9d63J5GhSGt)',
+  code: null,
+  status: null
+}
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143909-144008
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143809-143908
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143709-143808
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143609-143708
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143654 type=left member=1131892949 actor=1131892949
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143509-143608
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143409-143508
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=10 requested=1000 received=996 new=0 existing=970 cmid=143409-143508
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143309-143408
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143209-143308
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143282 type=joined member=1131892949 actor=1131892949
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143286 type=left member=1051084914 actor=1051084914
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143109-143208
+[VK HISTORY CMID STRATEGY OK] peer=2000000006 client=primary-group:233007447 method=getByConversationMessageId range=143009-143108
+[VK MEMBERSHIP EVENT] peer=2000000006 sourcePeer=2000000006 cmid=143072 type=left member=335711120 actor=335711120
+[VK HISTORY CMID PROGRESS] peer=2000000006 batches=14 requested=1400 received=1396 new=0 existing=1302 cmid=143009-143108
+[VK HISTORY RECOVERY DONE] peer=2000000006 method=getByConversationMessageId requested=1400 received=1396 new=0 existing=1302 cutoff=1791989075 limit=3500
+[PARSER ALL SOURCE OPEN START] source=vk:storuvrn index=4/15
+[SCRAPER BROWSER LEASE ACQUIRE] active=4 reason=manual-source:vk:storuvrn
+[SCRAPER INITIAL RENDER DELAY] source=VK delayMs=4376
+[PARSER ALL SOURCE OPEN START] source=vk:artartelchaika index=5/15
+[SCRAPER BROWSER LEASE ACQUIRE] active=5 reason=manual-source:vk:artartelchaika

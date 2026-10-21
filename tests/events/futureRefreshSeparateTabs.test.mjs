@@ -15,12 +15,12 @@ const browserEnd = nextBrowserExport < 0 ? browser.length : nextBrowserExport;
 test('бф forwards distinct-tab option through capture into Playwright newPage opener', () => {
   assert.ok(captureStart > 0 && captureEnd > captureStart);
   const capture = app.slice(captureStart, captureEnd);
-  assert.match(capture, /separateTab = false/u);
+  assert.match(capture, /separateTab = true/u);
   assert.match(capture, /keepPageOpen: false,\s*separateTab,/u);
   assert.ok(browserStart > 0 && browserEnd > browserStart);
   const review = browser.slice(browserStart, browserEnd);
-  assert.match(review, /separateTab\s*\?\s*await openScraperTab\(/u);
-  assert.match(review, /:\s*await openScraperPage\(/u);
+  assert.match(review, /reviewBudgetMs\s*>\s*0\s*\|\|\s*separateTab[\s\S]{0,80}\?\s*openScraperTab\(/u);
+  assert.match(review, /:\s*openScraperPage\(/u);
   const openTab = browser.slice(browser.indexOf('export async function openScraperTab('), browserStart);
   assert.match(openTab, /const page = await context\.newPage\(\)/u);
   assert.doesNotMatch(openTab, /reusablePages\.(?:get|set)/u);

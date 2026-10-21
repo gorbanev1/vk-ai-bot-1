@@ -24,10 +24,10 @@ assert.equal(parseManualScraperSource('7').ok, false, 'numeric list positions mu
 const source = await readFile(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
 const commandHandler = source.slice(
     source.indexOf('async function handleManualScraperCommand('),
-    source.indexOf('async function handleManualScraperCommand(') + 3_000,
+    source.indexOf('async function handleManualScraperCommand(') + 8_000,
 );
-assert.match(commandHandler, /if \(!await requireOwnerDm\(context\)\)/u);
-assert.ok(commandHandler.indexOf('if (!await requireOwnerDm(context))') <
+assert.match(commandHandler, /if \(!\(await requireOwnerDm\(context\)\)\)/u);
+assert.ok(commandHandler.indexOf('if (!(await requireOwnerDm(context)))') <
     commandHandler.indexOf('if (command.removeSource)'),
     'source removal must be behind the existing owner/private-chat guard');
 assert.match(commandHandler, /removeOwnerManualScraperSource\(command\.sourceInput/u);

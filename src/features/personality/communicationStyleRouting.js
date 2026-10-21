@@ -36,7 +36,9 @@ const PERSONA_DEFINITIONS = Object.freeze({
     },
     loshara: {
         label: 'лошара',
-        aliases: ['лошара', 'лошарой', 'лузер', 'лузером'],
+        // Include the colloquial short form used in direct VK commands:
+        // «будь лохом» must select this persona instead of falling through to GPT.
+        aliases: ['лошара', 'лошарой', 'лох', 'лохом', 'лузер', 'лузером'],
         instruction: [
             'Стиль роли: нелепый, неуверенный в себе лошара.',
             'Используй самоиронию, неловкость и комические оговорки; не унижай пользователя.',

@@ -16,15 +16,14 @@ test('V188.30 bulk event reparse opens at least ten links concurrently per batch
   assert.match(block, /acquireScraperBrowserActivityLease/u);
 });
 
-test('V188.30 browser opening is not serialized behind VK API hydration', () => {
+test('V188.30 source reparse delegates capture to the guarded browser review path', () => {
   const start = app.indexOf('async function reparseStoredEventSourceUrl');
   const end = app.indexOf('const EVENT_REPARSE_BROWSER_BATCH_SIZE', start);
   const block = app.slice(start, end);
-  assert.match(block, /const \[exactVkPost, browserReview\] = await Promise\.all\(\[/u);
-  assert.match(block, /hydrateExactVkWallPostForEvent\(canonicalUrl\),[\s\S]*openEventLinkForReview\(\{/u);
+  assert.match(block, /captureStoredEventSourceForReparseV188147\(sourceUrl, records/u);
 });
 
-test('V188.30 keeps the hard one-minute dwell for every concurrently opened tab', () => {
-  assert.match(browser, /const EVENT_REVIEW_MINIMUM_OPEN_MS = 60_000/u);
+test('V188.30 keeps the hard three-minute dwell for every concurrently opened tab', () => {
+  assert.match(browser, /const EVENT_REVIEW_MINIMUM_OPEN_MS = 180_000/u);
   assert.match(browser, /\[EVENT LINK MINIMUM DWELL\]/u);
 });

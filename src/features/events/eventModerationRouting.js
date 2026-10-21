@@ -20,6 +20,11 @@ export function parseEventModerationCommand(value) {
         return { action: 'duplicates-status', query: '' };
     }
 
+    if (/^(?:(?:тусы|события)\s+восстановить\s+скрытые\s+афиши|скрытые\s+афиши)\s+(?:статус|отч[её]т)$/iu.test(text) ||
+        /^(?:статус|отч[её]т)\s+(?:восстановления\s+)?скрытых\s+афиш$/iu.test(text)) {
+        return { action: 'hidden-poster-recovery-status', query: '' };
+    }
+
     if (/^(?:(?:тусы|события)\s+(?:метаданные\s+картинок|картинки\s+метаданные)(?:\s+(?:отч[её]т|проверить|ревью))?|(?:отч[её]т|ревью)\s+(?:по\s+)?метаданным\s+(?:картинок|афиш))$/iu.test(text)) {
         return { action: 'image-metadata-report', query: '' };
     }
@@ -67,6 +72,14 @@ export function parseEventModerationCommand(value) {
         return { action: 'source-recovery', query: '' };
     }
 
+    // Full owner audit of future cards hidden by the poster gate.  This is
+    // deliberately separate from the ordinary image metadata backfill: it
+    // first validates the complete source text, then inspects every retained
+    // source image, and only then is a card allowed to be rebound.
+    if (/^(?:(?:тусы|события)\s+(?:восстановить\s+скрытые\s+афиши|проверить\s+скрытые\s+карточки|проверить\s+скрытые\s+афиши|восстановить\s+карточки\s+без\s+афиши|скрытые\s+(?:афиши|карточки)(?:\s+(?:через\s+)?(?:ии|ai|vision))?)|(?:проверить|восстановить)\s+(?:скрытые\s+(?:карточки|афиши)|карточки\s+без\s+афиши))$/iu.test(text)) {
+        return { action: 'hidden-poster-recovery', query: '' };
+    }
+
     if (/^(?:тусы\s+дубли\s+(?:применить|очистить)|(?:применить|очистить)\s+дубли\s+(?:тус|тусовок|событий)|(?:дедуп|дедупликацию)\s+(?:тус|тусовок|событий)\s+(?:применить|запустить))$/iu.test(text)) {
         return { action: 'duplicates-apply', query: '' };
     }
@@ -80,6 +93,15 @@ export function parseEventModerationCommand(value) {
 
     match = text.match(/^(?:тусы|тусовки)\s+(?:верни|вернуть)\s*:?[\s]+(.+)$/iu);
     if (match) return { action: 'restore', query: match[1].trim() };
+
+    match = text.match(/^(?:тусы|тусовки|события)\s+(?:исправить|исправь|редактировать|редактируй)\s+карточку\s+([a-z_]{2,16}):(\d+)$/iu);
+    if (match) return { action: 'edit-exact', query: `${String(match[1]).toLowerCase()}:${Number(match[2])}` };
+
+    match = text.match(/^(?:тусы|тусовки|события)\s+(?:удали|удалить|убери|убрать)\s+карточку\s+(?:нас(?:о|а)всем|навсегда|перманентно)\s+([a-z_]{2,16}):(\d+)$/iu);
+    if (match) return { action: 'delete-exact-permanent', query: `${String(match[1]).toLowerCase()}:${Number(match[2])}` };
+
+    match = text.match(/^(?:тусы|тусовки|события)\s+(?:удали|удалить|убери|убрать)\s+карточку\s+([a-z_]{2,16}):(\d+)$/iu);
+    if (match) return { action: 'delete-exact', query: `${String(match[1]).toLowerCase()}:${Number(match[2])}` };
 
     if (/^(?:тусы|тусовки|события)\s+(?:исправить|исправь|редактировать|редактируй)\s*:?$/iu.test(text)) {
         return { action: 'edit-start', query: '' };

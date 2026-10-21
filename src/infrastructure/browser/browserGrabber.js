@@ -12,6 +12,7 @@ import {
 } from 'node:path';
 
 import { chromium } from 'playwright';
+import { browserTabLifetime, BROWSER_TAB_MINIMUM_OPEN_MS } from './browserTabLifetime.js';
 
 import {
     isScraperTargetClosedError,
@@ -47,6 +48,32 @@ const configuredPostParserBlankCloseMs = Number(process.env.SCRAPER_POST_PARSER_
 const POST_PARSER_BLANK_CLOSE_MS = Number.isFinite(configuredPostParserBlankCloseMs)
     ? Math.max(500, Math.min(15_000, Math.trunc(configuredPostParserBlankCloseMs)))
     : 1500;
+const SCRAPER_INITIAL_RENDER_DELAY_MIN_MS = Number.isFinite(Number(process.env.SCRAPER_INITIAL_RENDER_DELAY_MIN_MS))
+    ? Math.max(3_000, Math.min(5_000, Math.trunc(Number(process.env.SCRAPER_INITIAL_RENDER_DELAY_MIN_MS))))
+    : 3_000;
+const SCRAPER_INITIAL_RENDER_DELAY_MAX_MS = Number.isFinite(Number(process.env.SCRAPER_INITIAL_RENDER_DELAY_MAX_MS))
+    ? Math.max(SCRAPER_INITIAL_RENDER_DELAY_MIN_MS, Math.min(5_000, Math.trunc(Number(process.env.SCRAPER_INITIAL_RENDER_DELAY_MAX_MS))))
+    : 5_000;
+
+function scraperInitialRenderDelayMs() {
+    const span = SCRAPER_INITIAL_RENDER_DELAY_MAX_MS - SCRAPER_INITIAL_RENDER_DELAY_MIN_MS;
+    return SCRAPER_INITIAL_RENDER_DELAY_MIN_MS + (span > 0 ? Math.floor(Math.random() * (span + 1)) : 0);
+}
+
+async function waitForInitialScraperRender(page, source, deadlineAt = 0) {
+    if (!page || page.isClosed?.()) return;
+    const requestedMs = scraperInitialRenderDelayMs();
+    const remainingMs = deadlineAt > 0 ? Math.max(0, deadlineAt - Date.now()) : requestedMs;
+    const delayMs = Math.min(requestedMs, remainingMs || requestedMs);
+    if (delayMs <= 0) return;
+    // Preventive delay: domcontentloaded only says that the document shell
+    // arrived. VK can still be fetching/rendering the feed. Keep the tab alive
+    // for 3-5 seconds before the first DOM scrape so a slow connection has a
+    // chance to finish; a human can then reload/scroll the still-open source
+    // tab if the feed is visibly incomplete.
+    console.log('[SCRAPER INITIAL RENDER DELAY]', `source=${source}`, `delayMs=${delayMs}`);
+    await page.waitForTimeout(delayMs);
+}
 
 function scheduleOrphanBrowserCleanup(context, delayMs = ORPHAN_BROWSER_IDLE_CLOSE_MS) {
     if (orphanCleanupTimer) {
@@ -54,11 +81,31 @@ function scheduleOrphanBrowserCleanup(context, delayMs = ORPHAN_BROWSER_IDLE_CLO
         orphanCleanupTimer = null;
     }
 
+    const safeDelayMs = Number.isFinite(Number(delayMs))
+        ? Math.max(0, Number(delayMs))
+        : ORPHAN_BROWSER_IDLE_CLOSE_MS;
     orphanCleanupTimer = setTimeout(async () => {
         orphanCleanupTimer = null;
-        if (browserActivityLeases > 0 || managedPages.size > 0) return;
         try {
             const pages = context.pages().filter((page) => !page.isClosed());
+            // A parser lease protects cached-DOM processing and media requests,
+            // but must not leave Chromium's replacement blank tab visible.
+            // Close only unmanaged blank tabs; source/review tabs and the
+            // persistent request context remain available.
+            const blankPages = pages.filter((page) => (
+                !managedPages.has(page) &&
+                ['about:blank', 'chrome://newtab/'].includes(String(page.url?.() ?? ''))
+            ));
+            if (blankPages.length) {
+                await Promise.all(blankPages.map((page) => page.close().catch(() => {})));
+                console.log(
+                    '[SCRAPER BLANK TAB CLEANUP]',
+                    `closed=${blankPages.length}`,
+                    `activeLeases=${browserActivityLeases}`,
+                    'reason=post-capture-processing',
+                );
+            }
+            if (browserActivityLeases > 0 || managedPages.size > 0) return;
             const meaningfulPages = pages.filter((page) => {
                 const url = String(page.url?.() ?? '');
                 return url && url !== 'about:blank' && url !== 'chrome://newtab/';
@@ -75,7 +122,7 @@ function scheduleOrphanBrowserCleanup(context, delayMs = ORPHAN_BROWSER_IDLE_CLO
         } catch {
             // Context уже закрыт владельцем/Chrome — дополнительная очистка не нужна.
         }
-    }, Math.max(0, Number(delayMs) || ORPHAN_BROWSER_IDLE_CLOSE_MS));
+    }, safeDelayMs);
     orphanCleanupTimer.unref?.();
 }
 
@@ -86,9 +133,9 @@ function attachManagedPage(context, page) {
         managedPages.delete(page);
         scheduleOrphanBrowserCleanup(
             context,
-            browserActivityLeases === 0
-                ? POST_PARSER_BLANK_CLOSE_MS
-                : ORPHAN_BROWSER_IDLE_CLOSE_MS,
+            browserActivityLeases > 0
+                ? Math.min(POST_PARSER_BLANK_CLOSE_MS, 500)
+                : POST_PARSER_BLANK_CLOSE_MS,
         );
     });
 }
@@ -205,6 +252,7 @@ async function launchContext(dataDirectory) {
         },
     );
 
+    browserTabLifetime.protectContext(context);
     context.setDefaultTimeout(30_000);
     context.setDefaultNavigationTimeout(DEFAULT_TIMEOUT_MS);
 
@@ -528,6 +576,7 @@ export async function openScraperPage({
     reuseKey = '',
     navigationTimeoutMs = DEFAULT_TIMEOUT_MS,
     manualAccessTimeoutMs = MANUAL_WAIT_MS,
+    minimumOpenMs = BROWSER_TAB_MINIMUM_OPEN_MS,
 }) {
     const context = await getScraperBrowserContext({
         dataDirectory,
@@ -572,6 +621,7 @@ export async function openScraperPage({
         attachManagedPage(context, page);
     }
 
+    browserTabLifetime.protectPage(page, minimumOpenMs, { restart: true });
     try {
         const currentUrl = String(page.url?.() ?? '');
         if (!currentUrl || currentUrl === 'about:blank' || currentUrl !== String(url)) {
@@ -586,6 +636,7 @@ export async function openScraperPage({
             dataDirectory,
             timeoutMs: Math.max(5_000, Number(manualAccessTimeoutMs) || MANUAL_WAIT_MS),
         });
+        await waitForInitialScraperRender(page, source);
         await closeUnexpectedBlankScraperPages(context, page);
         if (normalizedReuseKey) await page.bringToFront().catch(() => {});
         return page;
@@ -613,30 +664,51 @@ export async function openScraperTab({
     navigationTimeoutMs = DEFAULT_TIMEOUT_MS,
     manualAccessTimeoutMs = MANUAL_WAIT_MS,
     bringToFront = false,
+    deadlineAt = 0,
+    minimumOpenMs = BROWSER_TAB_MINIMUM_OPEN_MS,
 }) {
     const context = await getScraperBrowserContext({
         dataDirectory,
         notifyAttention,
     });
     const page = await context.newPage();
+    browserTabLifetime.protectPage(page, minimumOpenMs);
     attachManagedPage(context, page);
+    const remainingBudgetMs = () => deadlineAt > 0 ? Math.max(0, deadlineAt - Date.now()) : 0;
+    const pageDeadlineTimer = deadlineAt > 0
+        ? setTimeout(() => { void page.close().catch(() => {}); }, remainingBudgetMs())
+        : null;
 
     try {
+        if (deadlineAt > 0 && remainingBudgetMs() <= 0) {
+            throw new Error('Browser page review deadline elapsed before navigation.');
+        }
         await page.goto(url, {
             waitUntil,
-            timeout: Math.max(5_000, Number(navigationTimeoutMs) || DEFAULT_TIMEOUT_MS),
+            timeout: Math.max(1_000, Math.min(
+                Math.max(5_000, Number(navigationTimeoutMs) || DEFAULT_TIMEOUT_MS),
+                deadlineAt > 0 ? remainingBudgetMs() : Number.MAX_SAFE_INTEGER,
+            )),
         });
+        if (page.isClosed()) throw new Error('Browser page closed before navigation completed.');
         await waitForManualAccess({
             page,
             source,
             dataDirectory,
-            timeoutMs: Math.max(5_000, Number(manualAccessTimeoutMs) || MANUAL_WAIT_MS),
+            timeoutMs: Math.max(1_000, Math.min(
+                Math.max(5_000, Number(manualAccessTimeoutMs) || MANUAL_WAIT_MS),
+                deadlineAt > 0 ? remainingBudgetMs() : Number.MAX_SAFE_INTEGER,
+            )),
         });
+        if (page.isClosed()) throw new Error('Browser page closed during manual access check.');
+        await waitForInitialScraperRender(page, source, deadlineAt);
         if (bringToFront) await page.bringToFront().catch(() => {});
         return page;
     } catch (error) {
         await page.close().catch(() => {});
         throw error;
+    } finally {
+        if (pageDeadlineTimer) clearTimeout(pageDeadlineTimer);
     }
 }
 
@@ -896,7 +968,7 @@ export async function browserDownloadBuffer({
  */
 
 
-async function captureVkStructuredEventEvidence(page, trace = null) {
+async function captureVkStructuredEventEvidence(page, trace = null, { allowRelatedApi = true } = {}) {
     if (!page || page.isClosed?.()) {
         return { events: [], exactWallPosts: [] };
     }
@@ -967,7 +1039,7 @@ async function captureVkStructuredEventEvidence(page, trace = null) {
     // the authenticated Playwright request context. This is still the VK
     // structured first pass; if it fails, generic DOM/body parsing remains the
     // normal fallback.
-    if (!events.length) {
+    if (!events.length && allowRelatedApi) {
         const eventPageUrl = exactWallPosts
             .map((post) => String(post?.eventPageUrl || '').trim())
             .find(Boolean);
@@ -1008,6 +1080,15 @@ async function captureVkStructuredEventEvidence(page, trace = null) {
                 });
             }
         }
+    } else if (!events.length) {
+        // The chat repost recovery path is explicitly DOM/browser-first.  Do
+        // not turn a bounded URL probe into an API request when the caller has
+        // disabled related-event enrichment; generic DOM extraction below still
+        // has a chance to recover the visible root container.
+        trace?.('browser.vk_related_event.skipped', {
+            sourceUrl: page.url?.() || '',
+            reason: 'related-api-disabled',
+        });
     }
 
     trace?.('browser.vk_structured.events', {
@@ -1059,8 +1140,31 @@ export async function openEventLinkForReview({
     navigationTimeoutMs = 45_000,
     manualAccessTimeoutMs = 45_000,
     minimumOpenMs = EVENT_REVIEW_MINIMUM_OPEN_MS,
+    // A few bounded recovery probes (for example a VK repost root) only need
+    // a short browser dwell. Keep the normal three-minute review floor for
+    // user-facing/event reparse callers, but let an explicit fallback opt into
+    // the requested 20-second minimum.
+    allowShortMinimumOpen = false,
+    // Browser-only recovery callers must not follow related VK event pages via
+    // context.request; their source of truth is the rendered DOM.
+    allowRelatedApi = true,
+    // A DOM recovery probe may need to walk the rendered page before the
+    // final snapshot. Keep this opt-in so ordinary event review is unchanged.
+    settleScrollSteps = 0,
+    settleScrollDirection = 'down',
+    // Manual «Добавить тусу» links have their own short, bounded browser budget.
+    maxReviewMs = 0,
     trace = null,
 }) {
+    const requestedMinimumOpenMs = Math.trunc(Number(minimumOpenMs) || EVENT_REVIEW_MINIMUM_OPEN_MS);
+    const safeMinimumOpenMs = keepPageOpen
+        ? 0
+        : allowShortMinimumOpen
+            ? Math.max(20_000, Math.min(5 * 60_000, requestedMinimumOpenMs))
+            : Math.max(
+                EVENT_REVIEW_MINIMUM_OPEN_MS,
+                Math.min(5 * 60_000, requestedMinimumOpenMs),
+            );
     trace?.('browser.open.begin', {
         url,
         dataDirectory,
@@ -1069,45 +1173,163 @@ export async function openEventLinkForReview({
         navigationTimeoutMs,
         manualAccessTimeoutMs,
         minimumOpenMs,
+        allowShortMinimumOpen,
+        allowRelatedApi,
+        settleScrollSteps,
+        settleScrollDirection,
+        maxReviewMs,
     });
+    const finiteReviewStartedAt = Date.now();
+    const reviewBudgetMs = Number.isFinite(Number(maxReviewMs)) && Number(maxReviewMs) > 0
+        ? Math.max(1_000, Math.trunc(Number(maxReviewMs)))
+        : 0;
+    const reviewDeadline = reviewBudgetMs ? finiteReviewStartedAt + reviewBudgetMs : 0;
+    const boundedNavigationTimeoutMs = reviewBudgetMs
+        ? Math.min(Math.max(5_000, Number(navigationTimeoutMs) || DEFAULT_TIMEOUT_MS), Math.max(5_000, reviewBudgetMs - 10_000))
+        : navigationTimeoutMs;
+    const boundedManualAccessTimeoutMs = reviewBudgetMs
+        ? Math.min(Math.max(5_000, Number(manualAccessTimeoutMs) || MANUAL_WAIT_MS), 5_000)
+        : manualAccessTimeoutMs;
     // openScraperPage may claim an existing blank tab. For «бф», use the
     // dedicated opener that ALWAYS calls context.newPage() in the same
     // browser context, without recycling or closing other source tabs.
-    const page = separateTab
-        ? await openScraperTab({
+    const openPagePromise = reviewBudgetMs > 0 || separateTab
+        ? openScraperTab({
             url,
             source: 'MANUAL EVENT',
             dataDirectory,
             notifyAttention,
             waitUntil: 'domcontentloaded',
-            navigationTimeoutMs,
-            manualAccessTimeoutMs,
+            navigationTimeoutMs: boundedNavigationTimeoutMs,
+            manualAccessTimeoutMs: boundedManualAccessTimeoutMs,
+            deadlineAt: reviewDeadline,
+            minimumOpenMs: safeMinimumOpenMs,
         })
-        : await openScraperPage({
+        : openScraperPage({
             url,
             source: 'MANUAL EVENT',
             dataDirectory,
             notifyAttention,
             waitUntil: 'domcontentloaded',
             reuseKey: keepPageOpen ? `manual-event:${url}` : '',
-            navigationTimeoutMs,
-            manualAccessTimeoutMs,
+            navigationTimeoutMs: boundedNavigationTimeoutMs,
+            manualAccessTimeoutMs: boundedManualAccessTimeoutMs,
+            minimumOpenMs: safeMinimumOpenMs,
         });
+    let pageOpenDeadlineTimer = null;
+    const page = reviewDeadline
+        ? await Promise.race([
+            openPagePromise,
+            new Promise((_, reject) => {
+                pageOpenDeadlineTimer = setTimeout(() => {
+                    reject(new Error('Event link browser open exceeded its review budget.'));
+                }, Math.max(0, reviewDeadline - Date.now()));
+                pageOpenDeadlineTimer.unref?.();
+            }),
+        ]).finally(() => {
+            if (pageOpenDeadlineTimer) clearTimeout(pageOpenDeadlineTimer);
+        })
+        : await openPagePromise;
+    // The minimum-open guarantee is measured from the moment the new tab has
+    // actually been opened, rather than from the beginning of navigation (or
+    // from a caller's pre-open random delay). This keeps a fallback tab visible
+    // for a full 20 seconds even when VK navigation is slow.
+    const pageOpenedAt = Date.now();
     if (separateTab) {
         console.log('[FUTURE EVENTS SEPARATE TAB OPENED]', `url=${url}`, `tabs=${page.context().pages().length}`);
     }
 
-    const finiteReviewStartedAt = Date.now();
-    // An explicit zero is reserved for the owner-only pipelined future refresh:
-    // the page still completes scrolling/media capture, but an already captured
-    // source must not occupy a Chromium tab for an unrelated three-minute dwell.
-    const safeMinimumOpenMs = keepPageOpen || minimumOpenMs === 0
-        ? 0
-        : Math.max(
-            EVENT_REVIEW_MINIMUM_OPEN_MS,
-            Math.min(5 * 60_000, Math.trunc(Number(minimumOpenMs) || EVENT_REVIEW_MINIMUM_OPEN_MS)),
-        );
-
+    let pageWasClosed = false;
+    let durableDomSnapshot = null;
+    page.once('close', () => {
+        pageWasClosed = true;
+        trace?.('browser.page.closed', {
+            afterDomCapture: Boolean(durableDomSnapshot?.domCaptured),
+            domCapturedAt: durableDomSnapshot?.domCapturedAt || 0,
+        });
+    });
+    let reviewDeadlineTimer = null;
+    if (reviewBudgetMs > 0) {
+        reviewDeadlineTimer = setTimeout(() => {
+            if (page.isClosed()) return;
+            console.log(
+                '[EVENT LINK REVIEW DEADLINE]',
+                'budgetMs=' + reviewBudgetMs,
+                'domCaptured=' + Boolean(durableDomSnapshot?.domCaptured),
+                'url=' + String(page.url?.() || url),
+            );
+            trace?.('browser.review.deadline_close', {
+                reviewBudgetMs,
+                domCaptured: Boolean(durableDomSnapshot?.domCaptured),
+            });
+            void page.close().catch(() => {});
+        }, Math.max(safeMinimumOpenMs + 10_000, reviewDeadline - Date.now()));
+        reviewDeadlineTimer.unref?.();
+    }
+    const captureDurableDomSnapshot = async (reason) => {
+        if (page.isClosed()) return durableDomSnapshot;
+        try {
+            const snapshot = await page.evaluate(() => {
+                const absolute = (value) => {
+                    const source = String(value || '').trim();
+                    if (!source || source.startsWith('data:') || source.startsWith('blob:')) return '';
+                    try { return new URL(source, location.href).href; } catch { return ''; }
+                };
+                const unique = (values, limit = 24) => [...new Set(values.filter(Boolean))].slice(0, limit);
+                const selectors = ['.tgme_widget_message', '[data-post]', '[data-post-id]', '[id^="post-"]', '.Post', '.wall_post_cont', 'article', '[role="article"]'];
+                const nodes = [];
+                const seen = new Set();
+                for (const selector of selectors) {
+                    for (const node of document.querySelectorAll(selector)) {
+                        if (seen.has(node) || nodes.some((known) => known.contains(node))) continue;
+                        seen.add(node);
+                        nodes.push(node);
+                    }
+                }
+                const imageUrlsFrom = (root) => unique([
+                    ...[...root.querySelectorAll('img')].flatMap((image) => [image.currentSrc, image.src, image.getAttribute('data-src'), image.getAttribute('data-original')]),
+                    ...[...root.querySelectorAll('[style*="background-image"]')].map((node) => {
+                        const match = String(node.getAttribute('style') || '').match(/url\(["']?([^"')]+)["']?\)/i);
+                        return match?.[1] || '';
+                    }),
+                ].map(absolute));
+                const posts = nodes.map((node, index) => {
+                    const text = String(node.innerText || node.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 10000);
+                    if (text.length < 20) return null;
+                    const links = unique([...node.querySelectorAll('a[href]')].map((anchor) => absolute(anchor.getAttribute('href'))));
+                    return {
+                        index,
+                        id: String(node.getAttribute('data-post') || node.getAttribute('data-post-id') || node.id || '').trim(),
+                        text,
+                        links,
+                        imageUrls: imageUrlsFrom(node),
+                        sourceUrl: links.find((link) => /(?:wall-?\d+_\d+|t\.me\/[^/]+\/\d+)/i.test(link)) || location.href,
+                    };
+                }).filter(Boolean).slice(0, 20);
+                const text = String(document.body?.innerText || '').replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n').trim().slice(0, 100000);
+                const title = String(document.querySelector('meta[property="og:title"]')?.content || document.title || '').trim();
+                const description = String(document.querySelector('meta[property="og:description"]')?.content || document.querySelector('meta[name="description"]')?.content || '').trim();
+                const imageUrls = unique([
+                    document.querySelector('meta[property="og:image"]')?.content,
+                    document.querySelector('meta[name="twitter:image"]')?.content,
+                    ...posts.flatMap((post) => post.imageUrls || []),
+                ].map(absolute));
+                return { title, description, text, imageUrls, imageUrl: imageUrls[0] || '', posts, finalUrl: location.href };
+            });
+            if (snapshot && (String(snapshot.text || '').length >= 80 || snapshot.posts?.length || (snapshot.imageUrls?.length && snapshot.title))) {
+                durableDomSnapshot = { ...snapshot, domCaptured: true, domCapturedAt: Date.now(), domCaptureReason: reason };
+                trace?.('browser.dom.captured', {
+                    reason,
+                    textChars: String(snapshot.text || '').length,
+                    posts: Array.isArray(snapshot.posts) ? snapshot.posts.length : 0,
+                    images: Array.isArray(snapshot.imageUrls) ? snapshot.imageUrls.length : 0,
+                });
+            }
+        } catch (error) {
+            trace?.('browser.dom.capture_error', { reason, error });
+        }
+        return durableDomSnapshot;
+    };
     try {
     trace?.('browser.open.ready', {
         requestedUrl: url,
@@ -1115,12 +1337,14 @@ export async function openEventLinkForReview({
     });
     await page.bringToFront().catch(() => {});
     await page.waitForTimeout(650);
+    await captureDurableDomSnapshot('after-ready');
 
     // First VK pass happens before any long scrolling or AI work. The SPA can
     // clear apiPrefetchCache after hydration, so delaying this snapshot loses
     // canonical event fields such as start_date.
     // Legacy regression anchor: captureVkStructuredEventEvidence(page) must happen before scrolling.
-    const earlyVkEvidence = await captureVkStructuredEventEvidence(page, trace);
+    const earlyVkEvidence = await captureVkStructuredEventEvidence(page, trace, { allowRelatedApi });
+    await captureDurableDomSnapshot('after-vk-bootstrap');
     const earlyVkStructuredEvents = Array.isArray(earlyVkEvidence?.events)
         ? earlyVkEvidence.events
         : [];
@@ -1143,8 +1367,26 @@ export async function openEventLinkForReview({
     let stableScrollRounds = 0;
     let previousHeight = 0;
     let previousPostCount = 0;
-    const automaticScanSteps = earlyVkStructuredEvents.length ? 4 : earlyVkExactWallPosts.length ? 6 : 16;
+    const domHasUsableEventContent = Boolean(
+        durableDomSnapshot?.posts?.length ||
+        (
+            String(durableDomSnapshot?.text || '').length >= 160 &&
+            /(?:мероприят|концерт|вечерин|фестивал|афиш|билет|вход|\d{1,2}[.\/-]\d{1,2}|\b\d{1,2}:\d{2}\b)/iu.test(durableDomSnapshot.text)
+        )
+    );
+    const automaticScanSteps = reviewBudgetMs && domHasUsableEventContent
+        ? 0
+        : earlyVkStructuredEvents.length ? 4 : earlyVkExactWallPosts.length ? 6 : 16;
     for (let step = 0; step < automaticScanSteps; step += 1) {
+        if (page.isClosed() || (reviewDeadline && Date.now() >= reviewDeadline)) {
+            trace?.('browser.scan.stop', {
+                step,
+                pageClosed: page.isClosed(),
+                reviewBudgetMs,
+                domCaptured: Boolean(durableDomSnapshot?.domCaptured),
+            });
+            break;
+        }
         const state = await page.evaluate((targetPostCount) => {
             const selectors = [
                 '.tgme_widget_message',
@@ -1245,8 +1487,12 @@ export async function openEventLinkForReview({
         }
         previousHeight = state.height;
         previousPostCount = state.postCount;
+        await captureDurableDomSnapshot('scan-' + (step + 1));
         if (stableScrollRounds >= (earlyVkStructuredEvents.length || earlyVkExactWallPosts.length ? 2 : 3)) break;
-        await page.waitForTimeout(450);
+        const scanDelayMs = reviewDeadline
+            ? Math.max(0, Math.min(450, reviewDeadline - Date.now()))
+            : 450;
+        if (scanDelayMs > 0 && !page.isClosed()) await page.waitForTimeout(scanDelayMs);
     }
 
     console.log(
@@ -1268,11 +1514,13 @@ export async function openEventLinkForReview({
         await settleScraperPage({
             page,
             source: `EVENT LINK REVIEW ${String(page.url?.() || url)}`,
-            scrollSteps: 0,
+            scrollSteps: settleScrollSteps,
+            scrollDirection: settleScrollDirection,
+            scrollDelayMs: 700,
             mediaWaitMs: EVENT_REVIEW_MEDIA_WAIT_MS,
             holdMs: 0,
         });
-        const elapsedMs = Date.now() - finiteReviewStartedAt;
+        const elapsedMs = Date.now() - pageOpenedAt;
         const remainingMs = Math.max(0, safeMinimumOpenMs - elapsedMs);
         if (remainingMs > 0) {
             console.log(
@@ -1287,6 +1535,9 @@ export async function openEventLinkForReview({
         // После минутного окна ещё раз просим браузер закончить текущие media
         // requests, затем уже снимаем окончательный DOM ниже.
         await page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {});
+        // Capture again after the preventive dwell: a first shell snapshot must
+        // not become the recovery result when the owner reloaded/scrolled later.
+        await captureDurableDomSnapshot('after-minimum-dwell');
     }
     trace?.('browser.scan.complete', {
         limit: MANUAL_EVENT_AUTO_POST_LIMIT,
@@ -1717,6 +1968,25 @@ export async function openEventLinkForReview({
             finalUrl: location.href,
         };
     }, MANUAL_EVENT_AUTO_POST_LIMIT);
+    if (extracted && (String(extracted.text || '').length >= 20 || extracted.posts?.length || extracted.imageUrls?.length)) {
+        durableDomSnapshot = {
+            title: String(extracted.title || ''),
+            description: String(extracted.description || ''),
+            text: String(extracted.text || ''),
+            imageUrl: String(extracted.imageUrl || ''),
+            imageUrls: Array.isArray(extracted.imageUrls) ? extracted.imageUrls : [],
+            posts: Array.isArray(extracted.posts) ? extracted.posts : [],
+            finalUrl: String(extracted.finalUrl || page.url?.() || url),
+            domCaptured: true,
+            domCapturedAt: Date.now(),
+            domCaptureReason: 'full-dom-extraction',
+        };
+        trace?.('browser.dom.full_extraction_saved', {
+            textChars: durableDomSnapshot.text.length,
+            posts: durableDomSnapshot.posts.length,
+            images: durableDomSnapshot.imageUrls.length,
+        });
+    }
     if (earlyVkExactWallPosts.length) {
         const genericPosts = Array.isArray(extracted?.posts) ? extracted.posts : [];
         const exactRecoveredIds = new Set(earlyVkExactWallPosts.map((post) => String(post?.id || '')));
@@ -1849,8 +2119,25 @@ export async function openEventLinkForReview({
         );
     }
 
+    if (reviewBudgetMs > 0 && durableDomSnapshot?.domCaptured && !page.isClosed()) {
+        console.log(
+            '[EVENT LINK DOM CAPTURED; CLOSING PAGE]',
+            'elapsedMs=' + (Date.now() - finiteReviewStartedAt),
+            'textChars=' + String(extracted?.text || '').length,
+            'posts=' + (Array.isArray(extracted?.posts) ? extracted.posts.length : 0),
+        );
+        trace?.('browser.dom.capture_complete_close', {
+            elapsedMs: Date.now() - finiteReviewStartedAt,
+            textChars: String(extracted?.text || '').length,
+            posts: Array.isArray(extracted?.posts) ? extracted.posts.length : 0,
+        });
+        await page.close().catch(() => {});
+    }
+
     const result = {
         page: keepPageOpen ? page : null,
+        domCaptured: Boolean(durableDomSnapshot?.domCaptured),
+        domCapturedAt: durableDomSnapshot?.domCapturedAt || 0,
         ...extracted,
     };
     trace?.('browser.result', {
@@ -1864,8 +2151,27 @@ export async function openEventLinkForReview({
             finalUrl: page?.url?.() || '',
             error,
         });
+        if (durableDomSnapshot?.domCaptured) {
+            console.warn(
+                '[EVENT LINK DOM SNAPSHOT RECOVERY]',
+                'reason=' + (pageWasClosed ? 'page-closed-after-dom' : 'browser-error-after-dom'),
+                'textChars=' + String(durableDomSnapshot.text || '').length,
+            );
+            trace?.('browser.dom.snapshot_recovery', {
+                pageWasClosed,
+                error,
+                snapshot: durableDomSnapshot,
+            });
+            return {
+                ...durableDomSnapshot,
+                page: null,
+                browserClosedAfterDom: pageWasClosed,
+                browserErrorAfterDom: !pageWasClosed,
+            };
+        }
         throw error;
     } finally {
+        if (reviewDeadlineTimer) clearTimeout(reviewDeadlineTimer);
         // Public/event capture is a finite pass by default. Closing the tab is
         // cleanup, not the stop signal. Only an explicitly pinned/manual-live
         // caller may keep this page open.

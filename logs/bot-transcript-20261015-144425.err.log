@@ -1,0 +1,796 @@
+[OPERATION CHECKPOINT RECONCILE BOUNDED] files=292809 scanned=5000 skipped=287809
+(node:24144) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[OPTIONAL GIGACHAT CHECK ERROR] {
+  name: 'Error',
+  message: 'self-signed certificate in certificate chain',
+  stack: 'Error: self-signed certificate in certificate chain\n' +
+    '    at AxiosError.from (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/AxiosError.js:77:24)\n' +
+    '    at RedirectableRequest.handleRequestError (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/adapters/http.js:1259:27)\n' +
+    '    at RedirectableRequest.emit (node:events:520:35)\n' +
+    '    at eventHandlers.<computed> (C:\\Users\\Adm\\WebstormProjects\\vk-ai-bot\\node_modules\\.pnpm\\follow-redirects@1.16.0\\node_modules\\follow-redirects\\index.js:56:24)\n' +
+    '    at ClientRequest.emit (node:events:508:28)\n' +
+    '    at emitErrorEvent (node:_http_client:107:11)\n' +
+    '    at TLSSocket.socketErrorListener (node:_http_client:574:5)\n' +
+    '    at TLSSocket.emit (node:events:520:35)\n' +
+    '    at emitErrorNT (node:internal/streams/destroy:170:8)\n' +
+    '    at emitErrorCloseNT (node:internal/streams/destroy:129:3)\n' +
+    '    at Axios.request (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/axios@1.18.1/node_modules/axios/lib/core/Axios.js:46:41)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n' +
+    '    at async post_auth (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/api/post_auth.mjs:39:22)\n' +
+    '    at async GigaChat.updateToken (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:99:30)\n' +
+    '    at async GigaChat._decorator (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/node_modules/.pnpm/gigachat@0.0.20/node_modules/gigachat/index.mjs:138:13)\n' +
+    '    at async file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/app/botApplication.js:49996:32',
+  cause: Error: self-signed certificate in certificate chain
+      at TLSSocket.onConnectSecure (node:_tls_wrap:1631:34)
+      at TLSSocket.emit (node:events:508:28)
+      at TLSSocket._finishInit (node:_tls_wrap:1077:8)
+      at ssl.onhandshakedone (node:_tls_wrap:863:12) {
+    code: 'SELF_SIGNED_CERT_IN_CHAIN'
+  }
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144139 cutoff=1791978281 max=3500 reason=startup
+[AI KEY ATTEMPT FAILED] requestId=mv9h2bxp-8d43994a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151147576073596668268d9d6ZkVO6P9N)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9h2bxp-8d43994a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9h2bxp-8d43994a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151147582761041078268d9d6DNVmFzaY)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9h2bxp-8d43994a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9h2bxp-8d43994a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151147589104352938268d9d6IiiiBgth)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9h2bxp-8d43994a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9h2bxp-8d43994a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151147594772191898268d9d6ShFvt4zM)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9h2bxp-8d43994a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9h2bxp-8d43994a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151148000434527078268d9d6I52KeK58)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9h2bxp-8d43994a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9hknnr-589b5041 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151202188610986888268d9d66LmYiXWo)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9hknnr-589b5041 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9hknnr-589b5041 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151202196119369468268d9d6x1QLuwBT)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9hknnr-589b5041 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9hknnr-589b5041 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151202203020984588268d9d6FPIGhGLy)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9hknnr-589b5041 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9hknnr-589b5041 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151202209666162768268d9d6gy4oQ0Ko)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9hknnr-589b5041 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9hknnr-589b5041 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151202216718811168268d9d6bRw4y4Hg)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9hknnr-589b5041 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144148 cutoff=1791980075 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9i3yjm-08875900 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151217181824637778268d9d666eA3oqg)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9i3yjm-08875900 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9i3yjm-08875900 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151217191380228228268d9d6hP7aO4S9)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9i3yjm-08875900 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9i3yjm-08875900 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151217198077061698268d9d6XYasIpeu)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9i3yjm-08875900 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9i3yjm-08875900 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151217204962297168268d9d6Wi9tjmqN)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9i3yjm-08875900 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9i3yjm-08875900 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151217211356923868268d9d6vg1sSNoe)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9i3yjm-08875900 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9in8zx-e90bcb08 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151232025020199898268d9d6EJXZOHle)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9in8zx-e90bcb08 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9in8zx-e90bcb08 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрос не выполнен. Если проблема повторяется, начните новую сессию. (request id: 202610151232176905789178268d9d6cg0RxbVh)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9in8zx-e90bcb08 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9in8zx-e90bcb08 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151232187518960608268d9d6WuIweJCY)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9in8zx-e90bcb08 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9in8zx-e90bcb08 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151232193296733908268d9d6h14dsD86)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9in8zx-e90bcb08 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9in8zx-e90bcb08 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151232200000264408268d9d6D7U3AcYU)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9in8zx-e90bcb08 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9j6jg1-3279178e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151247004729321598268d9d6fbGD7C4g)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9j6jg1-3279178e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144155 cutoff=1791981875 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9j6jg1-3279178e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151247016422238668268d9d6AqPLQ6lY)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9j6jg1-3279178e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9j6jg1-3279178e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151247022772844358268d9d6Ln8HvDvJ)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9j6jg1-3279178e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9j6jg1-3279178e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151247028612931608268d9d6ffMoETvD)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9j6jg1-3279178e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9j6jg1-3279178e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151247178902648948268d9d6GurmqaiN)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9j6jg1-3279178e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[TELEGRAM POLLING ERROR] { name: 'TypeError', message: 'fetch failed', code: null }
+[AI KEY ATTEMPT FAILED] requestId=mv9jptwa-90efe1ad provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151302184044581368268d9d6H5cxdjQL)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9jptwa-90efe1ad provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9jptwa-90efe1ad provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151302191654539158268d9d6kDa8Dws5)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9jptwa-90efe1ad provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9jptwa-90efe1ad provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151302197286128568268d9d6lJl6m6pE)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9jptwa-90efe1ad provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9jptwa-90efe1ad provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151302203524087548268d9d6okem19r5)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9jptwa-90efe1ad provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9jptwa-90efe1ad provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151302209310632588268d9d62rhSlkYn)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9jptwa-90efe1ad provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9k94cd-7aaca89a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151317213882596658268d9d6KUXvxx1h)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9k94cd-7aaca89a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144212 cutoff=1791983675 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9k94cd-7aaca89a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151317223673338598268d9d6OJX9nb0S)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9k94cd-7aaca89a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9k94cd-7aaca89a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151317232008669438268d9d6kaLqypN2)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9k94cd-7aaca89a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9k94cd-7aaca89a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151317242338318738268d9d6HlKOrnLo)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9k94cd-7aaca89a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9k94cd-7aaca89a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151317253376634278268d9d6Tea2y6jg)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9k94cd-7aaca89a provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9ksesg-0a7df875 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151332060235435598268d9d6o5oByPb9)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ksesg-0a7df875 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ksesg-0a7df875 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151332212246241198268d9d66bVM5Wby)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ksesg-0a7df875 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ksesg-0a7df875 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151332219264674428268d9d6dUZ3aPXm)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ksesg-0a7df875 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ksesg-0a7df875 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151332225740200968268d9d6a3S5FBKu)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ksesg-0a7df875 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ksesg-0a7df875 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151332232374119478268d9d6VTRnCIm7)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ksesg-0a7df875 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT API 524: The origin web server did not return a complete response within the 120-second Proxy Read Timeout window. The connection was established, but the origin took too long to respond.',
+  code: null,
+  status: 524
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9lbp8h-079fbf6b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151347262260371578268d9d6yksRvyBF)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9lbp8h-079fbf6b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144335 cutoff=1791985475 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9lbp8h-079fbf6b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151347275609827508268d9d61jqJAchK)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9lbp8h-079fbf6b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9lbp8h-079fbf6b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151347284155291098268d9d6cWQrL2kK)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9lbp8h-079fbf6b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9lbp8h-079fbf6b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151347293158777328268d9d6zuLTNOPX)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9lbp8h-079fbf6b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9lbp8h-079fbf6b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151347300808843248268d9d6GMEDG0tO)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9lbp8h-079fbf6b provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[TELEGRAM POLLING ERROR] {
+  name: 'TimeoutError',
+  message: 'The operation was aborted due to timeout',
+  code: 23
+}
+[AI RUNTIME TRANSPORT FALLBACK] model=gpt-5.6-luna reasoning=none from=non_stream to=stream {
+  name: 'Error',
+  message: 'GPT network error: The operation was aborted due to timeout',
+  code: 23,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9luzoq-7b13b52e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151402086748414788268d9d6pC5oCEnq)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9luzoq-7b13b52e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9luzoq-7b13b52e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151402094473690938268d9d6JzvCsQpg)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9luzoq-7b13b52e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9luzoq-7b13b52e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151402101140805098268d9d6zIQqduwJ)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9luzoq-7b13b52e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9luzoq-7b13b52e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151402106987122808268d9d6jaheW6PZ)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9luzoq-7b13b52e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9luzoq-7b13b52e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151402258226820528268d9d6gxtMI036)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9luzoq-7b13b52e provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144405 cutoff=1791987275 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9mea4p-68c8ebfa provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151417047723550728268d9d6NnolL6AU)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9mea4p-68c8ebfa provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9mea4p-68c8ebfa provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151417088335129588268d9d66lZANwJA)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9mea4p-68c8ebfa provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9mea4p-68c8ebfa provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151417096329022678268d9d6NFwEMZ5D)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9mea4p-68c8ebfa provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9mea4p-68c8ebfa provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151417102408647848268d9d65sz5lbeK)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9mea4p-68c8ebfa provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9mea4p-68c8ebfa provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151417108201313858268d9d6DKy4DsA9)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9mea4p-68c8ebfa provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9mxkku-c2a2bd37 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151432076759644778268d9d6ZFbEcTKn)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9mxkku-c2a2bd37 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9mxkku-c2a2bd37 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151432084920487218268d9d6bnUa2lFV)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9mxkku-c2a2bd37 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9mxkku-c2a2bd37 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151432091226319448268d9d6VPZB6scc)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9mxkku-c2a2bd37 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9mxkku-c2a2bd37 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151432098120909058268d9d6Sj69A2Rn)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9mxkku-c2a2bd37 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9mxkku-c2a2bd37 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151432105243459788268d9d6FkvRH1Nh)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9mxkku-c2a2bd37 provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=1/5 {
+  name: 'Error',
+  message: 'VK history recovery request timed out after 30000ms',
+  code: 'VK_HISTORY_RECOVERY_TIMEOUT',
+  status: null
+}
+[VK HISTORY RECOVERY PAGE RETRY] peer=2000000006 offset=0 attempt=2/5 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[VK HISTORY RECOVERY CLIENT ERROR] peer=2000000006 {
+  name: 'APIError',
+  message: 'Code №15 - Access denied',
+  code: 15,
+  status: null
+}
+[AI KEY ATTEMPT FAILED] requestId=mv9ngv0u-3c39fbac provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151447094740784378268d9d6QsXaDF1V)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ngv0u-3c39fbac provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[VK HISTORY RECOVERY FALLBACK] peer=2000000006 method=getByConversationMessageId direction=newest-to-oldest ceiling=144408 cutoff=1791989075 max=3500 reason=periodic
+[AI KEY ATTEMPT FAILED] requestId=mv9ngv0u-3c39fbac provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 attempt=1/1 {
+  name: 'TypeError',
+  message: 'fetch failed',
+  code: 'ECONNRESET',
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ngv0u-3c39fbac provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ngv0u-3c39fbac provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151447285145916008268d9d6kyPgCrB5)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ngv0u-3c39fbac provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2 reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ngv0u-3c39fbac provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151447292135535008268d9d6kkD3bpo6)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ngv0u-3c39fbac provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-flare reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[AI KEY ATTEMPT FAILED] requestId=mv9ngv0u-3c39fbac provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst attempt=1/1 {
+  name: 'Error',
+  message: 'GPT image API 503: Запрошенная модель временно недоступна (request id: 202610151447298806077978268d9d63J5GhSGt)',
+  code: null,
+  status: null
+}
+[AI KEY ROTATE] requestId=mv9ngv0u-3c39fbac provider=compat key=OPENAI_COMPAT_API_KEY model=gpt-image-2.5-sunburst reason=1-attempts
+[AI ALL KEYS TEMPORARILY UNAVAILABLE] round=1 retryInMs=0
+[CALENDAR SUMMARY MAINTENANCE ERROR] {
+  name: 'Error',
+  message: 'Не удалось создать иллюстрацию авторезюме: все графические модели отказали.',
+  code: null,
+  status: null
+}

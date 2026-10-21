@@ -10,12 +10,14 @@ const expected = new Map([
     ['idmamaanarchy', 20],
     ['meetbowling.club', 20],
     ['vavilone_rb', 20],
+    ['12bpg', 20],
+    ['berserk_bar', 20],
 ]);
 
 for (const item of REQUIRED_VK_PUBLIC_SOURCES) {
     assert.equal(expected.get(item.source), item.initialCount);
 }
-assert.equal(REQUIRED_VK_PUBLIC_SOURCES.length, 5);
+assert.equal(REQUIRED_VK_PUBLIC_SOURCES.length, 7);
 
 const merged = mergeVkPublicSourceConfigurations([
     { source: 'rb_diesel', initialCount: 200 },

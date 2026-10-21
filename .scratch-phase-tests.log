@@ -1,0 +1,95 @@
+[TEST ISOLATION] data=C:\Users\Adm\AppData\Local\Temp\gigorave-test-zEjjZ4\data
+✔ four Luna failures allow one Terra attempt only below the failure threshold (2.3505ms)
+✔ over 60 percent disables Terra; over 85 percent pauses further calls (0.7919ms)
+✔ random pacing reserves independent text and Vision start times without waiting for responses (0.2126ms)
+[SCRAPER V130 DATE CLEANUP] telegramRemoved=0 vkRemoved=0
+[SCRAPER V147 DB REPAIR] vkSharedMediaCleared=0 telegramSharedMediaCleared=0 generatedCleared=0
+telegram bot tests: OK
+(node:724) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ tests\platforms\telegramBot.test.mjs (342.7645ms)
+✔ proposal prompt supplies a native copy button while retaining the back menu (1.8914ms)
+✔ V130 explicit parser command escapes pending proposal menu state (36.232ms)
+✔ V130 image-only message in proposal mode becomes proposal command and keeps media path open (0.8065ms)
+✔ startup recovery runs off the event loop and preserves cache maps (31.4593ms)
+✔ latest invocation wins despite restart timestamp; successful run supersedes old failures (12.3148ms)
+✔ partial completed run is recoverable, pools and dismissal remain independent (12.7622ms)
+✔ trace recovers cache paths despite malformed JSONL; text and attachments stay together (6.9363ms)
+✔ corrupt or wrong-source cache is reported; no silent recapture or fallback to old run (7.6932ms)
+✔ raw-cache provenance must match the selected parser run trace (7.2588ms)
+✔ provenance-bearing cache is rejected when checkpoint trace has no run identity (7.9818ms)
+✔ recovery replay accepts a prior-run cache when both trace lineages are checkpointed (7.9232ms)
+✔ one corrupt cache does not block healthy source caches and is marked for recapture (6.7966ms)
+✔ failed empty capture is recaptured while successful source caches are reused (7.5411ms)
+✔ capture manifests survive failure, stop and finalization checkpoint updates (0.2646ms)
+✔ full resume skips only finalized unchanged records from this pass (0.1616ms)
+✔ recovery command aliases include secondary pool (2.414ms)
+✔ durable raw cache preserves shared attachments rather than serializing them as CIRCULAR (11.1261ms)
+✔ parser-all-clean uses the final-DOM-only diagnostics policy (2.8795ms)
+✔ automatic recovery is claimed only once across reloads, dismissal is respected (26.3722ms)
+✔ recovery depth is preserved for the one automatic continuation limit (5.8192ms)
+✔ resume reuses each successful image, including partial batches; source and image identity must match (8.5641ms)
+[VK HTML SCRAPER] source=vk.ru/recovery_vk mode=initial fetched=2 changed=0 events=0 lastPostId=2
+[VK HTML SCRAPER] source=vk.ru/recovery_vk mode=initial fetched=2 changed=0 events=0 lastPostId=2
+[VK HTML SCRAPER] source=vk.ru/recovery_vk mode=initial fetched=2 changed=0 events=0 lastPostId=2
+[VK HTML SCRAPER] source=vk.ru/recovery_vk mode=initial fetched=2 changed=0 events=0 lastPostId=2
+[VK HTML SCRAPER] source=vk.ru/recovery_vk mode=initial fetched=0 changed=0 events=0 lastPostId=2
+[TG HTML SCRAPER] channel=@recovery_tg mode=initial fetched=2 changed=0 events=0 lastMessageId=2
+[TG HTML SCRAPER] channel=@recovery_tg mode=daily fetched=2 changed=0 events=0 lastMessageId=2
+[TG HTML SCRAPER] channel=@recovery_tg mode=daily fetched=2 changed=0 events=0 lastMessageId=2
+[TG HTML SCRAPER] channel=@recovery_tg mode=daily fetched=2 changed=0 events=0 lastMessageId=2
+[TG HTML SCRAPER] channel=@recovery_tg mode=daily fetched=0 changed=0 events=0 lastMessageId=2
+[VK CHAT FINITE PASS] peer=2000099922 loaded=2 checked=0 events=0 timedOut=false reachedTop=false historyOlder=0/0 initialMinCmid=0 initialMaxCmid=0 downFirst=false unreadAtStart=0 downCaptured=0 returnedToFrontier=true durationMs=9
+[VK CHAT FINITE PASS] peer=2000099922 loaded=2 checked=0 events=0 timedOut=false reachedTop=false historyOlder=0/0 initialMinCmid=0 initialMaxCmid=0 downFirst=false unreadAtStart=0 downCaptured=0 returnedToFrontier=true durationMs=2
+[VK CHAT FINITE PASS] peer=2000099922 loaded=2 checked=0 events=0 timedOut=false reachedTop=false historyOlder=0/0 initialMinCmid=0 initialMaxCmid=0 downFirst=false unreadAtStart=0 downCaptured=0 returnedToFrontier=true durationMs=1
+[VK CHAT FINITE PASS] peer=2000099922 loaded=2 checked=0 events=0 timedOut=false reachedTop=false historyOlder=0/0 initialMinCmid=0 initialMaxCmid=0 downFirst=false unreadAtStart=0 downCaptured=0 returnedToFrontier=true durationMs=2
+[VK CHAT FINITE PASS] peer=2000099922 loaded=0 checked=0 events=0 timedOut=false reachedTop=false historyOlder=0/0 initialMinCmid=0 initialMaxCmid=0 downFirst=false unreadAtStart=0 downCaptured=0 returnedToFrontier=true durationMs=0
+(node:28956) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ vk: cached replay resumes failed item, skips completed item and is idempotent (44.2047ms)
+✔ tg: cached replay resumes failed item, skips completed item and is idempotent (9.0846ms)
+✔ chat: cached replay resumes failed item, skips completed item and is idempotent (16.4986ms)
+[VK HTML SCRAPER] source=vk.ru/phase_isolation mode=initial fetched=1 changed=0 events=0 lastPostId=0
+[VK HTML SCRAPER] source=vk.ru/phase_isolation mode=initial fetched=1 changed=0 events=0 lastPostId=1
+(node:33908) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ phase one preserves date-free raw items for phase two without finalizing them (29.3963ms)
+✔ proposal sender profile survives a database round trip (0.4864ms)
+✔ one/two phase suffixes accept both word orders in primary and secondary parsers (2.3949ms)
+✔ phase two selects only uncached date-free images; reservations include excluded chats (1.0148ms)
+✔ missing phase-two cache is reported, never silently accepted or scraped again (0.1359ms)
+✔ removing phase-one image keeps remaining OCR bound to the correct image (0.2869ms)
+✔ cached bytes are sent to Vision while HTTP image identity survives trace and recovery (8.4434ms)
+✔ failure-rate pause offers ordinary ladder and skip without automatic retry (0.281ms)
+✔ orchestrator persists phase one before phase two and uses the exact cache without capture (8.9639ms)
+✔ phase-two barriers release empty and finished sources while another source is still in Vision (16.0608ms)
+✔ V188.63: poster vision rescues a body with no date/title (24.4629ms)
+✔ V188.63: old poster date cannot rescue the post (1.2574ms)
+✔ V188.63: title and date from different images cannot be combined into one fake event (1.9255ms)
+✔ V188.63: explicit not-an-event poster result cannot rescue even with OCR-like title/date (0.8425ms)
+✔ V188.63: pure image public post can become a structural/main-AI candidate only after poster rescue (2.3883ms)
+✔ V188.63: pure image VK chat message can be rescued from poster vision (2.101ms)
+✔ V188.63: poster gate runs only after global raw-cache barrier and before main processing gate (12.2267ms)
+✔ restart recovery records interrupted parser runs and sends an owner-visible summary after Telegram reconnects (7.1982ms)
+✔ parser reports Vision response latency and failures per model, including incomplete runs (10.1776ms)
+✔ V188.63: all three finite source types expose poster gate requests and final admission callbacks (2.5727ms)
+scraperCommandRouting tests: OK
+✔ tests\scrapers\scraperCommandRouting.test.mjs (53.0354ms)
+✔ V188.62: publication metadata alone can never create AI date evidence (21.355ms)
+✔ V188.62: a named old event stays structural but does not enter AI (5.5167ms)
+✔ V188.62: actual body date plus event title plus non-past date enters AI (2.4164ms)
+✔ V188.62: reposts require the recovered root post text before AI admission (2.0145ms)
+✔ V188.62: public nested reposts use only the resolved root body for date admission (1.4639ms)
+✔ V188.62: price suffix is not swallowed as a fake 3-digit year (0.1528ms)
+✔ V188.62: next-line time is not swallowed as a fake year (0.2923ms)
+✔ V188.62: colloquial 26го сентября counts as body date evidence (0.1313ms)
+✔ V188.62: giveaway/deadline date is classified as administrative, not event date (0.5128ms)
+✔ V188.62: parser-all exposes human-readable why-in-AI report and queue preview (11.3071ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2674.8836

@@ -1,0 +1,1 @@
+const sent=[]; const { handleChtivoCommand } = await import('./src/features/chtivo/chtivo.js'); const handled=await handleChtivoCommand({peerId:999999001,send:async (text)=>{sent.push(String(typeof text==='object'?text.message:text)); return {conversation_message_id:1};}},'чтиво список'); console.log(JSON.stringify({handled,sent},null,2));

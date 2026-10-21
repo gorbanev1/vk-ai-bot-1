@@ -1,0 +1,9 @@
+file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/runtime/singleInstanceLock.js:121
+                throw new Error(
+                      ^
+
+Error: Бот уже запущен: PID 4028. Останови старый процесс или используй штатный перезапуск.
+    at acquireSingleInstanceLock (file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/runtime/singleInstanceLock.js:121:23)
+    at file:///C:/Users/Adm/WebstormProjects/vk-ai-bot/src/index.js:20:1
+
+Node.js v24.9.0

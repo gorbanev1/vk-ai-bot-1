@@ -42,6 +42,31 @@ test('priority table contains each route once and ends in default', () => {
     assert.equal(COMMAND_ROUTE_PRIORITY.at(-1), 'default');
 });
 
+test('QTickets parser modifiers route to QTickets instead of the generic parser', () => {
+    const decision = route('кутикетс парсер новые турбо4');
+    assert.equal(decision.route, 'qtickets-events');
+    assert.equal(decision.selected.command.action, 'scrape');
+    assert.equal(decision.selected.command.cleanOnly, true);
+    assert.equal(decision.selected.command.turboMode, 'turbo4');
+    assert.ok(decision.suppressedRoutes.includes('scraper-start'));
+});
+
+test('menu-prefixed all-time QTickets query beats ordinary public-event routing', () => {
+    const decision = route('тусы тусы кутикетс все время кратко');
+    assert.equal(decision.route, 'qtickets-events');
+    assert.equal(decision.selected.command.action, 'list');
+    assert.equal(decision.selected.command.rangeText, 'все время кратко');
+    assert.ok(decision.suppressedRoutes.includes('public-events-direct'));
+});
+
+test('owner image model test command has a dedicated route and does not fall into ordinary generation', () => {
+    for (const input of ['графика тест петух', 'картинки проверить', 'image тест']) {
+        const decision = route(input);
+        assert.equal(decision.route, 'owner-image-model-test', input);
+    }
+    assert.equal(route('графика модели').route, 'default');
+});
+
 
 
 test('model keys before or after every command family never destroy routing', () => {

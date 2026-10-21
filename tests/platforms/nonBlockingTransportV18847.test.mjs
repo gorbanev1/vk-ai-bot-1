@@ -145,6 +145,69 @@ test('Telegram menu API send cannot pinball-lock polling', async () => {
     }
 });
 
+test('Telegram callback updates are dispatched with the actor identity and callback answer API', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'gigorave-v18900-callback-'));
+    let batchReturned = false;
+    let callbackContext = null;
+    const answered = [];
+    const fakeApi = {
+        async getMe() { return { id: 777, username: 'Gigorave_bot' }; },
+        async deleteWebhook() {},
+        async getUpdates() {
+            if (!batchReturned) {
+                batchReturned = true;
+                return [{
+                    update_id: 31,
+                    callback_query: {
+                        id: 'callback-31',
+                        data: 'event_edit:vk:304',
+                        from: { id: 2001, is_bot: false, first_name: 'Owner' },
+                        message: {
+                            message_id: 28,
+                            date: Math.floor(Date.now() / 1000),
+                            chat: { id: 2001, type: 'private' },
+                            from: { id: 777, is_bot: true },
+                            text: 'event card',
+                        },
+                    },
+                }];
+            }
+            await new Promise((resolve) => setTimeout(resolve, 5));
+            return [];
+        },
+        async answerCallbackQuery(payload) { answered.push(payload); },
+    };
+    const bot = createTelegramBot({
+        token: 'fake-token',
+        apiOverride: fakeApi,
+        resolvePeerId: () => -3000000031,
+        resolveUserId: () => 3000000031,
+        ownerUserId: '2001',
+        statePath: join(root, 'offset.json'),
+        logger: { log() {}, error() {} },
+        onCallbackQuery(context) {
+            callbackContext = context;
+            return context.answerCallbackQuery();
+        },
+    });
+
+    try {
+        await bot.start();
+        const deadline = Date.now() + 500;
+        while (!callbackContext && Date.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 5));
+        }
+        assert.ok(callbackContext);
+        assert.equal(callbackContext.externalSenderId, '2001');
+        assert.equal(callbackContext.isDM, true);
+        assert.equal(callbackContext.callbackQuery.data, 'event_edit:vk:304');
+        assert.deepEqual(answered, [{ callbackQueryId: 'callback-31' }]);
+    } finally {
+        await bot.stop();
+        rmSync(root, { recursive: true, force: true });
+    }
+});
+
 test('VK and provider wiring has no global user-request serialization', () => {
     const source = readFileSync(
         new URL('../../src/app/botApplication.js', import.meta.url),

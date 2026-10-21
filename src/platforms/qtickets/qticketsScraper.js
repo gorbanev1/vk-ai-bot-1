@@ -19,8 +19,12 @@ import {
 
 import {
     getQticketsUpcomingEvents,
+    getQticketsListingCardHashes,
+    saveQticketsListingCardHashes,
     replaceQticketsEvents,
 } from '../../infrastructure/database/index.js';
+import { createParserAttemptPacer } from '../../features/ai/dateFreeParserPolicy.js';
+import { createQticketsDomSnapshot } from './qticketsDomSnapshot.js';
 
 import {
     QTICKETS_CITY_URL,
@@ -29,7 +33,11 @@ import {
     mergeQticketsCardAndDetail,
     parseQticketsDetailHtml,
     parseQticketsListingHtml,
+    qticketsListingCardHash,
 } from '../../features/events/qticketsParser.js';
+import {
+    qticketsEventHasConflictingCity,
+} from '../../features/events/qticketsRouting.js';
 
 const DEFAULT_NAVIGATION_TIMEOUT_MS = 90_000;
 const DEFAULT_DETAIL_CONCURRENCY = 6;
@@ -105,11 +113,20 @@ async function collectListingCards(page, {
         referenceDate,
         timeZone,
     });
+    const audit = {
+        initialHtmlBytes: Buffer.byteLength(html, 'utf8'),
+        initialNumericDetailLinks: countNumericDetailLinks(html, listingUrl),
+        moreClicks: 0,
+        stagnantClicks: 0,
+        rounds: [{ numericDetailLinks: countNumericDetailLinks(html, listingUrl), parsedCards: cards.length }],
+        capReached: false,
+    };
     let stalledClicks = 0;
 
     for (let click = 0; click < maxMoreClicks; click += 1) {
         const clicked = await waitForListingMore(page);
         if (!clicked) break;
+        audit.moreClicks += 1;
         await page.waitForTimeout(800);
         html = await page.content();
         const next = parseQticketsListingHtml(html, {
@@ -117,19 +134,36 @@ async function collectListingCards(page, {
             referenceDate,
             timeZone,
         });
+        audit.rounds.push({ numericDetailLinks: countNumericDetailLinks(html, listingUrl), parsedCards: next.length });
         if (next.length <= cards.length) {
             stalledClicks += 1;
+            audit.stagnantClicks += 1;
             if (stalledClicks >= 2) break;
         } else {
             stalledClicks = 0;
             cards = next;
         }
     }
+    audit.capReached = audit.moreClicks >= maxMoreClicks;
 
     return {
         html,
         cards,
+        audit,
     };
+}
+
+function countNumericDetailLinks(html, baseUrl = QTICKETS_CITY_URL) {
+    const links = String(html ?? '').match(/<a\b[^>]*>/giu) || [];
+    let count = 0;
+    for (const tag of links) {
+        const href = tag.match(/\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/iu);
+        const target = String(href?.[1] || href?.[2] || href?.[3] || '').trim();
+        const resolved = (() => { try { return new URL(target, baseUrl); } catch { return null; } })();
+        if (!resolved || !/\.qtickets\.events$/iu.test(resolved.hostname)) continue;
+        if (/\/(?:\d+)(?:-|$)/u.test(resolved.pathname)) count += 1;
+    }
+    return count;
 }
 
 async function parseOneDetailCard(card, index, {
@@ -140,12 +174,15 @@ async function parseOneDetailCard(card, index, {
     referenceDate,
     keepEventTabsOpen,
     navigationTimeoutMs,
+    beforeAttempt,
+    domSnapshot,
 } = {}) {
     const sourceLabel = `${QTICKETS_SOURCE_NAME} · карточка ${index + 1}`;
     let page = null;
     let detailTabsOpened = 0;
     let openedAtMs = 0;
     try {
+        await beforeAttempt?.('text');
         page = await openScraperTab({
             url: card.detailUrl,
             source: sourceLabel,
@@ -162,6 +199,17 @@ async function parseOneDetailCard(card, index, {
         await page.waitForTimeout(350);
 
         const html = await page.content();
+        domSnapshot?.savePage({
+            kind: 'detail',
+            url: card.detailUrl,
+            html,
+            metadata: {
+                id: card.externalId || `card-${index + 1}`,
+                title: card.title || '',
+                cardIndex: index + 1,
+                parseStage: 'captured-before-parse',
+            },
+        });
         const detail = parseQticketsDetailHtml(html, card.detailUrl, {
             referenceDate,
             timeZone,
@@ -205,6 +253,32 @@ async function parseOneDetailCard(card, index, {
             error: null,
         };
     } catch (error) {
+        if (page && !page.isClosed()) {
+            const errorHtml = await page.content().catch(() => '');
+            if (errorHtml) {
+                domSnapshot?.savePage({
+                    kind: 'detail-error',
+                    url: card.detailUrl,
+                    html: errorHtml,
+                    metadata: {
+                        id: card.externalId || `card-${index + 1}`,
+                        title: card.title || '',
+                        cardIndex: index + 1,
+                        error: String(error?.message ?? error),
+                    },
+                });
+            }
+        }
+        domSnapshot?.record({
+            kind: 'detail-error',
+            url: card.detailUrl,
+            metadata: {
+                id: card.externalId || `card-${index + 1}`,
+                title: card.title || '',
+                cardIndex: index + 1,
+                error: String(error?.message ?? error),
+            },
+        });
         console.warn(
             '[QTICKETS DETAIL ERROR]',
             `url=${card.detailUrl}`,
@@ -268,10 +342,16 @@ export function createQticketsScraper({
         async run({
             keepEventTabsOpen: keepTabs = keepEventTabsOpen,
             refreshListing = true,
+            incrementalOnly = false,
+            turboMode = 'turbo3',
         } = {}) {
             const releaseLease = acquireScraperBrowserActivityLease({
                 reason: 'qtickets-voronezh',
             });
+            const runId = new Date().toISOString().replace(/[:.]/gu, '-') + `-${Math.random().toString(16).slice(2, 8)}`;
+            const domSnapshot = createQticketsDomSnapshot({ dataDirectory, runId });
+            let runStatus = 'failed';
+            const runMetrics = { listingUrl, incrementalOnly: Boolean(incrementalOnly), turboMode: turboMode || 'turbo3' };
             let listingPage = null;
             let listingOpenedAtMs = 0;
             try {
@@ -333,17 +413,54 @@ export function createQticketsScraper({
                     timeZone,
                     maxMoreClicks,
                 });
+                const listingSnapshot = domSnapshot.savePage({
+                    kind: 'listing',
+                    url: listingUrl,
+                    html: collected.html,
+                    metadata: {
+                        parsedCardCount: collected.cards.length,
+                        audit: collected.audit,
+                        parseStage: 'fully-expanded-listing',
+                    },
+                });
+                runMetrics.listingSnapshot = listingSnapshot;
+                runMetrics.listingCardCount = collected.cards.length;
+                runMetrics.listingAudit = collected.audit;
                 const cards = collected.cards.slice(0, maxCards);
+                const oldHashes = incrementalOnly
+                    ? getQticketsListingCardHashes(cards.map((card) => card.detailUrl))
+                    : new Map();
+                const hashCard = qticketsListingCardHash;
+                const cardsToOpen = incrementalOnly ? cards.filter((card) => {
+                    const previousHash = oldHashes.get(card.detailUrl);
+                    return previousHash !== hashCard(card);
+                }) : cards;
+                const skippedUnchanged = cards.length - cardsToOpen.length;
+                const beforeAttempt = createParserAttemptPacer({ mode: turboMode || 'turbo3' });
                 console.log(
                     '[QTICKETS LISTING CAPTURED]',
                     `url=${listingUrl}`,
                     `cards=${collected.cards.length}`,
                     `selected=${cards.length}`,
+                    `incremental=${Boolean(incrementalOnly)}`,
+                    `unchangedSkipped=${skippedUnchanged}`,
+                    `turbo=${turboMode || 'default'}`,
+                    `domRounds=${collected.audit.rounds.length}`,
+                    `domLinksInitial=${collected.audit.initialNumericDetailLinks}`,
+                    `domLinksFinal=${collected.audit.rounds.at(-1)?.numericDetailLinks || 0}`,
+                    `domMoreClicks=${collected.audit.moreClicks}`,
+                    `domCapReached=${collected.audit.capReached}`,
                     `maxMoreClicks=${maxMoreClicks}`,
                 );
+                const listingParseMethods = cards.reduce((counts, card) => {
+                    const method = String(card.parseMethod || 'unknown');
+                    counts[method] = Number(counts[method] || 0) + 1;
+                    return counts;
+                }, {});
+                console.log('[QTICKETS DOM AUDIT]', JSON.stringify({ ...collected.audit, parsedCards: cards.length, listingParseMethods }));
 
                 const detailResults = await mapWithConcurrency(
-                    cards,
+                    cardsToOpen,
                     detailConcurrency,
                     (card, index) => parseOneDetailCard(card, index, {
                         listingUrl,
@@ -353,15 +470,48 @@ export function createQticketsScraper({
                         referenceDate,
                         keepEventTabsOpen: Boolean(keepTabs),
                         navigationTimeoutMs,
+                        beforeAttempt,
+                        domSnapshot,
                     }),
                 );
-                const events = detailResults
+                const cachedByUrl = new Map(incrementalOnly
+                    ? getQticketsUpcomingEvents({ fromDate: '0000-00-00', limit: 2000 }).map((event) => [event.detailUrl, event])
+                    : []);
+                const unchangedEvents = incrementalOnly ? cards
+                    .filter((card) => oldHashes.get(card.detailUrl) === hashCard(card) && cachedByUrl.has(card.detailUrl))
+                    .map((card) => cachedByUrl.get(card.detailUrl))
+                    .filter(Boolean) : [];
+                const currentDate = new Intl.DateTimeFormat('en-CA', {
+                    timeZone, year: 'numeric', month: '2-digit', day: '2-digit',
+                }).format(new Date());
+                const parsedEvents = [...unchangedEvents, ...detailResults
                     .map((result) => result?.event)
-                    .filter((event) => String(event?.eventDate ?? '').trim());
+                    .filter((event) => String(event?.eventDate ?? '').trim())];
+                const cardByUrl = new Map(cards.map((card) => [card.detailUrl, card]));
+                const successfulDetailUrls = new Set(detailResults
+                    .filter((result) => !result?.error && result?.event?.detailUrl)
+                    .map((result) => String(result.event.detailUrl)));
+                for (const event of parsedEvents) {
+                    const card = cardByUrl.get(String(event.detailUrl || event.sourceUrl || ''));
+                    if (card && successfulDetailUrls.has(String(event.detailUrl || ''))) event.listingCardHash = hashCard(card);
+                }
+                const futureEvents = parsedEvents.filter((event) => String(event.eventDate) >= currentDate);
+                const cityRejected = futureEvents.filter(qticketsEventHasConflictingCity).length;
+                const pastRejected = parsedEvents.length - futureEvents.length;
+                const events = futureEvents.filter((event) => !qticketsEventHasConflictingCity(event));
+                const successfulCards = cards
+                    .filter((card) => successfulDetailUrls.has(card.detailUrl))
+                    .map((card) => ({ detailUrl: card.detailUrl, cardHash: hashCard(card) }));
+                const processedCardsSaved = saveQticketsListingCardHashes(successfulCards, { listingUrl });
                 const storage = replaceQticketsEvents(events, {
                     listingUrl,
                 });
                 const errors = detailResults.filter((result) => result?.error).length;
+                runMetrics.selectedCards = cards.length;
+                runMetrics.detailCardsOpened = cardsToOpen.length;
+                runMetrics.detailErrors = errors;
+                runMetrics.eventsParsed = events.length;
+                runMetrics.eventsStored = events.length;
                 const detailTabsOpened = detailResults.reduce(
                     (sum, result) => sum + Number(result?.detailTabsOpened || 0),
                     0,
@@ -372,25 +522,39 @@ export function createQticketsScraper({
                     `cards=${cards.length}`,
                     `tabs=${detailTabsOpened}`,
                     `events=${events.length}`,
+                    `cityRejected=${cityRejected}`,
+                    `pastRejected=${pastRejected}`,
                     `errors=${errors}`,
                     `inserted=${storage.inserted}`,
                     `updated=${storage.updated}`,
                     `ignored=${storage.ignored}`,
+                    `processedCards=${processedCardsSaved}`,
                     `tabsKeptOpen=${Boolean(keepTabs)}`,
                 );
+                runStatus = errors ? 'completed-with-detail-errors' : 'completed';
                 return {
                     ok: true,
                     listingUrl,
                     listingPageOpen: Boolean(listingPage && !listingPage.isClosed()),
                     listingCards: collected.cards.length,
                     selectedCards: cards.length,
+                    detailCardsOpened: cardsToOpen.length,
+                    unchangedCardsSkipped: skippedUnchanged,
+                    processedCardsSaved,
                     detailTabsOpened,
                     eventsParsed: events.length,
+                    cityRejected,
+                    pastRejected,
                     detailErrors: errors,
                     tabsKeptOpen: Boolean(keepTabs),
                     storage,
                 };
+            } catch (error) {
+                runMetrics.fatalError = String(error?.message ?? error);
+                throw error;
             } finally {
+                const snapshotResult = domSnapshot.finish(runStatus, runMetrics);
+                console.log('[QTICKETS DOM SNAPSHOT]', JSON.stringify(snapshotResult));
                 if (!keepTabs && listingPage && !listingPage.isClosed()) {
                     await waitForMinimumPageLifetime(listingPage, listingOpenedAtMs);
                     await listingPage.close().catch(() => {});

@@ -384,7 +384,13 @@ export async function executeRuntimeModelFailover({
             }
         }
 
-        if (maxRounds > 0 && round >= maxRounds) break;
+        // Emit the terminal exhaustion event even on the final finite round;
+        // consumers use it to distinguish a full ladder failure from one
+        // candidate failure.
+        if (maxRounds > 0 && round >= maxRounds) {
+            emitFailoverEvent(onEvent, { type: 'all-unavailable', round, waitMs: 0, error: lastError, ladderExhausted: true });
+            break;
+        }
 
         const now = Date.now();
         const waitMs = Number.isFinite(roundRetryDelayMs) && roundRetryDelayMs >= 0 ? roundRetryDelayMs : Number.isFinite(nearestQuarantine)

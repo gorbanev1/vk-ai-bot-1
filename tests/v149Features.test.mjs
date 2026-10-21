@@ -17,11 +17,11 @@ function pair({ leftTitle, rightTitle, leftDate = '2026-09-12', rightDate = '202
     };
 }
 
-test('AI duplicate gate skips exact title+date and reviews only partial/similar same-date names', () => {
+test('AI duplicate gate reviews shared-title and partial-title candidates only on the same date', () => {
     assert.equal(shouldReviewEventDuplicatePairWithAi(pair({
         leftTitle: 'Industrial Madness',
         rightTitle: 'INDUSTRIAL MADNESS',
-    })), false);
+    })), true);
 
     assert.equal(shouldReviewEventDuplicatePairWithAi(pair({
         leftTitle: 'Industrial Madness',
@@ -39,6 +39,26 @@ test('AI duplicate gate skips exact title+date and reviews only partial/similar 
         rightTitle: 'Industrial Madness — Live Noise Ritual',
         hardConflicts: ['venue-conflict'],
     })), false);
+});
+
+test('participant fallback runs only when same-date titles have no shared identity', () => {
+    assert.equal(shouldReviewEventDuplicatePairWithAi({
+        left: { title: 'ЗАЕЗЖАЕМ', eventDate: '2026-10-03', participants: 'Дездемон Сидоров, Артём Фатеев, Максим Долин' },
+        right: { title: 'Moonlight', eventDate: '2026-10-03', participants: 'Дездемон Сидоров; Артема Фатеева; Максима Долина' },
+        contour1: { hardConflicts: [] },
+    }), true);
+
+    assert.equal(shouldReviewEventDuplicatePairWithAi({
+        left: { title: 'ЗАЕЗЖАЕМ', eventDate: '2026-10-03', participants: 'Дездемон Сидоров' },
+        right: { title: 'Moonlight', eventDate: '2026-10-04', participants: 'Дездемон Сидоров' },
+        contour1: { hardConflicts: [] },
+    }), false);
+
+    assert.equal(shouldReviewEventDuplicatePairWithAi({
+        left: { title: 'Концерт Альфа', eventDate: '2026-10-03', participants: 'Дездемон Сидоров' },
+        right: { title: 'Концерт Альфа акустика', eventDate: '2026-10-03', participants: 'Дездемон Сидоров' },
+        contour1: { hardConflicts: [] },
+    }), true, 'shared title follows the existing title path');
 });
 
 test('active communication interval command accepts persistent windows', () => {

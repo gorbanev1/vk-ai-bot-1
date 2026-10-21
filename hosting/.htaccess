@@ -1,0 +1,59 @@
+DirectoryIndex index.html
+Options -Indexes
+AddDefaultCharset UTF-8
+ErrorDocument 404 /404.html
+
+# Shared test secret used by the Telegram bot. Replace on both sides after testing.
+SetEnv EVENT_CALENDAR_HMAC_SECRET 07c48410a7dc1d6344eb9d8461a71cbe184a380b1a8be0c4761a1eb4b6074d01
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# Force the calendar host and HTTPS.
+RewriteCond %{HTTP_HOST} !^gigorave\.tw1\.ru$ [NC]
+RewriteRule ^ https://gigorave.tw1.ru%{REQUEST_URI} [R=301,L,NE]
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+RewriteCond %{HTTP:X-Forwarded-Ssl} !on [NC]
+RewriteRule ^ https://gigorave.tw1.ru%{REQUEST_URI} [R=301,L,NE]
+# One canonical homepage URL
+RewriteCond %{THE_REQUEST} \s/+index\.html(?:[?\s]) [NC]
+RewriteRule ^index\.html$ / [R=301,L]
+# Legacy contact URLs
+RewriteRule ^kontakts\.php$ /kontakts.html [R=301,L]
+RewriteRule ^kontakts1\.php$ /kontakts.html [R=301,L]
+RewriteRule ^kontakts_old\.html$ /kontakts.html [R=301,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+Header always set Permissions-Policy "geolocation=(), camera=(), microphone=()"
+<FilesMatch "\.(?:html?|php)$">
+Header set Cache-Control "max-age=0, must-revalidate"
+</FilesMatch>
+<FilesMatch "\.(?:css|js)$">
+Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
+<FilesMatch "\.(?:webp|jpg|jpeg|png|gif|ico)$">
+Header set Cache-Control "public, max-age=2592000"
+</FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+<IfModule mod_brotli.c>
+AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresByType text/css "access plus 1 year"
+ExpiresByType application/javascript "access plus 1 year"
+ExpiresByType image/webp "access plus 30 days"
+ExpiresByType image/jpeg "access plus 30 days"
+ExpiresByType image/png "access plus 30 days"
+ExpiresByType image/x-icon "access plus 30 days"
+</IfModule>

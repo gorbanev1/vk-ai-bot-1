@@ -94,6 +94,11 @@ export function sourceTextSimilarity(left, right) {
     return (2 * intersection) / (a.size + b.size);
 }
 
+export function sourceTextChangeScore(left, right) {
+    const similarity = sourceTextSimilarity(left, right);
+    return { similarity, change: 1 - similarity };
+}
+
 function stripJpegMetadata(buffer) {
     if (buffer.length < 4 || buffer[0] !== 0xff || buffer[1] !== 0xd8) return null;
     const chunks = [buffer.subarray(0, 2)];
@@ -220,6 +225,7 @@ export async function fingerprintRemoteImages({
     imageUrls,
     fetchBuffer,
     maximum = 4,
+    includeUiImages = false,
     maxAttempts = EVENT_OPERATION_MAX_ATTEMPTS,
     retrySleepFn = undefined,
     onAttemptError = null,
@@ -230,8 +236,8 @@ export async function fingerprintRemoteImages({
     const urls = [...new Set((Array.isArray(imageUrls) ? imageUrls : [])
         .map((value) => String(value ?? '').trim())
         .filter((value) => /^https?:\/\//iu.test(value))
-        .filter((value) => !isLikelyVkNonPosterUiImageUrl(value)))]
-        .slice(0, Math.max(1, Math.min(12, Number(maximum) || 4)));
+        .filter((value) => includeUiImages || !isLikelyVkNonPosterUiImageUrl(value)))]
+        .slice(0, Math.max(1, Math.min(1000, Number(maximum) || 4)));
     const results = [];
     for (const url of urls) {
         try {
@@ -327,4 +333,18 @@ export function imageFingerprintSetsEqual(left, right) {
     if (!a.length && !b.length) return true;
     if (a.length !== b.length) return false;
     return a.every((value, index) => value === b[index]);
+}
+
+/** Stable identity used by multi-phase parser runs. Exact bytes and visual payload
+ * are preferred; URL is retained only as a degraded fallback when the CDN is
+ * unavailable. */
+export function imageFingerprintKey(fingerprint = {}) {
+    const visual = String(fingerprint?.visualHash || fingerprint?.sha256 || '').trim();
+    if (visual && !visual.startsWith('url-fallback:')) return `visual:${visual}`;
+    const url = String(fingerprint?.url || '').trim();
+    return url ? `url:${url}` : '';
+}
+
+export function imageFingerprintKeySet(items = []) {
+    return new Set((Array.isArray(items) ? items : []).map(imageFingerprintKey).filter(Boolean));
 }

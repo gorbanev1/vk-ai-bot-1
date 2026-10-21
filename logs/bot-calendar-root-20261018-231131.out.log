@@ -1,0 +1,2 @@
+[DB PREFLIGHT] healthy backup current=C:\Users\Adm\WebstormProjects\vk-ai-bot\data\healthy-backups\bot-healthy-2026-10-18T19-30-58-243Z.sqlite
+[DB HEALTHY BACKUP SCHEDULER] intervalHours=6 retained=15

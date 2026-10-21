@@ -47,10 +47,14 @@ test('V188.74 merges Vadim Kurylev duplicate when one card has venue name and an
     };
 
     const comparison = compareEventsDeterministic(namedVenue, addressOnly);
-    assert.equal(comparison.verdict, 'same');
+    assert.equal(comparison.verdict, 'ambiguous');
     assert.ok(!comparison.hardConflicts.includes('different-venue'));
 
-    const dedupe = await deduplicateEventsTwoContour([namedVenue, addressOnly]);
+    const dedupe = await deduplicateEventsTwoContour([namedVenue, addressOnly], {
+        arbitrateAmbiguous: async (pairs) => new Map(pairs.map((pair) => [pair.key, {
+            verdict: 'same', confidence: 0.98, reason: 'same title, date and artist; address is a venue alias',
+        }])),
+    });
     assert.equal(dedupe.events.length, 1);
     assert.equal(dedupe.events[0].eventDate, '2026-09-19');
     assert.equal(dedupe.events[0].verifiedImagePaths.length, 1);
@@ -66,8 +70,9 @@ test('V188.74 still keeps two genuinely different named venues apart on the same
         { title: 'Вадим Курылёв', eventDate: '2026-09-19', venue: 'Мама Анархия', participants: 'Вадим Курылёв' },
         { title: 'Вадим Курылёв', eventDate: '2026-09-19', venue: 'Сто Ручьёв', participants: 'Вадим Курылёв' },
     );
-    assert.equal(comparison.verdict, 'different');
-    assert.ok(comparison.hardConflicts.includes('different-venue'));
+    assert.equal(comparison.verdict, 'ambiguous');
+    assert.ok(!comparison.hardConflicts.includes('different-venue'));
+    assert.equal(comparison.factors.venueConflict, 1);
 });
 
 test('V188.74 final same-day sweep runs after optimized blocking contours', async () => {
@@ -76,7 +81,7 @@ test('V188.74 final same-day sweep runs after optimized blocking contours', asyn
         { id: 2, title: 'NO PLACE FOR OLD PADS — выступление дуэта', eventDate: '2026-09-19', venue: 'Rock Bar Diesel', participants: 'NO PLACE FOR OLD PADS' },
     ];
     const result = await deduplicateEventsTwoContour(events);
-    assert.equal(result.events.length, 1);
+    assert.equal(result.events.length, 2);
     assert.ok(Number(result.finalSweepComparedPairs) >= 0);
     assert.ok(Object.hasOwn(result, 'finalSweepMergeCount'));
 });

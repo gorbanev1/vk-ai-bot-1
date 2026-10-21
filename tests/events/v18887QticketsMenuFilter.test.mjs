@@ -32,20 +32,20 @@ test('V188.87 QTickets text command accepts custom day count and price with or w
     assert.equal(parseQticketsPriceLimit('на ближайшие 5 дней'), null);
 });
 
-test('V188.87 QTickets default window is seven days and weekend shortcut spans fourteen days', () => {
+test('QTickets default window is seven days and weekend shortcut uses the exact public weekend', () => {
     assert.deepEqual(resolveQticketsWindowSpec(parseQticketsCommand('qtickets')), {
         dayCount: 7,
         weekendsOnly: false,
         usePublicRange: false,
     });
     assert.deepEqual(resolveQticketsWindowSpec(parseQticketsCommand('qtickets выходные')), {
-        dayCount: 14,
-        weekendsOnly: true,
-        usePublicRange: false,
+        dayCount: null,
+        weekendsOnly: false,
+        usePublicRange: true,
     });
 });
 
-test('V188.87 QTickets weekend mode is a dedicated weekend-only 14-day window', () => {
+test('QTickets command still marks the explicit weekend token for routing', () => {
     const parsed = parseQticketsCommand('qtickets события выходные');
     assert.equal(parsed.weekendsOnly, true);
     assert.equal(parsed.dayCount, null);
@@ -74,10 +74,12 @@ test('V188.87 Telegram QTickets button opens a submenu with periods and price fi
     assert.equal(opened.state.menuPath, 'qtickets');
     const buttons = opened.replyMarkup.keyboard.flat().map((button) => button.text);
     assert.ok(buttons.includes(TELEGRAM_MENU_BUTTONS.qticketsWeek));
-    assert.ok(buttons.includes(TELEGRAM_MENU_BUTTONS.qticketsWeekends));
+    assert.ok(buttons.includes(TELEGRAM_MENU_BUTTONS.qticketsTwoWeeks));
+    assert.ok(buttons.includes(TELEGRAM_MENU_BUTTONS.qticketsMonth));
+    assert.ok(buttons.includes(TELEGRAM_MENU_BUTTONS.qticketsAll));
     assert.ok(buttons.includes(TELEGRAM_MENU_BUTTONS.qticketsPriceFilter));
-    assert.match(opened.text, /ближайшие 7 дней/u);
-    assert.match(opened.text, /600 рублей/u);
+    assert.match(opened.text, /четверга перед ближайшими выходными/u);
+    assert.match(opened.text, /Фильтр цены по умолчанию выключен/u);
 });
 
 test('V188.87 Telegram QTickets price filter persists into period buttons', () => {
@@ -103,15 +105,21 @@ test('V188.87 Telegram QTickets price filter persists into period buttons', () =
         { isOwner: false },
     );
     assert.equal(week.type, 'command');
-    assert.equal(week.text, 'qtickets события на ближайшие 7 дней до 600');
+    assert.equal(week.text, 'qtickets события на эту неделю до 600');
+    assert.equal(week.state.menuPath, undefined);
 
-    const weekends = resolveTelegramMenuInput(
-        TELEGRAM_MENU_BUTTONS.qticketsWeekends,
+    const twoWeeks = resolveTelegramMenuInput(
+        TELEGRAM_MENU_BUTTONS.qticketsTwoWeeks,
         set.state,
         { isOwner: false },
     );
-    assert.equal(weekends.type, 'command');
-    assert.equal(weekends.text, 'qtickets события выходные на ближайшие 14 дней до 600');
+    assert.equal(twoWeeks.type, 'command');
+    assert.equal(twoWeeks.text, 'qtickets события на две недели вперёд до 600');
+    const month = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.qticketsMonth, set.state, { isOwner: false });
+    assert.equal(month.text, 'qtickets события на месяц вперёд до 600');
+
+    const all = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.qticketsAll, set.state, { isOwner: false });
+    assert.equal(all.text, 'qtickets события вообще за всё время до 600');
 });
 
 test('V188.87 free-text party query inside QTickets section stays in QTickets namespace', () => {
@@ -122,6 +130,7 @@ test('V188.87 free-text party query inside QTickets section stays in QTickets na
     );
     assert.equal(result.type, 'command');
     assert.equal(result.text, 'qtickets тусы на ближайшие 3 дня по цене до 450 рублей');
+    assert.equal(result.state.menuPath, undefined);
 
     const parsed = parseQticketsCommand(result.text);
     assert.equal(parsed.dayCount, 3);
@@ -136,4 +145,9 @@ test('V188.87 QTickets menu shows reset only while a price limit is active', () 
     const filtered = buildTelegramQticketsMenu({ isOwner: false, maxPrice: 600 });
     const filteredButtons = filtered.keyboard.flat().map((button) => button.text);
     assert.ok(filteredButtons.includes(TELEGRAM_MENU_BUTTONS.qticketsPriceReset));
+
+    const staleZero = buildTelegramQticketsMenu({ isOwner: false, maxPrice: '0' });
+    const staleZeroButtons = staleZero.keyboard.flat().map((button) => button.text);
+    assert.ok(!staleZeroButtons.includes(TELEGRAM_MENU_BUTTONS.qticketsPriceReset));
+    assert.match(staleZero.input_field_placeholder, /Без ограничения цены/u);
 });

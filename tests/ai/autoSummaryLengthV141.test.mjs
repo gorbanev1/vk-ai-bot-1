@@ -37,5 +37,5 @@ test('V188 scheduled autoresume keeps V141 output clamps while using the shared 
     assert.match(source, /AUTO_SUMMARY_MAX_PARAGRAPHS/u);
     assert.match(source, /async function createAutoSummaryText/u);
     assert.match(source, /return createOpenAISummary\(\{/u);
-    assert.match(source, /summary = validateAutoSummaryForDelivery\(summary, messages\.length\)/u);
+    assert.match(source, /summary = validateAutoSummaryForDelivery\(summary, messages\.length(?:, [^)]+)?\)/u);
 });

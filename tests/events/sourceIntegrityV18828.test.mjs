@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { shouldPreserveStoredEventsOnEmptyReparse } from '../../src/features/events/sourceEventPersistence.js';
+import { shouldPreserveStoredEventsOnEmptyReparse, shouldPreserveStoredEventsOnPartialReparse } from '../../src/features/events/sourceEventPersistence.js';
 
 const app = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
 const vk = readFileSync(new URL('../../src/platforms/vk/vkPublicScraper.js', import.meta.url), 'utf8');
@@ -18,6 +18,13 @@ test('V188.28 empty repeat parse never erases already accepted source events', (
   assert.match(vk, /shouldPreserveStoredEventsOnEmptyReparse\(\{/u);
   assert.match(tg, /shouldPreserveStoredEventsOnEmptyReparse\(\{/u);
   assert.match(chat, /shouldPreserveStoredEventsOnEmptyReparse\(\{/u);
+});
+
+test('phase-two partial result never erases earlier complete source cards', () => {
+  assert.equal(shouldPreserveStoredEventsOnPartialReparse({ previousEventCount: 3, acceptedEventCount: 1, phaseTwo: true }), true);
+  assert.equal(shouldPreserveStoredEventsOnPartialReparse({ previousEventCount: 3, acceptedEventCount: 3, phaseTwo: true }), false);
+  assert.equal(shouldPreserveStoredEventsOnPartialReparse({ previousEventCount: 3, acceptedEventCount: 1, phaseTwo: false }), false);
+  assert.equal(shouldPreserveStoredEventsOnPartialReparse({ previousEventCount: 0, acceptedEventCount: 0, phaseTwo: true }), false);
 });
 
 test('V188.28 VK real post photo > exact DOM media > link preview/logo', () => {

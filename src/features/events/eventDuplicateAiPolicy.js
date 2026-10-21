@@ -13,6 +13,8 @@ import {
     eventTitleSimilarity,
     normalizeEventMatchTitle,
 } from './eventModeration.js';
+import { eventParticipantsMatchedCount } from './eventDuplicateResolution.js';
+import { sharedIdentityWords, transliteratedIdentityTokens } from './eventIdentityTokens.js';
 
 export function eventDuplicatePairSharedDates(pair) {
     // A card has one canonical calendar identity. eventDays is retained as
@@ -38,16 +40,28 @@ export function shouldReviewEventDuplicatePairWithAi(pair, {
     if (hardConflicts.length) return false;
     if (!eventDuplicatePairSharedDates(pair).length) return false;
 
+    const participantOverlap = eventParticipantsMatchedCount(
+        pair?.left?.participants,
+        pair?.right?.participants,
+    ) > 0;
     const leftTitle = String(pair?.left?.title ?? '').trim();
     const rightTitle = String(pair?.right?.title ?? '').trim();
-    if (!leftTitle || !rightTitle) return false;
+    if (!leftTitle || !rightTitle) return participantOverlap;
 
     const normalizedLeft = normalizeEventMatchTitle(leftTitle);
     const normalizedRight = normalizeEventMatchTitle(rightTitle);
-    if (!normalizedLeft || !normalizedRight) return false;
+    if (!normalizedLeft || !normalizedRight) return participantOverlap;
 
-    // Exact name + exact/overlapping date is resolved without AI.
-    if (normalizedLeft === normalizedRight) return false;
+    const directShared = sharedIdentityWords(leftTitle, rightTitle);
+    const leftTranslit = new Set(transliteratedIdentityTokens(leftTitle));
+    const rightTranslit = new Set(transliteratedIdentityTokens(rightTitle));
+    const translitShared = [...leftTranslit].filter((token) => rightTranslit.has(token));
+
+    // A same-date shared content word (including an exact normalized title)
+    // is always sent to AI.  The deterministic contour supplies scores only;
+    // it must not decide this identity or suppress the review.
+    if (directShared.length || translitShared.length) return true;
+    if (normalizedLeft === normalizedRight) return true;
 
     const shorter = normalizedLeft.length <= normalizedRight.length
         ? normalizedLeft
@@ -58,5 +72,7 @@ export function shouldReviewEventDuplicatePairWithAi(pair, {
     const contained = shorter.length >= 4 && longer.includes(shorter);
     const similarity = eventTitleSimilarity(leftTitle, rightTitle);
 
-    return contained || similarity >= similarityThreshold;
+    // Participant overlap is a fallback trigger only when title comparison
+    // did not already find a partial identity signal.
+    return contained || similarity >= similarityThreshold || participantOverlap;
 }

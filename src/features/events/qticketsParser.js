@@ -60,6 +60,7 @@ export function stripHtml(value) {
     return normalizeWhitespace(
         decodeHtmlEntities(String(value ?? '')
             .replace(/<!--[\s\S]*?-->/gu, ' ')
+            .replace(/<(script|style|noscript|template)\b[^>]*>[\s\S]*?<\/\1>/giu, ' ')
             .replace(/<br\s*\/?>/giu, '\n')
             .replace(/<[^>]+>/gu, ' ')),
     );
@@ -220,6 +221,18 @@ function currentReferenceDate(value) {
     return source;
 }
 
+function inferEventDateYear(month, day, referenceDate) {
+    const reference = currentReferenceDate(referenceDate);
+    const referenceParts = datePartsInTimeZone(reference);
+    const currentYear = Number(referenceParts.year);
+    const candidate = makeIsoDate(currentYear, month, day);
+    const localToday = `${referenceParts.year}-${referenceParts.month}-${referenceParts.day}`;
+    const monthGap = (Number(referenceParts.month) - month + 12) % 12;
+    return candidate && candidate < localToday && monthGap >= 6
+        ? currentYear + 1
+        : currentYear;
+}
+
 function datePartsInTimeZone(date, timeZone = QTICKETS_TIME_ZONE) {
     const parts = new Intl.DateTimeFormat('en-CA', {
         timeZone,
@@ -267,24 +280,58 @@ function parseRussianDateTokens(value, { referenceDate = new Date() } = {}) {
     );
     const reference = currentReferenceDate(referenceDate);
     const referenceParts = datePartsInTimeZone(reference);
-    const currentYear = Number(referenceParts.year);
+    const localToday = `${referenceParts.year}-${referenceParts.month}-${referenceParts.day}`;
     for (const match of text.matchAll(pattern)) {
         const day = Number(match[1]);
         const month = RUSSIAN_MONTHS.get(String(match[2]).toLowerCase());
-        let year = match[3] ? Number(match[3]) : currentYear;
+        let year = match[3] ? Number(match[3]) : inferEventDateYear(month, day, reference);
         let date = makeIsoDate(year, month, day);
-        if (!match[3] && date && date < `${currentYear}-${String(referenceParts.month).padStart(2, '0')}-${String(referenceParts.day).padStart(2, '0')}`) {
-            year += 1;
-            date = makeIsoDate(year, month, day);
-        }
         if (date) result.push({ date, token: match[0] });
     }
     return result;
 }
 
+function parseNumericDateTokens(value, { referenceDate = new Date() } = {}) {
+    const text = normalizeWhitespace(value);
+    const pattern = /(?<!\d)(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?(?!\d)/gu;
+    const matches = [...text.matchAll(pattern)];
+    if (!matches.length) return [];
+
+    const resolved = matches.map((match) => {
+        const day = Number(match[1]);
+        const month = Number(match[2]);
+        if (month < 1 || month > 12) return null;
+        let year = match[3] ? Number(match[3]) : inferEventDateYear(month, day, referenceDate);
+        if (year < 100) year += 2000;
+        const date = makeIsoDate(year, month, day);
+        return date ? { date, token: match[0], explicitYear: Boolean(match[3]) } : null;
+    }).filter(Boolean);
+    if (!resolved.length) return [];
+
+    const start = resolved[0];
+    const end = resolved.at(-1);
+    if (resolved.length > 1 && !end.explicitYear && end.date < start.date) {
+        const endParts = end.date.split('-').map(Number);
+        const nextYear = makeIsoDate(endParts[0] + 1, endParts[1], endParts[2]);
+        if (nextYear) end.date = nextYear;
+    }
+    return resolved;
+}
+
 function extractTime(value) {
     const match = normalizeWhitespace(value).match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/u);
     return match ? `${String(match[1]).padStart(2, '0')}:${match[2]}` : '';
+}
+
+function isEventDateTimeBlock(block) {
+    const open = String(block ?? '').match(/^<time\b[^>]*>/iu)?.[0] || '';
+    const classes = readAttribute(open, 'class');
+    const itemprop = readAttribute(open, 'itemprop');
+    const isEventDateField = /(?:^|\s)(?:place|event|event-date|date|start-date)(?:\s|$)/iu.test(classes) ||
+        /(?:^|\s)startDate(?:\s|$)/u.test(itemprop) ||
+        /\bclass\s*=\s*["'][^"']*\bevent-date\b/iu.test(block);
+    const isPublicationTime = /(?:^|\s)(?:published|publication|updated|modified)(?:\s|$)/iu.test(classes);
+    return isEventDateField || (Boolean(readAttribute(open, 'datetime')) && !isPublicationTime);
 }
 
 function parseDateInfo(values, { referenceDate = new Date(), timeZone = QTICKETS_TIME_ZONE } = {}) {
@@ -294,6 +341,16 @@ function parseDateInfo(values, { referenceDate = new Date(), timeZone = QTICKETS
     for (const value of candidates) {
         const iso = parseIsoDateTime(value, { timeZone });
         if (iso) return { ...iso, endDate: iso.date, label: value };
+    }
+    for (const value of candidates) {
+        const tokens = parseNumericDateTokens(value, { referenceDate });
+        if (!tokens.length) continue;
+        return {
+            date: tokens[0].date,
+            endDate: tokens.at(-1).date,
+            time: extractTime(value),
+            label: value,
+        };
     }
     for (const value of candidates) {
         const tokens = parseRussianDateTokens(value, { referenceDate });
@@ -336,16 +393,28 @@ function jsonLdOffers(event) {
 
 function findTicketUrl(html, sourceUrl, jsonLdUrl = '') {
     const candidate = resolveHttpUrl(jsonLdUrl);
-    if (candidate && candidate !== sourceUrl) return candidate;
+    if (candidate && candidate !== sourceUrl && !isQticketsListingRoot(candidate)) return candidate;
     for (const block of extractTagBlocks(html, 'a')) {
         const openTag = block.match(/^<a\b[^>]*>/iu)?.[0] || '';
         const href = resolveHttpUrl(readAttribute(openTag, 'href'));
         const text = stripHtml(block).toLowerCase();
-        if (href && /(?:купить|билет|ticket|qtickets\.ru)/iu.test(`${text} ${href}`) && href !== sourceUrl) {
+        if (href && !isQticketsListingRoot(href) && /(?:купить|билет|ticket|qtickets\.ru)/iu.test(`${text} ${href}`) && href !== sourceUrl) {
             return href;
         }
     }
     return '';
+}
+
+function isQticketsListingRoot(value) {
+    try {
+        const url = new URL(String(value || ''));
+        const host = url.hostname.toLowerCase().replace(/^www\./u, '');
+        if (!host.endsWith('qtickets.events')) return false;
+        const path = url.pathname.replace(/^\/+|\/+$/gu, '').toLowerCase();
+        return !path || ['events', 'afisha', 'poster', 'catalog'].includes(path);
+    } catch {
+        return false;
+    }
 }
 
 function findMetaContent(html, property) {
@@ -365,14 +434,7 @@ function findDetailVenue(html, bodyText, title) {
         ...extractBlocksWithClass(html, 'div', 'address'),
     ].map(stripHtml).filter(Boolean);
     if (structuredBlocks.length) return unique(structuredBlocks).slice(0, 2).join(', ');
-
-    const headings = extractTagBlocks(html, 'h2')
-        .concat(extractTagBlocks(html, 'h3'))
-        .map(stripHtml)
-        .filter((value) => value && value !== title && !/организатор|купить|билет/iu.test(value));
-    const addressMatch = String(bodyText ?? '').match(/(?:^|\n)((?:Воронеж,?\s+)?(?:ул\.?|улица|проспект|пр-т|пл\.?|набережная|Московский\s+проспект)[^\n]{2,160})/iu);
-    const address = normalizeWhitespace(addressMatch?.[1] || '');
-    return unique([headings[0] || '', address]).slice(0, 2).join(', ');
+    return '';
 }
 
 function findDescription(html, bodyText, jsonLdDescription, metaDescription) {
@@ -382,7 +444,7 @@ function findDescription(html, bodyText, jsonLdDescription, metaDescription) {
         .map(stripHtml)
         .filter((value) => value.length >= 35)
         .filter((value) => !/^(?:купить|организатор|вконтакте|поделиться)/iu.test(value));
-    return normalizeWhitespace(paragraphs.join('\n\n') || bodyText).slice(0, 6000);
+    return normalizeWhitespace(paragraphs.join('\n\n')).slice(0, 6000);
 }
 
 export function parseQticketsListingHtml(html, {
@@ -401,7 +463,7 @@ export function parseQticketsListingHtml(html, {
         const anchorOpen = anchorBlock.match(/^<a\b[^>]*>/iu)?.[0] || '';
         const detailUrl = normalizeQticketsDetailUrl(readAttribute(anchorOpen, 'href'), baseUrl);
         if (!detailUrl) continue;
-        const dateTime = extractTagBlocks(item, 'time')[0] || '';
+        const dateTime = extractTagBlocks(item, 'time').find(isEventDateTimeBlock) || '';
         const dateOpen = dateTime.match(/^<time\b[^>]*>/iu)?.[0] || '';
         const dateLabel = extractFirstText(item, 'span', 'event-date') || stripHtml(dateTime);
         const dateInfo = parseDateInfo([
@@ -459,6 +521,21 @@ export function parseQticketsListingHtml(html, {
     });
 }
 
+export function qticketsListingCardHash(card = {}) {
+    return JSON.stringify([
+        'qtickets-listing-card-v2',
+        String(card.externalId || '').trim(),
+        normalizeWhitespace(card.title || ''),
+        String(card.eventDate || '').trim(),
+        String(card.eventEndDate || '').trim(),
+        String(card.eventTime || '').trim(),
+        normalizeWhitespace(card.venue || ''),
+        normalizeWhitespace(card.price || ''),
+        normalizeWhitespace(card.eventType || ''),
+        unique(Array.isArray(card.imageUrls) ? card.imageUrls : []),
+    ]);
+}
+
 export function parseQticketsDetailHtml(html, sourceUrl, {
     referenceDate = new Date(),
     timeZone = QTICKETS_TIME_ZONE,
@@ -470,7 +547,7 @@ export function parseQticketsDetailHtml(html, sourceUrl, {
     const bodyHtml = extractTagBlocks(html, 'body')[0] || String(html ?? '');
     const bodyText = stripHtml(bodyHtml);
     const title = extractFirstText(html, 'h1') || normalizeWhitespace(jsonLd.name || findMetaContent(html, 'og:title')) || String(fallbackCard?.title || '').trim();
-    const timeBlocks = extractTagBlocks(html, 'time');
+    const timeBlocks = extractTagBlocks(html, 'time').filter(isEventDateTimeBlock);
     const timeCandidates = timeBlocks.flatMap((block) => {
         const open = block.match(/^<time\b[^>]*>/iu)?.[0] || '';
         return [readAttribute(open, 'datetime'), stripHtml(block)];
@@ -480,22 +557,28 @@ export function parseQticketsDetailHtml(html, sourceUrl, {
     const dateInfo = parseDateInfo([
         jsonStart,
         ...timeCandidates,
-        bodyText,
         fallbackCard?.dateLabel,
         fallbackCard?.eventDate,
     ], { referenceDate, timeZone });
     const endInfo = parseDateInfo([jsonEnd], { referenceDate, timeZone });
     const location = jsonLdLocation(jsonLd);
+    const description = findDescription(html, bodyText, jsonLd.description, findMetaContent(html, 'description'));
     const venue = unique([
         location.name,
         location.address,
-        findDetailVenue(html, bodyText, title),
+        findDetailVenue(html, description, title),
         fallbackCard?.venue,
     ]).slice(0, 2).join(', ');
     const offers = jsonLdOffers(jsonLd);
-    const bodyPrice = bodyText.match(/(?:купить|билет(?:ы|ов)?)[^\n]{0,80}?от\s*([\d\s]+)\s*(?:руб\.?|₽)/iu);
+    const visibleEventText = [title, dateInfo.label, description, venue, ...timeBlocks.map(stripHtml)]
+        .filter(Boolean)
+        .join('\n');
+    const bodyPrice = visibleEventText.match(/(?:купить|билет(?:ы|ов)?)[^\n]{0,80}?от\s*([\d\s]+)\s*(?:руб\.?|₽)/iu);
     const price = offers.price || (bodyPrice ? `от ${normalizeWhitespace(bodyPrice[1])} руб.` : String(fallbackCard?.price || '').trim());
-    const ageRestriction = bodyText.match(/(?:^|\s)(?:0|6|12|16|18)\s*\+(?=\s|$)/u)?.[0]?.trim().replace(/\s+/gu, '') || '';
+    const ageRestriction = [visibleEventText, bodyText]
+        .join('\n')
+        .match(/(?:^|\s)(?:0|6|12|16|18)\s*\+(?=\s|$)/u)?.[0]
+        ?.trim().replace(/\s+/gu, '') || '';
     const jsonImages = Array.isArray(jsonLd.image) ? jsonLd.image : [jsonLd.image];
     // Exactly one authoritative poster per QTickets event. JSON-LD/OG comes
     // before page images, so trailing sponsor/ad banners cannot enter the card.
@@ -508,7 +591,9 @@ export function parseQticketsDetailHtml(html, sourceUrl, {
     const imageUrls = authoritativeImage ? [authoritativeImage] : [];
     const ticketUrl = findTicketUrl(html, detailUrl, offers.url);
     const eventType = normalizeWhitespace(jsonLd.genre || extractFirstText(html, 'div', 'type') || fallbackCard?.eventType || '');
-    const description = findDescription(html, bodyText, jsonLd.description, findMetaContent(html, 'description'));
+    const eventSourceText = unique([title, dateInfo.label, venue, price, eventType, ageRestriction, description])
+        .join('\n')
+        .slice(0, 12_000);
     const idMatch = detailUrl.match(/\/(\d+)(?:-|$)/u);
     const externalId = String(fallbackCard?.externalId || idMatch?.[1] || detailUrl.split('/').at(-1) || '').trim();
     return {
@@ -516,8 +601,8 @@ export function parseQticketsDetailHtml(html, sourceUrl, {
         detailUrl,
         title: title.slice(0, 500),
         eventDate: dateInfo.date || String(fallbackCard?.eventDate || '').trim(),
-        eventEndDate: endInfo.date || dateInfo.endDate || String(fallbackCard?.eventEndDate || dateInfo.date || '').trim(),
-        eventTime: dateInfo.time || extractTime(bodyText) || String(fallbackCard?.eventTime || '').trim(),
+        eventEndDate: endInfo.date || (dateInfo.endDate !== dateInfo.date ? dateInfo.endDate : '') || String(fallbackCard?.eventEndDate || dateInfo.endDate || dateInfo.date || '').trim(),
+        eventTime: dateInfo.time || timeBlocks.map(stripHtml).map(extractTime).find(Boolean) || String(fallbackCard?.eventTime || '').trim(),
         dateLabel: dateInfo.label || String(fallbackCard?.dateLabel || '').trim(),
         venue: venue.slice(0, 500),
         price: price.slice(0, 240),
@@ -525,8 +610,8 @@ export function parseQticketsDetailHtml(html, sourceUrl, {
         ageRestriction,
         participants: '',
         description,
-        evidence: bodyText.slice(0, 4000),
-        sourceText: bodyText.slice(0, 12_000),
+        evidence: eventSourceText.slice(0, 4000),
+        sourceText: eventSourceText,
         imageUrls,
         ticketUrl,
         parseMethod: 'qtickets-detail-page-v1',
@@ -538,6 +623,8 @@ export function mergeQticketsCardAndDetail(card = {}, detail = {}, {
 } = {}) {
     const detailUrl = normalizeQticketsDetailUrl(detail.detailUrl || card.detailUrl, listingUrl);
     const pick = (...values) => values.map((value) => String(value ?? '').trim()).find(Boolean) || '';
+    const ticketUrlCandidate = pick(detail.ticketUrl, card.ticketUrl);
+    const ticketUrl = isQticketsListingRoot(ticketUrlCandidate) ? '' : ticketUrlCandidate;
     const eventDate = pick(detail.eventDate, card.eventDate);
     const eventEndDate = pick(detail.eventEndDate, card.eventEndDate, eventDate);
     return {
@@ -577,7 +664,7 @@ export function mergeQticketsCardAndDetail(card = {}, detail = {}, {
             ...(Array.isArray(detail.imageUrls) ? detail.imageUrls : []),
             ...(Array.isArray(card.imageUrls) ? card.imageUrls : []),
         ]).slice(0, 1),
-        ticketUrl: pick(detail.ticketUrl, card.ticketUrl),
+        ticketUrl,
         parseMethod: pick(detail.parseMethod, card.parseMethod, 'qtickets-detail-page-v1'),
         status: 'approved',
     };

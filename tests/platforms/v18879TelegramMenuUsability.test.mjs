@@ -20,7 +20,28 @@ test('every reply keyboard has an explicit hide button and is not persistent', (
 
 test('secondary party button has different characteristic emoji on both sides', () => {
   assert.match(TELEGRAM_MENU_BUTTONS.secondaryParties, /^🍺\s/u);
-  assert.match(TELEGRAM_MENU_BUTTONS.secondaryParties, /\s🥴$/u);
+  assert.match(TELEGRAM_MENU_BUTTONS.secondaryParties, /Второстепенные тусы$/u);
+});
+
+test('party period menus use week, two weeks, month and all; weekends remain text commands', () => {
+    const parties = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.parties);
+    const secondary = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.secondaryParties, parties.state);
+    const all = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.allPartiesUnified, parties.state);
+    const regularLabels = parties.replyMarkup.keyboard.flat().map((button) => button.text);
+    const secondaryLabels = secondary.replyMarkup.keyboard.flat().map((button) => button.text);
+    const allLabels = all.replyMarkup.keyboard.flat().map((button) => button.text);
+    assert.ok(!regularLabels.includes(TELEGRAM_MENU_BUTTONS.weekend));
+    assert.ok(!secondaryLabels.includes(TELEGRAM_MENU_BUTTONS.secondaryWeekend));
+    assert.ok(regularLabels.includes(TELEGRAM_MENU_BUTTONS.week));
+    assert.ok(regularLabels.includes(TELEGRAM_MENU_BUTTONS.twoWeeks));
+    assert.ok(regularLabels.includes(TELEGRAM_MENU_BUTTONS.month));
+    assert.ok(secondaryLabels.includes(TELEGRAM_MENU_BUTTONS.secondaryWeek));
+    assert.ok(secondaryLabels.includes(TELEGRAM_MENU_BUTTONS.secondaryTwoWeeks));
+    assert.ok(secondaryLabels.includes(TELEGRAM_MENU_BUTTONS.secondaryMonth));
+    assert.ok(allLabels.includes(TELEGRAM_MENU_BUTTONS.week));
+    assert.ok(allLabels.includes(TELEGRAM_MENU_BUTTONS.twoWeeks));
+    assert.ok(allLabels.includes(TELEGRAM_MENU_BUTTONS.month));
+    assert.equal(resolveTelegramMenuInput('тусы на этих выходных', parties.state).type, 'command');
 });
 
 test('back works hierarchically in Telegram branches', () => {

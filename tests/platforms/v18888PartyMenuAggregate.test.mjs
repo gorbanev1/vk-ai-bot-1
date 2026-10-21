@@ -49,7 +49,7 @@ test('V188.88 compact toggle stays in section, changes to full and changes next 
     const compact = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.compact, party.state);
     assert.equal(compact.state.partyDisplayMode, 'compact');
     assert.ok(buttons(compact.replyMarkup).includes(TELEGRAM_MENU_BUTTONS.full));
-    const command = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.weekend, compact.state);
+    const command = resolveTelegramMenuInput('тусы на этих выходных', compact.state);
     assert.equal(command.type, 'command');
     assert.match(command.text, /кратко$/iu);
 });
@@ -59,7 +59,7 @@ test('V188.88 aggregate submenu emits aggregate command and back returns to part
     const aggregate = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.allPartiesUnified, parties.state);
     assert.equal(aggregate.state.menuPath, 'all-parties');
     const command = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.month, aggregate.state);
-    assert.equal(command.text, 'вообще все тусы на месяц');
+    assert.equal(command.text, 'вообще все тусы на месяц вперёд');
     const back = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.back, aggregate.state);
     assert.equal(back.state.menuPath, 'parties');
     assert.ok(buttons(back.replyMarkup).includes(TELEGRAM_MENU_BUTTONS.secondaryParties));

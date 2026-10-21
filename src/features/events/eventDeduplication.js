@@ -707,33 +707,104 @@ function eventSources(event) {
     const existing = Array.isArray(event?.mergedSources)
         ? event.mergedSources
         : [];
-    const own = {
-        sourceType: String(event?.sourceType ?? ''),
-        sourceName: String(event?.sourceName ?? ''),
-        sourceUrl: String(event?.sourceUrl ?? ''),
-    };
+    // Keep the complete event row as a source record. The owner audit/edit
+    // flow needs the original text, segment, source gallery and Vision facts
+    // after a dedupe merge; reducing this to three identity fields loses that
+    // evidence permanently. Recursive cluster bookkeeping is excluded.
+    const own = cloneSourcePayload(event);
 
     return [...existing, own].filter((source) => (
-        source.sourceType || source.sourceName || source.sourceUrl
+        source && (source.sourceType || source.sourceName || source.sourceUrl ||
+            source.sourceItemId || source.id)
     ));
+}
+
+function cloneSourcePayload(source) {
+    if (!source || typeof source !== 'object') return null;
+    const clone = { ...source };
+    delete clone.mergedSources;
+    delete clone.dedupeMembers;
+    return clone;
+}
+
+function sourceIdentityKey(source) {
+    const sourceItemId = String(
+        source?.sourceItemId ?? source?.source_item_id ?? '',
+    ).trim().toLowerCase();
+    if (sourceItemId) return `item:${sourceItemId}`;
+
+    const sourceUrl = normalizeUrl(
+        source?.sourceUrl || source?.sourceOriginalUrl || source?.canonicalPostUrl,
+    );
+    if (sourceUrl) return `url:${sourceUrl}`;
+
+    const sourceType = String(source?.sourceType ?? '').trim().toLowerCase();
+    const sourceName = normalizeText(source?.sourceName);
+    const sourceMessageId = String(
+        source?.sourceMessageId ?? source?.messageId ?? source?.postId ?? '',
+    ).trim().toLowerCase();
+    return [sourceType, sourceName, sourceMessageId].join(':');
+}
+
+function sourceArrayValueKey(value) {
+    if (value && typeof value === 'object') {
+        try { return JSON.stringify(value); } catch { return String(value); }
+    }
+    return String(value ?? '');
+}
+
+function mergeSourcePayload(current, incoming) {
+    const currentPriority = sourcePriority(current);
+    const incomingPriority = sourcePriority(incoming);
+    const preferred = incomingPriority > currentPriority ? incoming : current;
+    const secondary = preferred === incoming ? current : incoming;
+    const result = { ...secondary, ...preferred };
+
+    for (const key of new Set([...Object.keys(current), ...Object.keys(incoming)])) {
+        const left = current[key];
+        const right = incoming[key];
+        if (Array.isArray(left) || Array.isArray(right)) {
+            const values = [...(Array.isArray(left) ? left : []), ...(Array.isArray(right) ? right : [])]
+                .filter((value) => value !== null && value !== undefined && value !== '');
+            const seen = new Set();
+            result[key] = values.filter((value) => {
+                const identity = sourceArrayValueKey(value);
+                if (seen.has(identity)) return false;
+                seen.add(identity);
+                return true;
+            });
+            continue;
+        }
+
+        // A source can occur once per child event in a multi-announcement.
+        // Preserve distinct extracted segments instead of silently selecting
+        // the one belonging to the last child.
+        if (['sourceText', 'rawSource', 'sourceSegment', 'source_segment', 'sourceSegmentText', 'description'].includes(key)) {
+            const values = [left, right].map((value) => String(value ?? '').trim()).filter(Boolean);
+            result[key] = [...new Set(values)].join('\n\n');
+            continue;
+        }
+
+        if ((result[key] === undefined || result[key] === null || result[key] === '') &&
+            right !== undefined && right !== null && right !== '') {
+            result[key] = right;
+        }
+    }
+
+    return result;
 }
 
 function mergeSources(left, right) {
     const map = new Map();
 
     for (const source of [...eventSources(left), ...eventSources(right)]) {
-        const key = normalizeUrl(source.sourceUrl) || [
-            source.sourceType,
-            normalizeText(source.sourceName),
-        ].join(':');
+        const key = sourceIdentityKey(source);
         const current = map.get(key);
 
-        if (!current || sourcePriority(source) > sourcePriority(current)) {
-            map.set(key, {
-                sourceType: String(source.sourceType ?? ''),
-                sourceName: String(source.sourceName ?? ''),
-                sourceUrl: String(source.sourceUrl ?? ''),
-            });
+        if (!current) {
+            map.set(key, cloneSourcePayload(source));
+        } else {
+            map.set(key, mergeSourcePayload(current, source));
         }
     }
 

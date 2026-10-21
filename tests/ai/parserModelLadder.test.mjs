@@ -2,11 +2,19 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { executeRuntimeModelFailover } from '../../src/features/ai/modelProviderFailover.js';
-import { createParserModelSerialQueue, PARSER_MODEL_LADDER, isRetiredParserModelError, parserModelAttempts } from '../../src/features/ai/parserModelLadder.js';
+import { createParserModelSerialQueue, getGptModelLadderFrom, PARSER_MODEL_LADDER, POSTER_VISION_MODEL_LADDER, isRetiredParserModelError, parserModelAttempts, resolveParserLadderRuntimeModelId } from '../../src/features/ai/parserModelLadder.js';
+
+test('starting at an explicit 5.6 model does not silently substitute another generation', () => {
+    for (const model of ['gpt-5.6-luna', 'gpt-5.6-terra', 'gpt-5.6-sol']) {
+        assert.equal(getGptModelLadderFrom(model)[0].model, model);
+    }
+});
 
 test('event parser ladder rises by screenshot quality/cost tiers and uses the requested retry budget', () => {
     assert.deepEqual(PARSER_MODEL_LADDER.map(({ model, attempts }) => [model, attempts]), [
-        ['gpt-6-luna', 4],
+        ['gpt-5.6-luna', 1],
+        ['gpt-5.6-terra', 1],
+        ['gpt-5.6-sol', 1],
         ['gpt-6.1-sol', 3],
         ['gpt-6-astra', 2],
     ]);
@@ -41,6 +49,79 @@ test('event parser exhausts only the configured attempts before advancing to the
     }));
 
     assert.deepEqual(calls, PARSER_MODEL_LADDER.flatMap(({ model, attempts }) => Array(attempts).fill(model)));
+});
+
+test('poster vision uses the configured image ladder independently of text retries', async () => {
+    assert.deepEqual(POSTER_VISION_MODEL_LADDER.map(({ model, detail, attempts }) => [model, detail, attempts]), [
+        ['gpt-5.6-luna', 'high', 1],
+        ['gpt-5.6-terra', 'high', 1],
+        ['gpt-6.1-sol', 'original', 3],
+        ['gpt-6-sol', 'original', 3],
+        ['gpt-6-astra', 'original', 2],
+    ]);
+
+    const calls = [];
+    const candidates = POSTER_VISION_MODEL_LADDER.map((entry) => ({
+        provider: 'compat',
+        name: 'TEST_KEY',
+        secret: 'test-secret',
+        baseUrl: 'https://example.invalid/v1',
+        ...entry,
+        attemptLimit: entry.attempts,
+    }));
+    const result = await executeRuntimeModelFailover({
+        candidates,
+        maxRounds: 1,
+        useCredentialHealth: false,
+        attemptsForCandidate: parserModelAttempts,
+        shouldRetry: () => true,
+        sleep: async () => {},
+        request: async (credential) => {
+            calls.push(credential.model);
+            if (credential.model === 'gpt-5.6-luna') throw new Error('GPT API 503: no providers available');
+            return 'ok';
+        },
+    });
+
+    assert.equal(result.value, 'ok');
+    assert.deepEqual(calls, ['gpt-5.6-luna', 'gpt-5.6-terra']);
+});
+
+test('ordinary Vision reaches Astra last and succeeds on its second attempt', async () => {
+    const calls = [];
+    const candidates = POSTER_VISION_MODEL_LADDER.map((step) => ({ ...step,
+        provider: 'compat', name: 'TEST', secret: 'test', baseUrl: 'https://example.invalid/v1' }));
+    const result = await executeRuntimeModelFailover({
+        candidates, maxRounds: 1, useCredentialHealth: false, attemptsForCandidate: parserModelAttempts,
+        sleep: async () => {},
+        request: async (candidate, { attempt }) => {
+            calls.push(candidate.model);
+            if (candidate.model === 'gpt-6-astra' && attempt === 2) return 'poster facts';
+            throw new Error('GPT vision API 503: unavailable');
+        },
+    });
+    assert.equal(result.value, 'poster facts');
+    assert.deepEqual(calls, POSTER_VISION_MODEL_LADDER.flatMap((step) => Array(step.attempts).fill(step.model)));
+});
+
+test('explicit vision ladder model IDs bypass retired-generation alias normalization', () => {
+    const normalize = (model) => model === 'gpt-5.6-terra' || model === 'gpt-5.6-luna'
+        ? 'gpt-6-luna'
+        : model === 'gpt-5.6-sol' ? 'gpt-6.1-sol' : model;
+
+    assert.deepEqual(POSTER_VISION_MODEL_LADDER.slice(0, 3).map(({ model }) =>
+        resolveParserLadderRuntimeModelId(model, { capability: 'vision', normalize })), [
+        'gpt-5.6-luna',
+        'gpt-5.6-terra',
+        'gpt-6.1-sol',
+    ]);
+    assert.equal(resolveParserLadderRuntimeModelId('gpt-5.6-terra', { capability: 'text', normalize }), 'gpt-5.6-terra');
+});
+
+test('explicit 5.6 parser text models remain pinned instead of being normalized to 6.x', () => {
+    const normalize = () => 'gpt-6-luna';
+    assert.equal(resolveParserLadderRuntimeModelId('gpt-5.6-terra', { capability: 'text', normalize }), 'gpt-5.6-terra');
+    assert.equal(resolveParserLadderRuntimeModelId('gpt-5.6-sol', { capability: 'text', normalize }), 'gpt-5.6-sol');
 });
 
 test('a successful parser model stops the ladder without invoking more expensive models', async () => {
@@ -121,4 +202,26 @@ test('a retired parser model advances immediately without spending its retry bud
 
     assert.equal(result.value, 'ok');
     assert.deepEqual(calls, [retired.model, next.model]);
+});
+
+test('a parser timeout rotates from Terra to the next configured model', async () => {
+    const calls = [];
+    const candidates = [
+        { provider: 'compat', name: 'TEST_KEY', secret: 'test-secret', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.6-terra', attemptLimit: 1 },
+        { provider: 'compat', name: 'TEST_KEY', secret: 'test-secret', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.6-sol', attemptLimit: 1 },
+    ];
+    const result = await executeRuntimeModelFailover({
+        candidates, maxRounds: 1, useCredentialHealth: false, attemptsForCandidate: parserModelAttempts,
+        request: async (credential) => {
+            calls.push(credential.model);
+            if (credential.model.endsWith('terra')) {
+                const error = new Error('The operation was aborted due to timeout');
+                error.name = 'TimeoutError';
+                throw error;
+            }
+            return 'ok';
+        },
+    });
+    assert.equal(result.value, 'ok');
+    assert.deepEqual(calls, ['gpt-5.6-terra', 'gpt-5.6-sol']);
 });

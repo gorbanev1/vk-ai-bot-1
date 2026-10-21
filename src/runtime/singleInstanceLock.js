@@ -9,6 +9,7 @@ import {
     unlinkSync,
     writeFileSync,
 } from 'node:fs';
+import { dirname } from 'node:path';
 
 /**
  * Защита от случайного запуска двух копий бота с одной базой данных.
@@ -22,7 +23,9 @@ import {
 export function acquireSingleInstanceLock({
     lockPath = './data/vk-ai-bot.pid',
 } = {}) {
-    mkdirSync('./data', { recursive: true });
+    // Custom lock paths are used by isolated runtimes and tests; create their
+    // parent rather than assuming the production `./data` directory.
+    mkdirSync(dirname(lockPath), { recursive: true });
 
     const isProcessAlive = (pid) => {
         if (!Number.isInteger(pid) || pid <= 0) {
@@ -63,11 +66,41 @@ export function acquireSingleInstanceLock({
 
             process.once('exit', removeOwnLock);
 
-            for (const signal of ['SIGINT', 'SIGTERM']) {
-                process.once(signal, () => {
+            let shutdownStarted = false;
+            const shutdown = async (signal) => {
+                if (shutdownStarted) return;
+                shutdownStarted = true;
+                try {
+                    const supervisor = await import('./operationSupervisor.js');
+                    supervisor.auditRuntimeEvent('process.shutdown-requested', { signal }, { level: 'warn' });
+                    await supervisor.requestStopWhere(() => true, { reason: `process-signal-${signal}` });
+                    const deadline = Date.now() + 20_000;
+                    while (supervisor.listActiveOperations().length && Date.now() < deadline) {
+                        await new Promise((resolve) => setTimeout(resolve, 250));
+                    }
+                    supervisor.auditRuntimeEvent('process.shutdown-finished', {
+                        signal,
+                        remainingOperations: supervisor.listActiveOperations().map((operation) => ({
+                            id: operation.id, name: operation.name, status: operation.status,
+                        })),
+                    }, { level: 'warn' });
+                } catch {
+                    // Lock cleanup and exit still need to proceed if diagnostics fail.
+                } finally {
+                    try {
+                        const supervisor = await import('./operationSupervisor.js');
+                        await supervisor.flushOperationCheckpoints?.();
+                        await supervisor.flushRuntimeAudit?.();
+                    } catch {
+                        // Shutdown must not be blocked by best-effort audit persistence.
+                    }
                     removeOwnLock();
                     process.exit(0);
-                });
+                }
+            };
+
+            for (const signal of ['SIGINT', 'SIGTERM']) {
+                process.once(signal, () => { void shutdown(signal); });
             }
 
             return;

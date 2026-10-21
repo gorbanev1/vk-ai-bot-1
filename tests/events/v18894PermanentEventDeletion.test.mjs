@@ -43,7 +43,7 @@ test('V188.94 permanent delete blocks reparse by date + rich identity without ki
 
     let check = new DatabaseSync(join(dataDirectory, 'bot.sqlite'));
     let rows = check.prepare(`SELECT title, status FROM vk_events WHERE screen_name = ? AND post_id = ? ORDER BY event_index`).all('malina_test', 15);
-    assert.equal(rows.find((row) => row.title === 'Malina Party')?.status, 'ignored');
+    assert.equal(rows.some((row) => row.title === 'Malina Party'), false, 'permanent delete physically removes the event row');
     assert.equal(rows.find((row) => row.title === 'Другой концерт')?.status, 'approved');
     check.close();
 
@@ -62,12 +62,17 @@ test('V188.94 permanent delete blocks reparse by date + rich identity without ki
     assert.equal(rows[0].status, 'approved');
     check.close();
 
-    // Ordinary delete is intentionally temporary: the next reparse can bring it back.
+    // Ordinary delete removes event rows and derived metadata, but preserves
+    // source posts so a later reparse can restore the event.
     const soft = dbApi.softDeleteMatchingStoredEvents({
         sourceType: 'vk', sourceUrl, canonicalPostUrl: sourceUrl, sourceItemId: 'malina_test:15',
         title: 'Другой концерт', eventDate: '2099-09-15', venue: 'Malina Lounge', description: 'Совсем другое событие',
     });
     assert.equal(soft.changed, 1);
+    check = new DatabaseSync(join(dataDirectory, 'bot.sqlite'));
+    assert.equal(check.prepare(`SELECT COUNT(*) AS n FROM vk_events WHERE screen_name = ? AND post_id = ?`).get('malina_test', 15).n, 0);
+    assert.equal(check.prepare(`SELECT COUNT(*) AS n FROM vk_source_posts WHERE screen_name = ? AND post_id = ?`).get('malina_test', 15).n, 1, 'the source row remains for a later reparse');
+    check.close();
     dbApi.replaceVkEventsForPost({
         screenName: 'malina_test', postId: 15, sourceUrl, imagePaths: [], updatedAt: now + 2,
         events: [{ title: 'Другой концерт', eventDate: '2099-09-15', venue: 'Malina Lounge', description: 'Совсем другое событие', status: 'approved', parseMethod: 'fixture-reparse-2' }],
@@ -80,7 +85,7 @@ test('V188.94 permanent delete blocks reparse by date + rich identity without ki
     check.close();
 });
 
-test('V188.94 owner-manual event obeys the same permanent deletion registry', async () => {
+test('V188.94 owner-manual event can be explicitly added again after permanent deletion', async () => {
     envForTest();
     const dbApi = await import(`../../src/infrastructure/database/index.js?v18894manual=${Date.now()}`);
     const id = dbApi.saveManualEvent({
@@ -97,7 +102,112 @@ test('V188.94 owner-manual event obeys the same permanent deletion registry', as
         title: 'Owner Rave', eventDate: '2099-10-01', venue: 'Тупик', participants: 'Artist One',
         description: 'Owner Rave в Тупике', sourceUrl: 'https://vk.ru/wall-777_9', ownerManual: true,
     });
-    assert.equal(secondId, 0, 'permanent owner-manual deletion must block later re-add');
+    assert.ok(secondId > id, 'owner manual add bypasses the permanent automatic-parse block');
+});
+
+test('V189.00 exact card delete ignores only the selected event row', async () => {
+    const dataDirectory = envForTest();
+    const dbApi = await import(`../../src/infrastructure/database/index.js?v18900exact=${Date.now()}`);
+    const firstId = dbApi.saveManualEvent({
+        title: 'ORIGAMI album anniversary', eventDate: '2099-10-22', venue: 'Diesel Hall', status: 'approved',
+    });
+    const secondId = dbApi.saveManualEvent({
+        title: 'ORIGAMI acoustic set', eventDate: '2099-10-22', venue: 'Other Hall', status: 'approved',
+    });
+    const duplicateId = dbApi.saveManualEvent({
+        title: 'ORIGAMI 20 years album concert', eventDate: '2099-10-22', venue: 'Diesel Hall', status: 'approved',
+    });
+    dbApi.replaceAllPartyMetadata([
+        { sourceType: 'manual', eventId: firstId, title: 'ORIGAMI album anniversary', eventDate: '2099-10-22', venue: 'Diesel Hall' },
+        { sourceType: 'manual', eventId: duplicateId, title: 'ORIGAMI 20 years album concert', eventDate: '2099-10-22', venue: 'Diesel Hall' },
+    ]);
+    dbApi.replaceEventDedupeRegistry([{
+        groupKey: 'exact-delete-test',
+        keepKey: `manual:${firstId}`,
+        canonical: { title: 'ORIGAMI album anniversary', eventDate: '2099-10-22' },
+        members: [firstId, duplicateId].map((id) => ({ ref: { sourceType: 'manual', id } })),
+    }]);
+    const result = dbApi.softDeleteStoredEventByIdentity({ sourceType: 'manual', id: firstId });
+    assert.equal(result.changed, 2);
+    const check = new DatabaseSync(join(dataDirectory, 'bot.sqlite'));
+    const rows = check.prepare('SELECT id, status FROM manual_events WHERE id IN (?, ?, ?) ORDER BY id').all(firstId, secondId, duplicateId);
+    check.close();
+    assert.deepEqual(rows.map((row) => ({ id: Number(row.id), status: String(row.status) })), [
+        { id: secondId, status: 'approved' },
+    ]);
+    assert.deepEqual(
+        dbApi.getAllPartyMetadata({ fromDate: '2099-10-22', toDate: '2099-10-22' })
+            .map((row) => Number(row.eventId)),
+        [],
+        'derived party metadata for deleted cards must be removed too',
+    );
+});
+
+test('V189.00 permanent deletion blocks parsed source rows but owner manual add remains allowed', async () => {
+    envForTest();
+    const dbApi = await import(`../../src/infrastructure/database/index.js?v18900manualoverride=${Date.now()}`);
+    const event = {
+        title: 'Owner override gig', eventDate: '2099-12-03', venue: 'Liverpool',
+        participants: 'Band X', description: 'Owner override source text',
+        sourceUrl: 'https://vk.ru/wall-880_31', canonicalPostUrl: 'https://vk.ru/wall-880_31',
+        sourceItemId: '880:31',
+    };
+    dbApi.permanentlyDeleteStoredEvent({ ...event, sourceType: 'manual' }, { reason: 'test-owner-override' });
+    assert.equal(dbApi.saveManualEvent({ ...event, ownerManual: false }), 0, 'automatic/manual-import path remains permanently blocked');
+    assert.ok(dbApi.saveManualEvent({ ...event, ownerManual: true }) > 0, 'explicit owner menu action bypasses the permanent parse block');
+});
+
+test('V189.00 permanent deletion skips mono source before analysis but keeps multi-announcement source parseable', async () => {
+    envForTest();
+    const dbApi = await import(`../../src/infrastructure/database/index.js?v18900sourcegate=${Date.now()}`);
+    const mono = {
+        sourceType: 'vk', sourceItemId: 'vk:mono-source:41', sourceUrl: 'https://vk.ru/wall-41_1',
+        canonicalPostUrl: 'https://vk.ru/wall-41_1', title: 'Mono Event', eventDate: '2099-12-05',
+        venue: 'Liverpool', participants: 'Band Mono', isMultiAnnouncement: false,
+    };
+    dbApi.permanentlyDeleteStoredEvent(mono, { reason: 'test-mono-source-skip' });
+    assert.equal(dbApi.isPermanentlyBlockedMonoSource({
+        sourceItemId: mono.sourceItemId, sourceUrl: mono.sourceUrl, canonicalPostUrl: mono.canonicalPostUrl,
+    }), true);
+
+    const multi = {
+        sourceType: 'vk', sourceItemId: 'vk:multi-source:42', sourceUrl: 'https://vk.ru/wall-42_1',
+        canonicalPostUrl: 'https://vk.ru/wall-42_1', title: 'One Event From Digest', eventDate: '2099-12-06',
+        venue: 'Liverpool', participants: 'Band Multi', isMultiAnnouncement: true,
+    };
+    dbApi.permanentlyDeleteStoredEvent(multi, { reason: 'test-multi-source-child-delete' });
+    assert.equal(dbApi.isPermanentlyBlockedMonoSource({
+        sourceItemId: multi.sourceItemId, sourceUrl: multi.sourceUrl, canonicalPostUrl: multi.canonicalPostUrl,
+    }), false, 'other child events in the multi-announcement source must still be analyzed');
+});
+
+test('V189.00 permanent card deletion blocks only its exact dedupe group', async () => {
+    const dataDirectory = envForTest();
+    const dbApi = await import(`../../src/infrastructure/database/index.js?v18900permanentgroup=${Date.now()}`);
+    const first = dbApi.saveManualEvent({
+        title: 'CORE Fest #3', eventDate: '2099-12-04', venue: 'Diesel Hall', status: 'approved',
+    });
+    const duplicate = dbApi.saveManualEvent({
+        title: 'Corefest 3 народный фестиваль', eventDate: '2099-12-04', venue: 'Diesel Hall', status: 'approved',
+    });
+    const other = dbApi.saveManualEvent({
+        title: 'Core Tribute #3', eventDate: '2099-12-04', venue: 'Other Hall', status: 'approved',
+    });
+    dbApi.replaceEventDedupeRegistry([{
+        groupKey: 'exact-permanent-delete-test', keepKey: `manual:${first}`, canonical: {},
+        members: [first, duplicate].map((id) => ({ ref: { sourceType: 'manual', id } })),
+    }]);
+    const result = dbApi.permanentlyDeleteStoredEventByIdentity({
+        id: first, sourceType: 'manual', title: 'CORE Fest #3', eventDate: '2099-12-04',
+        venue: 'Diesel Hall', participants: 'Crooked Spear',
+    }, { reason: 'test-exact-permanent' });
+    assert.equal(result.deleted.changed, 2);
+    const check = new DatabaseSync(join(dataDirectory, 'bot.sqlite'));
+    const rows = check.prepare('SELECT id, status FROM manual_events ORDER BY id').all();
+    check.close();
+    assert.deepEqual(rows.map((row) => ({ id: Number(row.id), status: String(row.status) })), [
+        { id: other, status: 'approved' },
+    ]);
 });
 
 

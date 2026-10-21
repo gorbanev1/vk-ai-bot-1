@@ -1,4 +1,7 @@
-const DEFAULT_MAX_IMAGES = 12;
+// Keep the capture inventory lossless. Callers may still pass a smaller
+// operation-specific limit, but the shared merge must not silently discard
+// gallery items before Vision has inspected them.
+const DEFAULT_MAX_IMAGES = 1000;
 
 function normalize(items) {
     return (Array.isArray(items) ? items : [])

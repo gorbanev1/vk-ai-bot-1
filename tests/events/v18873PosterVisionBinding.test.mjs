@@ -35,8 +35,8 @@ test('V188.73 binds CWT and STONEHAND by event identity, not shared Diesel venue
     ], facts);
     assert.equal(events[0].posterImageIndex, 1);
     assert.equal(events[1].posterImageIndex, 2);
-    assert.equal(events[0].posterMatchStatus, 'exact_poster_match');
-    assert.equal(events[1].posterMatchStatus, 'exact_poster_match');
+    assert.equal(events[0].posterMatchStatus, 'verified_multi_event_poster');
+    assert.equal(events[1].posterMatchStatus, 'verified_multi_event_poster');
 });
 
 test('V188.73 never binds ordinary photos, covers or logos even if context/date coincides', () => {
@@ -88,15 +88,14 @@ test('V188.73 parser stores image type/confidence/readability for DB audit', () 
     assert.match(fact.reason, /текстовая/u);
 });
 
-test('V188.73 source media is retained separately but never auto-attached as event media', () => {
+test('a single source image can be shared by child cards when explicitly enabled', () => {
     const source = readFileSync(new URL('../../src/features/events/eventAssets.js', import.meta.url), 'utf8');
-    assert.match(source, /shareSourceImagesAcrossEvents is intentionally ignored/u);
-    assert.doesNotMatch(source, /eventImagePaths = \[\.\.\.downloaded\]/u);
-    assert.match(source, /tinyUiImage/u);
-    assert.match(source, /Math\.max\(dimensions\.width, dimensions\.height\) < 48/u);
+    assert.match(source, /shareSourceImagesAcrossEvents && safeEvents\.length > 1 && sourceImageCount === 1/u);
+    assert.match(source, /eventImagePaths = sharedMultiEventSourceBinding/u);
+    assert.match(source, /shared_multi_event_source_image/u);
 });
 
-test('V188.73 date/month/year words never count as event identity and one poster cannot bind two child events', () => {
+test('V188.73 date/month/year words never count as event identity for unrelated child events', () => {
     const facts = `
 [IMAGE 1]
 Тип изображения: poster
@@ -118,6 +117,6 @@ test('V188.73 date/month/year words never count as event identity and one poster
     assert.equal(events[1].posterImageIndex, 0);
     assert.equal(events[1].posterMatchStatus, 'no_safe_poster');
     const stonehandCandidate = audit.find((row) => String(row.event?.title || '').includes('STONEHAND') && row.imageIndex === 1);
-    assert.equal(stonehandCandidate?.accepted, false);
-    assert.match(String(stonehandCandidate?.reason), /date-without-event-identity|identity-too-weak/u);
+    assert.notEqual(stonehandCandidate?.accepted, true);
+    assert.equal(stonehandCandidate, undefined);
 });

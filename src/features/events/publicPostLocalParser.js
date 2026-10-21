@@ -25,7 +25,9 @@ import {
 } from './eventVenueInference.js';
 
 import {
+    explainStrictEventRecord,
     isStrictEventRecord,
+    sourceContainsEvidence,
 } from './eventValidation.js';
 
 import {
@@ -36,6 +38,11 @@ import {
     normalizeEventYear as normalizeYear,
     toIsoEventDate as toIsoDate,
 } from './publicPostDateEvidence.js';
+import {
+    extractDateSpecificAnnouncementSegment,
+} from './eventMultiAnnouncementBlocks.js';
+import { acceptedDateFreePoster } from './dateFreeEventEvidence.js';
+import { getLocalDateString } from '../../shared/date.js';
 
 function scoreEventDateMention(text, mention) {
     const source = String(text ?? '');
@@ -115,11 +122,11 @@ const DATE_TIME_ONLY_TITLE_RE = new RegExp(
     'iu',
 );
 const INLINE_SCHEDULE_RE = new RegExp(
-    `^\\s*(\\d{1,2}\\s+${RUSSIAN_MONTH_WORD}(?:\\s+20\\d{2})?|\\d{1,2}\\.\\d{1,2}(?:\\.\\d{2,4})?)\\s*[,;]?\\s*(?:(?:в\\s*)?((?:[01]?\\d|2[0-3]):[0-5]\\d))?\\s*[—–-]\\s*(.+?)\\s*$`,
+    `^\\s*(\\d{1,2}(?:\\s*[—–-]\\s*\\d{1,2})?\\s+${RUSSIAN_MONTH_WORD}(?:\\s+20\\d{2})?|\\d{1,2}\\.\\d{1,2}(?:\\.\\d{2,4})?)\\s*[,;]?\\s*(?:(?:в\\s*)?((?:[01]?\\d|2[0-3]):[0-5]\\d))?\\s*[—–-]\\s*(.+?)\\s*$`,
     'iu',
 );
 const INLINE_CONTEXT_HYPHEN_SCHEDULE_RE = new RegExp(
-    `^\\s*(\\d{1,2}\\s+${RUSSIAN_MONTH_WORD}(?:\\s+20\\d{2})?|\\d{1,2}\\.\\d{1,2}(?:\\.\\d{2,4})?)\\s*[,;]?\\s*(?:начало|старт|двери|сбор|время)\\s*(?::|[—–-]|в)?\\s*((?:[01]?\\d|2[0-3])-[0-5]\\d)\\s*[—–-]\\s*(.+?)\\s*$`,
+    `^\\s*(\\d{1,2}(?:\\s*[—–-]\\s*\\d{1,2})?\\s+${RUSSIAN_MONTH_WORD}(?:\\s+20\\d{2})?|\\d{1,2}\\.\\d{1,2}(?:\\.\\d{2,4})?)\\s*[,;]?\\s*(?:начало|старт|двери|сбор|время)\\s*(?::|[—–-]|в)?\\s*((?:[01]?\\d|2[0-3])-[0-5]\\d)\\s*[—–-]\\s*(.+?)\\s*$`,
     'iu',
 );
 
@@ -471,7 +478,15 @@ function parseStructuredEvent(post) {
         venue: trimEventValue(refined.venue, 500),
         participants: trimEventValue(participants, 2000),
         price: normalizePriceValue(price),
-        description: trimEventDescription(post.text, 5000),
+        description: trimEventDescription(
+            extractDateSpecificAnnouncementSegment(post.text, date, {
+                publishedAt: post.publishedAt, referenceNow: post?.referenceNow,
+            }) || post.text,
+            5000,
+        ),
+        sourceSegment: extractDateSpecificAnnouncementSegment(post.text, date, {
+            publishedAt: post.publishedAt, referenceNow: post?.referenceNow,
+        }),
         evidence: trimEventValue(when, 500),
         parseMethod: rangeLike
             ? 'local_structured_v15_range_day'
@@ -583,7 +598,15 @@ function parseDigestEvents(post) {
             venue,
             participants: title,
             price: '',
-            description: trimEventDescription(post.text, 5000),
+            description: trimEventDescription(
+                extractDateSpecificAnnouncementSegment(post.text, currentDate, {
+                    publishedAt: post.publishedAt, referenceNow: post?.referenceNow,
+                }) || post.text,
+                5000,
+            ),
+            sourceSegment: extractDateSpecificAnnouncementSegment(post.text, currentDate, {
+                publishedAt: post.publishedAt, referenceNow: post?.referenceNow,
+            }),
             evidence: trimEventValue(line, 500),
             parseMethod: 'local_digest',
             status: 'approved',
@@ -645,8 +668,7 @@ function parseInlineScheduleEvents(post) {
     const events = [];
     for (const group of groups.slice(0, 20)) {
         const dates = extractExplicitDates(group.dateText, post.publishedAt, { referenceNow: post?.referenceNow });
-        const eventDate = dates[0] || null;
-        if (!eventDate) continue;
+        if (!dates.length) continue;
 
         const segment = group.lines.join('\n');
         const title = normalizeInlineScheduleTitle(group.tail);
@@ -658,18 +680,24 @@ function parseInlineScheduleEvents(post) {
         const refined = refineKnownVenue({ post, title, venue: '' });
         const price = extractInlineSchedulePrice(group);
 
-        events.push({
-            title: refined.title,
-            eventDate,
-            eventTime,
-            venue: trimEventValue(refined.venue, 500),
-            participants: trimEventValue(title, 1000),
-            price,
-            description: trimEventDescription(segment, 2400),
-            evidence: trimEventValue(group.firstLine, 500),
-            parseMethod: 'local_inline_schedule_v131',
-            status: 'approved',
-        });
+        for (const eventDate of dates) {
+            const sourceSegment = extractDateSpecificAnnouncementSegment(post.text, eventDate, {
+                publishedAt: post.publishedAt, referenceNow: post?.referenceNow,
+            });
+            events.push({
+                title: refined.title,
+                eventDate,
+                eventTime,
+                venue: trimEventValue(refined.venue, 500),
+                participants: trimEventValue(title, 1000),
+                price,
+                description: trimEventDescription(sourceSegment || segment, 2400),
+                sourceSegment,
+                evidence: trimEventValue(group.firstLine, 500),
+                parseMethod: 'local_inline_schedule_v131',
+                status: 'approved',
+            });
+        }
     }
 
     return events;
@@ -811,10 +839,16 @@ function getPublicPriorityDateAdjustment(text, referenceNow = new Date(), publis
 export function explainPublicPostEventCandidate(post = {}) {
     const contentText = String(post?.contentText ?? '').trim();
     const repostText = String(post?.repostText ?? '').trim();
+    // A resolved root body is provenance, not by itself proof that the public
+    // post is a repost. Treat only explicit nested/repost evidence as such.
+    const hasRepost = Boolean(repostText || String(post?.imageOrigin || '') === 'nested-repost' || post?.repostDepth > 0 || post?.originalSourceUrl && post?.originalSourceUrl !== post?.sourceUrl);
+    const rootPostTextResolved = post?.rootPostTextResolved === true;
     const text = sanitizeEventBodyText(String(
-        contentText || repostText
-            ? [contentText, repostText].filter(Boolean).join('\n\n')
-            : post?.text ?? '',
+        rootPostTextResolved
+            ? post?.rootPostText ?? ''
+            : contentText || repostText
+                ? [contentText, repostText].filter(Boolean).join('\n\n')
+                : post?.text ?? '',
     )).trim();
     const dateMentions = extractExplicitDateMentions(text, Number(post?.publishedAt || 0), { referenceNow: post?.referenceNow });
     const hasDate = dateMentions.length > 0;
@@ -824,14 +858,23 @@ export function explainPublicPostEventCandidate(post = {}) {
     const hasPrice = PUBLIC_PRICE_PATTERN.test(text);
     const hasVenueCue = PUBLIC_VENUE_PATTERN.test(text);
     const hasPoster = Array.isArray(post?.imageUrls) && post.imageUrls.length > 0;
-    const hasRepost = Boolean(repostText || String(post?.imageOrigin || '') === 'nested-repost');
     const aiAdmission = explainEventAiAdmissionWithPosterFacts({
         text,
         posterFacts: post?.__posterGateFacts || '',
         posterVisionAttempted: Boolean(post?.__posterGateVisionAttempted),
+        dateFreePhase: post?.__dateFreeVisionPhase === true,
         publishedAt: Number(post?.publishedAt || 0),
         referenceNow: post?.referenceNow,
     });
+    if (hasRepost && !rootPostTextResolved) {
+        aiAdmission.eligible = false;
+        aiAdmission.rejectionReason = 'repost-root-text-unresolved';
+        aiAdmission.dateSource = 'repost-root-text-required';
+        aiAdmission.hasCalendarDate = false;
+        aiAdmission.hasEventDateCandidate = false;
+        aiAdmission.hasNonPastDate = false;
+        aiAdmission.pastOnly = false;
+    }
     const retrospectiveRejected = aiAdmission.rejectionReason === 'retrospective-post';
 
     let score = 0;
@@ -854,7 +897,7 @@ export function explainPublicPostEventCandidate(post = {}) {
     const posterVisionRescue = Boolean(
         hasPoster && aiAdmission.eligible && aiAdmission.dateSource === 'poster-vision'
     );
-    const candidate = Boolean(!retrospectiveRejected && (
+    const candidate = Boolean(!retrospectiveRejected && !(hasRepost && !rootPostTextResolved) && (
         hasAbsoluteDate ||
         (hasDate && (hasKeyword || hasTime || hasVenueCue || hasPoster || hasRepost)) ||
         (hasPoster && (hasRepost || hasKeyword || hasTime || hasPrice || hasVenueCue)) ||
@@ -888,6 +931,8 @@ export function explainPublicPostEventCandidate(post = {}) {
             hasAiNonPastDate: aiAdmission.hasNonPastDate,
             aiGateRejectionReason: retrospectiveRejected ? 'retrospective-post' : aiAdmission.rejectionReason,
             retrospectiveRejected,
+            rootPostTextResolved,
+            rootPostTextChars: String(post?.rootPostText || '').length,
         },
     };
 }
@@ -900,25 +945,205 @@ export function validatePublicAiEvents(events, post) {
     return validateAiEvents(events, post);
 }
 
+export function setPublicAiResponseMetadata(events, {
+    structure = '',
+    reason = '',
+    valid = false,
+    error = '',
+} = {}) {
+    const result = Array.isArray(events) ? events : [];
+    // Keep transport metadata attached to the array without changing its JSON
+    // shape or deep-equality semantics.  Callers can still read the properties
+    // directly, while an unresolved result remains an ordinary empty event list.
+    for (const [key, value] of [
+        ['aiStructureDecision', String(structure || '').trim()],
+        ['aiStructureReason', String(reason || '').trim()],
+        ['aiResponseValid', Boolean(valid)],
+        ['aiResponseError', String(error || '').trim()],
+    ]) {
+        Object.defineProperty(result, key, { value, writable: true, configurable: true, enumerable: false });
+    }
+    return result;
+}
+
+export function selectPublicAiEventsForPersistence({
+    localEvents = [],
+    aiEvents = null,
+    validatedEvents = null,
+    aiRequired = false,
+    aiCalled = false,
+    aiError = '',
+    post = null,
+    timeZone = 'Europe/Moscow',
+} = {}) {
+    if (!aiRequired) {
+        return { events: Array.isArray(localEvents) ? localEvents : [], resolved: true, unresolved: false, notEvent: false, reason: 'ai-not-required' };
+    }
+
+    const structure = String(aiEvents?.aiStructureDecision ?? aiEvents?.[0]?._structure ?? '').trim();
+    const structureReason = String(aiEvents?.aiStructureReason ?? aiEvents?.[0]?._structureReason ?? '').trim();
+    const invalidReason = String(aiError || aiEvents?.aiResponseError || validatedEvents?.aiResponseError || '').trim();
+    if (aiCalled && !aiError && !aiEvents?.aiResponseError && aiEvents?.aiResponseValid === true &&
+        isUntitledBookingWindowOffer(aiEvents, post)) {
+        return { events: [], resolved: true, unresolved: false, notEvent: true, structure, structureReason,
+            reason: 'booking-window-offer-not-a-dated-event' };
+    }
+    if (aiCalled && !aiError && !aiEvents?.aiResponseError && aiEvents?.aiResponseValid === true &&
+        isConfirmedPosterWithoutEventDate(post, timeZone)) {
+        return { events: [], resolved: true, unresolved: false, notEvent: false, structure, structureReason,
+            reason: 'confirmed-poster-has-no-event-date' };
+    }
+    if (aiCalled && !aiError && !aiEvents?.aiResponseError && aiEvents?.aiResponseValid === true &&
+        isCompletePastOnlyResponse(aiEvents, post, { structure, timeZone })) {
+        return { events: [], resolved: true, unresolved: false, notEvent: false, pastOnly: true, structure, structureReason, reason: 'all-supported-event-dates-are-past' };
+    }
+    if (!aiCalled || invalidReason || aiEvents?.aiResponseValid !== true) {
+        return { events: [], resolved: false, unresolved: true, notEvent: false, structure, structureReason,
+            reason: invalidReason || (aiCalled ? 'invalid-ai-structure-response' : 'ai-unavailable') };
+    }
+
+    if (structure === 'not_event' && validatedEvents?.aiResponseValid === true) {
+        return { events: [], resolved: true, unresolved: false, notEvent: true, structure, structureReason, reason: 'ai-not-event' };
+    }
+
+    if (['single_event', 'single_event_program', 'multiple_events'].includes(structure) &&
+        validatedEvents?.aiResponseValid === true && Array.isArray(validatedEvents) && validatedEvents.length > 0) {
+        return { events: validatedEvents, resolved: true, unresolved: false, notEvent: false, structure, structureReason, reason: 'ai-cardinality-accepted' };
+    }
+
+    return { events: [], resolved: false, unresolved: true, notEvent: false, structure, structureReason,
+        reason: structure === 'uncertain' ? 'ai-structure-uncertain' : invalidReason || 'ai-events-failed-validation' };
+}
+
+function isCompletePastOnlyResponse(aiEvents, post, { structure, timeZone }) {
+    const events = Array.isArray(aiEvents) ? aiEvents : [];
+    if (!['single_event', 'single_event_program', 'multiple_events'].includes(structure) ||
+        events.length > 20 ||
+        (structure === 'multiple_events' ? events.length < 2 : events.length !== 1)) return false;
+
+    const referenceNow = post?.referenceNow instanceof Date && Number.isFinite(post.referenceNow.getTime())
+        ? post.referenceNow
+        : new Date();
+    const today = getLocalDateString(referenceNow, timeZone);
+    const sourceDates = new Set(extractExplicitDates(post?.text, post?.publishedAt, {
+        referenceNow,
+        timeZone,
+    }));
+    if (!sourceDates.size || [...sourceDates].some((date) => date >= today)) return false;
+
+    return events.every((event) => {
+        const date = String(event?.date ?? '').trim();
+        return /^\d{4}-\d{2}-\d{2}$/u.test(date) && date < today && sourceDates.has(date);
+    });
+}
+
+function isUntitledBookingWindowOffer(aiEvents, post) {
+    const events = Array.isArray(aiEvents) ? aiEvents : [];
+    const structure = String(aiEvents?.aiStructureDecision ?? events[0]?._structure ?? events[0]?.structure ?? '').trim();
+    if (structure !== 'multiple_events' || events.length > 20) return false;
+
+    const source = String(post?.text || '');
+    if (!/открываем\s+бронирование\s+на\s+(?:новогодние\s+)?корпоратив/iu.test(source)) return false;
+    const hasBookingRange = extractEventDateRanges(source, post?.publishedAt, {
+        referenceNow: post?.referenceNow instanceof Date ? post.referenceNow : new Date(),
+    }).length > 0;
+    if (!hasBookingRange) return false;
+
+    // A complete empty multiple-events response can explicitly mean that the
+    // date range offers booking availability, not separate event listings.
+    const emptyRangeExplanation = events.length === 0 && /диапазон|отдельн(?:ые|ых)\s+(?:событи|мероприяти)|не\s+назван/iu.test(
+        String(aiEvents?.aiStructureReason || ''),
+    );
+    if (emptyRangeExplanation) return true;
+
+    return events.length >= 2 && events.every((event) => (
+        !String(event?.title || '').trim() && !String(event?.participants || '').trim()
+    ));
+}
+
+function isConfirmedPosterWithoutEventDate(post, timeZone) {
+    if (!acceptedDateFreePoster(post)) return false;
+    const facts = String(post?.__posterGateFacts || '');
+    const explicitDates = extractExplicitDates(facts, post?.publishedAt, {
+        referenceNow: post?.referenceNow instanceof Date ? post.referenceNow : new Date(),
+        timeZone,
+    });
+    if (explicitDates.length) return false;
+    return !/^[ \t]*(?:Дата|Даты|Date)[ \t]*:[ \t]*[^\r\n]+/imu.test(facts);
+}
+
 function looksLikeEventCandidate(post) {
     return explainPublicPostEventCandidate(post).candidate;
 }
 
 function validateAiEvents(events, post) {
+    if (!Array.isArray(events)) {
+        return setPublicAiResponseMetadata([], {
+            structure: events?.aiStructureDecision,
+            reason: events?.aiStructureReason,
+            error: events?.aiResponseError || 'response-is-not-an-event-array',
+        });
+    }
+
+    const responseStructure = String(
+        events.aiStructureDecision ?? events[0]?._structure ?? events[0]?.structure ?? events[0]?.structure_decision ??
+        (events.length === 1 ? 'single_event' : ''),
+    ).trim();
+    if (['uncertain', 'not_event'].includes(responseStructure)) {
+        const validNotEvent = responseStructure === 'not_event' && events.aiResponseValid === true && events.length === 0;
+        return setPublicAiResponseMetadata([], {
+            structure: responseStructure,
+            reason: events.aiStructureReason,
+            valid: validNotEvent,
+            error: validNotEvent ? '' : responseStructure === 'not_event' && events.length
+                ? 'not_event-has-events'
+                : events.aiResponseError || (responseStructure === 'uncertain' ? 'ai-structure-uncertain' : 'invalid-ai-structure-response'),
+        });
+    }
+
+    if (!['single_event', 'single_event_program', 'multiple_events'].includes(responseStructure)) {
+        return setPublicAiResponseMetadata([], {
+            structure: responseStructure,
+            reason: events.aiStructureReason,
+            error: events.aiResponseError || 'missing-or-unknown-structure',
+        });
+    }
+
+    if (events.aiResponseValid === false || events.length > 20 ||
+        (responseStructure === 'multiple_events' && events.length < 2) ||
+        (['single_event', 'single_event_program'].includes(responseStructure) && events.length !== 1)) {
+        return setPublicAiResponseMetadata([], {
+            structure: responseStructure,
+            reason: events.aiStructureReason,
+            error: events.aiResponseError || 'structure-event-count-mismatch',
+        });
+    }
+
+    const dateFreeVisionPhase = acceptedDateFreePoster(post);
+    const sourceAnnouncementText = String(post?.__sourceAnnouncementText ?? post?.text ?? '');
+    // In phase two, post.text contains the poster-gate facts. Use those facts
+    // to validate date and venue fields, while skipping verbatim comparison
+    // against the independent announcement text.
+    const validationSourceText = String(post?.text ?? '');
     const allowedDates = new Set(
         extractExplicitDates(post.text, post.publishedAt, { referenceNow: post?.referenceNow }),
     );
 
-    if (!Array.isArray(events) || !allowedDates.size) {
-        return [];
-    }
+    if (!dateFreeVisionPhase && !allowedDates.size) return setPublicAiResponseMetadata([], {
+        structure: responseStructure,
+        reason: events.aiStructureReason,
+        error: 'no-supported-calendar-date-in-source',
+    });
 
+    // Cardinality is an explicit AI contract. An unresolved one-date/multiple-
+    // time decision must never silently become a local single card: the caller
+    // can retain the source and retry the structured extraction later.
     const result = [];
 
     for (const event of events.slice(0, 20)) {
         const eventDate = String(event?.date ?? '').trim();
 
-        if (!allowedDates.has(eventDate)) {
+        if (!dateFreeVisionPhase && !allowedDates.has(eventDate)) {
             continue;
         }
 
@@ -928,41 +1153,43 @@ function validateAiEvents(events, post) {
             ? String(event.time)
             : null;
         const evidence = trimEventValue(event?.evidence, 500);
-        const evidenceSnippets = evidence
-            .split(/\s*\|\|\s*/u)
-            .map((value) => String(value || '').trim()
-                .replace(/^[\s"'«„“]+/u, '')
-                .replace(/[\s"'»”]+$/u, '')
-                .trim())
-            .filter(Boolean);
-
-        // The extraction contract explicitly allows up to three exact source
-        // quotes separated by `||`. V188.79/V188.80 checked the whole joined
-        // string as one substring, so valid AI results were silently discarded
-        // and the fallback local parser overwrote them. Validate each exact
-        // quote independently instead.
-        if (!evidenceSnippets.length || !evidenceSnippets.every((snippet) => post.text.includes(snippet))) {
+        // The shared matcher normalizes case/spacing and accepts an explicit
+        // ellipsis between ordered exact fragments. This lets Vision-enriched
+        // dates survive compact AI evidence without weakening source proof.
+        if (!dateFreeVisionPhase && !sourceContainsEvidence(evidence, post.text)) {
             continue;
         }
 
         const candidate = {
-            title: trimEventValue(event?.title || '', 500),
+            // The title contract allows an empty title when the source has no
+            // proper event name. Validation still needs a stable human label;
+            // use participants as the fallback, matching the local parser,
+            // without inventing a name or changing the event identity rules.
+            title: trimEventValue(event?.title || event?.participants || '', 500),
             eventDate,
             eventTime,
             venue: trimEventValue(event?.venue, 500),
             participants: trimEventValue(event?.participants, 2000),
             price: trimEventValue(event?.price, 500),
-            // Keep the complete source post in vk_source_posts for audit, but
-            // let a valid AI cardinality decision provide the child card's own
-            // announcement segment. Falling back to the full post is retained
-            // only for legacy/short AI responses that omit the new field.
+            // Keep the complete source post in the source table for audit.
+            // The event row's description is the concise AI-written card text;
+            // sourceSegment remains the exact/date-specific source evidence.
             description: trimEventDescription(
-                event?.source_segment || event?.sourceSegment || event?.announcement || post.text,
+                event?.announcement || (dateFreeVisionPhase
+                    ? sourceAnnouncementText
+                    : extractDateSpecificAnnouncementSegment(post.text, eventDate, {
+                    publishedAt: post.publishedAt, referenceNow: post?.referenceNow,
+                    }) || event?.source_segment || event?.sourceSegment || post.text),
                 5000,
             ),
             evidence,
             announcement: trimEventDescription(event?.announcement || '', 5000),
-            sourceSegment: trimEventDescription(event?.source_segment || event?.sourceSegment || '', 5000),
+            sourceSegment: trimEventDescription(
+                dateFreeVisionPhase ? sourceAnnouncementText : extractDateSpecificAnnouncementSegment(post.text, eventDate, {
+                    publishedAt: post.publishedAt, referenceNow: post?.referenceNow,
+                }) || event?.source_segment || event?.sourceSegment || '',
+                5000,
+            ),
             structureDecision: String(event?._structure || event?.structure || '').trim(),
             structureReason: trimEventValue(event?._structureReason || event?.structure_reason || event?.structureReason || '', 1000),
             programItems: Array.isArray(event?.program_items || event?.programItems)
@@ -978,17 +1205,41 @@ function validateAiEvents(events, post) {
             eventTags: [...new Set((Array.isArray(event?.tags) ? event.tags : Array.isArray(event?.eventTags) ? event.eventTags : [])
                 .map((value) => String(value ?? '').trim())
                 .filter(Boolean))].slice(0, 16),
-            parseMethod: 'gigachat_validated',
+            parseMethod: dateFreeVisionPhase ? 'gigachat_validated_phase2_poster_v2' : 'gigachat_validated',
             status: 'pending',
         };
 
-        if (isStrictEventRecord(candidate, {
-            sourceText: post.text,
-            requireEvidence: true,
-        })) {
+        const strictValidation = explainStrictEventRecord(candidate, {
+            sourceText: validationSourceText,
+            requireEvidence: !dateFreeVisionPhase,
+            trustedPosterEvent: dateFreeVisionPhase,
+        });
+        if (strictValidation.ok) {
             result.push(candidate);
         }
     }
 
-    return result;
+    if (responseStructure === 'multiple_events' && result.length !== events.length) {
+        return setPublicAiResponseMetadata([], {
+            structure: responseStructure,
+            reason: events.aiStructureReason,
+            valid: false,
+            error: 'one-or-more-events-failed-validation',
+        });
+    }
+    if (['single_event', 'single_event_program'].includes(responseStructure) && result.length !== 1) {
+        return setPublicAiResponseMetadata([], {
+            structure: responseStructure,
+            reason: events.aiStructureReason,
+            valid: false,
+            error: 'event-failed-validation',
+        });
+    }
+
+    return setPublicAiResponseMetadata(result, {
+        structure: responseStructure,
+        reason: events.aiStructureReason,
+        valid: result.length === events.length,
+        error: result.length === events.length ? '' : 'one-or-more-events-failed-validation',
+    });
 }

@@ -1,4 +1,5 @@
 const VISION_FIELD_LINE = /^(?:\[IMAGE\s+\d+\]|(?:Тип изображения|Это афиша события|Уверенность афиши|Читаемость текста|Название|Дата|Даты|Время|Начало|Окончание|Место|Площадка|Город|Насел[её]нный пункт|Адрес|Участники|Исполнители|Артисты|Цена|Возраст|Программа|Распознанный текст|OCR|Причина)\s*:)/iu;
+import { extractExplicitDates } from './publicPostDateEvidence.js';
 
 const NUMERIC_DATE = /\b([0-3]?\d)\.([01]?\d)(?:\.((?:20)?\d{2}))?\b/gu;
 const NAMED_DATE = /(?<![\p{L}\p{N}])([0-3]?\d)\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)(?!\p{L})/giu;
@@ -93,4 +94,23 @@ export function buildSequentialAnnouncementBlocks(value) {
         })),
         distinctDateSignals: findAnnouncementDateSignals(value).length,
     };
+}
+
+/**
+ * Return the source block belonging to one concrete calendar date. Monthly
+ * posters often contain several date-led announcements in one message; a
+ * child card must carry only its own block, while the raw source remains
+ * available in the source-post table for audit. A range (16-17 October)
+ * intentionally maps to the same block for both dates.
+ */
+export function extractDateSpecificAnnouncementSegment(value, eventDate, { publishedAt = 0, referenceNow } = {}) {
+    const source = String(value ?? '').split(/\n\[Факты с афиши\]/u)[0];
+    const target = String(eventDate ?? '').trim();
+    if (!source || !target) return '';
+    const blocks = buildSequentialAnnouncementBlocks(source).blocks;
+    for (const block of blocks) {
+        const dates = extractExplicitDates(block.text, publishedAt, { referenceNow });
+        if (dates.includes(target)) return block.text.trim();
+    }
+    return '';
 }

@@ -5,6 +5,8 @@ import {
 
 import { createHash } from 'node:crypto';
 import { Buffer } from 'node:buffer';
+import { getCurrentOperationSignal } from '../../runtime/operationSupervisor.js';
+import { formatPrivateError } from '../../shared/errors.js';
 
 const DEFAULT_MAX_AUDIO_BYTES = 24 * 1024 * 1024;
 const MAX_RECURSION_DEPTH = 10;
@@ -21,6 +23,53 @@ function normalizeTranscript(value) {
         .replace(/\n{3,}/gu, '\n\n')
         .replace(/[ \t]{2,}/gu, ' ')
         .trim();
+}
+
+export function isUsableVoiceTranscript(value) {
+    const text = normalizeTranscript(value);
+    if (!/[\p{L}\p{N}]/u.test(text)) return false;
+    // Providers sometimes decorate a sentinel with a bot name or Markdown.
+    if (/\[\s*(?:NO[ _-]*SPEECH|AUDIO[ _-]*UNAVAILABLE|INAUDIBLE|UNINTELLIGIBLE)\s*\]/iu.test(text)) return false;
+    if (/^no speech(?: detected)?[.!]?$/iu.test(text)) return false;
+    if (/^\[object Object\]$/u.test(text)) return false;
+    if (/^(?:\*\*[^\n]+\*\*\s*)?(?:к сожалению[, ]*|извините[, ]*|sorry[, ]*)?(?:я\s+)?(?:не могу|не способен|не умею|i\s+(?:cannot|can['’]t)|unable to).{0,100}(?:прослуш|распозна|аудио|голос|listen|audio|voice|transcrib)/isu.test(text)) return false;
+    if (/(?:i['’]?m|i am|я)\s+deepseek/iu.test(text) && /(?:internal|system|instructions|cannot|не могу)/iu.test(text)) return false;
+    return true;
+}
+
+export function isReusableVoiceTranscriptCache(cached) {
+    return cached?.status === 'ok'
+        && cached.model !== 'configured-gpt-ladder'
+        && isUsableVoiceTranscript(cached.transcript);
+}
+
+// Speech has its own credentials and models: the chat ladder/persona must never
+// receive a voice as a generic input_file and claim it transcribed the audio.
+export function collectVoiceTranscriptionProviders(env = process.env) {
+    const providers = [];
+    const models = (value, defaults) => {
+        const selected = clean(value).split(/[;,]/u).map(clean).filter(Boolean);
+        return selected.length ? selected : defaults;
+    };
+    const add = (prefix, base, defaultModels, modelPrefix = prefix.replace(/API_KEY$/u, 'MODELS')) => {
+        const seen = new Set();
+        for (const suffix of ['', ...Array.from({ length: 20 }, (_, index) => `_${index + 1}`)]) {
+            const apiKey = clean(env[`${prefix}${suffix}`]);
+            if (!apiKey || seen.has(apiKey)) continue;
+            seen.add(apiKey);
+            const basePrefix = prefix.replace(/API_KEY$/u, 'BASE_URL');
+            providers.push({
+                name: `${prefix}${suffix}`, apiKey,
+                baseUrl: clean(env[`${basePrefix}${suffix}`] || env[basePrefix] || base).replace(/\/+$/u, ''),
+                models: models(env[`${modelPrefix}${suffix}`] || env[modelPrefix] || env[modelPrefix.replace(/MODELS$/u, 'MODEL')], defaultModels),
+            });
+        }
+    };
+    add('AUDIO_TRANSCRIPTION_API_KEY', 'https://api.openai.com/v1', ['gpt-transcribe', 'gpt-4o-mini-transcribe']);
+    add('OPENAI_API_KEY', 'https://api.openai.com/v1', ['gpt-transcribe', 'gpt-4o-mini-transcribe'], 'OPENAI_AUDIO_MODELS');
+    add('GROQ_API_KEY', 'https://api.groq.com/openai/v1', ['whisper-large-v3-turbo', 'whisper-large-v3'], 'GROQ_AUDIO_MODELS');
+    add('OPENAI_COMPAT_API_KEY', 'https://router.cheap/v1', ['gpt-transcribe', 'gpt-4o-mini-transcribe'], 'OPENAI_COMPAT_AUDIO_MODELS');
+    return providers;
 }
 
 function toPlainObject(value) {
@@ -105,13 +154,14 @@ function createVkVoiceDescriptor({ type, payload, voicePayload, isDirect, path }
     const ownerId = Number(firstDefined(payload, ['owner_id', 'ownerId']) ?? firstDefined(voicePayload, ['owner_id', 'ownerId']) ?? 0) || 0;
     const id = Number(firstDefined(payload, ['id', 'doc_id', 'docId']) ?? firstDefined(voicePayload, ['id', 'audio_message_id', 'audioMessageId']) ?? 0) || 0;
     const accessKey = clean(firstDefined(payload, ['access_key', 'accessKey']) ?? firstDefined(voicePayload, ['access_key', 'accessKey']));
-    const transcript = normalizeTranscript(firstDefined(voicePayload, [
+    const nativeTranscript = normalizeTranscript(firstDefined(voicePayload, [
         'transcript',
         'transcript_text',
         'transcriptText',
         'recognized_text',
         'recognizedText',
     ]));
+    const transcript = isUsableVoiceTranscript(nativeTranscript) ? nativeTranscript : '';
     const transcriptState = clean(firstDefined(voicePayload, [
         'transcript_state',
         'transcriptState',
@@ -123,7 +173,7 @@ function createVkVoiceDescriptor({ type, payload, voicePayload, isDirect, path }
     const url = mp3Url || oggUrl || clean(firstDefined(voicePayload, ['url', 'link']));
     const duration = Number(firstDefined(voicePayload, ['duration', 'duration_seconds', 'durationSeconds']) ?? 0) || 0;
     const attachmentKey = ownerId && id
-        ? `vk:${ownerId}:${id}${accessKey ? `:${accessKey}` : ''}`
+        ? `vk:${ownerId}:${id}`
         : `vk:sha256:${hashKey([url, transcript, path])}`;
 
     return {
@@ -262,6 +312,61 @@ export function collectVkVoiceAttachments(rawMessage) {
     return output;
 }
 
+export function vkVoiceDescriptorsNeedTranscriptHydration(descriptors) {
+    return (Array.isArray(descriptors) ? descriptors : [])
+        .some((item) => !isUsableVoiceTranscript(item?.transcript));
+}
+
+export async function pollVkVoiceTranscripts({
+    descriptors = [],
+    fetchFreshDescriptors,
+    attempts = 3,
+    intervalMs = 40_000,
+    wait = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+    onAttempt = null,
+} = {}) {
+    const voices = new Map((Array.isArray(descriptors) ? descriptors : [])
+        .filter((item) => item?.isDirect)
+        .map((item) => [String(item.attachmentKey || ''), item])
+        .filter(([key]) => key));
+    const pending = () => [...voices.values()].filter((voice) => !isUsableVoiceTranscript(voice.transcript));
+
+    for (let attempt = 1; attempt <= Math.max(1, Number(attempts) || 1) && pending().length; attempt += 1) {
+        await wait(Math.max(0, Number(intervalMs) || 0));
+        let fresh = [];
+        try {
+            fresh = await fetchFreshDescriptors?.({ attempt, pending: pending() }) || [];
+        } catch (error) {
+            onAttempt?.({ attempt, error });
+            continue;
+        }
+        for (const descriptor of Array.isArray(fresh) ? fresh : []) {
+            const key = String(descriptor?.attachmentKey || '');
+            const previous = voices.get(key);
+            if (!previous) continue;
+            const transcript = isUsableVoiceTranscript(descriptor.transcript)
+                ? normalizeTranscript(descriptor.transcript) : previous.transcript;
+            voices.set(key, { ...previous, ...descriptor, transcript, isDirect: true });
+        }
+        onAttempt?.({ attempt, pendingCount: pending().length });
+    }
+
+    return [...voices.values()].filter((voice) => isUsableVoiceTranscript(voice.transcript));
+}
+
+export function hasUntranscribedDirectVkVoice(rawMessage, resolvedTranscripts = [], directMessageText = '') {
+    if (String(directMessageText ?? '').trim()) return false;
+    const directVoices = collectVkVoiceAttachments(rawMessage).filter((voice) => voice.isDirect);
+    if (!directVoices.length) return false;
+    const resolvedKeys = new Set((Array.isArray(resolvedTranscripts) ? resolvedTranscripts : [])
+        .filter((voice) => voice?.isDirect && isUsableVoiceTranscript(voice?.transcript))
+        .map((voice) => String(voice.attachmentKey ?? '').trim())
+        .filter(Boolean));
+    return directVoices.some((voice) => (
+        !isUsableVoiceTranscript(voice.transcript) && !resolvedKeys.has(String(voice.attachmentKey ?? '').trim())
+    ));
+}
+
 export function collectTelegramVoiceAttachments(message, { includeReply = true } = {}) {
     const output = [];
     const visited = new WeakSet();
@@ -315,7 +420,7 @@ export function formatVoiceTranscriptBlock(transcripts, {
     for (const item of Array.isArray(transcripts) ? transcripts : []) {
         if (directOnly && !item?.isDirect) continue;
         const text = normalizeTranscript(item?.transcript ?? item?.text);
-        if (!text || seen.has(text)) continue;
+        if (!isUsableVoiceTranscript(text) || seen.has(text)) continue;
         seen.add(text);
         const label = item?.isDirect
             ? '[Голосовое сообщение]'
@@ -332,6 +437,8 @@ export async function transcribeAudioBuffer({
     providers = [],
     fetchImpl = fetch,
     timeoutMs = 45_000,
+    totalTimeoutMs = 180_000,
+    signal = getCurrentOperationSignal(),
     maxBytes = DEFAULT_MAX_AUDIO_BYTES,
 } = {}) {
     if (!Buffer.isBuffer(buffer) || !buffer.length) {
@@ -344,6 +451,7 @@ export async function transcribeAudioBuffer({
     const candidates = (Array.isArray(providers) ? providers : [])
         .map((provider, index) => ({
             provider: 'stt',
+            capability: 'audio-transcription',
             name: clean(provider?.name) || `stt-key-${index + 1}`,
             secret: clean(provider?.apiKey),
             baseUrl: clean(provider?.baseUrl).replace(/\/$/u, ''),
@@ -357,8 +465,21 @@ export async function transcribeAudioBuffer({
         throw new Error('Не настроен ни один speech-to-text endpoint.');
     }
 
+    // STT has a finite request budget of its own. Do not inherit the generic
+    // unlimited recovery loop: a broken endpoint used to hold messages for 2h.
+    const budgetSignal = AbortSignal.timeout(totalTimeoutMs);
+    const requestSignal = signal ? AbortSignal.any([signal, budgetSignal]) : budgetSignal;
     const result = await executeRuntimeModelFailover({
         candidates,
+        maxRounds: 1,
+        failuresBeforeQuarantine: 3,
+        signal: requestSignal,
+        shouldAdvanceCandidate(error) {
+            const code = Number(error?.status);
+            if (error?.code === 'VOICE_TRANSCRIPT_INVALID') return true;
+            if (error?.code === 'VOICE_TRANSCRIPTION_UPSTREAM_ERROR' && code === 200) return true;
+            return [400, 401, 403, 404, 405, 415, 422].includes(code);
+        },
         shouldRetry(error) {
             const message = clean(error?.message || error);
             return isTechnicalModelFailure(error) ||
@@ -370,9 +491,12 @@ export async function transcribeAudioBuffer({
 
             for (const model of credential.models) {
                 try {
+                    requestSignal.throwIfAborted();
+                    const startedAt = Date.now();
                     const form = new FormData();
                     form.append('model', model);
                     form.append('response_format', 'json');
+                    form.append('language', 'ru');
                     form.append(
                         'file',
                         new Blob([buffer], { type: mimeType || 'application/octet-stream' }),
@@ -382,7 +506,7 @@ export async function transcribeAudioBuffer({
                         method: 'POST',
                         headers: { Authorization: `Bearer ${credential.secret}` },
                         body: form,
-                        signal: AbortSignal.timeout(timeoutMs),
+                        signal: AbortSignal.any([requestSignal, AbortSignal.timeout(timeoutMs)]),
                     });
                     const bodyText = await response.text();
                     let payload = null;
@@ -391,10 +515,9 @@ export async function transcribeAudioBuffer({
                     } catch {
                         payload = null;
                     }
-                    const transcript = normalizeTranscript(
-                        payload?.text ?? payload?.transcript ?? (response.ok ? bodyText : ''),
-                    );
-                    if (!response.ok || !transcript) {
+                    const value = payload?.text ?? payload?.transcript ?? '';
+                    const transcript = typeof value === 'string' ? normalizeTranscript(value) : '';
+                    if (!response.ok || payload?.error) {
                         const detail = normalizeTranscript(
                             payload?.error?.message ?? payload?.message ?? bodyText,
                         ).slice(0, 500);
@@ -402,18 +525,31 @@ export async function transcribeAudioBuffer({
                             `${credential.name} ${model}: HTTP ${response.status}${detail ? ` — ${detail}` : ''}`,
                         );
                         failure.status = response.status;
+                        if (payload?.error && !isTechnicalModelFailure(failure)) failure.code = 'VOICE_TRANSCRIPTION_UPSTREAM_ERROR';
+                        throw failure;
+                    }
+                    if (!isUsableVoiceTranscript(transcript)) {
+                        const failure = new Error(`${credential.name} ${model}: распознавание не вернуло полный текст речи.`);
+                        failure.code = 'VOICE_TRANSCRIPT_INVALID';
                         throw failure;
                     }
                     return {
                         text: transcript,
                         model,
                         provider: credential.name,
+                        transport: 'audio-transcriptions',
+                        usage: payload?.usage,
+                        durationMs: Date.now() - startedAt,
                     };
                 } catch (error) {
                     lastError = error;
-                    const message = clean(error?.message || error);
-                    const modelCompatibilityFailure = /\b(?:400|404|422)\b/iu.test(message) &&
-                        /(?:model|audio|transcrib|whisper|unsupported|not\s+found|unknown)/iu.test(message);
+                    console.warn('[STT MODEL FAILURE]', {
+                        provider: credential.name, model, error: formatPrivateError(error),
+                    });
+                    requestSignal.throwIfAborted();
+                    const modelCompatibilityFailure = ['VOICE_TRANSCRIPTION_UPSTREAM_ERROR', 'VOICE_TRANSCRIPT_INVALID'].includes(error?.code)
+                        || [400, 404, 405, 415, 422].includes(Number(error?.status))
+                        || error?.code === 'VOICE_TRANSCRIPT_INVALID';
                     if (!modelCompatibilityFailure) throw error;
                 }
             }
@@ -421,7 +557,13 @@ export async function transcribeAudioBuffer({
             throw lastError || new Error(`${credential.name}: ни одна STT-модель не сработала.`);
         },
         onEvent(event) {
-            if (event.type === 'rotate') {
+            if (event.type === 'failure') {
+                console.warn('[STT ATTEMPT FAILURE]', {
+                    provider: event.credential?.name, attempt: event.attempt,
+                    round: event.round, durationMs: event.durationMs,
+                    retryable: event.retryable, error: formatPrivateError(event.error),
+                });
+            } else if (event.type === 'rotate') {
                 console.warn(
                     '[STT KEY ROTATE]',
                     `key=${event.credential?.name || 'unknown'}`,

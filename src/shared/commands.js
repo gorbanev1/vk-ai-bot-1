@@ -154,12 +154,17 @@ export function createBotMentionTools({ groupId, groupIds = [], getTelegramBotUs
     };
 
     const spokenBotNameSource = '(?:гигорейв|гигарейв|гигорейф|гигарейф|гигорэйв)';
+    // Some VK bridges/exporters turn a mention into a Markdown link, for
+    // example `[Гигорейв](https://vk.ru/gigorave)`. Treat that token as the
+    // mention itself so addressed local commands do not fall through to GPT.
+    const markdownBotMentionSource = `\\[\\s*${spokenBotNameSource}\\s*\\]\\(\\s*[^)\\s]+\\s*\\)`;
     const containsBotMention = (text) => {
         const source = String(text ?? '');
         const telegramExpression = getTelegramExpression('iu');
 
         return (
             new RegExp(vkMentionSource, 'iu').test(source) ||
+            new RegExp(markdownBotMentionSource, 'iu').test(source) ||
             Boolean(telegramExpression?.test(source)) ||
             new RegExp(
                 `(?<![\\p{L}\\p{N}_])${spokenBotNameSource}(?![\\p{L}\\p{N}_])`,
@@ -170,6 +175,7 @@ export function createBotMentionTools({ groupId, groupIds = [], getTelegramBotUs
     const replaceBotMentions = (text, replacement = ' ') => {
         let source = String(text ?? '')
             .replace(new RegExp(vkMentionSource, 'giu'), replacement)
+            .replace(new RegExp(markdownBotMentionSource, 'giu'), replacement)
             .replace(
                 new RegExp(
                     `(?<![\p{L}\p{N}_])${spokenBotNameSource}(?![\p{L}\p{N}_])`,

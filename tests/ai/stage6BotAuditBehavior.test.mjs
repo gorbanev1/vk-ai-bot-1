@@ -64,8 +64,9 @@ test('secondary source without persisted semantic text is not published', () => 
         getSecondaryPartySourceKeys: () => new Set(),
         getAllUpcomingEventRecordsForDedupe: () => [event],
         classifyEventPartyPool: () => 'secondary', PARTY_POOL_SECONDARY: 'secondary',
-        getTelegramPostMeta: () => ({ rawText, publishedAt: 0 }),
+        getTelegramPostMeta: () => ({ rawText, publishedAt: 0, imageVisionFactsJson: '[]' }),
         getVkPostMeta: () => null,
+        storedEventDateSupported: (_event, {sourceText}) => /25\.09/u.test(sourceText),
         isEventDateConsistentWithSource: ({sourceText}) => /25\.09/u.test(sourceText),
     });
     assert.equal(fn().length, 0);
@@ -73,7 +74,7 @@ test('secondary source without persisted semantic text is not published', () => 
     assert.equal(fn().length, 1);
 });
 
-test('compact public list contains only title, date/time, venue, price, without source or description', () => {
+test('compact public list contains title, date/time, venue, price and a clickable source URL', () => {
     const fn = extract('function buildCompactPublicEventsMessage(', '\nasync function sendCompactPublicEventList(', {
         compactPartyHeading: () => 'Афиша',
         cleanEventTitle: (value) => value,
@@ -81,6 +82,9 @@ test('compact public list contains only title, date/time, venue, price, without 
         cleanVkEventText: (value) => String(value),
         formatIsoEventDate: (value) => value,
         getCompactSupportedTime: (value) => value.eventTime,
+        normalizeCompactSummary: () => 'Короткое описание',
+        buildLocalCompactPartySummary: () => 'Короткое описание',
+        buildCompactEventLinkLine: (event) => event.sourceUrl ? '🔗 ' + event.sourceUrl : '',
     });
     const rendered = fn([{event: {
         title: 'Событие', eventDate: '2026-09-25', eventTime: '19:00', venue: 'Клуб', price: '100',
@@ -89,7 +93,41 @@ test('compact public list contains only title, date/time, venue, price, without 
     assert.match(rendered, /Событие/u);
     assert.match(rendered, /Клуб/u);
     assert.match(rendered, /100/u);
-    assert.doesNotMatch(rendered, /СЕКРЕТ|https:\/\//u);
+    assert.doesNotMatch(rendered, /СЕКРЕТ/u);
+    assert.match(rendered, /https:\/\/do-not-include\.test/u);
+});
+
+test('compact public list never presents the QTickets city listing as a ticket link', () => {
+    const isQticketsListingRootUrl = extract('function isQticketsListingRootUrl(', '\nfunction isUsefulEventTicketUrl(', { URL });
+    const isUsefulEventTicketUrl = extract('function isUsefulEventTicketUrl(', '\nfunction isQticketsEventDetailUrl(', {
+        URL, isQticketsListingRootUrl,
+    });
+    const isQticketsEventDetailUrl = extract('function isQticketsEventDetailUrl(', '\nfunction compactPartyHeading(', {
+        URL, isQticketsListingRootUrl,
+    });
+    const buildCompactEventLinkLine = extract('function buildCompactEventLinkLine(', '\nfunction buildCompactPublicEventsMessage(', {
+        URL, isQticketsListingRootUrl, isUsefulEventTicketUrl, isQticketsEventDetailUrl,
+    });
+    const fn = extract('function buildCompactPublicEventsMessage(', '\nasync function sendCompactPublicEventList(', {
+        compactPartyHeading: () => 'Афиша',
+        cleanEventTitle: (value) => value,
+        stripKnownVenueNamesFromEventTitle: (value) => value,
+        cleanVkEventText: (value) => String(value),
+        formatIsoEventDate: (value) => value,
+        getCompactSupportedTime: (value) => value.eventTime,
+        normalizeCompactSummary: () => 'Короткое описание',
+        buildLocalCompactPartySummary: () => 'Короткое описание',
+        buildCompactEventLinkLine,
+    });
+    const rendered = fn([{ event: {
+        title: 'Концерт', eventDate: '2026-10-28', venue: 'Зал', price: '1000',
+        sourceUrl: 'https://voronezh.qtickets.events/',
+        detailUrl: 'https://voronezh.qtickets.events/259022-dima-vagin-koncert',
+        ticketUrl: 'https://voronezh.qtickets.events/',
+    }}], {});
+    assert.match(rendered, /🎟 Купить билет: https:\/\/voronezh\.qtickets\.events\/259022-dima-vagin-koncert/u);
+    assert.doesNotMatch(rendered, /Купить билет: https:\/\/voronezh\.qtickets\.events\/$/mu);
+    assert.doesNotMatch(rendered, /\n🔗 https:\/\/voronezh\.qtickets\.events\/259022-dima-vagin-koncert/u);
 });
 
 test('Vision HTTP rejection reports provider status, not missing watchdog reference', async () => {
@@ -102,6 +140,28 @@ test('Vision HTTP rejection reports provider status, not missing watchdog refere
         fetch: async () => ({ok: false, status: 400, text: async () => '{"error":{"message":"invalid image"}}'}),
     });
     await assert.rejects(fn({model:'vision',systemPrompt:'s',userPrompt:'u',imageUrls: []}), /GPT vision API 400: invalid image/u);
+});
+
+test('only explicit Astra model IDs use the Astra Responses route', () => {
+    const start = source.indexOf('function isAstraModel(');
+    const end = source.indexOf('\nfunction isOpenAITextModel(', start);
+    assert.ok(start >= 0 && end > start);
+    const body = source.slice(start, end);
+    const isAstraModel = runInNewContext(`${body}\n;isAstraModel`, {});
+    assert.equal(isAstraModel('gpt-6-astra'), true);
+    assert.equal(isAstraModel('gpt-6.1-astra'), true);
+    assert.equal(isAstraModel('gpt-6-luna'), false);
+    assert.equal(isAstraModel('gpt-6-sol'), false);
+    assert.equal(isAstraModel('gpt-6.1-sol'), false);
+});
+
+test('media-only image models never fall back to chat/completions', () => {
+    const start = source.indexOf('async function generateOpenAIImageForCredential(');
+    const end = source.indexOf('\nasync function generateOpenAIImageNonStream(', start);
+    assert.ok(start >= 0 && end > start);
+    const body = source.slice(start, end);
+    assert.match(body, /isOpenAIImageModel\(model\)/u);
+    assert.match(body, /generateOpenAIImageNonStream/iu);
 });
 
 test('all recursive compatibility retries preserve durable callbacks and idempotency', () => {

@@ -23,7 +23,11 @@ test('finite public tabs close only after the source processing promise finishes
 
 test('browser activity lease prevents context churn while post/media processing is still active', () => {
     assert.match(browser, /export function acquireScraperBrowserActivityLease/u);
-    assert.match(browser, /browserActivityLeases > 0 \|\| managedPages\.size > 0/u);
+    assert.match(browser, /const safeDelayMs = Number\.isFinite\(Number\(delayMs\)\)[\s\S]{0,120}Math\.max\(0, Number\(delayMs\)\)/u);
+    assert.match(browser, /const blankPages = pages\.filter\([\s\S]{0,220}!managedPages\.has\(page\)[\s\S]{0,180}about:blank/u);
+    assert.match(browser, /browserActivityLeases > 0[\s\S]{0,80}Math\.min\(POST_PARSER_BLANK_CLOSE_MS, 500\)/u);
+    assert.match(browser, /if \(browserActivityLeases > 0 \|\| managedPages\.size > 0\) return/u);
+    assert.match(browser, /activeLeases=\$\{browserActivityLeases\}[\s\S]{0,100}post-capture-processing/u);
     assert.match(browser, /ORPHAN_BROWSER_IDLE_CLOSE_MS[\s\S]{0,180}10 \* 60_000/u);
     assert.match(app, /acquireScraperBrowserActivityLease\(\{[\s\S]{0,180}manual-source:/u);
     assert.match(app, /releaseBrowserLease\(\)/u);
@@ -41,4 +45,11 @@ test('only a real external persistent-context close advances owner-stop generati
 test('startup about:blank is reusable for finite sources too', () => {
     assert.match(browser, /Всегда забираем уже существующую пустую стартовую вкладку/u);
     assert.match(browser, /\['about:blank', 'chrome:\/\/newtab\/'\]/u);
+});
+
+test('source tabs wait 3-5 seconds after navigation before the first DOM scrape', () => {
+    assert.match(browser, /SCRAPER_INITIAL_RENDER_DELAY_MIN_MS[\s\S]{0,220}3_000/u);
+    assert.match(browser, /SCRAPER_INITIAL_RENDER_DELAY_MAX_MS[\s\S]{0,220}5_000/u);
+    assert.match(browser, /waitForInitialScraperRender\(page, source/u);
+    assert.match(browser, /Preventive delay: domcontentloaded only says/u);
 });

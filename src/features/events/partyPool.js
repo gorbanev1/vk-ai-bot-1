@@ -8,7 +8,6 @@ export const PARTY_POOL_SECONDARY = 'secondary';
 export const SECONDARY_PARTY_SECTION_LABEL = '🍺 Второстепенные / быдлячьи тусы 🥴';
 
 export const SECONDARY_PARTY_INITIAL_SOURCES = Object.freeze([
-    { label: 'Клуб 12', kind: 'vk-public', source: '12bpg' },
     { label: 'Хлам', kind: 'vk-public', source: 'xlambar' },
     { label: 'Хлам', kind: 'telegram', source: 'xlam_bar' },
     { label: 'ОНИ в баре', kind: 'vk-public', source: 'onibar' },
@@ -89,18 +88,23 @@ function sourceKeysFromText(value) {
 }
 
 export function classifyEventPartyPool(event, { secondarySourceKeys = null } = {}) {
-    if (normalizePartyPool(event?.partyPool) === PARTY_POOL_SECONDARY) return PARTY_POOL_SECONDARY;
     const secondary = secondarySourceKeys instanceof Set
         ? secondarySourceKeys
         : getDefaultSecondaryPartySourceKeys();
-    const strings = [];
-    harvestStrings(event, strings);
-
     const sourceType = String(event?.sourceType ?? '').toLowerCase();
     const sourceName = String(event?.sourceName ?? event?.channel ?? event?.screenName ?? '').replace(/^@/u, '');
     const directKeys = [];
     if (/telegram|\btg\b/u.test(sourceType)) directKeys.push(normalizePartySourceKey('telegram', sourceName));
     if (/vk(?:_|-)?public|\bvk\b/u.test(sourceType)) directKeys.push(normalizePartySourceKey('vk-public', sourceName.replace(/^vk(?:\.com|\.ru)\//iu, '')));
+    // A cached partyPool label may predate source reclassification. Current
+    // configured source identity wins when it is explicit; retain a stored
+    // secondary label only when no source identity is available.
+    if (directKeys.length) {
+        return directKeys.some((key) => secondary.has(key)) ? PARTY_POOL_SECONDARY : PARTY_POOL_PRIMARY;
+    }
+    const strings = [];
+    harvestStrings(event, strings);
+    if (normalizePartyPool(event?.partyPool) === PARTY_POOL_SECONDARY) return PARTY_POOL_SECONDARY;
     for (const key of [...directKeys, ...strings.flatMap(sourceKeysFromText)]) {
         if (key && secondary.has(key)) return PARTY_POOL_SECONDARY;
     }
