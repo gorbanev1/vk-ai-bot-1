@@ -306,6 +306,17 @@ function recoverSinglePathBoundPosterIndex(event, facts, status) {
     return matches.length === 1 ? Number(matches[0].index) : 0;
 }
 
+function hasUnsafeOrContradictoryPosterFactAtPath(facts, path) {
+    if (!path) return false;
+    const sameFileFacts = (Array.isArray(facts) ? facts : []).filter((fact) => normalizePosterBindingPath(fact?.imagePath) === path);
+    return sameFileFacts.some((fact) => {
+        if (/(?:avatar|аватар|logo|логотип|album[- ]?cover|обложк)/iu.test(String(fact?.imageType || ''))) return true;
+        // Vision may allow an ordinary photo for a mono event. The dangerous
+        // case is a NEGATIVE fact #2 plus POSITIVE fact #1 bound to the SAME file.
+        return fact?.poster === false && sameFileFacts.some((positive) => positive?.poster === true &&
+            Number(positive?.index || 0) !== Number(fact?.index || 0));
+    });
+}
 export function getEventPosterSafetyAssessment(event) {
     const status = clean(event?.posterMatchStatus).toLowerCase();
     const fallbackReason = clean(event?.posterMatchReason).toLowerCase();
@@ -316,6 +327,9 @@ export function getEventPosterSafetyAssessment(event) {
     const monoBindingPaths = eventPosterBindingPaths(event);
     const monoSelectedIndex = Number(event?.posterImageIndex || 0);
     const bindingFacts = parsePosterVisionFactsForSafety(event);
+    // Reject UI identities and conflicting index-to-file bindings, but do not
+    // change the existing policy for an ordinary source photo on a mono post.
+    const isExplicitlyRejectedFile = (path) => hasUnsafeOrContradictoryPosterFactAtPath(bindingFacts, path);
     const monoSelectedFact = bindingFacts.find((fact) => Number(fact?.index || 0) === monoSelectedIndex) || null;
     const isExplicitMultiAnnouncement = event?.isMultiAnnouncement === true ||
         (Object.hasOwn(event || {}, 'is_multi_announcement') && Number(event.is_multi_announcement) !== 0) ||
@@ -333,13 +347,22 @@ export function getEventPosterSafetyAssessment(event) {
             ? factPath
             : sourcePaths[monoSelectedIndex > 0 ? monoSelectedIndex - 1 : 0] || '';
         const generated = /(?:^|\/)event_message_cards\/|(?:^|\/)event_generated_fallbacks\/|-event-\d+\.png$/iu.test(selectedPath);
+        if (selectedPath && isExplicitlyRejectedFile(selectedPath)) {
+            return { accepted: false, status, reason: 'selected-file-explicitly-rejected-as-poster', metadataQuality: 0, fact: monoSelectedFact, match: null, boundPath: '' };
+        }
         if (selectedPath && monoBindingPaths.includes(selectedPath) && !generated) {
-            return {
-                accepted: true, status, reason: 'mono-announcement-source-image',
-                metadataQuality: scorePosterFactMetadataQuality(monoSelectedFact), fact: monoSelectedFact,
-                match: null, selectedIndex: monoSelectedIndex || Math.max(1, sourcePaths.indexOf(selectedPath) + 1),
-                recoveredMissingIndex: false, boundPath: selectedPath, ownerConfirmed: false,
-            };
+            const ownerConfirmed = ownerConfirmedPosterForExactEvent(event, monoSelectedFact, monoSelectedIndex || Math.max(1, sourcePaths.indexOf(selectedPath) + 1), monoBindingPaths);
+            const ownerApprovalDoesNotMatch = monoSelectedFact?.ownerConfirmedBinding?.decision === 'yes' && !ownerConfirmed;
+            // An owner approval belongs to this exact event identity. A stale
+            // approval must not fall through to the generic mono-image path.
+            if (!ownerApprovalDoesNotMatch) {
+                return {
+                    accepted: true, status, reason: 'mono-announcement-source-image',
+                    metadataQuality: scorePosterFactMetadataQuality(monoSelectedFact), fact: monoSelectedFact,
+                    match: null, selectedIndex: monoSelectedIndex || Math.max(1, sourcePaths.indexOf(selectedPath) + 1),
+                    recoveredMissingIndex: false, boundPath: selectedPath, ownerConfirmed,
+                };
+            }
         }
     }
     // QTickets detail pages expose one authoritative poster URL and do not
@@ -502,6 +525,9 @@ export function getEventPosterSafetyAssessment(event) {
     if (!factPath) {
         return { accepted: false, status, reason: 'missing-selected-poster-path-metadata', metadataQuality: scorePosterFactMetadataQuality(selectedFact), fact: selectedFact, match: null, boundPath: '' };
     }
+    if (isExplicitlyRejectedFile(factPath)) {
+        return { accepted: false, status, reason: 'selected-file-explicitly-rejected-as-poster', metadataQuality: scorePosterFactMetadataQuality(selectedFact), fact: selectedFact, match: null, boundPath: '' };
+    }
     if (!bindingPaths.includes(factPath)) {
         return { accepted: false, status, reason: 'selected-poster-path-mismatch', metadataQuality: scorePosterFactMetadataQuality(selectedFact), fact: selectedFact, match: null, boundPath: '' };
     }
@@ -541,12 +567,34 @@ export function getEventSourceMediaBindingAssessment(event) {
         return { accepted: false, paths: [], reason: 'multi-announcement-needs-image-match' };
     }
     const facts = parsePosterVisionFactsForSafety(event);
-    const fact = facts.find((item) => ['single-event-single-image', 'single-event-source-media'].includes(item?.fallbackBinding) &&
-        item?.sourceMediaBinding === true && Number(item?.sourceEventCount || 0) === 1) || null;
     const paths = eventPosterBindingPaths(event).filter((path) =>
         !/(?:^|\/)event_message_cards\/|(?:^|\/)event_generated_fallbacks\/|-event-\d+\.png$/iu.test(path));
+    const selectedIndex = Number(event?.posterImageIndex ?? event?.poster_image_index ?? 0);
+    const status = clean(event?.posterMatchStatus).toLowerCase();
+    const reason = clean(event?.posterMatchReason).toLowerCase();
+    // A targeted owner verification can be persisted without Vision facts when
+    // the source attachment was independently matched to this single event.
+    // Keep this narrow: one real path, selected index 1, and an explicit
+    // owner/source-photo reason are required.
+    const ownerVerifiedSourceBinding = status === 'verified_single_event_source_media' &&
+        /owner[- ](?:verified|confirmed)/iu.test(reason) &&
+        selectedIndex === 1 && paths.length === 1;
+    if (ownerVerifiedSourceBinding) {
+        return { accepted: true, paths, boundPath: paths[0], fact: null,
+            reason: 'owner-verified-source-media-binding' };
+    }
+    const fallbackFacts = facts.filter((item) =>
+        ['single-event-single-image', 'single-event-source-media'].includes(item?.fallbackBinding) &&
+        item?.sourceMediaBinding === true && Number(item?.sourceEventCount || 0) === 1);
+    const fact = fallbackFacts.find((item) =>
+        selectedIndex > 0 && Number(item?.index || 0) === selectedIndex &&
+        paths.includes(normalizePosterBindingPath(item?.imagePath))) ||
+        fallbackFacts.find((item) => paths.includes(normalizePosterBindingPath(item?.imagePath))) ||
+        fallbackFacts.find((item) => selectedIndex > 0 && Number(item?.index || 0) === selectedIndex) ||
+        fallbackFacts[0] || null;
     const boundPath = normalizePosterBindingPath(fact?.imagePath);
-    const accepted = Boolean(fact && boundPath && paths.includes(boundPath) && paths.length > 0 &&
+    const explicitlyRejected = hasUnsafeOrContradictoryPosterFactAtPath(facts, boundPath);
+    const accepted = Boolean(!explicitlyRejected && fact && boundPath && paths.includes(boundPath) && paths.length > 0 &&
         Number(fact.sourceImageCount || 0) >= paths.length);
     return { accepted, paths: accepted ? paths : [], boundPath: accepted ? boundPath : '', fact,
         reason: accepted ? 'single-event-source-media-binding' : 'no-single-event-source-media-binding' };

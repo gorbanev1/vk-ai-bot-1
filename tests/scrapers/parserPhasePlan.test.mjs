@@ -5,6 +5,8 @@ import { runInNewContext } from 'node:vm';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { buildDateFreePhasePlan, serializeDateFreePhasePlan, restoreDateFreePhasePlan } from '../../src/features/scrapers/parserPhasePlan.js';
 import { applyPosterGateResult } from '../../src/features/scrapers/posterGateResult.js';
+import { POSTER_SCHEDULE_VISION_INSTRUCTION } from '../../src/features/events/posterScheduleEvidence.js';
+import { posterScheduleFactNeedsRefresh } from '../../src/features/events/sharedEventSchedule.js';
 import { parseIndexedImageFacts } from '../../src/features/events/eventAssets.js';
 import { buildParserRecoveryNotice } from '../../src/features/scrapers/parserAllRecovery.js';
 import { createDateFreeParserPolicy, formatDateFreePhaseReport } from '../../src/features/ai/dateFreeParserPolicy.js';
@@ -64,6 +66,7 @@ test('cached bytes are sent to Vision while HTTP image identity survives trace a
         createManualParserLimiter: () => ({ run: (callback) => callback() }),
         buildEventTitleContractPrompt: () => '', formatEventTagPromptInstruction: () => '',
         EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS: 150000, parseIndexedImageFacts, formatPrivateError: String,
+        POSTER_SCHEDULE_VISION_INSTRUCTION, posterScheduleFactNeedsRefresh,
         generateOpenAIVisionText: async (options) => { requests.push(options); return '[IMAGE 2]\nЭто афиша события: да\nНазвание: Концерт\nДата: 10.10.2026'; },
     });
     const facts = await extract({ imageUrls: ['https://example.com/poster.jpg'], imageIndexes: [2], dateFreePhase: true, sourceText: 'Вход свободный',
@@ -90,6 +93,7 @@ test('HTTP 400 downloads local bytes, preserves the image number and checkpoints
         createManualParserLimiter: () => ({ run: callback => callback() }),
         buildEventTitleContractPrompt: () => '', formatEventTagPromptInstruction: () => '',
         EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS: 150000, parseIndexedImageFacts, formatPrivateError: String,
+        POSTER_SCHEDULE_VISION_INSTRUCTION, posterScheduleFactNeedsRefresh,
         downloadVisionImageAsset: async url => { downloads.push(url); return { dataUrl: 'data:image/jpeg;base64,YWJj' }; },
         generateOpenAIVisionText: async options => {
             calls.push(options.imageUrls[0]);
@@ -139,6 +143,7 @@ test('partial Vision failure preserves facts and resume calls only the failed im
         createManualParserLimiter: () => ({ run: callback => callback() }),
         buildEventTitleContractPrompt: () => '', formatEventTagPromptInstruction: () => '',
         EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS: 150000, parseIndexedImageFacts, formatPrivateError: String,
+        POSTER_SCHEDULE_VISION_INSTRUCTION, posterScheduleFactNeedsRefresh,
         generateOpenAIVisionText: async options => {
             const url = options.imageUrls[0];
             calls.push(url);
@@ -185,6 +190,7 @@ test('phase-two recovery honors durable owner choice and reuses the planned cach
             startAllManualScraperSources: async options => {
                 starts++;
                 assert.equal(options.phasePass, 2);
+                assert.equal(options.cacheOnly, true);
                 assert.equal(options.recovery.posterGateImages, posterGateImages);
                 assert.equal(options.recovery.cacheRows, cacheRows);
                 assert.equal(Boolean(dateFreeParserContext.getStore()), !ordinary);
@@ -223,6 +229,7 @@ test('orchestrator persists phase one before phase two and uses the exact cache 
             calls.push(`start:${options.phasePass}`);
             if (options.phasePass === 2) {
                 assert.ok(calls.includes('persist:1'));
+                assert.equal(options.cacheOnly, true);
                 assert.equal(options.recovery.cacheRows.get('vk:public').items[0], cachedItem);
                 assert.deepEqual([...options.reservedImageUrls], ['dated']);
                 assert.ok(dateFreeParserContext.getStore());
@@ -296,12 +303,15 @@ test('phase-two barriers release empty and finished sources while another source
     const noop = () => {};
     const diagnostics = { relativeLogPath: 'trace', directory: 'scratch', log: noop, saveParserReport: noop, saveTextReport: noop };
     const runAll = runInNewContext(`${source}; startAllManualScraperSources`, {
-        process: { env: {} }, console: { log: noop, error: noop },
+        process: { env: {} }, console: { log: noop, error: noop }, setTimeout, clearTimeout,
         PARTY_POOL_PRIMARY: 'primary', PARTY_POOL_SECONDARY: 'secondary',
         getManualScraperSources: () => sources, getCurrentOperation: () => ({ startedAt: '2026-10-07T12:00:00Z' }),
         createManualParserDiagnostics: () => diagnostics, saveOperationCheckpoint: noop, updateOperationProgress: noop, auditRuntimeEvent: noop,
         clampInteger: (value, min, max, fallback) => fallback,
         createManualParserLimiter: () => ({ run: callback => callback() }),
+        createBrowserImageCapture: () => async () => {},
+        createBrowserImageCacheRecovery: () => async () => 'data:image/png;base64,dGVzdA==',
+        resolve: (...parts) => parts.join('/'),
         createVkLaunchStagger: () => () => { throw new Error('Must not reopen browser sources'); },
         existsSync: () => false, formatPrivateError: String, formatError: String, formatScraperErrorForUser: String,
         isParserVisionTimeout: () => false, parseIndexedImageFacts, vkChatEventScrapers: [], EVENT_PARSER_AI_ATTEMPT_TIMEOUT_MS: 150000,
@@ -311,6 +321,7 @@ test('phase-two barriers release empty and finished sources while another source
         },
         startManualScraperSourceWithRecovery: async (entry, options) => {
             assert.ok(Array.isArray(options.cachedItems));
+            assert.equal(options.cacheOnly, true);
             assert.equal(options.processingGate, null);
             const posterGateRequests = entry.label === 'empty' ? [] : [{ itemId: '1', source: entry.label, imageUrls: [`https://example.com/${entry.label}.jpg`], visionPhase: 'phase2-date-free-image' }];
             const payload = { itemCount: 1, posterGateRequests, prefilterPreviews: [], candidatePreviews: [] };

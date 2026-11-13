@@ -40,6 +40,29 @@ test('single event with one source image remains renderable when Vision returned
     assert.equal(eventHasSafePosterMatch(fallbackEvent()), true);
 });
 
+test('owner-verified singleton source binding is accepted by the provenance audit without Vision facts', () => {
+    const event = fallbackEvent({
+        posterMatchStatus: 'verified_single_event_source_media',
+        posterMatchReason: 'source-photo-original-wall-969-owner-verified',
+        posterVisionFacts: [],
+    });
+    const assessment = getEventSourceMediaBindingAssessment(event);
+    assert.equal(assessment.accepted, true);
+    assert.equal(assessment.reason, 'owner-verified-source-media-binding');
+    assert.equal(assessment.boundPath, event.imagePaths[0]);
+});
+
+test('owner-verified provenance fallback stays fail-closed for ambiguous records', () => {
+    const base = fallbackEvent({
+        posterMatchStatus: 'verified_single_event_source_media',
+        posterMatchReason: 'source-photo-original-wall-969-owner-verified',
+        posterVisionFacts: [],
+    });
+    assert.equal(getEventSourceMediaBindingAssessment({ ...base, imagePaths: [base.imagePaths[0], 'vk_announcements/club/123-2.jpg'] }).accepted, false);
+    assert.equal(getEventSourceMediaBindingAssessment({ ...base, posterImageIndex: 2 }).accepted, false);
+    assert.equal(getEventSourceMediaBindingAssessment({ ...base, posterMatchReason: 'single-event-source-media-fallback' }).accepted, false);
+});
+
 test('single-image fallback is fail-closed when path binding is ambiguous or generated', () => {
     assert.equal(eventHasSafePosterMatch(fallbackEvent({
         imagePaths: ['vk_announcements/club/123-1.jpg', 'vk_announcements/club/123-2.jpg'],
@@ -122,6 +145,36 @@ test('ordinary Vision-positive metadata still follows normal strict matching', (
         }],
     });
     assert.equal(eventHasSafePosterMatch(event), true);
+});
+
+test('mono poster bindings preserve an exact owner confirmation through dedupe', () => {
+    const imagePath = 'vk_announcements/rb_diesel/13733-1.jpg';
+    const event = fallbackEvent({
+        id: 138, title: 'Manhunt Tour', eventDate: '2026-10-23',
+        isMultiAnnouncement: false, imagePaths: [imagePath], posterImageIndex: 1,
+        posterMatchStatus: 'exact_poster_match',
+        posterMatchReason: 'owner-confirmed-poster-for-this-event-manual-recovery-20261023',
+        posterVisionFacts: [{
+            index: 1, imagePath, poster: true, posterConfidence: 98,
+            ownerConfirmedBinding: {
+                eventId: 138, eventTitle: 'Manhunt Tour', eventDate: '2026-10-23',
+                imageIndex: 1, imagePath, decision: 'yes', at: 1792743890,
+            },
+        }],
+    });
+    const assessment = getEventPosterSafetyAssessment(event);
+    assert.equal(assessment.accepted, true);
+    assert.equal(assessment.ownerConfirmed, true);
+    assert.equal(assessment.boundPath, imagePath);
+    for (const changed of [
+        { ...event, id: 139 },
+        { ...event, title: 'Другое событие' },
+        { ...event, eventDate: '2026-10-24' },
+    ]) {
+        const stale = getEventPosterSafetyAssessment(changed);
+        assert.equal(stale.accepted, false);
+        assert.equal(stale.ownerConfirmed, false);
+    }
 });
 
 test('a multi-announcement shared source image is safe only with an exact one-path binding', () => {

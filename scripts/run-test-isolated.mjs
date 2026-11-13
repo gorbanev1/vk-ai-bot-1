@@ -25,6 +25,7 @@ const env = {
 
 console.log(`[TEST ISOLATION] data=${dataDir}`);
 const result = spawnSync(process.execPath, ['--test', '--test-concurrency=1', ...files], {
+    windowsHide: true,
     cwd: root,
     env,
     stdio: 'inherit',

@@ -1,3 +1,4 @@
+import { isBroadcastOnlyAnnouncement } from './eventBroadcastPolicy.js';
 import {
     extractExplicitDateMentions,
     extractRawDateMentions,
@@ -211,9 +212,11 @@ export function explainEventAiAdmission({
     // вас на концерт ...". Keep them out of main AI unless a real poster is
     // independently proven by the poster-vision rescue below.
     const operationalStatusRejected = Boolean(operationalStatus.rejectAsAnnouncement);
-    const eligible = Boolean(!operationalStatusRejected && !retrospectiveRejected && hasEventDateCandidate && title.hasTitle && hasNonPastDate);
+    const broadcastRejected = isBroadcastOnlyAnnouncement(source);
+    const eligible = Boolean(!broadcastRejected && !operationalStatusRejected && !retrospectiveRejected && hasEventDateCandidate && title.hasTitle && hasNonPastDate);
     let rejectionReason = '';
-    if (operationalStatusRejected) rejectionReason = 'service-status-not-event-announcement';
+    if (broadcastRejected) rejectionReason = 'broadcast-not-event';
+    else if (operationalStatusRejected) rejectionReason = 'service-status-not-event-announcement';
     else if (retrospectiveRejected) rejectionReason = 'retrospective-post';
     else if (!hasCalendarDate) rejectionReason = 'no-calendar-date-in-body';
     else if (!hasEventDateCandidate) rejectionReason = 'only-administrative-dates-in-body';
@@ -292,7 +295,8 @@ export function explainEventAiAdmissionWithPosterFacts({
         referenceNow,
         timeZone,
     });
-    if (dateFreePhase && splitPosterVisionFactBlocks(posterFacts).some(posterVisionExplicitlyAcceptsEvent)) {
+    if (bodyAdmission.rejectionReason === 'broadcast-not-event') return {...bodyAdmission, admissionPath:'blocked-broadcast'};
+    if (dateFreePhase && splitPosterVisionFactBlocks(posterFacts).some(block => posterVisionExplicitlyAcceptsEvent(block) && !isBroadcastOnlyAnnouncement(block))) {
         return { ...bodyAdmission, eligible: true, pastOnly: false, rejectionReason: '',
             dateSource: 'poster-vision', admissionPath: 'date-free-confirmed-poster',
             posterVisionAttempted: true, posterVisionChecked: true };

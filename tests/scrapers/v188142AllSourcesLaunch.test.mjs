@@ -56,7 +56,9 @@ test('a spacing failure releases subsequent source launch reservations', async (
 });
 
 test('full parser-all source registry, processing pipeline and source completion barriers remain present', () => {
-    assert.match(application, /const sources = getManualScraperSources\(normalizedPool\);/u);
+    assert.match(application, /const configuredSources = getManualScraperSources\(normalizedPool\);/u);
+    assert.match(application, /const sources = recovery\?\.sourceIds\?\.length/u);
+    assert.match(application, /configuredSources\.filter\(\(source\) => recovery\.sourceIds\.includes\(source\.id\)\)\s*: configuredSources;/u);
     assert.match(application, /run\.source-registry/u);
     assert.match(application, /const vkLaunchReservation = isVkBrowserSource\s*\? waitForVkLaunch\(source\.id\)/u);
     assert.match(application, /await vkLaunchReservation;/u);

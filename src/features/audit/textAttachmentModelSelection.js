@@ -17,15 +17,6 @@ export function resolveTextAttachmentModelChoice(requestText) {
     let mode = parsed.mode;
     let prompt = parsed.body;
 
-    // The ordinary mode parser recognises "gpt55"/"gpt54" and the mini/pro
-    // aliases, but not the dotted IDs "gpt-5.5" and "gpt-5.4".
-    if (parsed.source === 'implicit') {
-        const dotted = /(?:^|[\s,;:!?()])gpt[-_\s]?5[.]([45])(?:\s|$|[,;:!?()])/iu.exec(prompt);
-        if (dotted) {
-            mode = dotted[1] === '5' ? 'gpt55' : 'gpt54';
-            prompt = prompt.replace(dotted[0], ' ').replace(/\s{2,}/gu, ' ').trim();
-        }
-    }
     // Preserve the existing explicit shorthand "max" for Astra, without
     // accidentally changing "terra max" or "sol max" into Astra.
     if (mode === 'default' && parsed.source === 'implicit' &&

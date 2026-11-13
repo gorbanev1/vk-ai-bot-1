@@ -20,6 +20,11 @@ export function parseEventModerationCommand(value) {
         return { action: 'duplicates-status', query: '' };
     }
 
+    let groupMatch = text.match(/^(?:групп(?:ы|а)\s+дубл(?:ей|икатов)\s+показать|группы\s+дублей\s+показать|тусы\s+групп(?:ы|а)\s+дубл(?:ей|икатов)\s+показать)$/iu);
+    if (groupMatch) return { action: 'duplicates-groups', query: '' };
+    groupMatch = text.match(/^(?:дубл(?:и|ей|икаты)\s+разорвать|тусы\s+дубли\s+разорвать)\s+([a-z0-9_-]{4,64})$/iu);
+    if (groupMatch) return { action: 'duplicates-break', query: groupMatch[1] };
+
     if (/^(?:(?:тусы|события)\s+восстановить\s+скрытые\s+афиши|скрытые\s+афиши)\s+(?:статус|отч[её]т)$/iu.test(text) ||
         /^(?:статус|отч[её]т)\s+(?:восстановления\s+)?скрытых\s+афиш$/iu.test(text)) {
         return { action: 'hidden-poster-recovery-status', query: '' };

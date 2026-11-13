@@ -1,0 +1,27 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {DatabaseSync} from 'node:sqlite';
+import {MAIN_DATABASE_PATH,upsertTelegramSourcePost,replaceTelegramEventsForPost,getAllUpcomingEventRecordsForDedupe,getTelegramUpcomingEvents,updateStoredEventVenueFromCatalog} from '../../src/infrastructure/database/index.js';
+import {getSharedEventSchedule,eventScheduleMatchesRange} from '../../src/features/events/sharedEventSchedule.js';
+test('durable shared schedule: conversion, active interval, blocks and idempotent reparse',()=>{
+const db=new DatabaseSync(MAIN_DATABASE_PATH);const channel='schedule_test',messageId=1,sourceUrl='https://t.me/schedule_test/1';
+const rawText='Общая программа: ведущий и DJ. Выбирайте декабрьскую дату.';
+const fact={index:1,poster:true,visionInspected:true,dates:'11–30 декабря',recognizedText:'С 11 по 30 декабря. Общая программа, DJ.',title:'Зимний вечер'};
+upsertTelegramSourcePost({channel,messageId,sourceUrl,rawText,publishedAt:1790603022,imageVisionFacts:[fact],imagePaths:[],imageUrls:[],fetchedAt:1});
+const insert=db.prepare(`INSERT INTO telegram_events(channel,message_id,event_index,title,event_date,venue,participants,price,description,evidence,source_url,image_paths_json,parse_method,status,updated_at,structure_decision,source_segment_text) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+for(let i=11;i<=30;i++)insert.run(channel,messageId,i-11,'Зимний вечер','2026-12-'+i,'Бар','DJ','1000',rawText,'',sourceUrl,'[]','test','pending',1,'multiple_events',rawText);
+db.prepare(`INSERT INTO event_permanent_blocks(event_date,title,source_url,reason,created_at) VALUES(?,?,?,?,?)`).run('2026-12-28','Зимний вечер',sourceUrl,'owner-permanent-card-delete-v18900',1);
+db.prepare('DELETE FROM telegram_events WHERE event_date=?').run('2026-12-28');
+const first=db.prepare('SELECT id FROM telegram_events ORDER BY id LIMIT 1').get().id;
+const event={title:'Зимний вечер',eventDate:'2026-12-11',venue:'Бар',participants:'DJ',price:'1000',sourceSegment:rawText,description:rawText,structureDecision:'shared_schedule_event',eventSchedule:{dateMode:'continuous',startDate:'2026-12-11',endDate:'2026-12-30',dates:[]},status:'pending'};
+const replace=events=>replaceTelegramEventsForPost({channel,messageId,sourceUrl,imagePaths:[],events,updatedAt:2,preserveUnmatchedStoredEvents:true});
+replace([event]);
+let active=db.prepare("SELECT * FROM telegram_events WHERE status='pending'").all();assert.equal(active.length,1);assert.equal(active[0].id,first);assert.equal(active[0].is_multi_announcement,0);
+const ongoing=getAllUpcomingEventRecordsForDedupe({fromDate:'2026-12-29'}).filter(e=>e.channel===channel);assert.equal(ongoing.length,1);assert.ok(getSharedEventSchedule(ongoing[0]));assert.equal(eventScheduleMatchesRange(ongoing[0],'2026-12-28','2026-12-28'),false);
+assert.equal(getTelegramUpcomingEvents({channel,fromDate:'2026-12-29'}).length,1);
+assert.equal(getAllUpcomingEventRecordsForDedupe({fromDate:'2026-12-31'}).filter(e=>e.channel===channel).length,0);
+replace([event]);replace([{...event,structureDecision:'multiple_events',eventSchedule:null}]);
+active=db.prepare("SELECT * FROM telegram_events WHERE status='pending'").all();assert.equal(active.length,1);assert.equal(active[0].id,first);
+assert.equal(db.prepare('SELECT COUNT(*) n FROM shared_schedule_conversion_audit').get().n,1);
+updateStoredEventVenueFromCatalog({sourceType:'telegram',id:first,venue:'Бар, ул. Новая, 1'});
+assert.ok(getSharedEventSchedule(getAllUpcomingEventRecordsForDedupe({fromDate:'2026-12-29'}).find(e=>e.id===first)));
+db.close();
+});

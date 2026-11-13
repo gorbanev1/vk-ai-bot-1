@@ -55,6 +55,20 @@ assert.deepEqual(vkCalls[0].payload, {
 assert.equal(vkCalls[0].params.reply_to, 444);
 assert.equal('replyToConversationMessageId' in vkCalls[0].payload, false);
 
+vkCalls.length = 0;
+await replyingVkContext.send({
+    message: 'продолжение чтива',
+    replyWithForwardConversationMessageId: 444,
+});
+assert.equal(vkCalls.length, 1);
+assert.equal(vkCalls[0].method, 'send');
+assert.equal(vkCalls[0].params.reply_to, undefined);
+assert.deepEqual(JSON.parse(vkCalls[0].params.forward), {
+    conversation_message_ids: [444],
+    peer_id: 2_000_000_001,
+    is_reply: true,
+});
+
 const telegramCalls = [];
 const telegramApi = {
     async sendChatAction(payload) {

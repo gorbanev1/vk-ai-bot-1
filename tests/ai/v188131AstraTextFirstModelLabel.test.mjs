@@ -62,10 +62,10 @@ test('Telegram text reply exposes successful selected model including the defaul
   const fn = start >= 0 && end > start ? app.slice(start, end) : '';
   assert.ok(fn);
   const visibleHeader = runInNewContext(`${fn}\nvisibleTextModelHeader`, {
-    isDefaultMiniModel: (model) => String(model) === 'gpt-5.4-mini',
+    isDefaultMiniModel: (model) => String(model) === 'gpt-6-luna',
   });
-  assert.equal(visibleHeader('gpt-5.4-mini'), '');
-  assert.equal(visibleHeader('gpt-5.4-mini', { showDefault: true }), '🤖 Модель: gpt-5.4-mini');
+  assert.equal(visibleHeader('gpt-6-luna'), '');
+  assert.equal(visibleHeader('gpt-6-luna', { showDefault: true }), '🤖 Модель: gpt-6-luna');
   assert.equal(visibleHeader('gpt-6-astra', { showDefault: true }), '🤖 Модель: gpt-6-astra');
   assert.match(app, /showDefault: captureResponseArtifacts/u);
   assert.match(app, /showDefault: String\(rawContext\?\.platform \?\? ''\)\.toLowerCase\(\) === 'telegram'/u);

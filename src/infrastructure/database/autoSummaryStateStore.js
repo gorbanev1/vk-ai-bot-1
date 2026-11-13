@@ -12,6 +12,30 @@ import { DatabaseSync } from 'node:sqlite';
 
 export const AUTO_SUMMARY_STATE_DB_FILENAME = 'auto-summary.sqlite';
 
+/** Upgrade existing settings from three modes to four without losing rows. */
+export function ensureAutoSummaryCustomModeSchema(db) {
+ const sql=db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='auto_summary_settings'").get()?.sql||"";
+ if(!sql)return false;
+ if(/mode\s+IN\s*\([^)]*'custom'/iu.test(sql))return false;
+ if(!/CHECK\s*\(\s*mode\s+IN\s*\(/iu.test(sql))throw Error("Unexpected mode schema");
+ const dependencies=db.prepare("SELECT name FROM sqlite_master WHERE type='trigger' AND tbl_name='auto_summary_settings'").all();
+ if(dependencies.length||db.prepare("PRAGMA foreign_key_list(auto_summary_settings)").all().length)throw Error("Migration needs manual review");
+ const cols=new Set(db.prepare("PRAGMA table_info(auto_summary_settings)").all().map(x=>x.name));
+ for(const name of ["peer_id","platform","endpoint_key","external_peer_id","mode","enabled","next_run_at","updated_by","updated_at"])if(!cols.has(name))throw Error("Unknown settings column "+name);
+ const count=db.prepare("SELECT count(*) n FROM auto_summary_settings").get().n;
+ db.exec("BEGIN IMMEDIATE");
+ try{
+  db.exec("CREATE TABLE auto_summary_settings_v2 (peer_id INTEGER PRIMARY KEY, platform TEXT NOT NULL DEFAULT 'vk', endpoint_key TEXT NOT NULL DEFAULT 'vk:primary', external_peer_id TEXT NOT NULL DEFAULT '', mode TEXT NOT NULL DEFAULT 'full' CHECK (mode IN ('full','day','evening','custom')), enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0,1)), next_run_at INTEGER NOT NULL DEFAULT 0, updated_by INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL, schedule_json TEXT NOT NULL DEFAULT '[]')");
+  const scheduleCol=cols.has("schedule_json")?"schedule_json":"'[]'";
+  db.exec("INSERT INTO auto_summary_settings_v2 (peer_id,platform,endpoint_key,external_peer_id,mode,enabled,next_run_at,updated_by,updated_at,schedule_json) SELECT peer_id,platform,endpoint_key,external_peer_id,mode,enabled,next_run_at,updated_by,updated_at,"+scheduleCol+" FROM auto_summary_settings");
+  if(db.prepare("SELECT count(*) n FROM auto_summary_settings_v2").get().n!==count)throw Error("Settings row count changed");
+  db.exec("DROP TABLE auto_summary_settings; ALTER TABLE auto_summary_settings_v2 RENAME TO auto_summary_settings; CREATE INDEX auto_summary_settings_due_idx ON auto_summary_settings(enabled,next_run_at)");
+  db.exec("COMMIT");
+  console.log("[AUTO SUMMARY SETTINGS MIGRATED] rows="+count+" custom=allowed");return true;
+ }catch(e){db.exec("ROLLBACK");throw e;}
+}
+
+
 export function resolveAutoSummaryStateDirectory({
     env = process.env,
     platform = process.platform,
@@ -91,7 +115,7 @@ export function createAutoSummaryStateStore({
             platform TEXT NOT NULL DEFAULT 'vk',
             endpoint_key TEXT NOT NULL DEFAULT 'vk:primary',
             external_peer_id TEXT NOT NULL DEFAULT '',
-            mode TEXT NOT NULL DEFAULT 'full' CHECK (mode IN ('full', 'day', 'evening')),
+            mode TEXT NOT NULL DEFAULT 'full' CHECK (mode IN ('full', 'day', 'evening', 'custom')),
             enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
             next_run_at INTEGER NOT NULL DEFAULT 0,
             updated_by INTEGER NOT NULL DEFAULT 0,
@@ -131,6 +155,7 @@ export function createAutoSummaryStateStore({
         );
     `);
 
+    ensureAutoSummaryCustomModeSchema(db);
     const settingsColumns = new Set(
         db.prepare('PRAGMA table_info(auto_summary_settings)').all().map((row) => String(row.name)),
     );
@@ -386,7 +411,7 @@ export function createAutoSummaryStateStore({
                     String(row?.endpoint_key ?? row?.endpointKey ?? 'vk:primary'),
                     String(row?.external_peer_id ?? row?.externalPeerId ?? ''),
                     String(row?.mode || 'full'),
-                    JSON.stringify(Array.isArray(row?.schedule) ? row.schedule : []),
+                    JSON.stringify(Array.isArray(row?.schedule) ? row.schedule : (()=>{try {const v=JSON.parse(String(row?.schedule_json||'[]'));return Array.isArray(v)?v:[]}catch{return []}})()),
                     Number(row?.enabled ? 1 : 0),
                     Number(row?.next_run_at ?? row?.nextRunAt ?? 0) || 0,
                     Number(row?.updated_by ?? row?.updatedBy ?? 0) || 0,

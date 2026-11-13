@@ -115,7 +115,9 @@ export function isVersionCommand(value) {
 }
 
 export function isHelpCommand(value) {
-    return HELP_COMMANDS.has(normalizeLocalCommand(value));
+    const normalized=normalizeLocalCommand(value);
+    if (HELP_COMMANDS.has(normalized)) return true;
+    return /^(?:какие\s+(?:у\s+тебя\s+|вообще\s+)?команды(?:\s+(?:у\s+тебя\s+)?есть)?|какие\s+(?:у\s+тебя\s+)?функции(?:\s+есть)?|что\s+(?:ты\s+)?(?:вообще\s+)?умеешь|расскажи\s+что\s+(?:ты\s+)?умеешь|покажи\s+что\s+(?:ты\s+)?умеешь|что\s+(?:ты\s+)?можешь\s+делать)$/iu.test(normalized);
 }
 
 export function isPublicSourcesStatusCommand(value) {

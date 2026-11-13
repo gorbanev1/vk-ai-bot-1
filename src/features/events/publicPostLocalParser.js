@@ -1,3 +1,5 @@
+import { validateSharedEventSchedule, validateTheaterRepertoireSchedule, validateScheduleCardinality, selectDateProgramSegment } from './sharedEventSchedule.js';
+import { parseIndexedImageFacts } from './eventPosterMatching.js';
 /**
  * Pure local parser for public Telegram/VK announcement text.
  *
@@ -28,6 +30,7 @@ import {
     explainStrictEventRecord,
     isStrictEventRecord,
     sourceContainsEvidence,
+    normalizeEventEvidence,
 } from './eventValidation.js';
 
 import {
@@ -43,6 +46,7 @@ import {
 } from './eventMultiAnnouncementBlocks.js';
 import { acceptedDateFreePoster } from './dateFreeEventEvidence.js';
 import { getLocalDateString } from '../../shared/date.js';
+import { inferEventSearchTags } from './eventSearchTaxonomy.js';
 
 function scoreEventDateMention(text, mention) {
     const source = String(text ?? '');
@@ -779,30 +783,18 @@ export function parsePublicPostLocally(post) {
     ].includes(retrospectiveAdmission.rejectionReason)) return [];
     post = sanitizedPost;
     const structured = parseStructuredEvent(post);
-
-    if (structured.length) {
-        return structured;
-    }
-
-    const inlineSchedule = parseInlineScheduleEvents(post);
-
-    if (inlineSchedule.length) {
-        return inlineSchedule;
-    }
-
-    const labeledSchedule = parseLabeledScheduleEvents(post);
-
-    if (labeledSchedule.length) {
-        return labeledSchedule;
-    }
-
-    const digest = parseDigestEvents(post);
-
-    if (digest.length) {
-        return digest;
-    }
-
-    return parseGenericEvent(post);
+    const inlineSchedule = structured.length ? [] : parseInlineScheduleEvents(post);
+    const labeledSchedule = structured.length || inlineSchedule.length ? [] : parseLabeledScheduleEvents(post);
+    const digest = structured.length || inlineSchedule.length || labeledSchedule.length ? [] : parseDigestEvents(post);
+    const parsed = structured.length ? structured : inlineSchedule.length ? inlineSchedule : labeledSchedule.length ? labeledSchedule : digest.length ? digest : parseGenericEvent(post);
+    return parsed.map((event) => ({
+        ...event,
+        eventTags: inferEventSearchTags({
+            ...event,
+            sourceText: [event?.sourceText, event?.sourceSegment, post?.text].filter(Boolean).join(' '),
+            description: [event?.description, post?.text].filter(Boolean).join(' '),
+        }),
+    }));
 }
 
 const PUBLIC_EVENT_WORD_PATTERN = /(?:мероприят|событи|концерт|вечерин|тус(?:а|овк)|гиг|фест|выступ|спектакл|лекци|мастер[- ]?класс|встреча|открытие|показ|турнир|квиз|стендап|вечер|фестиваль|воркшоп|экскурси|ярмарк|маркет|рейв|джем|дидже|dj\b|line[- ]?up|лайн[- ]?ап|играют|сцена|party)/iu;
@@ -950,6 +942,7 @@ export function setPublicAiResponseMetadata(events, {
     reason = '',
     valid = false,
     error = '',
+    validationFailures = [],
 } = {}) {
     const result = Array.isArray(events) ? events : [];
     // Keep transport metadata attached to the array without changing its JSON
@@ -960,6 +953,7 @@ export function setPublicAiResponseMetadata(events, {
         ['aiStructureReason', String(reason || '').trim()],
         ['aiResponseValid', Boolean(valid)],
         ['aiResponseError', String(error || '').trim()],
+        ['aiValidationFailures', Array.isArray(validationFailures) ? validationFailures.slice(0, 20) : []],
     ]) {
         Object.defineProperty(result, key, { value, writable: true, configurable: true, enumerable: false });
     }
@@ -999,14 +993,15 @@ export function selectPublicAiEventsForPersistence({
     }
     if (!aiCalled || invalidReason || aiEvents?.aiResponseValid !== true) {
         return { events: [], resolved: false, unresolved: true, notEvent: false, structure, structureReason,
-            reason: invalidReason || (aiCalled ? 'invalid-ai-structure-response' : 'ai-unavailable') };
+            reason: invalidReason || (aiCalled ? 'invalid-ai-structure-response' : 'ai-unavailable'),
+            validationFailures: validatedEvents?.aiValidationFailures || [] };
     }
 
     if (structure === 'not_event' && validatedEvents?.aiResponseValid === true) {
         return { events: [], resolved: true, unresolved: false, notEvent: true, structure, structureReason, reason: 'ai-not-event' };
     }
 
-    if (['single_event', 'single_event_program', 'multiple_events'].includes(structure) &&
+    if (['single_event', 'single_event_program', 'shared_schedule_event', 'theater_repertoire', 'multiple_events'].includes(structure) &&
         validatedEvents?.aiResponseValid === true && Array.isArray(validatedEvents) && validatedEvents.length > 0) {
         return { events: validatedEvents, resolved: true, unresolved: false, notEvent: false, structure, structureReason, reason: 'ai-cardinality-accepted' };
     }
@@ -1017,7 +1012,7 @@ export function selectPublicAiEventsForPersistence({
 
 function isCompletePastOnlyResponse(aiEvents, post, { structure, timeZone }) {
     const events = Array.isArray(aiEvents) ? aiEvents : [];
-    if (!['single_event', 'single_event_program', 'multiple_events'].includes(structure) ||
+    if (!['single_event', 'single_event_program', 'shared_schedule_event', 'theater_repertoire', 'multiple_events'].includes(structure) ||
         events.length > 20 ||
         (structure === 'multiple_events' ? events.length < 2 : events.length !== 1)) return false;
 
@@ -1033,7 +1028,8 @@ function isCompletePastOnlyResponse(aiEvents, post, { structure, timeZone }) {
 
     return events.every((event) => {
         const date = String(event?.date ?? '').trim();
-        return /^\d{4}-\d{2}-\d{2}$/u.test(date) && date < today && sourceDates.has(date);
+        const end = ['shared_schedule_event', 'theater_repertoire'].includes(structure) ? String(event?.schedule?.endDate || event?.eventSchedule?.endDate || '') : date;
+        return /^\d{4}-\d{2}-\d{2}$/u.test(end) && end < today && sourceDates.has(date);
     });
 }
 
@@ -1064,12 +1060,15 @@ function isUntitledBookingWindowOffer(aiEvents, post) {
 function isConfirmedPosterWithoutEventDate(post, timeZone) {
     if (!acceptedDateFreePoster(post)) return false;
     const facts = String(post?.__posterGateFacts || '');
-    const explicitDates = extractExplicitDates(facts, post?.publishedAt, {
+    // A blank poster field must not hide a date supplied by the announcement.
+    if (parseIndexedImageFacts(facts).some((fact) => fact.visionError)) return false;
+    const explicitDates = extractExplicitDates([post?.__sourceAnnouncementText ?? post?.text, facts].filter(Boolean).join('\n'), post?.publishedAt, {
         referenceNow: post?.referenceNow instanceof Date ? post.referenceNow : new Date(),
         timeZone,
     });
     if (explicitDates.length) return false;
-    return !/^[ \t]*(?:Дата|Даты|Date)[ \t]*:[ \t]*[^\r\n]+/imu.test(facts);
+    return ![...facts.matchAll(/^[ \t]*(?:Дата|Даты|Date)[ \t]*:([^\r\n]*)/gimu)]
+        .some((match) => match[1].trim().length > 0);
 }
 
 function looksLikeEventCandidate(post) {
@@ -1085,6 +1084,12 @@ function validateAiEvents(events, post) {
         });
     }
 
+    const repertoire = collapseTheaterRepertoireResponse(events, post);
+    if (repertoire) events = setPublicAiResponseMetadata(repertoire.events, {
+        structure: 'theater_repertoire',
+        reason: repertoire.reason,
+        valid: true,
+    });
     const responseStructure = String(
         events.aiStructureDecision ?? events[0]?._structure ?? events[0]?.structure ?? events[0]?.structure_decision ??
         (events.length === 1 ? 'single_event' : ''),
@@ -1101,7 +1106,7 @@ function validateAiEvents(events, post) {
         });
     }
 
-    if (!['single_event', 'single_event_program', 'multiple_events'].includes(responseStructure)) {
+    if (!['single_event', 'single_event_program', 'shared_schedule_event', 'theater_repertoire', 'multiple_events'].includes(responseStructure)) {
         return setPublicAiResponseMetadata([], {
             structure: responseStructure,
             reason: events.aiStructureReason,
@@ -1111,7 +1116,7 @@ function validateAiEvents(events, post) {
 
     if (events.aiResponseValid === false || events.length > 20 ||
         (responseStructure === 'multiple_events' && events.length < 2) ||
-        (['single_event', 'single_event_program'].includes(responseStructure) && events.length !== 1)) {
+        (['single_event', 'single_event_program', 'shared_schedule_event', 'theater_repertoire'].includes(responseStructure) && events.length !== 1)) {
         return setPublicAiResponseMetadata([], {
             structure: responseStructure,
             reason: events.aiStructureReason,
@@ -1119,6 +1124,32 @@ function validateAiEvents(events, post) {
         });
     }
 
+    const cardinality = validateScheduleCardinality(responseStructure, events, {
+        sourceText: post?.__sourceAnnouncementText ?? post?.text ?? '',
+        facts: parseIndexedImageFacts(post?.__posterGateFacts || ''),
+        publishedAt: post?.publishedAt, referenceNow: post?.referenceNow,
+    });
+    if (!cardinality.ok) return setPublicAiResponseMetadata([], {
+        structure: responseStructure, reason: events.aiStructureReason, error: cardinality.reason,
+    });
+    const sharedSchedule = responseStructure === 'shared_schedule_event'
+        ? validateSharedEventSchedule(events[0], {
+            sourceText: post?.__sourceAnnouncementText ?? post?.text ?? '',
+            facts: parseIndexedImageFacts(post?.__posterGateFacts || ''),
+            publishedAt: post?.publishedAt, referenceNow: post?.referenceNow,
+        }) : null;
+    if (sharedSchedule && !sharedSchedule.ok) return setPublicAiResponseMetadata([], {
+        structure: responseStructure, reason: events.aiStructureReason, error: sharedSchedule.reason,
+    });
+    const theaterRepertoire = responseStructure === 'theater_repertoire'
+        ? validateTheaterRepertoireSchedule(events[0], {
+            sourceText: post?.__sourceAnnouncementText ?? post?.text ?? '',
+            facts: parseIndexedImageFacts(post?.__posterGateFacts || ''),
+            publishedAt: post?.publishedAt, referenceNow: post?.referenceNow,
+        }) : null;
+    if (theaterRepertoire && !theaterRepertoire.ok) return setPublicAiResponseMetadata([], {
+        structure: responseStructure, reason: events.aiStructureReason, error: theaterRepertoire.reason,
+    });
     const dateFreeVisionPhase = acceptedDateFreePoster(post);
     const sourceAnnouncementText = String(post?.__sourceAnnouncementText ?? post?.text ?? '');
     // In phase two, post.text contains the poster-gate facts. Use those facts
@@ -1139,11 +1170,17 @@ function validateAiEvents(events, post) {
     // time decision must never silently become a local single card: the caller
     // can retain the source and retry the structured extraction later.
     const result = [];
+    const validationFailures = [];
+    const reject = (event, reason) => validationFailures.push({
+        eventIndex: events.indexOf(event), date: String(event?.date || '').slice(0, 20),
+        title: String(event?.title || event?.participants || '').slice(0, 160), reason,
+    });
 
     for (const event of events.slice(0, 20)) {
         const eventDate = String(event?.date ?? '').trim();
 
         if (!dateFreeVisionPhase && !allowedDates.has(eventDate)) {
+            reject(event, 'event-date-not-supported-by-source');
             continue;
         }
 
@@ -1152,14 +1189,19 @@ function validateAiEvents(events, post) {
         )
             ? String(event.time)
             : null;
-        const evidence = trimEventValue(event?.evidence, 500);
+        const evidence = normalizeEventEvidence(event?.evidence);
         // The shared matcher normalizes case/spacing and accepts an explicit
         // ellipsis between ordered exact fragments. This lets Vision-enriched
         // dates survive compact AI evidence without weakening source proof.
         if (!dateFreeVisionPhase && !sourceContainsEvidence(evidence, post.text)) {
+            reject(event, 'evidence-not-verbatim-in-source');
             continue;
         }
 
+        const dateProgramSegment = responseStructure === 'multiple_events' ? selectDateProgramSegment(event, {
+            sourceText: sourceAnnouncementText, facts: parseIndexedImageFacts(post?.__posterGateFacts || ''),
+            publishedAt: post?.publishedAt, referenceNow: post?.referenceNow,
+        }) : '';
         const candidate = {
             // The title contract allows an empty title when the source has no
             // proper event name. Validation still needs a stable human label;
@@ -1167,6 +1209,7 @@ function validateAiEvents(events, post) {
             // without inventing a name or changing the event identity rules.
             title: trimEventValue(event?.title || event?.participants || '', 500),
             eventDate,
+            ...((sharedSchedule?.ok || theaterRepertoire?.ok) ? { eventSchedule: (sharedSchedule?.schedule || theaterRepertoire.schedule), eventEndDate: (sharedSchedule?.schedule || theaterRepertoire.schedule).endDate } : {}),
             eventTime,
             venue: trimEventValue(event?.venue, 500),
             participants: trimEventValue(event?.participants, 2000),
@@ -1175,7 +1218,7 @@ function validateAiEvents(events, post) {
             // The event row's description is the concise AI-written card text;
             // sourceSegment remains the exact/date-specific source evidence.
             description: trimEventDescription(
-                event?.announcement || (dateFreeVisionPhase
+                ((sharedSchedule?.ok || theaterRepertoire?.ok) ? sourceAnnouncementText : event?.announcement) || dateProgramSegment || (dateFreeVisionPhase
                     ? sourceAnnouncementText
                     : extractDateSpecificAnnouncementSegment(post.text, eventDate, {
                     publishedAt: post.publishedAt, referenceNow: post?.referenceNow,
@@ -1185,26 +1228,35 @@ function validateAiEvents(events, post) {
             evidence,
             announcement: trimEventDescription(event?.announcement || '', 5000),
             sourceSegment: trimEventDescription(
-                dateFreeVisionPhase ? sourceAnnouncementText : extractDateSpecificAnnouncementSegment(post.text, eventDate, {
+                responseStructure === 'multiple_events' ? dateProgramSegment || event?.source_segment || event?.sourceSegment || '' :
+                ((sharedSchedule?.ok || theaterRepertoire?.ok) || dateFreeVisionPhase) ? sourceAnnouncementText : extractDateSpecificAnnouncementSegment(post.text, eventDate, {
                     publishedAt: post.publishedAt, referenceNow: post?.referenceNow,
                 }) || event?.source_segment || event?.sourceSegment || '',
                 5000,
             ),
-            structureDecision: String(event?._structure || event?.structure || '').trim(),
+            structureDecision: responseStructure,
             structureReason: trimEventValue(event?._structureReason || event?.structure_reason || event?.structureReason || '', 1000),
             programItems: Array.isArray(event?.program_items || event?.programItems)
                 ? (event.program_items || event.programItems).slice(0, 64).map((item) => ({
+                    date: trimEventValue(item?.date, 32),
+                    title: trimEventValue(item?.title, 500),
                     time: trimEventValue(item?.time, 32),
                     text: trimEventValue(item?.text, 500),
-                })).filter((item) => item.time || item.text)
+                    evidence: trimEventValue(item?.evidence, 1200),
+                })).filter((item) => item.date || item.title || item.time || item.text || item.evidence)
                 : [],
             isMultiAnnouncement: String(event?._structure || event?.structure || '').trim() === 'multiple_events' ? 1 : 0,
             imageIndexes: [...new Set((Array.isArray(event?.image_indexes) ? event.image_indexes : event?.imageIndexes ?? [])
                 .map(Number)
                 .filter((value) => Number.isInteger(value) && value >= 1 && value <= 12))],
-            eventTags: [...new Set((Array.isArray(event?.tags) ? event.tags : Array.isArray(event?.eventTags) ? event.eventTags : [])
-                .map((value) => String(value ?? '').trim())
-                .filter(Boolean))].slice(0, 16),
+            eventTags: inferEventSearchTags({
+                ...event,
+                eventTags: Array.isArray(event?.tags) ? event.tags : event?.eventTags,
+                title: event?.title || event?.participants,
+                description: [event?.description, event?.sourceSegment, post?.text].filter(Boolean).join(' '),
+                venue: event?.venue || inferEventVenueFromText(post?.text).venue,
+                eventType: event?.eventType || event?.programItems?.map((item) => item?.text).join(' '),
+            }),
             parseMethod: dateFreeVisionPhase ? 'gigachat_validated_phase2_poster_v2' : 'gigachat_validated',
             status: 'pending',
         };
@@ -1216,6 +1268,8 @@ function validateAiEvents(events, post) {
         });
         if (strictValidation.ok) {
             result.push(candidate);
+        } else {
+            reject(event, strictValidation.reason);
         }
     }
 
@@ -1225,14 +1279,16 @@ function validateAiEvents(events, post) {
             reason: events.aiStructureReason,
             valid: false,
             error: 'one-or-more-events-failed-validation',
+            validationFailures,
         });
     }
-    if (['single_event', 'single_event_program'].includes(responseStructure) && result.length !== 1) {
+    if (['single_event', 'single_event_program', 'shared_schedule_event', 'theater_repertoire'].includes(responseStructure) && result.length !== 1) {
         return setPublicAiResponseMetadata([], {
             structure: responseStructure,
             reason: events.aiStructureReason,
             valid: false,
             error: 'event-failed-validation',
+            validationFailures,
         });
     }
 
@@ -1242,4 +1298,54 @@ function validateAiEvents(events, post) {
         valid: result.length === events.length,
         error: result.length === events.length ? '' : 'one-or-more-events-failed-validation',
     });
+}
+
+function collapseTheaterRepertoireResponse(events, post) {
+    const structure = String(events?.aiStructureDecision ?? events?.[0]?._structure ?? '').trim();
+    if (structure !== 'multiple_events' || !Array.isArray(events) || events.length < 2 || events.length > 20) return null;
+    const sourceText = String(post?.__sourceAnnouncementText ?? post?.text ?? '');
+    const posterText = String(post?.__posterGateFacts ?? '');
+    const context = sourceText + '\n' + posterText;
+    if (!/(?:репертуар|афиша\s+(?:театра|спектаклей)|театр.{0,50}(?:ноябр|октябр|декабр|репертуар)|(?:ноябр|октябр|декабр).{0,50}театр)/iu.test(context)) return null;
+    if (!/(?:спектакл|театр|theatre)/iu.test(context)) return null;
+
+    const rows = events.map((event) => ({
+        date: String(event?.eventDate ?? event?.date ?? '').trim(),
+        title: trimEventValue(event?.title || event?.participants || '', 500),
+        time: String(event?.eventTime ?? event?.time ?? '').trim(),
+        text: trimEventDescription(event?.announcement || event?.description || event?.source_segment || event?.sourceSegment || '', 500),
+        evidence: normalizeEventEvidence(event?.evidence || event?.source_segment || event?.sourceSegment || ''),
+        venue: trimEventValue(event?.venue || '', 500),
+        image_indexes: Array.isArray(event?.image_indexes) ? event.image_indexes : event?.imageIndexes,
+    }));
+    if (rows.some((row) => !/^\d{4}-\d{2}-\d{2}$/u.test(row.date) || !row.title || !row.evidence)) return null;
+    if (new Set(rows.map((row) => row.date)).size !== rows.length || new Set(rows.map((row) => row.title.toLowerCase())).size !== rows.length) return null;
+
+    const dates = rows.map((row) => row.date).sort();
+    const venues = [...new Set(rows.map((row) => row.venue).filter(Boolean))];
+    const evidence = rows.map((row) => row.evidence).join(' || ');
+    const programItems = rows.map(({ date, title, time, text, evidence: rowEvidence }) => ({
+        date, title, time: time || null, text, evidence: rowEvidence,
+        venue: rows.find(row => row.date === date && row.title === title)?.venue || '',
+    }));
+    return {
+        reason: String(events?.aiStructureReason || events?.[0]?._structureReason || 'Один театральный репертуар с отдельными постановками по датам.'),
+        events: [{
+            date: dates[0],
+            title: 'Репертуар театра',
+            time: null,
+            venue: venues.length === 1 ? venues[0] : 'Театр «Версия» — несколько площадок',
+            participants: '',
+            price: '',
+            announcement: 'Театральный репертуар; даты и постановки перечислены ниже.',
+            source_segment: sourceText,
+            evidence,
+            schedule: { dateMode: 'specific', startDate: dates[0], endDate: dates.at(-1), dates },
+            program_items: programItems,
+            tags: ['theater'],
+            image_indexes: [...new Set(rows.flatMap((row) => Array.isArray(row.image_indexes) ? row.image_indexes : []).map(Number).filter(n => Number.isInteger(n) && n > 0))],
+            _structure: 'theater_repertoire',
+            _structureReason: 'Несколько отдельных спектаклей относятся к одному театральному репертуару.',
+        }],
+    };
 }

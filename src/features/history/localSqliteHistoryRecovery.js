@@ -1,4 +1,5 @@
 import { copyFileSync, existsSync, mkdtempSync, readdirSync, realpathSync, rmSync, statSync } from 'node:fs';
+import { opendir as opendirAsync, realpath as realpathAsync, stat as statAsync } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -125,6 +126,9 @@ function walkSqliteFiles(rootDirectory) {
         for (const entry of entries) {
             const fullPath = join(current, entry.name);
             if (entry.isDirectory()) {
+                // This runtime-only tree contains hundreds of thousands of
+                // JSON operation checkpoints and no SQLite history sources.
+                if (entry.name === 'operation-checkpoints') continue;
                 stack.push(fullPath);
                 continue;
             }
@@ -158,6 +162,48 @@ function listLocalSqliteCandidates() {
         });
 }
 
+async function listLocalSqliteCandidatesAsync({ rootDirectory = dataDirectory, excludedDirectoryNames = ['operation-checkpoints'] } = {}) {
+    if (!existsSync(dataDirectory)) return [];
+    const result = [];
+    const stack = [rootDirectory];
+    while (stack.length) {
+        const current = stack.pop();
+        let directory;
+        try { directory = await opendirAsync(current); }
+        catch { continue; }
+        let entryCount = 0;
+        try {
+            for await (const entry of directory) {
+                const path = join(current, entry.name);
+                if (entry.isDirectory()) {
+                    // This runtime-only tree contains hundreds of thousands of
+                    // JSON operation checkpoints and no SQLite history sources.
+                    if (excludedDirectoryNames.includes(entry.name)) continue;
+                    stack.push(path);
+                }
+                else if (entry.isFile() && /\.sqlite$/iu.test(entry.name)) result.push(path);
+                entryCount += 1;
+                if (entryCount % 256 === 0) await yieldToEventLoop();
+            }
+        } catch {
+            try { await directory.close(); } catch {}
+        }
+        await yieldToEventLoop();
+    }
+    const active = resolve(activeDatabasePath);
+    const candidates = [];
+    let activeReal = '';
+    try { activeReal = resolve(await realpathAsync(activeDatabasePath)); } catch {}
+    for (const path of result) {
+        let same = resolve(path) === active;
+        try { same = resolve(await realpathAsync(path)) === (activeReal || active); } catch {}
+        if (!same) candidates.push(path);
+        await yieldToEventLoop();
+    }
+    candidates.sort();
+    return candidates;
+}
+
 export function getLocalSqliteBackupInventoryFingerprint() {
     const hash = createHash('sha256');
     const candidates = listLocalSqliteCandidates();
@@ -177,6 +223,27 @@ export function getLocalSqliteBackupInventoryFingerprint() {
         hash: hash.digest('hex'),
         files: candidates.length,
     };
+}
+
+export async function getLocalSqliteBackupInventoryFingerprintAsync() {
+    const hash = createHash('sha256');
+    const candidates = await listLocalSqliteCandidatesAsync();
+    for (const path of candidates) {
+        let size = 0;
+        let mtimeMs = 0;
+        try {
+            const info = await statAsync(path);
+            size = Number(info.size || 0);
+            mtimeMs = Math.trunc(Number(info.mtimeMs || 0));
+        } catch { /* Keep the path itself in the fingerprint when stat races. */ }
+        hash.update(`${resolve(path)}\0${size}\0${mtimeMs}\n`);
+        await yieldToEventLoop();
+    }
+    return { hash: hash.digest('hex'), files: candidates.length };
+}
+
+export async function listLocalSqliteCandidatesForAudit({ rootDirectory, excludedDirectoryNames = ['operation-checkpoints'] } = {}) {
+    return listLocalSqliteCandidatesAsync({ rootDirectory, excludedDirectoryNames });
 }
 
 export function getActiveMessageCoverageFingerprint({ peerId, maxCmid = 0 } = {}) {
@@ -229,6 +296,69 @@ export function getActiveMessageCoverageFingerprint({ peerId, maxCmid = 0 } = {}
     }
 }
 
+/** Same checkpoint fingerprint as the synchronous helper, paged for startup use. */
+export async function getActiveMessageCoverageFingerprintAsync({ peerId, maxCmid = 0, batchSize = 500 } = {}) {
+    const numericPeerId = Number(peerId);
+    if (!Number.isSafeInteger(numericPeerId) || numericPeerId < 2_000_000_000 || !existsSync(activeDatabasePath)) {
+        return { maxCmid: 0, coveredCount: 0, coverageHash: '' };
+    }
+    let database = null;
+    let transactionOpen = false;
+    try {
+        database = new DatabaseSync(activeDatabasePath, { readOnly: true });
+        database.exec('PRAGMA busy_timeout = 5000');
+        database.exec('BEGIN');
+        transactionOpen = true;
+        const ceilingRow = database.prepare(`
+            SELECT MAX(conversation_message_id) AS max_cmid
+            FROM messages
+            WHERE peer_id = ?
+        `).get(numericPeerId);
+        const activeMaxCmid = Math.max(0, Number(ceilingRow?.max_cmid || 0));
+        const requestedMax = Math.max(0, Number(maxCmid) || 0);
+        const coverageMaxCmid = requestedMax > 0 ? Math.min(requestedMax, activeMaxCmid) : activeMaxCmid;
+        const hash = createHash('sha256');
+        if (coverageMaxCmid <= 0) {
+            database.exec('COMMIT');
+            transactionOpen = false;
+            return { maxCmid: activeMaxCmid, coverageMaxCmid, coveredCount: 0, coverageHash: hash.digest('hex') };
+        }
+        const pageSize = Math.max(100, Math.min(2_000, Number(batchSize) || 500));
+        const statement = database.prepare(`
+            SELECT conversation_message_id, sender_id, created_at, text
+            FROM messages
+            WHERE peer_id = ? AND conversation_message_id > ? AND conversation_message_id <= ?
+            ORDER BY conversation_message_id ASC
+            LIMIT ?
+        `);
+        let lastCmid = 0;
+        let coveredCount = 0;
+        while (true) {
+            const rows = statement.all(numericPeerId, lastCmid, coverageMaxCmid, pageSize);
+            if (!rows.length) break;
+            for (const row of rows) {
+                hash.update(String(Number(row.conversation_message_id || 0)));
+                hash.update('\0');
+                hash.update(String(Number(row.sender_id || 0)));
+                hash.update('\0');
+                hash.update(String(Number(row.created_at || 0)));
+                hash.update('\0');
+                hash.update(String(row.text ?? ''));
+                hash.update('\n');
+            }
+            coveredCount += rows.length;
+            lastCmid = Number(rows[rows.length - 1]?.conversation_message_id || lastCmid);
+            await yieldToEventLoop();
+        }
+        database.exec('COMMIT');
+        transactionOpen = false;
+        return { maxCmid: activeMaxCmid, coverageMaxCmid, coveredCount, coverageHash: hash.digest('hex') };
+    } finally {
+        if (transactionOpen) { try { database?.exec('ROLLBACK'); } catch {} }
+        try { database?.close(); } catch { /* ignore */ }
+    }
+}
+
 function normalizeRow(row, targetPeerId) {
     const conversationMessageId = Number(row?.conversation_message_id ?? 0);
     const senderId = Number(row?.sender_id ?? 0);
@@ -252,6 +382,7 @@ export async function recoverHistoryFromLocalSqliteBackups({
     targetPeerId,
     sourcePeerIds = [],
     saveMessage,
+    saveMessages = null,
     logger = console,
     batchSize = 250,
 } = {}) {
@@ -259,7 +390,7 @@ export async function recoverHistoryFromLocalSqliteBackups({
     if (!Number.isSafeInteger(numericTarget) || numericTarget < 2_000_000_000) {
         return { files: 0, readable: 0, rows: 0, saved: 0 };
     }
-    if (typeof saveMessage !== 'function') {
+    if (typeof saveMessage !== 'function' && typeof saveMessages !== 'function') {
         throw new TypeError('saveMessage callback is required');
     }
 
@@ -273,7 +404,17 @@ export async function recoverHistoryFromLocalSqliteBackups({
         return { files: 0, readable: 0, rows: 0, saved: 0 };
     }
 
-    const candidates = listLocalSqliteCandidates();
+    const discovered = await listLocalSqliteCandidatesAsync();
+    const candidatesWithMtime = [];
+    for (const path of discovered) {
+        let mtimeMs = 0;
+        try { mtimeMs = Number((await statAsync(path)).mtimeMs || 0); } catch {}
+        candidatesWithMtime.push({path,mtimeMs});
+        await yieldToEventLoop();
+    }
+    // Match the established newest-snapshot-first recovery order.
+    candidatesWithMtime.sort((left,right)=>right.mtimeMs-left.mtimeMs);
+    const candidates = candidatesWithMtime.map(item=>item.path);
 
     let readable = 0;
     let rows = 0;
@@ -309,11 +450,16 @@ export async function recoverHistoryFromLocalSqliteBackups({
                     const batch = statement.all(...peers, lastRowId, safeBatchSize);
                     if (!batch.length) break;
 
+                    const normalizedBatch = [];
                     for (const row of batch) {
                         const normalized = normalizeRow(row, numericTarget);
                         if (!normalized) continue;
-                        saveMessage(normalized);
+                        normalizedBatch.push(normalized);
                         fileSaved += 1;
+                    }
+                    if (normalizedBatch.length) {
+                        if (typeof saveMessages === 'function') await saveMessages(normalizedBatch);
+                        else for (const message of normalizedBatch) await saveMessage(message);
                     }
 
                     fileRows += batch.length;

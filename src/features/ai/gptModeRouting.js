@@ -1,4 +1,4 @@
-/** Common GPT-6 routing. Legacy GPT-5-era aliases resolve only to GPT-6 models. */
+/** Current GPT-6 routing, with no retired model aliases. */
 const ASTRA_TOKEN_SOURCE = [
     'astra',
     'астра',
@@ -32,22 +32,6 @@ const PRO_TOKEN_SOURCE = [
     'gpt[\\s_-]?6[.]?luna',
 ].join('|');
 
-const GPT55_TOKEN_SOURCE = [
-    'gpt[\\s_-]?55',
-    'model[\\s_-]?55',
-    'модел(?:ь|и|ью)?[\\s_-]?55',
-    'classic',
-    'классик',
-].join('|');
-
-const GPT54_TOKEN_SOURCE = [
-    'gpt[\\s_-]?54',
-    'model[\\s_-]?54',
-    'модел(?:ь|и|ью)?[\\s_-]?54',
-    'standard',
-    'стандарт',
-].join('|');
-
 const DEFAULT_TOKEN_SOURCE = [
     'mini',
     'мини',
@@ -64,8 +48,6 @@ const MODE_ALIASES = Object.freeze([
     { mode: 'pro3', tokenSource: `(?:${PRO3_TOKEN_SOURCE})` },
     { mode: 'pro2', tokenSource: `(?:${PRO2_TOKEN_SOURCE})` },
     { mode: 'pro', tokenSource: `(?:${PRO_TOKEN_SOURCE})` },
-    { mode: 'gpt55', tokenSource: `(?:${GPT55_TOKEN_SOURCE})` },
-    { mode: 'gpt54', tokenSource: `(?:${GPT54_TOKEN_SOURCE})` },
     { mode: 'default', tokenSource: `(?:${DEFAULT_TOKEN_SOURCE})` },
 ]);
 
@@ -96,7 +78,7 @@ function findModeToken(body, alias) {
 /**
  * Extracts the strongest explicitly requested GPT mode from ANY position.
  *
- * Precedence is deliberately fixed: astra > pro3 > pro2 > pro > gpt55 > gpt54 >
+ * Precedence is deliberately fixed: astra > pro3 > pro2 > pro >
  * mini/default. Exact boundaries prevent partial matches such as profile or
  * pro30. The default aliases are still removed from the prompt when written
  * explicitly, although an omitted mode also resolves to default.
@@ -144,9 +126,8 @@ export function extractExplicitGptMode(input) {
  * packet. A model-side Swiss Ephemeris calculation is only an error fallback.
  */
 export function resolvePrashnaGptMode(requestedMode) {
-    const aliases = { gpt54: 'default', gpt55: 'pro3', pro: 'default', pro1: 'default', pro2: 'pro3' };
-    const mode = aliases[String(requestedMode ?? '')] || requestedMode;
-    return ['default', 'pro2', 'pro3', 'astra'].includes(mode) ? mode : 'default';
+    const mode = String(requestedMode ?? '').trim() || 'default';
+    return ['default', 'pro', 'pro1', 'pro2', 'pro3', 'astra'].includes(mode) ? mode : 'default';
 }
 
 export function getPrashnaPayloadProfile(
@@ -157,7 +138,7 @@ export function getPrashnaPayloadProfile(
         return 'maximum';
     }
 
-    return ['pro2', 'pro3', 'astra'].includes(mode)
+    return ['pro', 'pro2', 'pro3', 'astra'].includes(mode)
         ? 'none'
         : 'maximum';
 }

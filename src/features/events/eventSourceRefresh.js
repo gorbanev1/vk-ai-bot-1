@@ -1,5 +1,6 @@
 import { getEventPosterSafetyAssessment } from './eventProvenance.js';
 import { evaluatePosterFactForEvent, scorePosterFactMetadataQuality } from './eventPosterMatching.js';
+import { venueComparisonTokens, venueNameTokens } from './venueNameTokens.js';
 
 /**
  * Pure helpers for refreshing a stored event from a newer copy of the same source.
@@ -14,20 +15,14 @@ function clean(value, maximum = 6000) {
         .slice(0, maximum);
 }
 
-function tokenSet(value) {
-    return new Set(clean(value, 5000)
-        .normalize('NFKC')
-        .toLowerCase()
-        .replace(/ё/gu, 'е')
-        .replace(/[^\p{L}\p{N}]+/gu, ' ')
-        .split(/\s+/u)
-        .filter((token) => token.length >= 3)
-        .slice(0, 100));
+function tokenSet(value, { venue = false } = {}) {
+    const tokens = venue ? venueNameTokens(value) : venueComparisonTokens(value);
+    return new Set(tokens.slice(0, 100));
 }
 
-export function sourceRefreshTokenSimilarity(left, right) {
-    const a = tokenSet(left);
-    const b = tokenSet(right);
+export function sourceRefreshTokenSimilarity(left, right, options = {}) {
+    const a = tokenSet(left, options);
+    const b = tokenSet(right, options);
     if (!a.size || !b.size) return 0;
     let intersection = 0;
     for (const token of a) {
@@ -55,7 +50,7 @@ export function selectFreshEventForStoredEvent(existing, freshEvents) {
         const title = clean(event?.title || event?.participants, 1200);
         const sameDate = Boolean(existingDate && eventDate && existingDate === eventDate);
         const titleSimilarity = sourceRefreshTokenSimilarity(existingTitle, title);
-        const venueSimilarity = sourceRefreshTokenSimilarity(existing?.venue, event?.venue);
+        const venueSimilarity = sourceRefreshTokenSimilarity(existing?.venue, event?.venue, { venue: true });
         const eventMinute = sourceRefreshStartMinute(
             [event?.eventTime, event?.timeLabel].filter(Boolean).join(' '),
         );

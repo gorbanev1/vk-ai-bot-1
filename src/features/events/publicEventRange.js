@@ -145,6 +145,72 @@ function createPublicEventsRange(kind, fromDate, toDate, labelPrefix) {
     };
 }
 
+
+/** Shared future-only policy for typed requests, classifier results and buttons. */
+export function restrictPublicEventsToFuture(range, localToday) {
+    if (!range || range.invalid || range.pastOnly) return range;
+    if (range.toDate < localToday) return {...range,pastOnly:true,notice:'Прошедшие тусы не показываю.'};
+    if (range.fromDate < localToday) return {...range,requestedFromDate:range.requestedFromDate||range.fromDate,
+        fromDate:localToday,label:'Будущие тусы за период: '+formatIsoEventRange(localToday,range.toDate),
+        notice:'Прошедшие тусы не показываю, только будущие.'};
+    return range;
+}
+function parseCalendarExpression(command, localToday) {
+    const months={...RUSSIAN_EVENT_MONTHS,янв:1,фев:2,мар:3,апр:4,июн:6,июл:7,авг:8,сен:9,сент:9,окт:10,ноя:11,дек:12};
+    const words=Object.keys(months).sort((a,b)=>b.length-a.length).join('|');
+    let text=command.replace(new RegExp('(\\d{1,2})\\s*(?:[-–—]|по|до)\\s*(\\d{1,2})\\s*('+words+')\\.?(?:\\s+(\\d{4}))?(?![\\p{L}\\p{N}])','gu'),
+        (_,a,b,m,y)=>a+' '+m+(y?' '+y:'')+' — '+b+' '+m+(y?' '+y:''));
+    text=text.replace(/(?<![\d./-])(\d{1,2})\s*[-–—]\s*(\d{1,2})([./]\d{1,2}(?:[./](?:\d{4}|\d{2}))?)(?!\d)/gu,
+        (_,a,b,tail)=>a+tail+' — '+b+tail);
+    text=text.replace(/(\d{1,2}[./]\d{1,2}(?:[./](?:\d{4}|\d{2}))?)\s*[-–—]\s*(?=\d{1,2}[./]\d{1,2})/gu,'$1 — ');
+    const pattern=new RegExp('(?<![\\p{L}\\p{N}])(?:\\d{4}-\\d{1,2}-\\d{1,2}|\\d{1,2}[./-]\\d{1,2}(?:[./-](?:\\d{4}|\\d{2}))?|\\d{1,2}\\s*(?:'+words+')\\.?(?:\\s+\\d{4})?|(?:'+words+')\\.?(?:\\s+\\d{4})?|(?:19|20|21)\\d{2})(?![\\p{L}\\p{N}])','gu');
+    const matches=[...text.matchAll(pattern)].filter(m=>! /^\s*(?:₽|руб|р\.)(?:\s|$)/u.test(text.slice(m.index+m[0].length)) &&
+        !/(?:цена|цене|стоимость|стоимости|дороже|максимум)\s*(?:до\s*)?$/u.test(text.slice(0,m.index)));
+    if(!matches.length)return null;
+    for(let i=1;i<matches.length;i++){
+        const gap=text.slice(matches[i-1].index+matches[i-1][0].length,matches[i].index);
+        if(!/^\s*(?:г(?:ода|оду|од)?\.?)?\s*(?:[-–—,/]|\.\.\.?|по|до|и)?\s*$/u.test(gap))return null;
+    }
+    const tokens=matches.map(m=>{
+        const raw=m[0];let v;
+        if((v=raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/u)))return {year:+v[1],month:+v[2],day:+v[3],precision:'day'};
+        if((v=raw.match(/^(\d{1,2})[./-](\d{1,2})(?:[./-](\d{4}|\d{2}))?$/u)))return {year:v[3]?(+v[3]<100?2000+(+v[3]):+v[3]):0,month:+v[2],day:+v[1],precision:'day'};
+        if(/^\d{4}$/u.test(raw))return {year:+raw,month:1,day:1,precision:'year'};
+        v=raw.match(new RegExp('^(?:(\\d{1,2})\\s*)?('+words+')\\.?(?:\\s+(\\d{4}))?$','u'));
+        return v?{year:+v[3]||0,month:months[v[2]],day:+v[1]||1,precision:v[1]?'day':'month'}:null;
+    });
+    if(tokens.some(t=>!t))return null;
+    const invalid=()=>({kind:'invalid',invalid:true,fromDate:localToday,toDate:localToday,label:'Некорректный период',notice:'Укажите корректный период, например: 31.10.2026 — 05.11.2026.'});
+    const explicit=tokens.some(t=>t.year);
+    for(let i=0;i<tokens.length;i++){
+        const t=tokens[i];if(t.year)continue;
+        const next=tokens.slice(i+1).find(x=>x.year);
+        t.year=next?.year||tokens[i-1]?.year||Number(localToday.slice(0,4));
+        if(next&&t.month>next.month)t.year--;
+        else if(!next&&i&&t.month<tokens[i-1].month)t.year++;
+    }
+    const bounds=t=>[makeIsoEventDate(t.year,t.month,t.day),t.precision==='year'?makeIsoEventDate(t.year,12,31):t.precision==='month'?makeIsoEventDate(t.year,t.month,getIsoEventMonthLastDay(t.year,t.month)):makeIsoEventDate(t.year,t.month,t.day)];
+    let first=bounds(tokens[0])[0],last=bounds(tokens.at(-1))[1];
+    if(!first||!last||tokens.some(t=>!bounds(t)[0]))return invalid();
+    if(!explicit&&tokens.some(t=>t.precision==='day')&&last<localToday){
+        tokens.forEach(t=>t.year++);first=bounds(tokens[0])[0];last=bounds(tokens.at(-1))[1];
+    }
+    if(!first||!last||first>last)return invalid();
+    const precision=tokens.every(t=>t.precision==='year')?'year':tokens.every(t=>t.precision==='month')?'month':'day';
+    const kind=precision==='day'?(tokens.length>1?'date-range':'date'):precision;
+    const prefix=precision==='month'?'Тусы за '+tokens.map(t=>RUSSIAN_EVENT_MONTH_NAMES_NOMINATIVE[t.month]).join(' '):precision==='year'?'Тусы за год':tokens.length>1?'Тусы за период':'Тусы на дату';
+    return createPublicEventsRange(kind,first,last,prefix);
+}
+
+function daysWord(days) {
+    const n = Math.abs(Number(days)) % 100;
+    const last = n % 10;
+    if (n >= 11 && n <= 14) return 'дней';
+    if (last === 1) return 'день';
+    if (last >= 2 && last <= 4) return 'дня';
+    return 'дней';
+}
+
 /**
  * Сервис разбора периода афиши. Он не обращается к GPT и не читает базу:
  * на вход получает текст, на выходе даёт только календарный диапазон.
@@ -155,7 +221,7 @@ export function createPublicEventRangeService({
 }) {
     const today = () => getLocalDateString(now(), timeZone);
 
-    function createByKind(kind, date = now()) {
+    function createByKind(kind, date = now(), dayCount = 3) {
         const localToday = getLocalDateString(date, timeZone);
         const weekday = getIsoEventWeekday(localToday);
 
@@ -202,11 +268,24 @@ export function createPublicEventRangeService({
                     'next14', localToday, addDaysToDateString(localToday, 13),
                     'Ближайшие 14 дней',
                 );
+            case 'nextDays': {
+                const days = Math.min(365, Math.max(1, Number(dayCount) || 3));
+                return createPublicEventsRange(
+                    'nextDays', localToday, addDaysToDateString(localToday, days - 1),
+                    `Ближайшие ${days} ${daysWord(days)}`,
+                );
+            }
             case 'next30':
                 return createPublicEventsRange(
                     'next30', localToday, addDaysToDateString(addIsoEventMonths(localToday, 1), -1),
                     'Ближайший месяц',
                 );
+            case 'currentMonth': {
+                const year = Number(localToday.slice(0, 4));
+                const month = Number(localToday.slice(5, 7));
+                const last = makeIsoEventDate(year, month, getIsoEventMonthLastDay(year, month));
+                return createPublicEventsRange('currentMonth', localToday, last, 'Этот месяц');
+            }
             default:
                 return null;
         }
@@ -221,6 +300,16 @@ export function createPublicEventRangeService({
         }
 
         return makeIsoEventDate(currentYear + 1, month, day);
+    }
+
+    function resolveBareDay(day, localToday) {
+        const currentYear = Number(localToday.slice(0, 4));
+        const currentMonth = Number(localToday.slice(5, 7));
+        const candidate = makeIsoEventDate(currentYear, currentMonth, day);
+        if (candidate && compareIsoEventDates(candidate, localToday) >= 0) return candidate;
+        const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+        const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
+        return makeIsoEventDate(nextYear, nextMonth, day);
     }
 
     function parseNamedWeekday(command, localToday) {
@@ -240,6 +329,49 @@ export function createPublicEventRangeService({
     }
 
     function parseSpecificDate(command, localToday) {
+        const dateMonthWords = Object.keys(RUSSIAN_EVENT_MONTHS)
+            .sort((left, right) => right.length - left.length)
+            .join('|');
+        const makeRange = (fromDay, fromMonth, fromYear, toDay, toMonth, toYear) => {
+            const makeDate = (day, month, year) => year
+                ? makeIsoEventDate(Number(year) < 100 ? Number(year) + 2000 : Number(year), Number(month), Number(day))
+                : resolveDateWithoutYear(Number(month), Number(day), localToday);
+            let from = makeDate(fromDay, fromMonth, fromYear);
+            let to = makeDate(toDay, toMonth, toYear || fromYear);
+            if (!from || !to) return null;
+            if (compareIsoEventDates(from, to) > 0 && !fromYear && !toYear) {
+                to = makeIsoEventDate(Number(to.slice(0, 4)) + 1, Number(toMonth), Number(toDay));
+            }
+            if (!to || compareIsoEventDates(from, to) > 0) return null;
+            return createPublicEventsRange('date-range', from, to, 'Тусы за период');
+        };
+        const rangePatterns = [
+            {
+                regex: /(?:^|\s)(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{2,4}))?\s*(?:-|–|—|по)\s*(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{2,4}))?(?=$|\s)/u,
+                read: match => makeRange(match[1], match[2], match[3], match[4], match[5], match[6] || match[3]),
+            },
+            {
+                regex: /(?:^|\s)(\d{1,2})\s*(?:-|–|—)\s*(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{2,4}))?(?=$|\s)/u,
+                read: match => makeRange(match[1], match[3], match[4], match[2], match[3], match[4]),
+            },
+            {
+                regex: new RegExp('(?:^|\\s)(?:с\\s+)?(\\d{1,2})\\s+по\\s+(\\d{1,2})\\s+(' + dateMonthWords + ')(?:\\s+(\\d{4}))?(?=$|\\s)', 'iu'),
+                read: match => makeRange(match[1], RUSSIAN_EVENT_MONTHS[match[3]], match[4], match[2], RUSSIAN_EVENT_MONTHS[match[3]], match[4]),
+            },
+            {
+                regex: new RegExp('(?:^|\\s)(?:с\\s+)?(\\d{1,2})\\s+(' + dateMonthWords + ')\\s+(?:по|[-–—])\\s+(\\d{1,2})(?:\\s+(' + dateMonthWords + '))?(?:\\s+(\\d{4}))?(?=$|\\s)', 'iu'),
+                read: match => makeRange(match[1], RUSSIAN_EVENT_MONTHS[match[2]], match[5], match[3], RUSSIAN_EVENT_MONTHS[match[4] || match[2]], match[5]),
+            },
+            {
+                regex: new RegExp('(?:^|\\s)(?:с\\s+)?(\\d{1,2})\\s+(' + dateMonthWords + ')\\s+(?:по|[-–—])\\s+(\\d{1,2})\\s+(' + dateMonthWords + ')(?:\\s+(\\d{4}))?(?=$|\\s)', 'iu'),
+                read: match => makeRange(match[1], RUSSIAN_EVENT_MONTHS[match[2]], match[5], match[3], RUSSIAN_EVENT_MONTHS[match[4]], match[5]),
+            },
+        ];
+        for (const item of rangePatterns) {
+            const match = command.match(item.regex);
+            const range = match ? item.read(match) : null;
+            if (range) return range;
+        }
         const numericMatch = command.match(
             /(?:^|\s)(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{2,4}))?(?:\s|$)/u,
         );
@@ -257,6 +389,20 @@ export function createPublicEventRangeService({
 
             if (date) {
                 return createPublicEventsRange('date', date, date, 'Тусы на дату');
+            }
+        }
+
+        // A standalone day in an events menu means that day in the current
+        // month, rolling to the next occurrence when this month's date passed.
+        // Keep price phrases out of this shortcut.
+        const bareDayMatch = command.match(/(?:^|\s)(\d{1,2})(?=\s|$)/u);
+        if (bareDayMatch &&
+            !/(?:до|цена|стоимость|руб(?:лей|ля)?|₽)/iu.test(command) &&
+            !/(?:январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр)/iu.test(command)) {
+            const day = Number(bareDayMatch[1]);
+            if (day >= 1 && day <= 31) {
+                const date = resolveBareDay(day, localToday);
+                if (date) return createPublicEventsRange('date', date, date, 'Тусы на дату');
             }
         }
 
@@ -340,19 +486,26 @@ export function createPublicEventRangeService({
     }
 
     function hasSubject(command) {
-        return /(?:тус(?:ы|овк|овки|овок)?|концерт|мероприят|афиш|вечерин|движ|куда\s+сходить)/u.test(command);
+        return /(?:тус(?:ы|овк|овки|овок)?|концерт|мероприят|афиш|вечерин|событи|движ|куда\s+сходить)/u.test(command);
     }
 
     function isSingleOrganizerPartyQuery(command) {
         return /(?:^|\s)(?:следующ(?:ая|ую|ей)|ближайш(?:ая|ую|ей))\s+(?:тус(?:а|у|е|ы|овка|овку|овке)|вечеринк(?:а|у|е|и))(?:$|\s)/u.test(command);
     }
 
-    function parseCommand(value) {
+    function parseCommandRaw(value) {
         const command = normalizeLocalCommand(value);
 
         if (!command || isSingleOrganizerPartyQuery(command) || !hasSubject(command)) return null;
 
         const localToday = today();
+
+        const past = /(?:^|\s)(?:прошедш(?:ие|их)|прешедш(?:ие|их)|прошл(?:ые|ых|ый|ую|ой|ом|ое)|вчера|позавчера)(?=$|\s)/u.test(command);
+        const future = /(?:^|\s)(?:будущ(?:ие|их)|предстоящ(?:ие|их))(?=$|\s)/u.test(command);
+        if(past&&!future)return {...createByKind('all'),pastOnly:true,notice:'Прошедшие тусы не показываю.'};
+        const calendar=parseCalendarExpression(command,localToday);
+        if(calendar)return past&&future?{...calendar,notice:'Прошедшие тусы не показываю, только будущие.'}:calendar;
+        if(past&&future)return {...createByKind('all'),notice:'Прошедшие тусы не показываю, только будущие.'};
         const specificDate = parseSpecificDate(command, localToday);
         if (specificDate) return specificDate;
         const namedWeekday = parseNamedWeekday(command, localToday);
@@ -367,6 +520,12 @@ export function createPublicEventRangeService({
             /(?:^|\s)(?:вообще\s+)?за\s+все\s+время(?:$|\s)/u.test(command)
         ) return createByKind('all');
         if (/(?:^|\s)(?:ближайшие\s+дни|на\s+ближайшие\s+дни|до\s+конца\s+выходных)(?:$|\s)/u.test(command)) return createByKind('nearWeekend');
+        const dayCountMatch = command.match(/(?:^|\s)(?:(?:в|на)\s+)?(?:ближайш(?:ие|их)|следующ(?:ие|их))\s+(\d{1,3}|один|одна|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять)\s+дн(?:я|ей)(?:$|\s)/u);
+        if (dayCountMatch) {
+            const words = { один: 1, одна: 1, два: 2, две: 2, три: 3, четыре: 4, пять: 5, шесть: 6, семь: 7, восемь: 8, девять: 9, десять: 10 };
+            const days = Number(dayCountMatch[1]) || words[dayCountMatch[1]];
+            if (days > 0) return createByKind('nextDays', now(), days);
+        }
         if (/(?:^|\s)(?:сегодня|на\s+сегодня)(?:$|\s)/u.test(command)) return createByKind('today');
         if (/(?:^|\s)(?:завтра|на\s+завтра)(?:$|\s)/u.test(command)) return createByKind('tomorrow');
         if (/(?:^|\s)(?:эти\s+выходные|на\s+(?:этих\s+)?выходных|выходные)(?:$|\s)/u.test(command)) return createByKind('weekend');
@@ -380,6 +539,7 @@ export function createPublicEventRangeService({
             return createPublicEventsRange('week', week.fromDate, week.toDate, 'Эта неделя');
         }
         if (/(?:^|\s)(?:месяц|на\s+месяц|на\s+месяц\s+вперед|на\s+месяц\s+вперёд|ближайший\s+месяц|следующие\s+30\s+дней)(?:$|\s)/u.test(command)) return createByKind('next30');
+        if (/(?:^|\s)(?:этот\s+месяц|этом\s+месяце|текущий\s+месяц|на\s+этот\s+месяц)(?:$|\s)/u.test(command)) return createByKind('currentMonth');
 
         const namedMonth = parseNamedMonths(command, localToday) || parseNamedMonth(command, localToday);
         if (namedMonth) return namedMonth;
@@ -395,8 +555,15 @@ export function createPublicEventRangeService({
             return createByKind('next14');
         }
 
+        // A bare section selection is an explicit event command, not an AI prompt.
+        // Without this, «тусы второстепенные» used an expensive semantic route.
+        if (/^(?:тусы\s+второстепенные|второстепенные\s+тусы|тусы\s+основные|основные\s+тусы)$/u.test(command)) {
+            return createByKind('next14');
+        }
         return null;
     }
+
+    const parseCommand = value => restrictPublicEventsToFuture(parseCommandRaw(value), today());
 
     function looksLikeQuestion(value) {
         const command = normalizeLocalCommand(value);
@@ -408,7 +575,7 @@ export function createPublicEventRangeService({
         );
     }
 
-    function fromClassifierToken(token) {
+    function fromClassifierTokenRaw(token) {
         const normalized = String(token ?? '').trim().toLowerCase();
 
         if (['today', 'tomorrow', 'weekend', 'week', 'nearweekend', 'next14', 'next30', 'all'].includes(normalized)) {
@@ -432,12 +599,14 @@ export function createPublicEventRangeService({
         return first && last
             ? createPublicEventsRange(
                 'month',
-                compareIsoEventDates(first, localToday) < 0 ? localToday : first,
+                first,
                 last,
                 'Тусы за месяц',
             )
             : null;
     }
+
+    const fromClassifierToken = token => restrictPublicEventsToFuture(fromClassifierTokenRaw(token), today());
 
     return {
         createPublicEventsRangeByKind: createByKind,

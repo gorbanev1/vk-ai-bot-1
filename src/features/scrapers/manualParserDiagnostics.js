@@ -11,9 +11,9 @@ import { rm as rmAsync } from 'node:fs/promises';
 import { join, relative, resolve } from 'node:path';
 import { createHash, randomBytes } from 'node:crypto';
 import { createParserPosterForensics } from './parserPosterForensics.js';
-import { createVkDomFixtureCapture } from './vkDomFixtureCapture.js';
+import { createVkDomFixtureCapture, readVkBrowserDom } from './vkDomFixtureCapture.js';
 import { createVkFinalDomCapture } from './vkDomFinalSnapshot.js';
-import { archiveParserErrorRun, recordParserError, refreshParserErrorEvidence } from './parserErrorStore.js';
+import { archiveParserErrorRun, recordParserError, refreshParserErrorEvidence, refreshParserErrorEvidenceAsync } from './parserErrorStore.js';
 
 function safeSlug(value, fallback = 'source') {
     const normalized = String(value ?? '')
@@ -122,6 +122,7 @@ export function createManualParserDiagnostics({
     // makes recovery/audit archives much larger without changing processing
     // input. Keep the same one-final-DOM policy for all parser-all variants.
     const finalOnlyVk = /^parser-all(?:-secondary)?(?:-clean)?$/u.test(label);
+    const finalParserSnapshots = new Map();
     const vkFinalDom = createVkFinalDomCapture({ runDirectory: directory, runId,
         onPersist: (record) => log('vk.final-fixture.persisted', record),
     });
@@ -130,7 +131,7 @@ export function createManualParserDiagnostics({
     });
     artifacts.posterForensics = { directory: posterForensics.directory, logPath: posterForensics.logPath, imagesPath: posterForensics.imagesPath };
     artifacts.vkDomFixtures = { root: vkDomFixtures.root, baselineRoot: vkDomFixtures.baselineRoot, finalRoot: vkFinalDom.root,
-        layout: finalOnlyVk ? 'parser-all: throttled native-pass checkpoints plus final DOM; no additional scrolling'
+        layout: finalOnlyVk ? 'parser-all: one final parser DOM; intermediate observations stay in memory'
             : 'legacy: one DOM per observed iteration and initial structure baseline' };
     function recordPosterPost(stage, data) {
         try { return posterForensics.recordPost(stage, data); }
@@ -375,18 +376,13 @@ export function createManualParserDiagnostics({
         async captureVkDomFixture(args) {
             try {
                 if (finalOnlyVk) {
-                    // Reuse the exact HTML that the scraper already reads.
-                    // Checkpoints are bounded (10 s / +30%) and NEVER scroll.
-                    const html = await args.page.evaluate(() => document.documentElement.outerHTML);
+                    // Intermediate HTML is consumed in memory to retain virtualized posts.
+                    // The final parser input and its runtime state are captured atomically.
+                    const snapshot = args.label === 'capture-complete'
+                        ? await readVkBrowserDom(args.page, { includeStructure: true }) : null;
+                    const html = snapshot?.html ?? await args.page.evaluate(() => document.documentElement.outerHTML);
                     if (!/^<html(?:\s|>)/iu.test(html || '')) throw new Error('VK in-memory DOM invalid');
-                    try {
-                        const checkpoint = await vkFinalDom.observe({ sourceId: args.sourceId,
-                            html, label: args.label, metadata: args.metadata });
-                        if (checkpoint.saved) log('vk.native-dom.checkpoint', checkpoint);
-                    } catch (error) {
-                        log('vk.native-dom.checkpoint-error', { sourceId: args.sourceId, error });
-                        // A disk error in optional forensics must not hold up the next source.
-                    }
+                    if (snapshot) finalParserSnapshots.set(String(args.sourceId), snapshot);
                     return { html, persisted: false };
                 }
                 return await vkDomFixtures.capture(args);
@@ -410,7 +406,13 @@ export function createManualParserDiagnostics({
             }
         },
         async captureVkFinalDomSnapshot(args) {
-            try { return await vkFinalDom.capture(args); }
+            try {
+                const key = String(args.sourceId);
+                const snapshot = finalParserSnapshots.get(key);
+                const result = await vkFinalDom.capture({ ...args, snapshot });
+                finalParserSnapshots.delete(key);
+                return result;
+            }
             catch (error) { log('vk.final-fixture.failed', { sourceId: args?.sourceId, error }); throw error; }
         },
         finalDomOnly: finalOnlyVk,
@@ -463,6 +465,13 @@ export function createManualParserDiagnostics({
                     textReports: [...artifacts.textReports],
                 },
             };
+        },
+        async finishAsync(data = null) {
+            const record = log('run.finish', data);
+            const manifestPath = writeRunManifest({ finish: data });
+            log('run.manifest.saved', { path: manifestPath });
+            await refreshParserErrorEvidenceAsync({ dataDirectory, runDirectory: directory, runId });
+            return record;
         },
         finish(data = null) {
             const record = log('run.finish', data);

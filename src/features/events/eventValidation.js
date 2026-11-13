@@ -1,4 +1,6 @@
-import { isCalendarIsoDate } from './publicPostDateEvidence.js';
+import { isBroadcastEvent, BROADCAST_EXCLUSION_INSTRUCTION } from './eventBroadcastPolicy.js';
+import { SHARED_SCHEDULE_INSTRUCTION, THEATER_REPERTOIRE_INSTRUCTION, getSharedEventSchedule, nextSharedEventDate } from './sharedEventSchedule.js';
+import { isCalendarIsoDate, extractRawDateMentions, extractExplicitDates } from './publicPostDateEvidence.js';
 import { buildEventTitleContractPrompt } from './eventIdentityTokens.js';
 
 /**
@@ -96,19 +98,26 @@ function normalizeEvidenceText(value) {
         .trim();
 }
 
+export function normalizeEventEvidence(value) {
+    if (Array.isArray(value)) {
+        if (!value.length || value.some(part => typeof part !== 'string' || !part.trim())) return '';
+        return value.join(' || ');
+    }
+    return typeof value === 'string' ? value.trim() : '';
+}
+
 function sourceContainsEvidence(evidence, sourceText) {
     const raw = normalizeEvidenceText(sourceText);
-    const snippets = String(evidence ?? '')
-        .split(/\s*\|\|\s*|\n+/u)
+    const snippets = normalizeEventEvidence(evidence)
+        .split(/\s*\|\|\s*|\n+|\s*;\s*/u)
         .map((value) => String(value || '').trim()
             .replace(/^[\s"'«„“]+/u, '')
             .replace(/[\s"'»”]+$/u, '')
             .trim())
-        .filter(Boolean)
-        .slice(0, 5);
+        .filter(Boolean);
 
     const matches = (snippet) => {
-        if (!snippet) return false;
+        if (!normalizeEvidenceText(snippet)) return false;
         // Compact AI evidence may use an ellipsis between exact fragments.
         // Match fragments in order after normalization while retaining the
         // verbatim-evidence requirement for every non-ellipsis quote.
@@ -138,6 +147,7 @@ function explainStrictEventRecord(event, {
     requireVenue = true,
     trustedPosterEvent = false,
 } = {}) {
+    if (isBroadcastEvent(event, {sourceText})) return {ok:false,reason:'broadcast-not-event'};
     const title = cleanEventField(event?.title ?? event?.name, 500);
     const eventDate = cleanEventField(event?.eventDate ?? event?.date, 20);
     const venue = cleanEventField(event?.venue ?? event?.place, 500);
@@ -145,7 +155,7 @@ function explainStrictEventRecord(event, {
         event?.description ?? event?.announcement,
         5000,
     );
-    const evidence = cleanEventField(event?.evidence, 1000);
+    const evidence = normalizeEventEvidence(event?.evidence);
     const combined = [title, description, evidence, sourceText]
         .filter(Boolean)
         .join(' ');
@@ -181,7 +191,7 @@ function explainStrictEventRecord(event, {
     }
 
     if (sourceText && !trustedPosterEvent) {
-        if (!SOURCE_DATE_HINT_PATTERN.test(String(sourceText))) {
+        if (!SOURCE_DATE_HINT_PATTERN.test(String(sourceText)) && !extractRawDateMentions(sourceText).length) {
             return { ok: false, reason: 'source-has-no-date-hint' };
         }
 
@@ -219,10 +229,10 @@ function partitionEventsByReferenceDate(events, referenceDate) {
 
     return {
         futureEvents: source.filter((event) => (
-            String(event?.eventDate ?? event?.date ?? '').trim() >= boundary
+            (getSharedEventSchedule(event) ? Boolean(nextSharedEventDate(event, boundary)) : String(event?.eventDate ?? event?.date ?? '').trim() >= boundary)
         )),
         pastEvents: source.filter((event) => (
-            String(event?.eventDate ?? event?.date ?? '').trim() < boundary
+            (getSharedEventSchedule(event) ? !nextSharedEventDate(event, boundary) : String(event?.eventDate ?? event?.date ?? '').trim() < boundary)
         )),
     };
 }
@@ -233,15 +243,29 @@ function buildStrictEventExtractionPrompt({
     allowPast = false,
     requireVenue = true,
     confirmedPoster = false,
+    sourceText = '',
+    publishedAt = 0,
+    timeZone = 'Europe/Moscow',
 } = {}) {
+    const yearInstruction = 'ГОД ДАТЫ: отсутствие напечатанного года само по себе не означает uncertain. Опора — дата публикации, а если она неизвестна — указанная опорная дата. Явный год сохраняй; без года используй год опоры, и только если день и месяц отстают от опоры более чем на 183 дня — следующий год. Не переноси недавнее прошедшее событие в будущее. Это нормализация календаря, а не решение о числе событий. Реальные противоречия дат по-прежнему требуют проверки.';
+    const normalizedDates = referenceDate && sourceText ? extractExplicitDates(sourceText, publishedAt, {
+        referenceNow: new Date(referenceDate + 'T12:00:00Z'), timeZone,
+    }) : [];
+    const calendarInstruction = [yearInstruction, normalizedDates.length
+        ? 'Календарные кандидаты по тому же правилу валидатора: ' + JSON.stringify(normalizedDates) + '. Выбирай только относящиеся к самому событию; список не задаёт число карточек. Не заменяй цитату из исходника нормализованной датой.'
+        : ''].filter(Boolean).join(' ');
     if (confirmedPoster) return [
         `Извлеки метаданные мероприятий из ${sourceKind}: сохранённых фактов подтверждённых афиш и дополнительного текста.`,
         referenceDate ? `Дата для относительных дат и определения года: ${referenceDate}.` : '',
+        calendarInstruction,
+        BROADCAST_EXCLUSION_INSTRUCTION,
         'Событие должно иметь календарную дату, название или участников и место. Не выдумывай неизвестные поля.',
-        'Определи число самостоятельных мероприятий на афишах: single_event, single_event_program или multiple_events. Двери, начало и этапы программы одного события сохраняй в program_items.',
-        'Месячное расписание разных вечеров на одной площадке — multiple_events. Сохрани связь каждой даты с её названием, участниками и временем; не присваивай всем датам общий список исполнителей или название последнего вечера. single_event_program допустим для этапов одного события, но не для разных вечеров месяца.',
+        'Определи число самостоятельных мероприятий на афишах: single_event, single_event_program, shared_schedule_event, theater_repertoire или multiple_events. Двери, начало и этапы программы одного события сохраняй в program_items.',
+        'Месячное расписание разных вечеров на одной площадке — multiple_events. Исключение: единый театральный репертуар одной организации/театра с разными постановками по датам — theater_repertoire, строго одна карточка во второстепенной выдаче и program_items с датой, названием, временем и точной цитатой для каждой постановки. Узнавай репертуар по заголовкам «репертуар», «афиша театра», «ноябрь в театре», названию театра/театральной площадки и общей афише. Сохрани связь каждой даты с её названием, участниками и временем; не присваивай всем датам общий список исполнителей или название последнего вечера. single_event_program допустим для этапов одного события, но не для разных вечеров месяца.',
         'Не требуй повторного подтверждения афиши текстом или точных цитат из текста. Метаданные афиши являются самостоятельным источником.',
         'Дату публикации, интерфейс, дедлайн продажи или регистрации не принимай за дату события. Если календарной даты нет ни на афише, ни в тексте, верни uncertain с причиной.',
+        SHARED_SCHEDULE_INSTRUCTION,
+        THEATER_REPERTOIRE_INSTRUCTION,
         buildEventTitleContractPrompt(),
         'Верни только JSON со structure, structure_reason и events. Для каждого события извлеки date, time, title, venue, participants, price, announcement, source_segment, evidence, image_indexes.',
     ].filter(Boolean).join(' ');
@@ -250,6 +274,8 @@ function buildStrictEventExtractionPrompt({
             ? `Ты строгий извлекатель реальных мероприятий из ${sourceKind}. Распознавай также уже прошедшие события: вызывающий код отдельно решит, сохранять ли их.`
             : `Ты строгий извлекатель реальных будущих мероприятий из ${sourceKind}.`,
         referenceDate ? `Текущая дата для относительных дат: ${referenceDate}.` : '',
+        calendarInstruction,
+        BROADCAST_EXCLUSION_INSTRUCTION,
         requireVenue
             ? 'Верни событие только когда одновременно подтверждены три обязательных элемента:'
             : 'Верни событие, когда подтверждены суть и календарная дата; место для доверенного ручного ввода может отсутствовать.',
@@ -275,10 +301,12 @@ function buildStrictEventExtractionPrompt({
         'Время между разными постами/сообщениями не участвует в решении дубля: при объединении источников сравнивай календарную дату, название и смысл, а разное время не делай причиной создания второй карточки. Это правило относится к дедупликации источников, а не к разбору нескольких времён внутри одного материала.',
         'При структуре single_event_program верни одну карточку и program_items с временными этапами. При multiple_events верни отдельный объект для каждого события с его announcement/source_segment и image_indexes. Полный исходный текст не подменяет source_segment.',
         'Поле participants: выпиши именно выступающих/артистов/DJ/группы/ведущих, в том числе из формулировок «DJs», «для вас играют», «line-up», «выступают». Не путай их с организаторами, площадкой и гостями.',
+        SHARED_SCHEDULE_INSTRUCTION,
+        THEATER_REPERTOIRE_INSTRUCTION,
         buildEventTitleContractPrompt(),
         'Поле price: сохрани явно указанную стоимость/цену билета/входа; если цены нет — оставь пустым. Поле announcement — готовое краткое описание события в 2–4 максимально коротких предложениях: что будет происходить, формат/программа и важные особенности. Не повторяй отдельные поля даты, времени, места, цены и участников. Сохраняй важные конкретные детали из источника, ничего не додумывай. Не возвращай пустое описание, если в исходнике есть содержательные детали.',
         'Поле evidence должно содержать до трёх точных цитат из исходного текста, подтверждающих суть, дату и место. Если факты расположены в разных абзацах, раздели цитаты символами ||. Не перефразируй цитаты. Если подтверждений нет — верни пустой список.',
-        'Верни только JSON без Markdown: {"structure":"single_event|single_event_program|multiple_events|not_event|uncertain","structure_reason":"краткое основание","events":[]} либо тот же объект с массивом events. Для single_event и single_event_program верни ровно один объект; для multiple_events — по одному объекту на каждое самостоятельно подтверждённое событие; для not_event и uncertain массив events пустой. Если хотя бы один объект мультианонса не прошёл проверку даты, сути, места или точной цитаты, не возвращай неполный список — верни uncertain с причиной.',
+        'Верни только JSON без Markdown: {"structure":"single_event|single_event_program|shared_schedule_event|theater_repertoire|multiple_events|not_event|uncertain","structure_reason":"краткое основание","events":[]} либо тот же объект с массивом events. Для single_event, single_event_program и theater_repertoire верни ровно один объект; для theater_repertoire укажи schedule:{dateMode:"specific",startDate:"YYYY-MM-DD",endDate:"YYYY-MM-DD",dates:[...]}, date=первая будущая дата и program_items:[{date,title,time,text,evidence}] для каждой даты; evidence — точная цитата, одновременно подтверждающая дату и название постановки. Для multiple_events — по одному объекту на каждое самостоятельно подтверждённое событие; для not_event и uncertain массив events пустой. Если хотя бы один объект мультианонса не прошёл проверку даты, сути, места или точной цитаты, не возвращай неполный список — верни uncertain с причиной.',
     ].filter(Boolean).join(' ');
 }
 

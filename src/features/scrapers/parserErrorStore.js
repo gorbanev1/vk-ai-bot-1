@@ -3,6 +3,8 @@ import { createHash } from 'node:crypto';
 import { rmSync } from 'node:fs';
 import { basename, join, relative, resolve, sep } from 'node:path';
 
+import { runParserWorkTask } from './parserWorkAsync.js';
+
 const STORE_DIRECTORY = 'parser-error-archives';
 const INDEX_FILE = 'errors.json';
 
@@ -127,16 +129,58 @@ export function refreshParserErrorEvidence({ dataDirectory = './data', runDirect
     const sourceRunDirectory = resolve(runDirectory || '');
     if (!runDirectory || !existsSync(sourceRunDirectory)) return 0;
     const id = safeArchiveName(runId || basename(sourceRunDirectory));
-    const archiveDirectory = join(storePaths(resolve(dataDirectory)).directory, id);
+    const { directory, indexPath } = storePaths(resolve(dataDirectory));
+    const archiveDirectory = join(directory, id);
+    const payload = readIndex(indexPath);
+    const errors = payload.errors.filter((row) => row.lastRunId === id);
+    // Successful runs already have their forensic archive. Duplicate the full
+    // run only for indexed errors or an explicitly requested error archive.
+    if (!errors.length && !existsSync(archiveDirectory)) return 0;
     if (existsSync(archiveDirectory)) rmSync(archiveDirectory, { recursive: true, force: true });
     cpSync(sourceRunDirectory, archiveDirectory, { recursive: true, force: true, errorOnExist: false });
-    const errors = listParserErrors({ dataDirectory, includeResolved: true }).filter((row) => row.lastRunId === id);
+    const now = new Date().toISOString();
     for (const row of errors) {
-        const update = { archiveDirectory };
-        if (row.details?.traceRelativePath) update.tracePath = join(archiveDirectory, row.details.traceRelativePath);
-        if (row.details?.rawCacheRelativePath) update.rawCachePath = join(archiveDirectory, row.details.rawCacheRelativePath);
-        if (row.details?.domRelativePath) update.domPath = join(archiveDirectory, row.details.domRelativePath);
-        updateParserError(dataDirectory, row.id, update);
+        row.archiveDirectory = archiveDirectory;
+        if (row.details?.traceRelativePath) row.tracePath = join(archiveDirectory, row.details.traceRelativePath);
+        if (row.details?.rawCacheRelativePath) row.rawCachePath = join(archiveDirectory, row.details.rawCacheRelativePath);
+        if (row.details?.domRelativePath) row.domPath = join(archiveDirectory, row.details.domRelativePath);
+        row.updatedAt = now;
+    }
+    // Refresh all affected records atomically with one index write.
+    if (errors.length) {
+        payload.updatedAt = now;
+        writeIndex(indexPath, payload);
+    }
+    return errors.length;
+}
+
+export async function refreshParserErrorEvidenceAsync({ dataDirectory = './data', runDirectory = '', runId = '' } = {}) {
+    const sourceRunDirectory = resolve(runDirectory || '');
+    if (!runDirectory || !existsSync(sourceRunDirectory)) return 0;
+    const id = safeArchiveName(runId || basename(sourceRunDirectory));
+    const { directory, indexPath } = storePaths(resolve(dataDirectory));
+    const archiveDirectory = join(directory, id);
+    let payload = readIndex(indexPath);
+    let errors = payload.errors.filter((row) => row.lastRunId === id);
+    // Successful runs already have their forensic archive. Duplicate the full
+    // run only for indexed errors or an explicitly requested error archive.
+    if (!errors.length && !existsSync(archiveDirectory)) return 0;
+    await runParserWorkTask('archive-copy', { source: sourceRunDirectory, target: archiveDirectory });
+    // Re-read: other sources may update the index while copying.
+    payload = readIndex(indexPath);
+    errors = payload.errors.filter((row) => row.lastRunId === id);
+    const now = new Date().toISOString();
+    for (const row of errors) {
+        row.archiveDirectory = archiveDirectory;
+        if (row.details?.traceRelativePath) row.tracePath = join(archiveDirectory, row.details.traceRelativePath);
+        if (row.details?.rawCacheRelativePath) row.rawCachePath = join(archiveDirectory, row.details.rawCacheRelativePath);
+        if (row.details?.domRelativePath) row.domPath = join(archiveDirectory, row.details.domRelativePath);
+        row.updatedAt = now;
+    }
+    // Refresh all affected records atomically with one index write.
+    if (errors.length) {
+        payload.updatedAt = now;
+        writeIndex(indexPath, payload);
     }
     return errors.length;
 }

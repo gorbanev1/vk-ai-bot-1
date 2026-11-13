@@ -1,5 +1,7 @@
 /** V188.141. Observe the NATIVE finite pass; never scroll for diagnostics. */
 import fs from 'node:fs/promises';
+import { isMainThread } from 'node:worker_threads';
+import { runParserWorkTask } from './parserWorkAsync.js';
 import { createHash, randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { readVkBrowserDom } from './vkDomFixtureCapture.js';
@@ -145,32 +147,41 @@ export function createVkFinalDomCapture({ runDirectory, runId, onPersist = null 
         }));
         return { saved: true, sourceId: key, directory, ...item };
     }
-    async function capture({ page, sourceId, direction, sourceKind, preparation }) {
+    async function capture({ page, sourceId, direction, sourceKind, preparation, snapshot: parserSnapshot = null, checkpointItemsOverride = null, parserInputIdenticalOverride = null }) {
         if (!sourceId || !['up', 'down'].includes(direction)) {
             throw new Error('Final VK DOM: sourceId and pagination direction required');
         }
         const key = String(sourceId);
         if (saved.has(key)) return saved.get(key);
         const work = (async () => {
-            if (page?.isClosed?.()) throw new Error('Final VK DOM: source page was closed');
-            const snapshot = await readVkBrowserDom(page, { includeStructure: true });
+            if (!parserSnapshot && page?.isClosed?.()) throw new Error('Final VK DOM: source page was closed');
+            const snapshot = parserSnapshot || await readVkBrowserDom(page, { includeStructure: true });
             if (!/^<html(?:\s|>)/iu.test(snapshot.html || '')) {
                 throw new Error('Final VK DOM: invalid raw documentElement.outerHTML');
+            }
+            if (isMainThread) {
+                const result = await runParserWorkTask('final-dom', {
+                    runDirectory, runId, snapshot, sourceId: key, sourceKind, direction, preparation,
+                    checkpointItemsOverride: checkpoints.get(key)?.items || [],
+                    parserInputIdenticalOverride: Boolean(parserSnapshot),
+                });
+                onPersist?.(result);
+                return result;
             }
             const dir = sourceDirectory(key);
             await fs.mkdir(dir, { recursive: true });
             const html = Buffer.from(snapshot.html, 'utf8');
             const htmlSha256 = hash(html);
-            const checkpointItems = checkpoints.get(key)?.items || [];
+            const checkpointItems = checkpointItemsOverride || checkpoints.get(key)?.items || [];
             const metadata = { schemaVersion: 1, kind: 'one-final-dom-after-pagination',
                 runId, sourceId: key, sourceKind, paginationDirection: direction,
                 capturedAt: snapshot.capturedAt, htmlBytes: html.byteLength, htmlSha256,
                 state: snapshot.state, preparation, parserResultIncluded: false,
                 expectedAnnouncementsVerified: false, allHistoryGuaranteed: false,
                 checkpointCount: checkpointItems.length,
-                capturePolicy: 'native-scroll-only; intermediate checkpoints from in-memory parser HTML; final DOM is authoritative' };
+                parserInputIdentical: parserInputIdenticalOverride ?? Boolean(parserSnapshot),
+                capturePolicy: 'native-scroll-only; one final DOM; intermediate parser observations stay in memory' };
             await atomicWrite(join(dir, 'dom.raw.html'), html);
-            await atomicWrite(join(dir, 'latest.dom.raw.html'), html);
             await atomicWrite(join(dir, 'page-state.json'), json(metadata));
             await atomicWrite(join(dir, 'dom.structure.json'), json({ ...snapshot.structure,
                 canonicalInput: 'dom.raw.html', rawDomSha256: htmlSha256, sourceId: key }));
@@ -192,7 +203,7 @@ export function createVkFinalDomCapture({ runDirectory, runId, onPersist = null 
                 fullDomSnapshotsDuringPagination: checkpointItems.length, finalFullDomSnapshots: 1,
                 checkpoints: checkpointItems.map(({ number, file, htmlBytes, htmlSha256 }) =>
                     ({ number, file, htmlBytes, htmlSha256 })),
-                files: ['dom.raw.html', 'latest.dom.raw.html', 'page-state.json', 'dom.structure.json',
+                files: ['dom.raw.html', 'page-state.json', 'dom.structure.json',
                     'resources.json', 'pagination-progress.json', 'PROMPT_FOR_DOM_AUDIT_RU.txt'] }));
             const result = { sourceId: key, directory: dir, htmlBytes: html.byteLength,
                 htmlSha256, preparationStatus: preparation?.status || 'unknown',

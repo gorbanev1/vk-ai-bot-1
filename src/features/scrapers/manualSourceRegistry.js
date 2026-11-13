@@ -62,7 +62,7 @@ function buildTelegramDescriptor(source, initialCount = 20) {
         id: `tg:${channel}`,
         label: `Telegram @${channel}`,
         url: `https://t.me/s/${channel}`,
-        initialCount: clampInteger(initialCount, 1, 20, 20),
+        initialCount: clampInteger(initialCount, 1, channel === 'nnrravew' ? 35 : 20, 20),
     };
 }
 
@@ -229,7 +229,7 @@ export function mergeSourceConfigurations(base = [], extras = []) {
         seen.add(key);
         result.push({
             source,
-            initialCount: clampInteger(configuration?.initialCount, 1, 20, 20),
+            initialCount: clampInteger(configuration?.initialCount, 1, source.toLowerCase() === 'nnrravew' ? 35 : 20, 20),
         });
     }
 

@@ -43,7 +43,7 @@ test('request-local timeout and stream idle watchdog failures retry then advance
     assert.equal(isTechnicalModelFailure(Object.assign(new Error('operation deadline exceeded'), { code: 'OPERATION_TIMEOUT' })), false);
 
     const calls = [];
-    const candidates = [candidate, { ...candidate, model: 'gpt-5.5', mode: 'gpt55' }];
+    const candidates = [candidate, { ...candidate, model: 'gpt-6.1-sol', mode: 'pro3' }];
     const result = await executeRuntimeModelFailover({
         candidates,
         failuresBeforeQuarantine: 3,
@@ -60,5 +60,5 @@ test('request-local timeout and stream idle watchdog failures retry then advance
     });
 
     assert.equal(result.value, 'recovered');
-    assert.deepEqual(calls, ['gpt-test', 'gpt-test', 'gpt-test', 'gpt-5.5']);
+    assert.deepEqual(calls, ['gpt-test', 'gpt-test', 'gpt-test', 'gpt-6.1-sol']);
 });

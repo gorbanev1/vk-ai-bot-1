@@ -6,8 +6,12 @@ import {
     TELEGRAM_OWNER_MAIN_MENU,
     buildTelegramMainMenu,
     buildTelegramPartyMenu,
+    buildTelegramQticketsMenu,
+    buildTelegramSecondaryPartyMenu,
     buildTelegramEventOwnerActions,
     createTelegramPhotoAttachment,
+    createTelegramContext,
+    TelegramBotApi,
     fitTelegramCaption,
     isTelegramPhotoAttachment,
     isDirectTelegramImageCommand,
@@ -193,20 +197,20 @@ const partyMenu = resolveTelegramMenuInput(
     TELEGRAM_MENU_BUTTONS.parties,
 );
 assert.equal(partyMenu.type, 'response');
-assert.match(partyMenu.text, /выбери период кнопкой или напиши команду/iu);
-assert.match(partyMenu.text, /22 сентября 2026/iu);
-assert.equal(partyMenu.replyMarkup.keyboard.length >= 7, true);
-assert.equal(partyMenu.replyMarkup.keyboard.flat().some((button) => button.text === TELEGRAM_MENU_BUTTONS.week), true);
-assert.equal(partyMenu.replyMarkup.keyboard.flat().some((button) => button.text === TELEGRAM_MENU_BUTTONS.twoWeeks), true);
-assert.equal(partyMenu.replyMarkup.keyboard.flat().some((button) => button.text === TELEGRAM_MENU_BUTTONS.month), true);
-assert.equal(
-    partyMenu.replyMarkup.keyboard.flat().some((button) => button.text === TELEGRAM_MENU_BUTTONS.back),
-    true,
-);
-assert.equal(
-    partyMenu.replyMarkup.keyboard.flat().some((button) => button.text === TELEGRAM_MENU_BUTTONS.hideKeyboard),
-    true,
-);
+assert.equal(partyMenu.text, 'Раздел «Тусы» открыт.');
+assert.equal(partyMenu.replyMarkup.keyboard.length > 0, true);
+assert.match(partyMenu.followUp.text, /выбери период кнопкой или напиши команду/iu);
+assert.deepEqual(partyMenu.followUp.replyMarkup.inline_keyboard, [
+    [{ text: TELEGRAM_MENU_BUTTONS.primaryToday, callback_data: 'party_quick:primary:today' }],
+    [{ text: TELEGRAM_MENU_BUTTONS.secondaryToday, callback_data: 'party_quick:secondary:today' }],
+    [{ text: TELEGRAM_MENU_BUTTONS.allToday, callback_data: 'party_quick:all:today' }],
+    [{ text: TELEGRAM_MENU_BUTTONS.qticketsToday, callback_data: 'party_quick:qtickets:today' }],
+    [{ text: TELEGRAM_MENU_BUTTONS.primaryTomorrow, callback_data: 'party_quick:primary:tomorrow' }],
+    [{ text: TELEGRAM_MENU_BUTTONS.secondaryTomorrow, callback_data: 'party_quick:secondary:tomorrow' }],
+    [{ text: TELEGRAM_MENU_BUTTONS.allTomorrow, callback_data: 'party_quick:all:tomorrow' }],
+    [{ text: TELEGRAM_MENU_BUTTONS.primaryUntilWeekEnd, callback_data: 'party_quick:primary:until-week-end' }],
+    [{ text: TELEGRAM_MENU_BUTTONS.allUntilWeekEnd, callback_data: 'party_quick:all:until-week-end' }],
+]);
 
 const ownerPartyMenu = resolveTelegramMenuInput(
     TELEGRAM_MENU_BUTTONS.parties,
@@ -214,8 +218,8 @@ const ownerPartyMenu = resolveTelegramMenuInput(
     { isOwner: true },
 );
 assert.equal(
-    ownerPartyMenu.replyMarkup.keyboard.flat().some((button) => button.text === TELEGRAM_MENU_BUTTONS.addSource),
-    true,
+    Array.isArray(ownerPartyMenu.replyMarkup.inline_keyboard),
+    false,
 );
 assert.equal(
     buildTelegramPartyMenu({ isOwner: false }).keyboard.flat().some((button) => button.text === TELEGRAM_MENU_BUTTONS.addSource),
@@ -244,15 +248,75 @@ assert.match(deniedAddSourceButton.text, /только владелец/u);
 
 const partyMenuButtons = buildTelegramPartyMenu().keyboard.flat().map((button) => button.text);
 assert.equal(partyMenuButtons.some((button) => /ближайшие дни/iu.test(button)), false);
-assert.match(resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.parties).text, /тусы на эту неделю/iu);
-assert.match(resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.secondaryParties).text, /второстепенные тусы/iu);
-assert.match(resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.qtickets).text, /qtickets события на эту неделю/iu);
-const partyMenuRows = buildTelegramPartyMenu().keyboard.map((row) => row.map((button) => button.text));
-assert.deepEqual(partyMenuRows.slice(2, 5), [
-    [TELEGRAM_MENU_BUTTONS.secondaryParties],
-    [TELEGRAM_MENU_BUTTONS.qtickets],
-    [TELEGRAM_MENU_BUTTONS.allPartiesUnified],
+assert.match(resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.parties).followUp.text, /тусы на эту неделю/iu);
+assert.equal(resolveTelegramMenuInput('тусы').state.menuPath, 'parties');
+assert.equal(resolveTelegramMenuInput('тусы').followUp.replyMarkup.inline_keyboard.length, 9);
+for (const [menuPath, expectedPrefix] of [
+    ['parties', 'тусы '],
+    ['secondary-parties', 'второстепенные / быдлячьи тусы '],
+    ['all-parties', 'вообще все тусы '],
+    ['qtickets', 'qtickets '],
+]) {
+    for (const dateText of ['31 октября', '31.10', '13-15.01']) {
+        const result = resolveTelegramMenuInput(dateText, { menuPath });
+        assert.equal(result.type, 'command', `${menuPath}: ${dateText}`);
+        assert.ok(result.text.startsWith(expectedPrefix), `${menuPath}: ${result.text}`);
+        assert.ok(result.text.includes(dateText), `${menuPath}: ${result.text}`);
+    }
+    const dayOnly = resolveTelegramMenuInput('19', { menuPath });
+    assert.equal(dayOnly.type, 'command');
+    assert.ok(dayOnly.text.includes('19'));
+}
+assert.match(resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.secondaryParties).followUp.text, /второстепенные тусы/iu);
+assert.match(resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.qtickets).followUp.text, /qtickets события на эту неделю/iu);
+const secondaryInline = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.secondaryParties).followUp.replyMarkup.inline_keyboard;
+assert.deepEqual(secondaryInline.map(row => row.map(button => button.text)), [
+    ['☀️ Сегодня'],
+    ['🌅 Завтра'],
+    ['📅 На этой неделе'],
+    ['🗓 На две недели вперёд'],
+    ['📆 В этом месяце'],
+    ['♾ Все'],
 ]);
+const qticketsInline = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.qtickets).followUp.replyMarkup.inline_keyboard;
+assert.deepEqual(qticketsInline.map(row => row.map(button => button.text)), [
+    ['☀️ Сегодня'],
+    ['🌅 Завтра'],
+    ['📅 На этой неделе'],
+    ['🗓 На две недели вперёд'],
+    ['📆 В этом месяце'],
+    ['♾ Все'],
+]);
+const allInline = resolveTelegramMenuInput(TELEGRAM_MENU_BUTTONS.allPartiesUnified).followUp.replyMarkup.inline_keyboard;
+assert.equal(allInline.flat().every(button => button.text.startsWith('🌐')), true);
+assert.deepEqual(allInline.map(row => row.map(button => button.text)), [
+    ['🌐 Сегодня'],
+    ['🌐 Завтра'],
+    ['🌐 На этой неделе'],
+    ['🌐 На две недели вперёд'],
+    ['🌐 В этом месяце'],
+    ['🌐 На месяц вперёд'],
+    ['🌐 Все'],
+]);
+for (const rows of [secondaryInline, qticketsInline, allInline]) {
+    assert.equal(rows.every(row => row.length === 1), true);
+}
+assert.equal(buildTelegramSecondaryPartyMenu().keyboard.flat().some(button => button.text === '☀️ Сегодня'), false);
+assert.equal(buildTelegramQticketsMenu().keyboard.flat().some(button => button.text === '☀️ Сегодня'), false);
+const secondaryKeyboardRows = buildTelegramSecondaryPartyMenu().keyboard.map(row => row.map(button => button.text));
+assert.deepEqual(secondaryKeyboardRows.slice(0, 2), [
+    ['📅 На этой неделе', '📆 На месяц вперёд', '♾ Все'],
+    ['🧾 Кратко'],
+]);
+const partyMenuRows = buildTelegramPartyMenu().keyboard.map((row) => row.map((button) => button.text));
+assert.deepEqual(partyMenuRows.slice(2, 4), [
+    [TELEGRAM_MENU_BUTTONS.secondaryParties],
+    [TELEGRAM_MENU_BUTTONS.allPartiesUnified, TELEGRAM_MENU_BUTTONS.qtickets],
+]);
+assert.equal(partyMenuRows.flat().includes(TELEGRAM_MENU_BUTTONS.primaryToday), false);
+assert.equal(partyMenuRows.flat().includes(TELEGRAM_MENU_BUTTONS.primaryTomorrow), false);
+assert.equal(partyMenuRows.flat().includes(TELEGRAM_MENU_BUTTONS.allToday), false);
+assert.equal(partyMenuRows.flat().includes(TELEGRAM_MENU_BUTTONS.allTomorrow), false);
 
 const allParties = resolveTelegramMenuInput(
     TELEGRAM_MENU_BUTTONS.allParties,
@@ -371,7 +435,7 @@ assert.equal(explicitHelpLeavesImageMode.text, 'помощь');
 assert.equal(explicitHelpLeavesImageMode.state.pendingAction, '');
 
 const fittedCaption = fitTelegramCaption('абзац\n\n' + 'а'.repeat(2000));
-assert.ok(fittedCaption.length <= 1024);
+assert.ok(fittedCaption.length <= 1000);
 assert.match(fittedCaption, /…$/u);
 
 const chunks = splitTelegramText('а'.repeat(5000), 4096);
@@ -384,6 +448,71 @@ const attachment = createTelegramPhotoAttachment({
     mimeType: 'image/png',
 });
 assert.equal(isTelegramPhotoAttachment(attachment), true);
+
+const telegramSends = [];
+const htmlContext = createTelegramContext({
+    api: {
+        async sendChatAction() {},
+        async sendMessage(payload) { telegramSends.push({ method: 'message', payload }); return { message_id: 701 }; },
+        async sendPhoto(payload) { telegramSends.push({ method: 'photo', payload }); return { message_id: 702 }; },
+    },
+    message: { chat: { id: 701, type: 'private' }, from: { id: 701 }, message_id: 700, text: 'карточка' },
+    menuState: {},
+    botUser: { id: 799, username: 'Gigorave_bot' },
+    resolvePeerId: () => 701,
+    resolveUserId: () => 701,
+    ownerUserId: '701',
+});
+const linkedVenueHtml = '📍 <a href="https://t.me/rb_diesel">Diesel Hall</a>, <a href="https://yandex.ru/maps/?text=venue">ул. Генерала Лизюкова, 4</a>';
+await htmlContext.send({ message: '📍 Diesel Hall, ул. Генерала Лизюкова, 4', html: linkedVenueHtml });
+assert.equal(telegramSends[0].payload.text, linkedVenueHtml);
+assert.equal(telegramSends[0].payload.parseMode, 'HTML');
+await htmlContext.send({
+    message: '📍 Diesel Hall, ул. Генерала Лизюкова, 4',
+    html: linkedVenueHtml,
+    htmlCaption: linkedVenueHtml,
+    attachment,
+    singleMediaMessage: true,
+});
+assert.equal(telegramSends[1].method, 'photo');
+assert.equal(telegramSends[1].payload.caption, linkedVenueHtml);
+assert.equal(telegramSends[1].payload.captionParseMode, 'HTML');
+
+const completeCard = 'Точный анонс. '.repeat(200) + 'КОНЕЦ ОРИГИНАЛА';
+const completeHtml = linkedVenueHtml + '\n\n' + completeCard;
+const cardButtons = { inline_keyboard: [[{ text: 'Напомнить', callback_data: 'event_remind:manual:1' }]] };
+await htmlContext.send({ message: '📍 Diesel Hall, ул. Генерала Лизюкова, 4\n\n' + completeCard, html: completeHtml,
+    htmlCaption: linkedVenueHtml + '…', attachment, singleMediaMessage: true, replyMarkup: cardButtons });
+assert.equal(telegramSends[2].method, 'photo');
+assert.ok(telegramSends[2].payload.caption.length > 0);
+assert.ok(telegramSends[2].payload.caption.length <= 1000);
+assert.equal(telegramSends[2].payload.captionParseMode, 'HTML');
+assert.deepEqual(telegramSends[2].payload.replyMarkup, cardButtons);
+assert.equal(telegramSends.length, 4);
+assert.equal(telegramSends[3].method, 'message');
+assert.equal(telegramSends[3].payload.parseMode, 'HTML');
+assert.equal(telegramSends[3].payload.text, completeHtml);
+assert.deepEqual(telegramSends[3].payload.replyMarkup, cardButtons);
+
+const originalFetch = globalThis.fetch;
+const originalTelegramApiBase = process.env.TELEGRAM_BOT_API_BASE_URL;
+const telegramApiBodies = [];
+process.env.TELEGRAM_BOT_API_BASE_URL = 'https://telegram-api.test';
+globalThis.fetch = async (_url, options) => {
+    telegramApiBodies.push(options.body);
+    return new Response(JSON.stringify({ ok: true, result: { message_id: 703 } }), { status: 200 });
+};
+try {
+    const api = new TelegramBotApi('test-token');
+    await api.sendMessage({ chatId: 701, text: linkedVenueHtml, parseMode: 'HTML' });
+    assert.equal(JSON.parse(telegramApiBodies[0]).parse_mode, 'HTML');
+    await api.sendPhoto({ chatId: 701, photo: attachment, caption: linkedVenueHtml, captionParseMode: 'HTML' });
+    assert.equal(telegramApiBodies[1].get('parse_mode'), 'HTML');
+} finally {
+    globalThis.fetch = originalFetch;
+    if (originalTelegramApiBase === undefined) delete process.env.TELEGRAM_BOT_API_BASE_URL;
+    else process.env.TELEGRAM_BOT_API_BASE_URL = originalTelegramApiBase;
+}
 
 const suffix = `${Date.now()}-${Math.random()}`;
 const userOne = getOrCreatePlatformIdentity({

@@ -5,6 +5,7 @@ function compactText(value) {
 }
 
 const EXPLICIT_IMAGE_PATTERNS = Object.freeze([
+    /(?:^|\\s)(?:что\\s+(?:на|значит|означает)\\s+(?:этом\\s+|этот\\s+)?стикер(?:е)?|(?:опиши|объясни|разбери|прочитай)\\s+(?:этот\\s+)?стикер)(?:$|[\\s?!.,:;])/iu,
     /(?:^|\s)(?:что\s+на\s+(?:картинк(?:е|у)|фото|изображени(?:и|е)))(?:$|[\s?!.,:;])/iu,
     /(?:^|\s)(?:что\s+изображен(?:о|а))(?:$|[\s?!.,:;])/iu,
     /(?:^|\s)(?:что\s+тут\s+изображен(?:о|а))(?:$|[\s?!.,:;])/iu,
@@ -33,6 +34,14 @@ export function isImageInspectionRequest(value) {
     ].some((pattern) => pattern.test(text));
 }
 
+/** Requests about an attached/replied image may not say «фото» explicitly.
+ * Only route these when real image evidence exists; never force text chat into Vision.
+ */
+export function isContextualImageInspectionRequest(value) {
+    const text = compactText(value);
+    return /(?:^|[\s,.:;!?])(?:разберись|разбер(?:и|ите)|посмотри|глянь|оцени|объясни\s+что|поясни\s+что|ч[еёо]\s+за\s+(?:хуйня|фигня|штука))(?:$|[\s,.:;!?])/iu.test(text);
+}
+
 export function buildVisionTaskDescriptor(value) {
     const text = compactText(value);
     const explicitImageLanguage = EXPLICIT_IMAGE_PATTERNS.some(
@@ -59,8 +68,6 @@ export const VISION_MODEL_MODE_ORDER = Object.freeze([
 ]);
 
 const LEGACY_VISION_MODE_ALIASES = Object.freeze({
-    gpt54: 'default',
-    gpt55: 'pro3',
     pro: 'default',
     pro1: 'default',
     pro2: 'pro3',

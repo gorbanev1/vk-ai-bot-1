@@ -1,51 +1,18 @@
 export function isPrashnaAllowedForPlatform(platform = 'vk') {
-    return String(platform ?? 'vk').toLowerCase() !== 'telegram';
+    return ['vk','telegram'].includes(String(platform ?? 'vk').toLowerCase());
 }
 
-export function getAstrologyHelpLines({ platform = 'vk', isPrivate = false } = {}) {
-    const telegram = String(platform ?? 'vk').toLowerCase() === 'telegram';
-
-    if (telegram) {
-        return isPrivate
-            ? [
-                '',
-                'ДЖЙОТИШ-НАТАЛ',
-                '• натал <дата, точное время, место рождения и вопрос> — всегда развёрнутый ответ.',
-                '• mini/gpt54/gpt55 используют максимальный локальный расчёт; pro/pro2/pro3 без локального ключа считают внутри модели.',
-                '• «локалэфемериды», «локал» или «расчёт локально» включают максимальный локальный пакет; «нелокал» отключает локальный расчёт.',
-                '• Для локального натала место рождения обязательно.',
-            ]
-            : [
-                '',
-                'ДЖЙОТИШ-НАТАЛ',
-                '• Гигорейв натал <дата, точное время, место рождения и вопрос> — ответ всегда развёрнутый при любой модели.',
-                '• mini, gpt54 и gpt55 по умолчанию получают максимальный локальный пакет; pro/pro2/pro3 без специального ключа считают карту самостоятельно.',
-                '• Ключ «локалэфемериды», «локал» или «расчёт локально» включает максимальный локальный пакет; «нелокал» отключает локальный расчёт.',
-            ];
-    }
-
-    return isPrivate
-        ? [
-            '',
-            'ДЖЙОТИШ-ПРАШНА И НАТАЛ',
-            '• mini/gpt54/gpt55: максимальный локальный расчёт Swiss Ephemeris/Moshier и максимальный пакет.',
-            '• pro/pro2/pro3 без локального ключа считают внутри модели; с ключом «локалэфемериды», «локал» или «расчёт локально» получают максимальный локальный пакет.',
-            '• прашна <город и вопрос> — краткий ответ; «подробно» или pro/pro2/pro3 включают полный технический разбор.',
-            '• натал <дата, точное время, место рождения и вопрос> — всегда развёрнутый ответ.',
-            '• «нелокал» принудительно отключает локальный расчёт также для лёгких моделей.',
-            '• Если город прашны не найден, используется Воронеж; для локального натала место рождения обязательно.',
-        ]
-        : [
-            '',
-            'ДЖЙОТИШ-ПРАШНА И НАТАЛ',
-            '• mini, gpt54 и gpt55 по умолчанию получают максимальный локальный пакет со всеми рассчитанными полями.',
-            '• pro, pro2 и pro3 без специального ключа считают карту самостоятельно. Ключ «локалэфемериды», «локал» или «расчёт локально» принудительно включает тот же максимальный локальный пакет.',
-            '• Гигорейв прашна <город и вопрос> — обычный краткий ответ; добавьте «подробно» или выберите pro/pro2/pro3 для полного технического разбора.',
-            '• Гигорейв натал <дата, точное время, место рождения и вопрос> — ответ всегда развёрнутый при любой модели.',
-            '• Ключ «нелокал» принудительно отключает локальный расчёт для любой модели.',
-        ];
+export function getAstrologyHelpLines({platform='vk',isPrivate=false}={}) {
+    const telegram=String(platform).toLowerCase()==='telegram';
+    const lines=['',telegram?'НАТАЛ · ЛОКАЛЬНЫЙ РАСЧЁТ':'НАТАЛ И ПРАШНА · ЛОКАЛЬНЫЙ РАСЧЁТ',
+        '• Swiss Ephemeris рассчитывает положения планет и дома локально на сервере; GPT-6 Luna — базовая модель для интерпретации.',
+        '• Натал: дата, время и место рождения. «локалэфемериды» — расширенный пакет расчёта; «нелокал» не отключает обязательный расчёт.',
+        '• Отдельно рассчитываются 16 классических варг, семь Бхинна-аштакаварг и Сарваштакаварга (337 бинду), карты от Луны и Солнца и гармоники D1–D60. Полная Шадбала ещё не реализована.',
+    ];
+    if(!telegram)lines.push('• Прашна: «прашна Воронеж — <вопрос>»; можно добавить «подробно».');
+    if(isPrivate)lines.push('• Чем точнее время и место рождения, тем точнее исходные данные карты.');
+    return lines;
 }
-
 export function resolveHelpContextProfile({
     platform = 'vk',
     isPrivate = false,
@@ -63,7 +30,7 @@ export function resolveHelpContextProfile({
             private: true,
             owner: true,
             imageLimit: null,
-            prashnaEnabled: !telegram,
+            prashnaEnabled: true,
             imageLimitText: 'GPT image-2: для владельца дневной лимит отключён.',
         };
     }
@@ -76,7 +43,7 @@ export function resolveHelpContextProfile({
             private: true,
             owner: false,
             imageLimit: telegramImageLimit,
-            prashnaEnabled: false,
+            prashnaEnabled: true,
             imageLimitText: `GPT image-2: ${telegramImageLimit} изображения в сутки на пользователя Telegram; общий счётчик для ЛС и Telegram-групп.`,
         };
     }
@@ -94,6 +61,19 @@ export function resolveHelpContextProfile({
         };
     }
 
+    if (isOwner && !isPrivate) {
+        return {
+            id: telegram ? 'telegram-owner-chat' : 'vk-owner-chat',
+            title: telegram ? '📖 СПРАВКА ВЛАДЕЛЬЦА · TELEGRAM-ГРУППА' : '📖 СПРАВКА ВЛАДЕЛЬЦА · VK-КОНФА',
+            telegram,
+            private: false,
+            owner: true,
+            imageLimit: null,
+            prashnaEnabled: true,
+            imageLimitText: 'GPT image-2: владельцу лимит не применяется.',
+        };
+    }
+
     if (telegram) {
         return {
             id: 'telegram-chat',
@@ -102,7 +82,7 @@ export function resolveHelpContextProfile({
             private: false,
             owner: false,
             imageLimit: telegramImageLimit,
-            prashnaEnabled: false,
+            prashnaEnabled: true,
             imageLimitText: `GPT image-2: ${telegramImageLimit} изображения в сутки на пользователя Telegram; тот же счётчик используется в Telegram ЛС.`,
         };
     }

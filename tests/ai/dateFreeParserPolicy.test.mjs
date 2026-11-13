@@ -2,16 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createDateFreeParserPolicy, createParserAttemptPacer } from '../../src/features/ai/dateFreeParserPolicy.js';
 
-test('four Luna failures allow a successful Terra attempt', async () => {
+test('GPT-6 Luna gets one attempt, then four legacy Luna failures allow Terra', async () => {
     const policy = createDateFreeParserPolicy();
     for (let i = 0; i < 8; i++) await policy.run('text', async () => 'ok');
     const attempts = [];
     assert.equal(await policy.run('vision', async (model) => {
         attempts.push(model);
-        if (model === 'gpt-5.6-luna') throw new Error('503');
+        if (model === 'gpt-6-luna' || model === 'gpt-5.6-luna') throw new Error('503');
         return 'facts';
     }), 'facts');
-    assert.deepEqual(attempts, [...Array(4).fill('gpt-5.6-luna'), 'gpt-5.6-terra']);
+    assert.deepEqual(attempts, ['gpt-6-luna', ...Array(4).fill('gpt-5.6-luna'), 'gpt-5.6-terra']);
+    assert.equal(policy.snapshot().models['gpt-6-luna'].failures, 1);
     assert.equal(policy.snapshot().models['gpt-5.6-luna'].failures, 4);
 });
 
@@ -23,8 +24,8 @@ test('exhausted juniors try each senior once before a threshold pause', async ()
         models.push(model);
         throw new Error('503');
     }, 'first'), { code: 'DATE_FREE_PHASE_PAUSED' });
-    assert.deepEqual(models, [...Array(4).fill('gpt-5.6-luna'), ...Array(4).fill('gpt-5.6-terra'), 'gpt-6.1-sol', 'gpt-6-astra']);
-    assert.equal(policy.snapshot().lunaFailureRatio, 4 / 12);
+    assert.deepEqual(models, ['gpt-6-luna', ...Array(4).fill('gpt-5.6-luna'), ...Array(4).fill('gpt-5.6-terra'), 'gpt-6.1-sol', 'gpt-6-astra']);
+    assert.equal(policy.snapshot().lunaFailureRatio, 1 / 9);
     assert.equal(policy.snapshot().terraFailureRatio, 1);
     assert.equal(policy.snapshot().stopped, true);
 });
@@ -33,12 +34,12 @@ test('Terra retries when its failure share reaches exactly 50 percent', async ()
     const policy = createDateFreeParserPolicy();
     for (let i = 0; i < 20; i++) await policy.run('text', async () => 'ok');
     await policy.run('text', async model => {
-        if (model === 'gpt-5.6-luna') throw new Error('503');
+        if (model === 'gpt-6-luna' || model === 'gpt-5.6-luna') throw new Error('503');
         return 'ok';
     });
     let terraCalls = 0;
     assert.equal(await policy.run('vision', async model => {
-        if (model === 'gpt-5.6-luna') throw new Error('503');
+        if (model === 'gpt-6-luna' || model === 'gpt-5.6-luna') throw new Error('503');
         if (++terraCalls === 1) throw new Error('503');
         assert.equal(policy.snapshot().terraFailureRatio, 0.5);
         return 'recovered';
@@ -59,7 +60,7 @@ test('threshold pause after failed seniors prevents subsequent paid calls', asyn
     for (let i = 0; i < 8; i++) await terraPolicy.run('text', async () => 'ok');
     await assert.rejects(terraPolicy.run('vision', async model => {
         terraModels.push(model);
-        if (model === 'gpt-5.6-luna') throw new Error('503');
+        if (model === 'gpt-6-luna' || model === 'gpt-5.6-luna') throw new Error('503');
         throw new Error('terra-503');
     }), { code: 'DATE_FREE_PHASE_PAUSED' });
     assert.equal(terraPolicy.snapshot().terraFailureRatio, 1);
@@ -84,7 +85,7 @@ for (const capability of ['text', 'vision']) {
                 throw new Error('503');
             };
             assert.equal(await policy.run(capability, request, 'one'), 'recovered');
-            const expected = [...Array(4).fill('gpt-5.6-luna'), ...Array(4).fill('gpt-5.6-terra'), 'gpt-6.1-sol',
+            const expected = ['gpt-6-luna', ...Array(4).fill('gpt-5.6-luna'), ...Array(4).fill('gpt-5.6-terra'), 'gpt-6.1-sol',
                 ...(successfulSenior === 'gpt-6-astra' ? ['gpt-6-astra'] : [])];
             assert.deepEqual(calls, expected);
             assert.equal(policy.snapshot().stopped, false);
@@ -96,7 +97,7 @@ for (const capability of ['text', 'vision']) {
             assert.equal(policy.snapshot().models[successfulSenior].capabilities[capability].successes, 2);
             const cheap = [];
             assert.equal(await policy.run(capability, async model => { cheap.push(model); return 'cheap'; }, 'three'), 'cheap');
-            assert.deepEqual(cheap, ['gpt-5.6-luna']);
+            assert.deepEqual(cheap, ['gpt-6-luna']);
         });
     }
 }

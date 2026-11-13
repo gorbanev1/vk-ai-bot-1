@@ -210,8 +210,9 @@
   "dependencies": {
     "dotenv": "^17.4.2",
     "gigachat": "^0.0.20",
+    "playwright": "1.62.0",
+    "quickjs-emscripten": "^0.32.0",
     "sweph": "2.10.3-7",
-    "vk-io": "^4.10.1",
-    "playwright": "1.62.0"
+    "vk-io": "^4.10.1"
   }
 }

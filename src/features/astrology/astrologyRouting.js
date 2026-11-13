@@ -94,6 +94,7 @@ export function isProAstrologyMode(mode) {
  * - pro/pro2/pro3/astra are interpreters of the bot-calculated packet, never the
  *   primary ephemeris engine;
  * - an explicit "non-local" phrase cannot bypass the local-first gate;
+ * - explicit-local-maximum is the stable audit marker for the maximum packet;
  * - if local calculation fails, caller may use only the controlled model
  *   fallback that requires a REAL Swiss Ephemeris library execution.
  */

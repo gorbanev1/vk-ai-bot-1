@@ -10,7 +10,7 @@ import {
 
 assert.equal(resolveVisionMode('vision-default'), 'default');
 assert.equal(resolveVisionMode(''), 'default');
-assert.equal(resolveVisionMode('gpt54'), 'default');
+assert.equal(resolveVisionMode('luna'), 'default');
 assert.equal(resolveVisionMode('pro3'), 'pro3');
 assert.deepEqual(getVisionModeChain('vision-default'), [
     'default', 'pro3', 'astra',

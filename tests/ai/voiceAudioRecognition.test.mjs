@@ -1,3 +1,4 @@
+import {isOfflineModelAllowed} from '../../src/features/ai/offlineModelReliability.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
@@ -82,9 +83,10 @@ test('STT configuration uses separate GPT audio models and numbered keys without
     });
     assert.deepEqual(providers.map(row => row.name), ['AUDIO_TRANSCRIPTION_API_KEY', 'OPENAI_API_KEY_1', 'GROQ_API_KEY', 'OPENAI_COMPAT_API_KEY', 'OPENAI_COMPAT_API_KEY_2']);
     assert.equal(providers[0].baseUrl, 'https://dedicated.test/v1');
-    assert.deepEqual(providers[0].models, ['gpt-transcribe']);
-    assert.deepEqual(providers[2].models, ['whisper-large-v3-turbo', 'whisper-large-v3']);
-    assert.deepEqual(providers[3].models, ['gpt-4o-transcribe', 'gpt-4o-mini-transcribe']);
+    const verified=(provider,envName,models)=>models.filter(model=>isOfflineModelAllowed({provider,envName,model,capability:'audio-transcription'}));
+    assert.deepEqual(providers[0].models, verified('audio','AUDIO_TRANSCRIPTION_API_KEY',['gpt-transcribe']));
+    assert.deepEqual(providers[2].models, verified('groq','GROQ_API_KEY',['whisper-large-v3-turbo','whisper-large-v3']));
+    assert.deepEqual(providers[3].models, verified('openai-compatible','OPENAI_COMPAT_API_KEY',['gpt-4o-transcribe','gpt-4o-mini-transcribe']));
     assert.equal(providers[4].baseUrl, 'https://second.test/v1');
     assert.equal(providers.some(row => row.models.some(model => /gemini|claude|gpt-5\.6-luna/u.test(model))), false);
 });

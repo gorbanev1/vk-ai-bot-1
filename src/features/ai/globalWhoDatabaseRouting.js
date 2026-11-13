@@ -9,6 +9,10 @@ const GLOBAL_TOPIC = /^(?:что\s+(?:говорили|писали|обсужд
 const CONVERSATION_ANALYSIS = /(?:проанализ(?:ируй|ировать)|разбери|изучи|посмотри|исследуй|что\s+обсуждал[иа]?|что\s+писал[иа]?|что\s+говорил[иа]?|найди).*(?:переписк|чат|конф|бесед|сообщени)/iu;
 const CONVERSATION_REFERENCE = /(?:переписк|чат|конф|бесед|сообщени)/iu;
 const GLOBAL_SCOPE_MARKER = /(?:по\s+всей\s+базе|во\s+всех\s+(?:чатах|беседах|конфах)|по\s+всем\s+(?:чатам|беседам|конфам)|вс(?:я|ю)\s+баз(?:а|у)\s+сообщений)/iu;
+// Capture explicitly listed alternatives even if the user says "incidents
+// involving X or Y" instead of "about X or Y".
+const EXPLICIT_ALTERNATIVES = /(?:^|[\s,;])([\p{L}\p{N}_-]+(?:\s+(?:\u0438\u043b\u0438|\u043b\u0438\u0431\u043e|\u0438)\s+[\p{L}\p{N}_-]+)+)(?=\s*(?:[?!.]|$|\s+(?:\u0432|\u0437\u0430)\s+\d{4}))/iu;
+const TRAILING_PERSON_TARGET = /(?:^|[\s,;])(?:\u0441|\u0441\u043e|\u0443|\u043e|\u043e\u0431)\s+([\p{L}\p{N}_-]{4,})(?=\s*[?!.]*$)/iu;
 const FOCUS_MARKER = /(?:^|\s)(?:про|о|об|насч[её]т|по\s+теме)\s+(.+?)\s*[?!.]*$/iu;
 
 const QUERY_STOP_WORDS = new Set([
@@ -56,6 +60,19 @@ function expandSearchToken(value) {
         const stem = token.replace(/(?:ться|тись|ть|ти)$/iu, '');
         if (stem.length >= 4 && stem !== token) variants.push(stem);
     }
+    // Inflected personal names such as Vladislavom -> Vladislav must match the
+    // same archived messages as the nominative spelling.
+    if (/^[\p{L}\p{N}_]{7,}$/u.test(token)) {
+        const nameStem = token.replace(/(?:\u0430\u043c\u0438|\u044f\u043c\u0438|\u043e\u043c|\u0435\u043c|\u0430|\u044f|\u0443|\u044e|\u0435|\u0438|\u044b)$/iu, '');
+        if (nameStem.length >= 6 && nameStem !== token) variants.push(nameStem);
+    }
+    // Both variants of the chat nickname are common: Владислейв / Владислэйв.
+    for (const item of [...variants]) {
+        if (/\u0432\u043b\u0430\u0434\u0438\u0441\u043b[\u0435\u044d]\u0439\u0432/iu.test(item)) {
+            variants.push(item.replace(/\u0435(?=\u0439\u0432)/iu, '\u044d'));
+            variants.push(item.replace(/\u044d(?=\u0439\u0432)/iu, '\u0435'));
+        }
+    }
     return uniqueTerms(variants);
 }
 
@@ -67,6 +84,17 @@ function buildFocusedSearchTerms(value) {
         .filter((token) => token.length >= 3)
         .filter((token) => !QUERY_STOP_WORDS.has(token.toLocaleLowerCase('ru-RU')));
     return uniqueTerms([full, ...tokens.flatMap(expandSearchToken)]).slice(0, 10);
+}
+
+// A disjunction is a set of separate search queries (OR), never a request to
+// load all archived messages or to search for the words "or"/"или".
+function buildAlternativeSearchTerms(value) {
+    const candidates = cleanTerm(value)
+        .split(/\s+(?:\u0438\u043b\u0438|\u043b\u0438\u0431\u043e|\u0438)\s+/iu)
+        .map((part) => part.replace(/[^\p{L}\p{N}_-]+/gu, '').trim())
+        .filter((part) => part.length >= 4)
+        .filter((part) => !QUERY_STOP_WORDS.has(part.toLocaleLowerCase('ru-RU')));
+    return uniqueTerms(candidates.flatMap(expandSearchToken)).slice(0, 24);
 }
 
 function buildClauseSearchTerms(value) {
@@ -169,14 +197,18 @@ export function parseDatabaseMessageRetrievalQuery(value) {
     }
 
     if (CONVERSATION_REFERENCE.test(text) && CONVERSATION_ANALYSIS.test(text)) {
-        const focus = cleanTerm(text.match(FOCUS_MARKER)?.[1] || '');
+        const alternatives = cleanTerm(text.match(EXPLICIT_ALTERNATIVES)?.[1] || '');
+        const focus = cleanTerm(alternatives ||
+            text.match(FOCUS_MARKER)?.[1] ||
+            text.match(TRAILING_PERSON_TARGET)?.[1] || '');
         const scope = GLOBAL_SCOPE_MARKER.test(text) ? 'global' : 'current-peer';
         return {
             matched: true,
             kind: 'conversation-analysis',
             scope,
             term: focus,
-            searchTerms: focus ? buildFocusedSearchTerms(focus) : [],
+            searchTerms: alternatives ? buildAlternativeSearchTerms(alternatives)
+                : (focus ? buildFocusedSearchTerms(focus) : []),
         };
     }
 

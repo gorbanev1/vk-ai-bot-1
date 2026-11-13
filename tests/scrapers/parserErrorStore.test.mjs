@@ -58,3 +58,77 @@ test('parser item failures retain complete DOM, raw cache, trace, and retry hist
         rmSync(dataDirectory, { recursive: true, force: true });
     }
 });
+
+
+test('successful parser runs keep their forensic files without a duplicate error archive', () => {
+    const dataDirectory = mkdtempSync(join(tmpdir(), 'parser-success-store-'));
+    try {
+        const diagnostics = createManualParserDiagnostics({ dataDirectory, label: 'parser-all-clean' });
+        const cachePath = diagnostics.cacheSource({ sourceId: 'vk:venue', kind: 'vk-public', items: [{ postId: 1 }] });
+        diagnostics.finish({ failed: 0 });
+        assert.ok(existsSync(cachePath));
+        assert.match(readFileSync(diagnostics.logPath, 'utf8'), /run.finish/);
+        assert.equal(existsSync(join(dataDirectory, 'parser-error-archives', diagnostics.runId)), false);
+        assert.deepEqual(listParserErrors({ dataDirectory }), []);
+    } finally { rmSync(dataDirectory, { recursive: true, force: true }); }
+});
+
+test('an explicitly requested archive is refreshed even without indexed errors', () => {
+    const dataDirectory = mkdtempSync(join(tmpdir(), 'parser-explicit-store-'));
+    try {
+        const diagnostics = createManualParserDiagnostics({ dataDirectory, label: 'parser-all-clean' });
+        const archive = diagnostics.archiveRun({ reason: 'explicit diagnostic capture' });
+        diagnostics.log('late-evidence', { kept: true });
+        diagnostics.finish({ failed: 0 });
+        const trace = readFileSync(join(archive, basename(diagnostics.logPath)), 'utf8');
+        assert.match(trace, /late-evidence/);
+        assert.match(trace, /run.finish/);
+    } finally { rmSync(dataDirectory, { recursive: true, force: true }); }
+});
+
+test('final refresh updates all run errors in one index write and preserves other runs and retry history', async () => {
+    const { default: fs } = await import('node:fs');
+    const { syncBuiltinESMExports } = await import('node:module');
+    const { recordParserError, refreshParserErrorEvidence } = await import('../../src/features/scrapers/parserErrorStore.js');
+    const dataDirectory = mkdtempSync(join(tmpdir(), 'parser-batch-store-'));
+    const originalRead = fs.readFileSync, originalWrite = fs.writeFileSync;
+    try {
+        const runDirectory = join(dataDirectory, 'run');
+        fs.mkdirSync(runDirectory);
+        fs.writeFileSync(join(runDirectory, 'trace.jsonl'), 'initial');
+        const records = [];
+        for (let i = 0; i < 4; i++) records.push(recordParserError({
+            dataDirectory, runDirectory, runId: 'batch-run', sourceId: 'vk:venue', itemId: String(i),
+            details: { traceRelativePath: 'trace.jsonl' }, status: i === 0 ? 'resolved' : 'open',
+        }));
+        const unrelated = recordParserError({ dataDirectory, runId: 'other-run', sourceId: 'vk:other', itemId: '0' });
+        updateParserError(dataDirectory, records[1].id, { replayAttempt: { ok: false, reason: 'previous retry' } });
+        fs.writeFileSync(join(runDirectory, 'trace.jsonl'), 'final evidence');
+        const indexPath = join(dataDirectory, 'parser-error-archives', 'errors.json');
+        let reads = 0, writes = 0;
+        fs.readFileSync = function(file, ...args) {
+            if (String(file) === indexPath) reads++;
+            return originalRead.call(this, file, ...args);
+        };
+        fs.writeFileSync = function(file, ...args) {
+            if (String(file).startsWith(indexPath + '.tmp-')) writes++;
+            return originalWrite.call(this, file, ...args);
+        };
+        syncBuiltinESMExports();
+        assert.equal(refreshParserErrorEvidence({ dataDirectory, runDirectory, runId: 'batch-run' }), 4);
+        assert.equal(reads, 1); assert.equal(writes, 1);
+        fs.readFileSync = originalRead; fs.writeFileSync = originalWrite; syncBuiltinESMExports();
+        const all = listParserErrors({ dataDirectory, includeResolved: true });
+        assert.deepEqual(all.find(row => row.id === unrelated.id), unrelated);
+        for (const record of records) {
+            const current = all.find(row => row.id === record.id);
+            assert.equal(readFileSync(current.tracePath, 'utf8'), 'final evidence');
+            assert.equal(current.status, record.status);
+            assert.equal(current.originalRunId, record.originalRunId);
+        }
+        assert.equal(all.find(row => row.id === records[1].id).replayAttempts.length, 1);
+    } finally {
+        fs.readFileSync = originalRead; fs.writeFileSync = originalWrite; syncBuiltinESMExports();
+        rmSync(dataDirectory, { recursive: true, force: true });
+    }
+});

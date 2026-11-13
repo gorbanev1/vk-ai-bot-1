@@ -1,9 +1,13 @@
+import {parseContextAdaptationCommand} from '../personality/contextAdaptation.js';
+import {parseChatModelExperiment} from '../ai/chatModelExperiment.js';
 /**
  * Shared explicit-command detector for platform adapters and the application.
  * It deliberately does not execute anything. Its only job is to answer
  * whether text is an application command that must escape a pending UI mode.
  */
 import { resolveCommandPriority } from './commandPriorityRouting.js';
+import { parseHuinglishCommand } from '../english/huinglishVkLesson.js';
+import { parseEnglishGrammarCommand } from '../english/englishGrammarCourse.js';
 import { parseAutoSummaryCommand } from '../ai/autoSummaryRouting.js';
 import { parseProcessControlCommand } from '../runtime/processControlRouting.js';
 import { parseVkHistoryPullCommand } from '../history/vkHistoryPullPolicy.js';
@@ -62,12 +66,17 @@ export function detectExplicitApplicationCommand(value) {
         return { matched: true, family: 'reminder', route: 'reminder' };
     }
 
+    const adaptation=parseContextAdaptationCommand(text);
+    if(adaptation)return {matched:true,family:'context-adaptation',route:'context-adaptation',parsed:adaptation};
     const route = resolveCommandPriority(text);
     if (!['default', 'public-events-semantic'].includes(route.route)) {
         return { matched: true, family: `route:${route.route}`, route: route.route, parsed: route.selected };
     }
 
     const checks = [
+        ['chat-model-experiment', () => parseChatModelExperiment(text), Boolean],
+        ['english-grammar', () => parseEnglishGrammarCommand(text), Boolean],
+        ['huinglish', () => parseHuinglishCommand(text), Boolean],
         ['auto-summary', () => parseAutoSummaryCommand(text), matched],
         ['process-control', () => parseProcessControlCommand(text), matched],
         ['vk-history-pull', () => parseVkHistoryPullCommand(text), matched],

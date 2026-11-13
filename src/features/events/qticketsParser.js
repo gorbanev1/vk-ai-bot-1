@@ -5,6 +5,7 @@
  * селекторы и нормализацию можно проверять на сохранённых HTML-снимках, а
  * браузерный оркестратор остаётся отдельным слоем.
  */
+import { inferEventSearchTags } from './eventSearchTaxonomy.js';
 
 export const QTICKETS_CITY_URL = 'https://voronezh.qtickets.events/';
 export const QTICKETS_SOURCE_TYPE = 'qtickets';
@@ -591,6 +592,7 @@ export function parseQticketsDetailHtml(html, sourceUrl, {
     const imageUrls = authoritativeImage ? [authoritativeImage] : [];
     const ticketUrl = findTicketUrl(html, detailUrl, offers.url);
     const eventType = normalizeWhitespace(jsonLd.genre || extractFirstText(html, 'div', 'type') || fallbackCard?.eventType || '');
+    const eventTags = inferEventSearchTags({ title, description, eventType, venue });
     const eventSourceText = unique([title, dateInfo.label, venue, price, eventType, ageRestriction, description])
         .join('\n')
         .slice(0, 12_000);
@@ -607,6 +609,8 @@ export function parseQticketsDetailHtml(html, sourceUrl, {
         venue: venue.slice(0, 500),
         price: price.slice(0, 240),
         eventType: eventType.slice(0, 160),
+        eventTags,
+        tags: eventTags,
         ageRestriction,
         participants: '',
         description,
@@ -627,6 +631,20 @@ export function mergeQticketsCardAndDetail(card = {}, detail = {}, {
     const ticketUrl = isQticketsListingRoot(ticketUrlCandidate) ? '' : ticketUrlCandidate;
     const eventDate = pick(detail.eventDate, card.eventDate);
     const eventEndDate = pick(detail.eventEndDate, card.eventEndDate, eventDate);
+    const mergedTags = inferEventSearchTags({
+        ...card,
+        ...detail,
+        title: pick(detail.title, card.title),
+        description: pick(detail.description, card.description),
+        venue: pick(detail.venue, card.venue),
+        eventType: pick(detail.eventType, card.eventType),
+        eventTags: [
+            ...(Array.isArray(card.eventTags) ? card.eventTags : []),
+            ...(Array.isArray(card.tags) ? card.tags : []),
+            ...(Array.isArray(detail.eventTags) ? detail.eventTags : []),
+            ...(Array.isArray(detail.tags) ? detail.tags : []),
+        ],
+    });
     return {
         ...card,
         ...detail,
@@ -642,6 +660,8 @@ export function mergeQticketsCardAndDetail(card = {}, detail = {}, {
         participants: pick(detail.participants, card.participants),
         price: pick(detail.price, card.price),
         description: pick(detail.description, card.description),
+        eventTags: mergedTags,
+        tags: mergedTags,
         evidence: pick(detail.evidence, card.sourceText, card.evidence),
         sourceText: pick(detail.sourceText, card.sourceText),
         sourceUrl: detailUrl,

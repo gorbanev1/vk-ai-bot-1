@@ -1,4 +1,7 @@
+import { getSharedEventSchedule, scheduleKey } from './sharedEventSchedule.js';
 import { stripKnownVenueNamesFromEventTitle } from './eventVenueInference.js';
+import { canonicalizeEventVenue } from './eventVenueCatalog.js';
+import { venueComparisonTokens } from './venueNameTokens.js';
 import { eventHasSafePosterMatch, getEventPosterSafetyAssessment } from './eventProvenance.js';
 import { evaluatePosterFactForEvent, scorePosterFactMetadataQuality } from './eventPosterMatching.js';
 import { identityTokens, titleIdentityTokens, transliteratedIdentityTokens, GENERIC_EVENT_WORDS, buildEventTitleContractPrompt } from './eventIdentityTokens.js';
@@ -79,7 +82,7 @@ const MONTHS_RU = new Map([
     ['декабря', 12], ['декабрь', 12],
 ]);
 
-export const EVENT_DEDUPE_ALGORITHM_VERSION = 'event-dedupe-v18899-title-identity-ai-retry-1';
+export const EVENT_DEDUPE_ALGORITHM_VERSION = 'event-dedupe-v20261027-whole-title-numeric-1';
 
 const DAY_MS = 86_400_000;
 const MAX_EXPANDED_RANGE_DAYS = 14;
@@ -183,8 +186,96 @@ function jaccard(leftTokens, rightTokens) {
     return common / (a.size + b.size - common);
 }
 
+// Metadata fallback is deliberately stricter than the normal diagnostic
+// score.  It is used only after the complete AI arbiter has produced no
+// usable answer, so the three fields must independently clear the owner's
+// thresholds and token order contributes to every score.
+function orderedTokenSimilarity(left, right, { venue = false } = {}) {
+    const normalize = (value) => {
+        const raw = clean(value).split(' ').filter((token) => token.length > 1);
+        return raw.map((token) => venue ? canonicalVenueToken(token) : transliterateComparisonToken(token));
+    };
+    const a = normalize(left);
+    const b = normalize(right);
+    if (!a.length || !b.length) return 0;
+    const dp = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+    for (let i = 1; i <= a.length; i += 1) {
+        for (let j = 1; j <= b.length; j += 1) {
+            dp[i][j] = a[i - 1] === b[j - 1]
+                ? dp[i - 1][j - 1] + 1
+                : Math.max(dp[i - 1][j], dp[i][j - 1]);
+        }
+    }
+    const lcs = dp[a.length][b.length];
+    // A descriptive suffix must not destroy an otherwise exact title: use the
+    // shorter token sequence as the recall denominator, then retain an order
+    // penalty for genuinely rearranged words.
+    const sequenceScore = lcs / Math.min(a.length, b.length);
+    const positionalMatches = a.reduce((count, token, index) => count + (b[index] === token ? 1 : 0), 0);
+    const positionalScore = positionalMatches / Math.min(a.length, b.length);
+    return clamp01(sequenceScore * 0.7 + positionalScore * 0.3);
+}
+
+function metadataFallbackResolution(left, right, deterministic = null) {
+    const leftDate = exactPrimaryDateKey(left);
+    const rightDate = exactPrimaryDateKey(right);
+    const titleVariants = (event) => [...new Set([
+        String(event?.title ?? ''),
+        ...(Array.isArray(event?.alternativeTitles) ? event.alternativeTitles : []),
+    ].map((value) => String(value).trim()).filter(Boolean))];
+    const title = Math.max(0, ...titleVariants(left).flatMap((leftTitle) =>
+        titleVariants(right).map((rightTitle) => orderedTokenSimilarity(leftTitle, rightTitle))));
+    const venue = orderedTokenSimilarity(left?.venue, right?.venue, { venue: true });
+    const participants = orderedTokenSimilarity(left?.participants, right?.participants);
+    const hardConflicts = Array.isArray(deterministic?.hardConflicts) ? deterministic.hardConflicts : [];
+    const sameDate = Boolean(leftDate && rightDate && leftDate === rightDate);
+    const accepted = sameDate && !hardConflicts.length && title >= 0.60 && venue >= 0.70 && participants >= 0.45;
+    return {
+        verdict: accepted ? 'same' : 'different',
+        score: accepted ? Math.min(title, venue, participants) : 0,
+        contour: 'metadata-fallback',
+        confidence: accepted ? 0.5 : 0,
+        reasons: [
+            'ai-unavailable-after-ladder',
+            `metadata-date:${sameDate ? 'same' : 'different'}`,
+            `metadata-title:${title.toFixed(3)}`,
+            `metadata-venue:${venue.toFixed(3)}`,
+            `metadata-participants:${participants.toFixed(3)}`,
+        ],
+        factors: { date: sameDate ? 1 : 0, title, venue, participants },
+        hardConflicts: sameDate ? hardConflicts : [...hardConflicts, 'different-date'],
+    };
+}
+
+export { orderedTokenSimilarity, metadataFallbackResolution };
+
+export function normalizeWholeEventTitle(value) {
+    // Keep function words and one-letter names; digits inside a name stay inside it.
+    return String(value || '').normalize('NFKC').toLowerCase().replace(/ё/gu, 'е')
+        .replace(/(?<![\p{L}\p{N}])(\d+)[-‐‑–—](?:ой|ый|ий|го|ая|ое|ые)(?![\p{L}\p{N}])/gu, '$1')
+        .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+}
+
+// A merged card keeps every source spelling of its title.  Treat those
+// spellings as one identity for all later dedupe passes, including when the
+// first source used a translated title and the next source used the original.
+function eventTitleVariants(event) {
+    return [...new Set([
+        String(event?.title ?? '').trim(),
+        ...(Array.isArray(event?.alternativeTitles) ? event.alternativeTitles : []),
+    ].map((value) => String(value ?? '').replace(/\s+/gu, ' ').trim()).filter(Boolean))];
+}
+
+function titleVariantPairs(left, right) {
+    const pairs = [];
+    for (const a of eventTitleVariants(left)) {
+        for (const b of eventTitleVariants(right)) pairs.push([a, b]);
+    }
+    return pairs;
+}
+
 export function normalizeEventIdentityTitle(value) {
-    return identityTokens(stripKnownVenueNamesFromEventTitle(value)).join(' ');
+    return identityTokens(stripKnownVenueNamesFromEventTitle(value), { includeNumbers: true }).join(' ');
 }
 
 function distinctiveTitleTokens(value) {
@@ -200,7 +291,7 @@ function sharedWholeTitleToken(left, right) {
     const leftTokens = distinctiveTitleTokens(left);
     const rightTokens = new Set(distinctiveTitleTokens(right));
     const shared = leftTokens
-        .filter((token) => token.length >= 3 && rightTokens.has(token))
+        .filter((token) => (token.length >= 3 || /^\d+$/u.test(token)) && rightTokens.has(token))
         .sort((a, b) => b.length - a.length || a.localeCompare(b, 'ru'));
     return shared[0] || '';
 }
@@ -220,7 +311,7 @@ function distinctiveTitleContainmentEvidence(left, right) {
 }
 
 function transliteratedDistinctiveTitleTokens(value) {
-    return transliteratedIdentityTokens(stripKnownVenueNamesFromEventTitle(value));
+    return transliteratedIdentityTokens(stripKnownVenueNamesFromEventTitle(value), { includeNumbers: true });
 }
 
 export function normalizeEventTranslitIdentityTitle(value) {
@@ -314,6 +405,14 @@ function publisherIdentity(event) {
 }
 
 export function eventTitleEvidenceSimilarity(left, right) {
+    const leftEvent = left && typeof left === 'object' ? left : { title: left };
+    const rightEvent = right && typeof right === 'object' ? right : { title: right };
+    const pairs = titleVariantPairs(leftEvent, rightEvent);
+    const values = pairs.map(([aTitle, bTitle]) => eventTitleEvidenceSimilaritySingle(aTitle, bTitle));
+    return values.length ? Math.max(...values) : 0;
+}
+
+function eventTitleEvidenceSimilaritySingle(left, right) {
     const a = distinctiveTitleTokens(left);
     const b = distinctiveTitleTokens(right);
     const ta = transliteratedDistinctiveTitleTokens(left);
@@ -369,16 +468,48 @@ export function eventTitleEvidenceSimilarity(left, right) {
     return Math.min(1, value);
 }
 
+function titleVariantIdentityEvidence(left, right) {
+    let best = null;
+    for (const [a, b] of titleVariantPairs(left, right)) {
+        const normalizedA = normalizeEventIdentityTitle(a);
+        const normalizedB = normalizeEventIdentityTitle(b);
+        const translitA = normalizeEventTranslitIdentityTitle(a);
+        const translitB = normalizeEventTranslitIdentityTitle(b);
+        const wholeA = normalizeWholeEventTitle(a);
+        const wholeB = normalizeWholeEventTitle(b);
+        const exact = Boolean(normalizedA && normalizedA === normalizedB);
+        const translitExact = Boolean(translitA && translitA === translitB);
+        const wholeExact = Boolean(wholeA && wholeA === wholeB);
+        const candidate = { exact, translitExact, wholeExact, a, b };
+        if (!best || Number(exact) + Number(translitExact) + Number(wholeExact) >
+            Number(best.exact) + Number(best.translitExact) + Number(best.wholeExact)) best = candidate;
+    }
+    return best || { exact: false, translitExact: false, wholeExact: false, a: '', b: '' };
+}
+
+function hasCyrillic(value) { return /[А-Яа-яЁё]/u.test(String(value ?? '')); }
+function hasLatin(value) { return /[A-Za-z]/u.test(String(value ?? '')); }
+function hasCrossLanguageTitlePair(left, right) {
+    return titleVariantPairs(left, right).some(([a, b]) =>
+        (hasCyrillic(a) && hasLatin(b)) || (hasLatin(a) && hasCyrillic(b)));
+}
+
+function bestTitleVariantPair(left, right) {
+    const pairs = titleVariantPairs(left, right);
+    let best = { left: String(left?.title ?? ''), right: String(right?.title ?? ''), score: 0 };
+    for (const [a, b] of pairs) {
+        const score = eventTitleEvidenceSimilaritySingle(a, b);
+        if (score > best.score) best = { left: a, right: b, score };
+    }
+    return best;
+}
+
 function venueTokens(value) {
     // V154: venue comparison идёт через единый транслит-ключ. Поэтому
     // «Дизель», Diesel и DIZEL становятся одним брендом, но тип помещения
     // остаётся отдельным признаком: Diesel Bar != Diesel Hall.
     // Односимвольные собственные имена вроде «X» сохраняются.
-    return clean(value)
-        .split(' ')
-        .filter((token) => token && (token.length > 1 || /^[\p{L}\p{N}]$/u.test(token)))
-        .map(canonicalVenueToken)
-        .filter(Boolean);
+    return venueComparisonTokens(value).map(canonicalVenueToken).filter(Boolean);
 }
 
 function venueCoreTokens(value) {
@@ -448,14 +579,9 @@ function protectedVenueSpaceConflict(left, right) {
 }
 
 function hasExplicitVenueAddressConflict(left, right, baseSimilarity = baseVenueSimilarity(left, right)) {
-    const leftNumbers = venueAddressNumbers(left);
-    const rightNumbers = venueAddressNumbers(right);
-    if (!leftNumbers.length || !rightNumbers.length) return false;
-    const commonNumber = leftNumbers.some((number) => rightNumbers.includes(number));
-    if (commonNumber) return false;
-    // Разные номера особенно значимы, когда текст в остальном похож и выглядит
-    // как две филиальные точки одного бренда.
-    return baseSimilarity >= 0.45;
+    // Address fields are deliberately excluded from venue identity. A wrong
+    // OCR house number must not keep otherwise identical cards apart.
+    return false;
 }
 
 function hasAmbiguousVenueBrandWithoutMatchingType(left, right) {
@@ -473,13 +599,31 @@ function hasAmbiguousVenueBrandWithoutMatchingType(left, right) {
 }
 
 export function eventVenueSimilarity(left, right) {
+    const normalizedLeft = canonicalizeEventVenue(left);
+    const normalizedRight = canonicalizeEventVenue(right);
+    if (normalizedLeft.matched && normalizedRight.matched) {
+        if (normalizedLeft.canonicalName === normalizedRight.canonicalName) return 1;
+        // Known catalog venues are distinct identities even if their address
+        // happens to be the same (e.g. Diesel Bar and Diesel Hall).
+        return 0;
+    }
+    if (normalizedLeft.matched && !normalizedRight.matched) {
+        right = normalizedRight.venue;
+        left = normalizedLeft.canonicalName;
+    } else if (!normalizedLeft.matched && normalizedRight.matched) {
+        left = normalizedLeft.venue;
+        right = normalizedRight.canonicalName;
+    }
     const base = baseVenueSimilarity(left, right);
     if (!base) return 0;
     // V188.75: generic venue-type words (бар/паб/клуб/hall/etc.) normally do
     // not participate in identity. Explicit exception: Diesel Bar and Diesel
     // Hall are two protected physical spaces and therefore a hard mismatch.
     if (protectedVenueSpaceConflict(left, right)) return Math.min(base, 0.18);
-    if (hasExplicitVenueAddressConflict(left, right, base)) return Math.min(base, 0.30);
+    // A street and house number are venue metadata, not venue identity.
+    // In particular, OCR/AI may invent a wrong house number for the same named
+    // space (e.g. Diesel Hall, Lizyukova 8 vs the canonical 4). Comparing the
+    // venue name still distinguishes Diesel Bar from Diesel Hall above.
     return base;
 }
 
@@ -528,6 +672,13 @@ function venueLooksAddressLike(value) {
 
 function venuesClearlyDifferent(left, right) {
     if (!String(left ?? '').trim() || !String(right ?? '').trim()) return false;
+    const normalizedLeft = canonicalizeEventVenue(left);
+    const normalizedRight = canonicalizeEventVenue(right);
+    if (normalizedLeft.matched && normalizedRight.matched) {
+        return normalizedLeft.canonicalName !== normalizedRight.canonicalName;
+    }
+    if (normalizedLeft.matched) left = normalizedLeft.canonicalName;
+    if (normalizedRight.matched) right = normalizedRight.canonicalName;
     const a = venueCoreTokens(left);
     const b = venueCoreTokens(right);
     const base = baseVenueSimilarity(left, right);
@@ -537,7 +688,8 @@ function venuesClearlyDifferent(left, right) {
     // stripping and before provenance/title shortcuts. A schedule post may
     // legitimately contain same-day events in both DIESEL spaces.
     if (protectedVenueSpaceConflict(left, right)) return true;
-    if (hasExplicitVenueAddressConflict(left, right, base)) return true;
+    // Different house numbers are not venue identity. Address disagreements
+    // are surfaced by the venue catalog in the card, never as a dedupe block.
 
     // V188.74: "Мама Анархия" and "г. Воронеж, Плехановская 48" are not
     // contradictory venue identities. One card contains the venue BRAND, the
@@ -812,6 +964,11 @@ function buildDateEvidence(start, end = start, { explicitRange = false, source =
  * Именно это в V94 превращало 21–23 августа в 21–31 августа.
  */
 export function getEventDateEvidence(event) {
+    const schedule = getSharedEventSchedule(event);
+    if (schedule) {
+        const evidence = buildDateEvidence(parseIsoDate(schedule.startDate), parseIsoDate(schedule.endDate), { explicitRange: true, source: 'shared_schedule_event' });
+        return schedule.dateMode === 'specific' ? { ...evidence, dates: schedule.dates } : evidence;
+    }
     // A canonical card has exactly one calendar identity.  Prefer the
     // normalized eventDate before any display/range text: displayDate and
     // eventDays may retain the source announcement's multi-day schedule for
@@ -890,15 +1047,17 @@ function sharedEventSourceIdentity(left, right) {
 
 function buildEventBlockingKeys(event) {
     const keys = new Set();
-    const normalizedTitle = normalizeEventIdentityTitle(event?.title);
-    if (normalizedTitle.length >= 3) keys.add(`title-exact:${normalizedTitle}`);
-    const translitTitle = normalizeEventTranslitIdentityTitle(event?.title);
-    if (translitTitle.length >= 3) keys.add(`title-translit-exact:${translitTitle}`);
-    for (const token of distinctiveTitleTokens(event?.title)) {
-        if (token.length >= 3) keys.add(`title-token:${token}`);
-    }
-    for (const token of transliteratedDistinctiveTitleTokens(event?.title)) {
-        if (token.length >= 3) keys.add(`title-translit-token:${token}`);
+    for (const title of eventTitleVariants(event)) {
+        const normalizedTitle = normalizeEventIdentityTitle(title);
+        if (normalizedTitle.length >= 3) keys.add(`title-exact:${normalizedTitle}`);
+        const translitTitle = normalizeEventTranslitIdentityTitle(title);
+        if (translitTitle.length >= 3) keys.add(`title-translit-exact:${translitTitle}`);
+        for (const token of distinctiveTitleTokens(title)) {
+            if (token.length >= 3) keys.add(`title-token:${token}`);
+        }
+        for (const token of transliteratedDistinctiveTitleTokens(title)) {
+            if (token.length >= 3) keys.add(`title-translit-token:${token}`);
+        }
     }
     for (const token of venueCoreTokens(event?.venue)) {
         if (token.length >= 1) keys.add(`venue:${token}`);
@@ -952,11 +1111,12 @@ function buildCandidateIndexPairs(events) {
     ).matchedCount > 0;
 
     const sameExactTitle = (leftIndex, rightIndex) => {
-        const a = normalizeEventIdentityTitle(source[leftIndex]?.title);
-        const b = normalizeEventIdentityTitle(source[rightIndex]?.title);
-        if (!a || !b || a !== b) return false;
-        const key = `title-exact:${a}`;
-        return (keyFrequency.get(key) || 0) <= 60;
+        return eventTitleVariants(source[leftIndex]).some((leftTitle) => eventTitleVariants(source[rightIndex]).some((rightTitle) => {
+            const a = normalizeEventIdentityTitle(leftTitle);
+            const b = normalizeEventIdentityTitle(rightTitle);
+            if (!a || !b || a !== b) return false;
+            return (keyFrequency.get(`title-exact:${a}`) || 0) <= 60;
+        }));
     };
 
     const pairs = [];
@@ -994,7 +1154,10 @@ function buildCandidateIndexPairs(events) {
             const leftDate = String(source[left.index]?.eventDate ?? '').trim();
             const rightDate = String(source[right.index]?.eventDate ?? '').trim();
             const sharedParticipant = Boolean(leftDate && leftDate === rightDate) && shareParticipant(left.index, right.index);
-            if (sharedContentWord || sharedParticipant || shareUsefulKey(left.index, right.index) || sameExactTitle(left.index, right.index) || sparseFallback) {
+            const crossLanguageVenueDate = sameCalendarDay &&
+                hasCrossLanguageTitlePair(source[left.index], source[right.index]) &&
+                eventVenueSimilarity(source[left.index]?.venue, source[right.index]?.venue) >= 0.82;
+            if (sharedContentWord || sharedParticipant || crossLanguageVenueDate || shareUsefulKey(left.index, right.index) || sameExactTitle(left.index, right.index) || sparseFallback) {
                 add(left.index, right.index);
             }
         }
@@ -1311,9 +1474,13 @@ function clamp01(value) {
 }
 
 export function compareEventsDeterministic(left, right) {
+    const leftSchedule = getSharedEventSchedule(left), rightSchedule = getSharedEventSchedule(right);
+    if ((leftSchedule || rightSchedule) && scheduleKey(leftSchedule) !== scheduleKey(rightSchedule)) {
+        return { verdict: 'different', confidence: 1, score: 0, reasons: ['different-shared-schedule'], hardConflicts: ['different-shared-schedule'] };
+    }
     const reasons = [];
     const hardConflicts = [];
-    const title = eventTitleEvidenceSimilarity(left?.title, right?.title);
+    const title = eventTitleEvidenceSimilarity(left, right);
     const venue = eventVenueSimilarity(left?.venue, right?.venue);
     const participantDetails = participantEvidence(left?.participants, right?.participants);
     const participants = participantDetails.similarity;
@@ -1321,13 +1488,14 @@ export function compareEventsDeterministic(left, right) {
     const time = timeEvidence(left, right);
     const description = textEvidenceSimilarity(left?.description, right?.description);
     const price = textEvidenceSimilarity(left?.price, right?.price);
-    const distinctiveTitle = hasDistinctiveEventTitle(left?.title) && hasDistinctiveEventTitle(right?.title);
-    const normalizedLeftTitle = normalizeEventIdentityTitle(left?.title);
-    const normalizedRightTitle = normalizeEventIdentityTitle(right?.title);
-    const sameNormalizedTitle = normalizedLeftTitle.length >= 3 && normalizedLeftTitle === normalizedRightTitle;
-    const translitLeftTitle = normalizeEventTranslitIdentityTitle(left?.title);
-    const translitRightTitle = normalizeEventTranslitIdentityTitle(right?.title);
-    const sameTranslitTitle = translitLeftTitle.length >= 3 && translitLeftTitle === translitRightTitle;
+    const distinctiveTitle = eventTitleVariants(left).some(hasDistinctiveEventTitle) && eventTitleVariants(right).some(hasDistinctiveEventTitle);
+    const titleVariantIdentity = titleVariantIdentityEvidence(left, right);
+    const normalizedLeftTitle = normalizeEventIdentityTitle(titleVariantIdentity.a || left?.title);
+    const normalizedRightTitle = normalizeEventIdentityTitle(titleVariantIdentity.b || right?.title);
+    const sameNormalizedTitle = titleVariantIdentity.exact || (normalizedLeftTitle.length >= 3 && normalizedLeftTitle === normalizedRightTitle);
+    const translitLeftTitle = normalizeEventTranslitIdentityTitle(titleVariantIdentity.a || left?.title);
+    const translitRightTitle = normalizeEventTranslitIdentityTitle(titleVariantIdentity.b || right?.title);
+    const sameTranslitTitle = titleVariantIdentity.translitExact || (translitLeftTitle.length >= 3 && translitLeftTitle === translitRightTitle);
     const leftTitleLeadIdentity = normalizeEventTitleLeadIdentity(left?.title);
     const rightTitleLeadIdentity = normalizeEventTitleLeadIdentity(right?.title);
     const sameTitleLeadIdentity = Boolean(
@@ -1419,14 +1587,45 @@ export function compareEventsDeterministic(left, right) {
     // Preserve the established exact-name/date rule before the new fallback.
     // The participant/date AI check is only for pairs whose titles have no
     // shared identity words.
-    if (exactTitleDateRule && !venueConflict) {
+    const wholeLeftTitle = normalizeWholeEventTitle(titleVariantIdentity.a || left?.title);
+    const explicitLeftTimes = structuredTimes(left), explicitRightTimes = structuredTimes(right);
+    const sameExplicitStartTime = explicitLeftTimes.length === 1 && explicitRightTimes.length === 1 &&
+        explicitLeftTimes[0] === explicitRightTimes[0];
+    const wholeTitleIdentityRule = Boolean(wholeLeftTitle &&
+        (titleVariantIdentity.wholeExact || wholeLeftTitle === normalizeWholeEventTitle(titleVariantIdentity.b || right?.title)) &&
+        !WEAK_EVENT_TITLE_RE.test(String(left?.title || '').trim()) &&
+        exactPrimaryDateMatch && !hardConflicts.length &&
+        venue >= 0.82 && !venueConflict && ((time.knownBoth && time.compatible) || sameExplicitStartTime));
+    if ((exactTitleDateRule || wholeTitleIdentityRule) && !venueConflict) {
         return {
             verdict: 'same',
             score: 1,
-            reasons: [...reasons, 'exact-title-date-absolute-rule'],
+            reasons: [...reasons, exactTitleDateRule ? 'exact-title-date-absolute-rule' : 'whole-title-date-venue-time'],
             hardConflicts: [],
             factors: {
                 date: date.similarity, time: time.similarity, venue, title: 1, participants, description, price,
+                venueConflict: venueConflict ? 1 : 0, venueAmbiguous: venueAmbiguous ? 1 : 0,
+                multiDayEvidence: multiDayEvidence ? 1 : 0,
+                lineupCountRatio: participantDetails.countRatio, lineupMatchedCount: participantDetails.matchedCount,
+            },
+            dateEvidence: date,
+        };
+    }
+
+    // Two sources may use a Russian and an English title for the same card.
+    // The pair is deliberately sent to the existing AI contour, but only when
+    // the calendar day, venue and start time agree; this avoids collapsing two
+    // unrelated shows that merely happen to share a venue.
+    const crossLanguageTitlePair = hasCrossLanguageTitlePair(left, right);
+    if (crossLanguageTitlePair && exactPrimaryDateMatch && !hardConflicts.length &&
+        venue >= 0.82 && time.compatible && participantDetails.matchedCount === 0) {
+        return {
+            verdict: 'ambiguous',
+            score: Math.max(0.84, date.similarity, venue, participants),
+            reasons: [...reasons, 'cross-language-title-ai'],
+            hardConflicts,
+            factors: {
+                date: date.similarity, time: time.similarity, venue, title, participants, description, price,
                 venueConflict: venueConflict ? 1 : 0, venueAmbiguous: venueAmbiguous ? 1 : 0,
                 multiDayEvidence: multiDayEvidence ? 1 : 0,
                 lineupCountRatio: participantDetails.countRatio, lineupMatchedCount: participantDetails.matchedCount,
@@ -1445,7 +1644,7 @@ export function compareEventsDeterministic(left, right) {
     // The participant/date fallback must not bridge two explicitly named
     // physical venues. Poster-backed supersession below remains the only
     // targeted exception for an obsolete, metadata-poor variant.
-    if (venueConflict && (protectedVenueConflict || explicitAddressVenueConflict) && !venueOcrVariant) {
+    if (venueConflict && protectedVenueConflict && !venueOcrVariant) {
         hardConflicts.push('different-venue');
     }
 
@@ -1458,7 +1657,7 @@ export function compareEventsDeterministic(left, right) {
         !sameNormalizedTitle && !sameTranslitTitle &&
         participants >= 0.82 && time.knownBoth && time.compatible &&
         Number(time.deltaMinutes ?? 9999) <= 15 &&
-        !protectedVenueConflict && !explicitAddressVenueConflict && !venueOcrVariant;
+        !protectedVenueConflict && !venueOcrVariant;
     if (venueNameVariantIdentityRule) {
         return {
             verdict: 'same',
@@ -1991,6 +2190,79 @@ function chooseRicher(left, right) {
     return b.length > a.length ? b : a;
 }
 
+// Venue identity is the catalog name.  Address text is secondary metadata and
+// may be wrong in one source (for example OCR can turn house 4 into house 8).
+// When any merged source confirms the catalog address, prefer that exact
+// canonical value and do not let a stale eventDays entry overwrite it.
+function mergeCanonicalVenue(primary, alternatives = []) {
+    const values = [primary, ...(Array.isArray(alternatives) ? alternatives : alternatives ? [alternatives] : [])]
+        .map((value) => String(value ?? '').trim())
+        .filter(Boolean);
+    if (!values.length) return '';
+
+    const candidates = values.map((value) => ({ value, normalized: canonicalizeEventVenue(value) }));
+    const matched = candidates.filter((item) => item.normalized.matched && item.normalized.canonicalName);
+    if (!matched.length) return chooseRicher(values[0], values[1] || '');
+
+    const primaryName = matched[0].normalized.canonicalName;
+    const sameVenue = matched.filter((item) => item.normalized.canonicalName === primaryName);
+    if (sameVenue.length) {
+        const exact = sameVenue.find((item) => item.normalized.addressMatched);
+        const canonical = (exact || sameVenue[0]).normalized;
+        const mismatches = [...new Set(sameVenue.flatMap((item) => {
+            const marked = [...item.value.matchAll(/❓\(([^)]+)\)❓/gu)].map((match) => String(match[1] || '').trim());
+            const supplied = String(item.normalized.suppliedAddress || '').trim();
+            return [...marked, supplied].filter((address) => address && !addressMatchesForDisplay(address, canonical.canonicalAddress));
+        }))];
+        return mismatches.length
+            ? `${canonical.canonicalName}, ${canonical.canonicalAddress} ${mismatches.map((address) => `❓(${address})❓`).join(' ')}`
+            : canonical.venue;
+    }
+    // Distinct catalog venues are a real conflict; retain the richer source
+    // value so the existing conflict marker/AI decision can handle it.
+    return matched[0].normalized.venue;
+}
+
+function addressMatchesForDisplay(left, right) {
+    const aNumbers = venueAddressNumbers(left);
+    const bNumbers = venueAddressNumbers(right);
+    if (!aNumbers.length || !bNumbers.length) return true;
+    return aNumbers.some((number) => bNumbers.includes(number));
+}
+
+function normalizeMergedScheduleVenues(days, mergedVenue) {
+    const canonical = canonicalizeEventVenue(mergedVenue);
+    const canonicalDisplay = String(mergedVenue || '').includes('❓(')
+        ? String(mergedVenue).trim()
+        : canonical.venue;
+    return (Array.isArray(days) ? days : []).map((day) => {
+        const dayVenue = String(day?.venue ?? '').trim();
+        const dayCanonical = canonicalizeEventVenue(dayVenue);
+        if (canonical.matched && dayCanonical.matched &&
+            canonical.canonicalName === dayCanonical.canonicalName) {
+            return { ...day, venue: canonicalDisplay };
+        }
+        return { ...day, venue: dayVenue ? (dayCanonical.matched ? dayCanonical.venue : dayVenue) : canonicalDisplay };
+    });
+}
+
+function completeCollaborationTitle(left, right) {
+    const key = value => String(value || '').normalize('NFKC').toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    const parse = value => {
+        const match = String(value).match(/^(.*?)\s+[xх×&]\s+(.+)$/iu);
+        return match ? {base:key(match[1]).replace(/\s/gu,''), partner:key(match[2]).split(' ')} : null;
+    };
+    const a=parse(left), b=parse(right);
+    if(a&&!b&&a.base===key(right).replace(/\s/gu,''))return left;
+    if(b&&!a&&b.base===key(left).replace(/\s/gu,''))return right;
+    if(a&&b&&a.base===b.base) {
+        if(a.partner.length>b.partner.length&&b.partner.every(token=>a.partner.includes(token)))return left;
+        if(b.partner.length>a.partner.length&&a.partner.every(token=>b.partner.includes(token)))return right;
+    }
+    return '';
+}
+
 function chooseCanonicalTitle(left, right) {
     const a = String(left ?? '').trim();
     const b = String(right ?? '').trim();
@@ -2020,6 +2292,10 @@ function chooseCanonicalTitle(left, right) {
         const punctuationPenalty = Math.min(1.2, (value.match(/[,;:!?]/gu) || []).length * 0.12);
         return distinctive * 2 + conciseBonus + properLike - genericPenalty - rawPenalty - punctuationPenalty;
     };
+    if (!titleLooksLikeRawAnnouncement(a) && !titleLooksLikeRawAnnouncement(b)) {
+        const complete = completeCollaborationTitle(a, b);
+        if (complete) return complete;
+    }
     const na = normalized(a);
     const nb = normalized(b);
     if (na && nb && (na.includes(nb) || nb.includes(na))) {
@@ -2231,6 +2507,7 @@ function splitVenueCandidates(value) {
 }
 
 export function deriveEventScheduleDays(event) {
+    if (getSharedEventSchedule(event)) return []; // The date label represents the schedule; do not expand daily subcards.
     const evidence = getEventDateEvidence(event);
     const allowedDates = new Set(evidence.dates || []);
     const existing = Array.isArray(event?.eventDays) ? event.eventDays : [];
@@ -2339,6 +2616,7 @@ function buildDisplayDateFromSchedule(eventDays, fallback = '') {
 function projectDedupeLineageEvent(event) {
     return {
         title: String(event?.title ?? '').slice(0, 300),
+        alternativeTitles: Array.isArray(event?.alternativeTitles) ? event.alternativeTitles.slice(0, 16).map((value) => String(value ?? '').slice(0, 300)) : [],
         eventDate: String(event?.eventDate ?? '').slice(0, 32),
         displayDate: String(event?.displayDate ?? '').slice(0, 180),
         dateLabel: String(event?.dateLabel ?? '').slice(0, 180),
@@ -2400,7 +2678,7 @@ function getDedupeLineage(event) {
 
 function lineageKey(event) {
     return JSON.stringify([
-        event?.sourceType || '', event?.sourceUrl || '', event?.title || '',
+        event?.sourceType || '', event?.sourceUrl || '', event?.title || '', ...(Array.isArray(event?.alternativeTitles) ? event.alternativeTitles : []),
         event?.eventDate || '', event?.displayDate || '', event?.timeLabel || '',
         event?.venue || '', event?.participants || '',
     ]);
@@ -2558,6 +2836,27 @@ function assessPosterCandidateForEvent(event, candidate) {
     };
 }
 
+import { posterPresentationRank } from './eventPosterRole.js';
+
+function posterLineupNames(fact) {
+    return [...new Set(String(fact?.participants || '').split(/[;,|\n]+/u)
+        .map(value => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase()
+            .replace(/[^\p{L}\p{N}]+/gu, ' ').trim()).filter(Boolean))];
+}
+
+function coversBroaderEventLineup(row, rows) {
+    const names=posterLineupNames(row.fact);
+    if(names.length<3)return false;
+    // Only compare validated posters within a confirmed duplicate group.
+    // The overview must actually include the spotlight's artist(s).
+    return rows.some(other => {
+        if(other===row)return false;
+        const subset=posterLineupNames(other.fact);
+        return subset.length>0 && subset.length<=2 && names.length>subset.length &&
+            subset.every(name=>names.includes(name));
+    });
+}
+
 export function selectBestPosterCandidateForEvent(event, candidates, { requestedPath = '' } = {}) {
     const allRows = (Array.isArray(candidates) ? candidates : [])
         .map((candidate) => assessPosterCandidateForEvent(event, candidate))
@@ -2573,6 +2872,13 @@ export function selectBestPosterCandidateForEvent(event, candidates, { requested
     // contribute a poster only when no accepted mono poster exists at all.
     const monoRows = allRows.filter((row) => String(row.candidate?.sourceRole || '') === 'mono');
     const rows = monoRows.length ? monoRows : allRows;
+    for (const row of rows) {
+        const role = posterPresentationRank(row.fact);
+        row.overviewPriority = role === 1 ? 2 : role === -1 ? 0 : coversBroaderEventLineup(row, rows) ? 1 : 0;
+    }
+    rows.sort((a,b) => Number(b.ownerApprovedSameDate)-Number(a.ownerApprovedSameDate) ||
+        b.overviewPriority-a.overviewPriority || b.totalScore-a.totalScore ||
+        String(a.candidate.path).localeCompare(String(b.candidate.path), 'en'));
     const best = rows[0] || null;
     if (!best) return null;
     const requested = String(requestedPath || '').trim();
@@ -2580,7 +2886,8 @@ export function selectBestPosterCandidateForEvent(event, candidates, { requested
         const requestedRow = rows.find((row) => String(row.candidate?.path || '') === requested) || null;
         // AI may break a true tie, but cannot demote a materially more relevant
         // or better-described poster. Metadata/relevance ranking remains the gate.
-        if (requestedRow && requestedRow.totalScore >= best.totalScore - 25) return requestedRow;
+        if (requestedRow && Number(requestedRow.ownerApprovedSameDate) >= Number(best.ownerApprovedSameDate) &&
+            requestedRow.overviewPriority >= best.overviewPriority && requestedRow.totalScore >= best.totalScore - 25) return requestedRow;
     }
     return best;
 }
@@ -2665,7 +2972,11 @@ export function mergeDuplicateEvents(left, right, resolution = {}) {
             mergedSources,
             _dedupeRefs: mergeInternalDedupeRefs(left, right),
             _dedupeLineage: mergeDedupeLineage(left, right),
-            alternativeTitles: Array.isArray(owner?.alternativeTitles) ? owner.alternativeTitles : [],
+            alternativeTitles: [...new Set([
+                ...(Array.isArray(owner?.alternativeTitles) ? owner.alternativeTitles : []),
+                ...(Array.isArray(other?.alternativeTitles) ? other.alternativeTitles : []),
+                String(owner?.title ?? '').trim(), String(other?.title ?? '').trim(),
+            ].map((value) => String(value ?? '').replace(/\s+/gu, ' ').trim()).filter(Boolean))].slice(0, 16),
             sourceUrl: String(owner?.sourceUrl || other?.sourceUrl || ''),
             _duplicateResolution: {
                 contour: resolution?.contour || 'deterministic',
@@ -2681,7 +2992,11 @@ export function mergeDuplicateEvents(left, right, resolution = {}) {
     const secondaryMember = canonicalMember === left ? right : left;
     const rawTitle = chooseCanonicalTitle(canonicalMember?.title, secondaryMember?.title);
     const title = stripKnownVenueNamesFromEventTitle(rawTitle) || rawTitle;
-    const eventDays = mergeScheduleDays(left, right);
+    const mergedVenue = mergeCanonicalVenue(
+        canonicalMember?.venue,
+        [secondaryMember?.venue, left?.venue, right?.venue],
+    );
+    const eventDays = normalizeMergedScheduleVenues(mergeScheduleDays(left, right), mergedVenue);
     const timeLabel = chooseTimeLabelForEvents(
         left,
         right,
@@ -2735,7 +3050,7 @@ export function mergeDuplicateEvents(left, right, resolution = {}) {
         eventTime,
         timeLabel,
         eventDays,
-        venue: mergeConflictAwareField(canonicalMember?.venue, [secondaryMember?.venue], { similarity: eventVenueSimilarity, marker: '❗ уточните место на странице события' }),
+        venue: mergedVenue || mergeConflictAwareField(canonicalMember?.venue, [secondaryMember?.venue], { similarity: eventVenueSimilarity, marker: '❗ уточните место на странице события' }),
         participants: mergeParticipants(left?.participants, right?.participants) || chooseRicher(left?.participants, right?.participants),
         price: mergeConflictAwareField(canonicalMember?.price, [secondaryMember?.price], { marker: '❗ уточните стоимость на странице события' }),
         ticketUrl: String(canonicalMember?.ticketUrl || '').trim() || chooseRicher(left?.ticketUrl, right?.ticketUrl),
@@ -2799,6 +3114,7 @@ export function buildEventDuplicateAiSystemPrompt() {
         'Время начала не решает identity и не может само по себе разделить событие. Оно только попадает в diagnosticScore и при merge сохраняется как конфликт для уточнения.',
         buildEventTitleContractPrompt(),
         'Разные названия допустимы: один источник может использовать официальное имя, другой — описательное.',
+        'Русское и английское название могут быть переводами одного события (например, «ДЕНЬ ОРТОПЕДИЧЕСКОЙ МЕДСЕСТРЫ» и «ORTHOPEDIC NURSES DAY»). При совпадении даты, места и времени считай это сильным признаком одного события; после same оба варианта должны сохраниться как title и alternativeTitles.',
         'Слова формата события (гиг/gig, пати/party, концерт/concert, live/лайв, show/шоу, festival/фест и т.п.) имеют минимальный вес. Если после их удаления содержательное имя совпадает, это сильный признак одной тусы.',
         'Транслит площадок считай алиасом: Дизель/Diesel/Dizel и русское/латинское написание одного названия — одна площадка.',
         'Для дедупликации конкретные разные календарные дни — всегда разные календарные карточки. Не объединяй карточки между разными днями даже если это один фестиваль, серия или многодневная программа; общую принадлежность можно хранить только отдельной группой.',
@@ -2859,6 +3175,7 @@ function stableDedupeEventKey(event) {
             clean(item?.sourceUrl),
             clean(item?.sourceName),
             normalizeEventIdentityTitle(item?.title),
+            ...(Array.isArray(item?.alternativeTitles) ? item.alternativeTitles.map(normalizeEventIdentityTitle) : []),
             String(item?.eventDate || ''),
             clean(item?.displayDate),
             clean(item?.timeLabel || item?.eventTime),
@@ -2873,6 +3190,17 @@ function stableDedupePairKey(left, right) {
     const a = stableDedupeEventKey(left);
     const b = stableDedupeEventKey(right);
     return a <= b ? `${a}<=>${b}` : `${b}<=>${a}`;
+}
+
+function aiRejectedPair(left, right, cache) {
+    if (!(cache instanceof Map)) return false;
+    return String(cache.get(stableDedupePairKey(left, right))?.verdict || '').toLowerCase() === 'different';
+}
+
+function aiBlocksPair(left, right, cache) {
+    if (!(cache instanceof Map)) return false;
+    const verdict = String(cache.get(stableDedupePairKey(left, right))?.verdict || '').toLowerCase();
+    return verdict === 'different' || verdict === 'uncertain';
 }
 
 async function resolveAmbiguousPairDecisions(pairs, source, arbitrateAmbiguous, cache = new Map()) {
@@ -2906,20 +3234,29 @@ async function resolveAmbiguousPairDecisions(pairs, source, arbitrateAmbiguous, 
         }
 
         for (const pair of pending) {
-            const decision = resolved.get(pair.key) || {
+            let decision = resolved.get(pair.key) || {
                 verdict: 'uncertain',
                 confidence: 0,
                 reason: 'ai-no-decision',
             };
-            if (decision.verdict === 'same' || decision.verdict === 'different') {
-                cache.set(pair._stableAiKey, decision);
+            const verdict = String(decision?.verdict || '').toLowerCase();
+            const reason = String(decision?.reason || '').toLowerCase();
+            // Metadata is a last resort only.  An explicit AI different or
+            // uncertain answer is authoritative and must never be replaced by
+            // local thresholds.
+            const aiUnavailable = !resolved.has(pair.key) || reason === 'ai-unavailable' || reason === 'ai-no-decision' ||
+                reason.includes('ai-unavailable') || reason.includes('no-decision');
+            if (!['same', 'different'].includes(verdict) && aiUnavailable) {
+                decision = metadataFallbackResolution(source[pair.i], source[pair.j], pair.deterministic);
             }
+            cache.set(pair._stableAiKey, decision);
             decisions.set(pair.key, decision);
         }
     } else {
         for (const pair of pending) {
-            const decision = { verdict: 'uncertain', confidence: 0, reason: 'ai-unavailable' };
+            const decision = metadataFallbackResolution(source[pair.i], source[pair.j], pair.deterministic);
             decisions.set(pair.key, decision);
+            cache.set(pair._stableAiKey, decision);
         }
     }
 
@@ -2956,6 +3293,7 @@ export function buildConfirmedEventMergeAiSystemPrompt() {
         'eventDays: один объект на каждый реально указанный день. Если место или время различаются по дням — укажи раздельно. Если одинаковы — можно повторить.',
         'description: 2–6 коротких нейтральных предложений, объединяющих уникальную полезную информацию; без повторов даты/времени/места/цены/участников.',
         'selectedImagePath: выбери ровно один путь ТОЛЬКО из posterCandidates.path. Выбирай актуальную реальную афишу именно этого события по Vision-фактам/дате/названию/месту. Никогда не создавай, не предлагай и не выбирай generated/fallback/emoji/sticker/banner.',
+        'Общая афиша события с полным лайн-апом имеет приоритет над отдельным представлением одного участника того же события. Не заменяй общую афишу карточкой артиста только из-за более высокой читаемости или более свежей публикации.',
         'Если posterCandidates пуст, selectedImagePath оставь пустым. Если кандидатов несколько и оба подходят, предпочти более конкретную афишу с явно совпадающими названием и датой; не возвращай несколько картинок.',
         'Удаляй условия конкурсов, репостов, розыгрышей, служебный UI и рекламный мусор.',
         'participants содержит только реальных артистов/участников. price — только условия входа/билетов.',
@@ -3075,7 +3413,8 @@ function applyAiConfirmedMerge(fallback, aiValue, members) {
     const eventDays = [...byDate.values()].filter((day) => day?.date || day?.timeLabel || day?.venue)
         .sort((a, b) => String(a?.date || '').localeCompare(String(b?.date || '')));
     const aiTitle = cleanField('title', 300);
-    const authoritativeTitle = String(monoMember?.title || '').trim() || aiTitle || fallback.title;
+    const sourceTitle = String(monoMember?.title || '').trim() || aiTitle || fallback.title;
+    const authoritativeTitle = completeCollaborationTitle(sourceTitle, fallback.title) || sourceTitle;
     const cleanTitle = stripKnownVenueNamesFromEventTitle(authoritativeTitle) || authoritativeTitle;
     // AI decides event identity and can improve descriptive fields, but a bare
     // AI time must not replace the parsed start time with doors-open time.
@@ -3116,12 +3455,15 @@ function applyAiConfirmedMerge(fallback, aiValue, members) {
         title: cleanTitle,
         timeLabel: mergedTimeLabel,
         eventTime: mergedEventTime,
-        venue: monoMember
+        venue: mergeCanonicalVenue(
+            monoMember?.venue || fallback.venue,
+            [...supplementaryMembers.map((event) => event?.venue), fallback.venue, cleanField('venue', 700)],
+        ) || (monoMember
             ? mergeConflictAwareField(monoMember.venue, [
                 ...supplementaryMembers.map((event) => event?.venue),
                 cleanField('venue', 700),
             ], { similarity: eventVenueSimilarity, marker: '❗ уточните место на странице события' })
-            : cleanField('venue', 700) || fallback.venue,
+            : cleanField('venue', 700) || fallback.venue),
         participants: monoMember
             ? mergeParticipants(monoMember.participants, [
                 ...supplementaryMembers.map((event) => event?.participants),
@@ -3135,7 +3477,10 @@ function applyAiConfirmedMerge(fallback, aiValue, members) {
             ], { marker: '❗ уточните стоимость на странице события' })
             : cleanField('price', 700) || fallback.price,
         description: cleanField('description', 12_000) || fallback.description,
-        eventDays,
+        eventDays: normalizeMergedScheduleVenues(eventDays, mergeCanonicalVenue(
+            monoMember?.venue || fallback.venue,
+            [...supplementaryMembers.map((event) => event?.venue), fallback.venue, cleanField('venue', 700)],
+        ) || fallback.venue),
         displayDate: buildDisplayDateFromSchedule(eventDays, fallback.displayDate),
     };
     const selectedImagePath = String(aiValue?.selectedImagePath || '').trim();
@@ -3167,7 +3512,7 @@ function obviousFinalDuplicate(left, right) {
     return lineageCrossCompatible(left, right);
 }
 
-function paranoidCollapse(events) {
+function paranoidCollapse(events, { aiDecisionCache = new Map() } = {}) {
     const source = Array.isArray(events) ? events.filter(Boolean) : [];
     if (source.length < 2) return { events: source, merges: [] };
 
@@ -3221,6 +3566,7 @@ function paranoidCollapse(events) {
     const candidateBlock = buildCandidateIndexPairs(source);
     const accepted = [];
     for (const pair of candidateBlock.pairs) {
+        if (aiBlocksPair(source[pair.i], source[pair.j], aiDecisionCache)) continue;
         if (!obviousFinalDuplicate(source[pair.i], source[pair.j])) continue;
         const deterministic = compareEventsDeterministic(source[pair.i], source[pair.j]);
         if (union(pair.i, pair.j)) accepted.push({ ...pair, deterministic });
@@ -3246,11 +3592,13 @@ function paranoidCollapse(events) {
         for (let k = 1; k < indexes.length; k += 1) {
             const right = source[indexes[k]];
             const deterministic = compareEventsDeterministic(merged, right);
+            const aiDecision = aiDecisionCache.get(stableDedupePairKey(merged, right));
+            const mergeContour = String(aiDecision?.contour || 'paranoid-final');
             const previous = merged;
             merged = mergeDuplicateEvents(merged, right, {
-                contour: 'paranoid-final',
+                contour: mergeContour,
                 score: Math.max(0.99, Number(deterministic.score || 0)),
-                reasons: [...(deterministic.reasons || []), 'paranoid-final-no-obvious-duplicates'],
+                reasons: [...(deterministic.reasons || []), 'paranoid-final-no-obvious-duplicates', ...(aiDecision?.reasons || [])],
             });
             merges.push({
                 left: sourceFingerprint(previous),
@@ -3258,7 +3606,7 @@ function paranoidCollapse(events) {
                 leftTitle: String(previous?.title ?? ''),
                 rightTitle: String(right?.title ?? ''),
                 resultTitle: String(merged?.title ?? ''),
-                contour: 'paranoid-final',
+                contour: mergeContour,
                 score: Math.max(0.99, Number(deterministic.score || 0)),
                 reasons: ['paranoid-final-no-obvious-duplicates'],
                 aiConfidence: 0,
@@ -3321,27 +3669,25 @@ async function finalVerificationCollapse(events, {
         const { i, j } = pair;
         const deterministic = compareEventsDeterministic(source[i], source[j]);
         const key = `v${pass}:${i}:${j}`;
-        if (deterministic.verdict === 'same') direct.push({ i, j, key, deterministic });
+        if (deterministic.verdict === 'same' && !aiBlocksPair(source[i], source[j], aiDecisionCache)) direct.push({ i, j, key, deterministic });
         else if (deterministic.verdict === 'ambiguous') ambiguous.push({ i, j, key, deterministic });
     }
 
-    direct.sort((a, b) => b.deterministic.score - a.deterministic.score)
-        .forEach((pair) => union(pair.i, pair.j));
-
+    const aiCandidates = [...direct, ...ambiguous].filter((pair) => !pair.deterministic?.hardConflicts?.length);
     const decisions = await resolveAmbiguousPairDecisions(
-        ambiguous,
+        aiCandidates,
         source,
         arbitrateAmbiguous,
         aiDecisionCache,
     );
 
-    for (const pair of ambiguous) {
+    for (const pair of aiCandidates) {
         const decision = decisions.get(pair.key);
         if (canAcceptAiSame(pair.deterministic, decision)) {
             approvedAiStableKeys.add(pair._stableAiKey);
         }
     }
-    for (const pair of ambiguous) {
+    for (const pair of aiCandidates) {
         const decision = decisions.get(pair.key);
         if (canAcceptAiSame(pair.deterministic, decision)) union(pair.i, pair.j);
     }
@@ -3402,7 +3748,9 @@ function exactPrimaryDateKey(event) {
 }
 
 async function finalSameDayDuplicateSweep(events, {
+    arbitrateAmbiguous = null,
     consolidateConfirmedGroup = null,
+    aiDecisionCache = new Map(),
     pass = 1,
 } = {}) {
     const source = Array.isArray(events) ? events.filter(Boolean) : [];
@@ -3447,7 +3795,7 @@ async function finalSameDayDuplicateSweep(events, {
     });
 
     let comparedPairs = 0;
-    const accepted = [];
+    const candidates = [];
     for (const indexes of byDate.values()) {
         for (let a = 0; a < indexes.length; a += 1) {
             for (let b = a + 1; b < indexes.length; b += 1) {
@@ -3455,10 +3803,18 @@ async function finalSameDayDuplicateSweep(events, {
                 const i = indexes[a];
                 const j = indexes[b];
                 const deterministic = compareEventsDeterministic(source[i], source[j]);
-                if (deterministic.verdict === 'same' && union(i, j)) {
-                    accepted.push({ i, j, deterministic });
+                if (deterministic.verdict === 'same' && !deterministic.hardConflicts?.length) {
+                    candidates.push({ i, j, key: `${i}:${j}`, deterministic });
                 }
             }
+        }
+    }
+    const decisions = await resolveAmbiguousPairDecisions(candidates, source, arbitrateAmbiguous, aiDecisionCache);
+    const accepted = [];
+    for (const pair of candidates) {
+        const decision = decisions.get(pair.key);
+        if (canAcceptAiSame(pair.deterministic, decision) && union(pair.i, pair.j)) {
+            accepted.push({ ...pair, decision });
         }
     }
 
@@ -3481,11 +3837,14 @@ async function finalSameDayDuplicateSweep(events, {
         for (let offset = 1; offset < members.length; offset += 1) {
             const right = members[offset];
             const resolution = compareEventsDeterministic(merged, right);
+            const acceptedPair = accepted.find((item) => item.i === indexes[0] && item.j === indexes[offset]) ||
+                accepted.find((item) => item.i === indexes[offset] && item.j === indexes[0]);
+            const mergeContour = String(acceptedPair?.decision?.contour || `owner-final-same-day-${pass}`);
             const before = merged;
             merged = mergeDuplicateEvents(merged, right, {
-                contour: `owner-final-same-day-${pass}`,
+                contour: mergeContour,
                 score: resolution.score,
-                reasons: [...(resolution.reasons || []), 'parser-all-final-same-day-sweep'],
+                reasons: [...(resolution.reasons || []), 'parser-all-final-same-day-sweep', ...(acceptedPair?.decision?.reasons || [])],
             });
             merges.push({
                 left: sourceFingerprint(before),
@@ -3493,7 +3852,7 @@ async function finalSameDayDuplicateSweep(events, {
                 leftTitle: String(before?.title || ''),
                 rightTitle: String(right?.title || ''),
                 resultTitle: String(merged?.title || ''),
-                contour: `owner-final-same-day-${pass}`,
+                contour: mergeContour,
                 score: Number(resolution.score || 0),
                 reasons: [...(resolution.reasons || []), 'parser-all-final-same-day-sweep'],
                 aiConfidence: 0,
@@ -3655,11 +4014,18 @@ export async function deduplicateEventsTwoContour(events, {
         else if (deterministic.verdict === 'ambiguous') ambiguousPairs.push({ i, j, key, deterministic });
     }
 
-    directSame.sort((a, b) => b.deterministic.score - a.deterministic.score).forEach((pair) => union(pair.i, pair.j));
+    // Every candidate that the local contour considers `same` still goes
+    // through the AI authority.  The local result is only the candidate
+    // signal; it is not allowed to override an AI `different` answer.
+    const aiCandidatePairs = [...directSame, ...ambiguousPairs]
+        .filter((pair) => !pair.deterministic?.hardConflicts?.length);
+    // Hard deterministic negatives never enter the AI contour.
+    directSame.filter((pair) => pair.deterministic?.hardConflicts?.length)
+        .forEach((pair) => { pair._hardRejected = true; });
 
     const aiDecisionCache = new Map();
     const aiDecisions = await resolveAmbiguousPairDecisions(
-        ambiguousPairs,
+        aiCandidatePairs,
         source,
         arbitrateAmbiguous,
         aiDecisionCache,
@@ -3670,11 +4036,11 @@ export async function deduplicateEventsTwoContour(events, {
     // keeps complete-link checks symmetric for a multi-card duplicate swarm: a
     // later approved pair must not be rejected merely because an earlier union
     // inspected it before its own approval had been recorded.
-    for (const pair of ambiguousPairs) {
+    for (const pair of aiCandidatePairs) {
         const decision = aiDecisions.get(pair.key);
         if (canAcceptAiSame(pair.deterministic, decision)) approvedAiStableKeys.add(pair._stableAiKey);
     }
-    const unresolvedAmbiguous = ambiguousPairs
+    const unresolvedAmbiguous = aiCandidatePairs
         .filter((pair) => !['same', 'different'].includes(String(aiDecisions.get(pair.key)?.verdict || '').toLowerCase()))
         .map((pair) => ({
             key: pair.key,
@@ -3685,7 +4051,7 @@ export async function deduplicateEventsTwoContour(events, {
             reasons: pair.deterministic.reasons || [],
             reason: String(aiDecisions.get(pair.key)?.reason || 'ai-unresolved'),
         }));
-    for (const pair of ambiguousPairs) {
+    for (const pair of aiCandidatePairs) {
         const decision = aiDecisions.get(pair.key);
         if (canAcceptAiSame(pair.deterministic, decision) && union(pair.i, pair.j)) {
             aiSame.push({ ...pair, decision: { ...decision, confidence: clamp01(decision?.confidence) } });
@@ -3700,9 +4066,8 @@ export async function deduplicateEventsTwoContour(events, {
     }
 
     const samePairMap = new Map();
-    for (const pair of directSame) samePairMap.set(pair.key, { contour: 'deterministic', ...pair.deterministic });
     for (const pair of aiSame) samePairMap.set(pair.key, {
-        contour: 'ai',
+        contour: String(pair.decision?.contour || 'ai'),
         ...pair.deterministic,
         aiConfidence: pair.decision.confidence,
         aiReason: String(pair.decision.reason ?? ''),
@@ -3778,7 +4143,7 @@ export async function deduplicateEventsTwoContour(events, {
     // Последняя дешёвая страховка для exact/near-exact дублей.
     const paranoidMerges = [];
     for (let pass = 0; pass < 3; pass += 1) {
-        const collapsed = paranoidCollapse(current);
+        const collapsed = paranoidCollapse(current, { aiDecisionCache });
         paranoidMerges.push(...collapsed.merges);
         const changed = collapsed.events.length < current.length;
         current = collapsed.events;
@@ -3794,7 +4159,9 @@ export async function deduplicateEventsTwoContour(events, {
     let finalSweepComparedPairs = 0;
     for (let pass = 1; pass <= 3; pass += 1) {
         const swept = await finalSameDayDuplicateSweep(current, {
+            arbitrateAmbiguous,
             consolidateConfirmedGroup,
+            aiDecisionCache,
             pass,
         });
         finalSweepComparedPairs += Number(swept.comparedPairs || 0);
@@ -3822,7 +4189,7 @@ export async function deduplicateEventsTwoContour(events, {
         metadataAnchorSweepMergeCount: metadataAnchorSweep.merges.length,
         aiDecisionCacheSize: aiDecisionCache.size,
         unresolvedAmbiguous: [...unresolvedAmbiguous, ...verificationUnresolved],
-        ambiguous: ambiguousPairs.map((pair) => ({
+        ambiguous: aiCandidatePairs.map((pair) => ({
             key: pair.key,
             leftTitle: String(source[pair.i]?.title ?? ''),
             rightTitle: String(source[pair.j]?.title ?? ''),

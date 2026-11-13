@@ -1,3 +1,4 @@
+import {extractEventVenueAfterIn,matchEventVenueCatalog,selectEventsByBestVenueMatch} from './eventVenueRequestMatching.js';
 const GENERIC_VENUE_WORDS = new Set([
     'бар','bar','паб','pub','клуб','club','hall','холл','rock','рок','рокбар','рокпаб',
     'ресторан','restobar','ресто','кафе','cafe','центр','арт','art','лоунж','lounge',
@@ -25,14 +26,14 @@ function meaningfulVenueTokens(value) {
 }
 
 export const EVENT_VENUE_KEYS = Object.freeze([
-    { key: 'diesel', label: 'Diesel', aliases: ['diesel','дизель'] },
+    { key: 'diesel', label: 'Diesel', aliases: ['diesel','дизель','дизеле','дизил','дизиле'] },
     { key: 'diesel-bar', label: 'Diesel Bar', aliases: ['diesel bar','rock bar diesel','дизель бар','рок бар дизель','rockbar diesel','diesel rock bar'] },
     { key: 'diesel-hall', label: 'Diesel Hall', aliases: ['diesel hall','дизель холл','дизель хол','dieselhall'] },
     { key: 'tupik', label: 'Тупик', aliases: ['тупик','bar tupik','бар тупик'] },
-    { key: 'mama-anarhiya', label: 'Мама Анархия', aliases: ['мама анархия','mama anarhiya','mama anarchia','mama anarkhiya','паб мама анархия','рок паб мама анархия'] },
+    { key: 'mama-anarhiya', label: 'Мама Анархия', aliases: ['мама анархия','маме анархии','мама анархии','mama anarhiya','mama anarchia','mama anarkhiya','паб мама анархия','рок паб мама анархия'] },
     { key: 'vavilon', label: 'The Last of Vavilone / Вавилон', aliases: ['the last of vavilone','the last of vavilon','last of vavilone','last of vavilon','vavilone','vavilon','вавилон','зе ласт оф вавилон'] },
     { key: 'sto-ruchev', label: 'Сто Ручьёв', aliases: ['сто ручьев','сто ручьёв','100 ручьев','100 ручьёв','sto ruchev'] },
-    { key: 'liverpool', label: 'Ливерпуль', aliases: ['ливерпуль','liverpool','liverpool pub','ливерпуль паб'] },
+    { key: 'liverpool', label: 'Ливерпуль', aliases: ['ливерпуль','ливерпуле','liverpool','liverpool pub','ливерпуль паб'] },
     { key: 'balagan-city', label: 'Балаган Сити', aliases: ['балаган сити','balagan city','балаган'] },
     { key: 'kotelnaya', label: 'Котельная', aliases: ['котельная','kotelnaya'] },
     { key: 'overlock', label: 'Overlock', aliases: ['overlock','оверлок','underlock','андерлок'] },
@@ -42,7 +43,8 @@ export const EVENT_VENUE_KEYS = Object.freeze([
     { key: 'club-72', label: 'Клуб 72', aliases: ['клуб 72','club 72'] },
     { key: 'ce', label: 'ЦЕ', aliases: ['це','ce','це воронеж'] },
     { key: 'arena-hall', label: 'Арена Холл', aliases: ['арена холл','arena hall'] },
-    { key: 'bashnya', label: 'Башня / Винзавод', aliases: ['башня','винзавод','bashnya','vinzavod'] },
+    { key: 'bashnya', label: 'Башня', aliases: ['башня','bashnya'] },
+  { key: 'vinzavod', label: 'Винзавод', aliases: ['винзавод','винзавод chat','vinzavod','winzavod'] },
     { key: 'chaika', label: 'Артель Чайка', aliases: ['артель чайка','чайка','chaika'] },
     { key: 'koptilnya', label: 'Коптильня', aliases: ['коптильня','koptilnya'] },
     { key: 'litera', label: 'Литера', aliases: ['литера','litera','рестобар литера'] },
@@ -134,8 +136,12 @@ export function inferEventSearchTags(event = {}) {
         event?.title,
         event?.participants,
         event?.description,
+        event?.evidence,
+        event?.sourceText,
+        event?.announcement,
         event?.eventType,
         event?.program,
+        event?.venue,
         ...(Array.isArray(event?.eventTags) ? event.eventTags : []),
     ].filter(Boolean).join(' '));
     const compactText = compact(haystack);
@@ -180,37 +186,24 @@ function collectAliases(text, rows) {
 }
 
 export function parseEventSearchRequest(value) {
-    const raw = String(value ?? '').normalize('NFKC').trim();
-    const clean = raw.replace(/^гигорейв[\s,:-]*/iu, '').trim();
-    const lower = normalize(clean);
-    const showCatalog = /^(?:тусы\s+)?(?:ключи|фильтры|жанры|площадки)$/iu.test(lower);
-    if (showCatalog) return { matched: true, showCatalog: true, rangeText: '', venueKeys: [], tags: [] };
-
-    let venueMatches = collectAliases(clean, EVENT_VENUE_KEYS);
-    if (venueMatches.some((item) => item.key === 'diesel-bar' || item.key === 'diesel-hall')) {
-        venueMatches = venueMatches.filter((item) => item.key !== 'diesel');
-    }
-    const tagMatches = collectAliases(clean, EVENT_TAG_KEYS);
-    const isPartyCommand = /^(?:тусы|тусовки|события)(?:\s|$)/iu.test(clean);
-    const bareKnownKey = !isPartyCommand && Boolean(venueMatches.length || tagMatches.length) && (
-        venueMatches.some((item) => normalize(item.alias) === lower) ||
-        tagMatches.some((item) => normalize(item.alias) === lower)
-    );
-    if (!isPartyCommand && !bareKnownKey) {
-        return { matched: false, showCatalog: false, rangeText: clean, venueKeys: [], tags: [] };
-    }
-
-    const stripped = stripAliases(clean, [...venueMatches, ...tagMatches]);
-    const rangeText = /^(?:тусы|тусовки|события)$/iu.test(stripped) || !stripped
-        ? 'тусы все'
-        : stripped;
-    return {
-        matched: true,
-        showCatalog: false,
-        rangeText,
-        venueKeys: [...new Set(venueMatches.map((item) => item.key))],
-        tags: [...new Set(tagMatches.map((item) => item.key))],
-    };
+    const clean=String(value??'').normalize('NFKC').trim().replace(/^гигорейв[\s,:-]*/iu,'').trim();
+    const lower=normalize(clean);
+    if(/^(?:тусы\s+)?(?:ключи|фильтры|жанры|площадки)$/iu.test(lower))return {matched:true,showCatalog:true,rangeText:'',venueKeys:[],venueQuery:'',tags:[]};
+    const venueQuery=extractEventVenueAfterIn(clean);
+    const isPartyCommand=/^(?:тус(?:а|ы|овка|овки)|событи(?:е|я)|мероприяти(?:е|я))(?:\s|$)/iu.test(clean);
+    const matchedAliases=collectAliases(venueQuery||clean,EVENT_VENUE_KEYS);
+    const resolved=venueQuery?matchEventVenueCatalog(venueQuery,EVENT_VENUE_KEYS):[];
+    let venueMatches=venueQuery?(resolved.map(key=>({key,alias:venueQuery}))):matchedAliases;
+    if(!venueQuery&&venueMatches.some(x=>x.key==='diesel-bar'||x.key==='diesel-hall'))venueMatches=venueMatches.filter(x=>x.key!=='diesel');
+    // Words in the venue name (e.g. 'rock bar') are not genre filters.
+    let tags=collectAliases(venueQuery?normalize(clean).replace(normalize(venueQuery),' '):clean,EVENT_TAG_KEYS);
+    if(isPartyCommand)tags=tags.filter(t=>t.key!=='party');
+    const bareKnown=!isPartyCommand&&Boolean(venueMatches.length||tags.length)&&(
+        venueMatches.some(x=>normalize(x.alias)===lower)||tags.some(x=>normalize(x.alias)===lower));
+    if(!isPartyCommand&&!bareKnown&&!venueQuery)return {matched:false,showCatalog:false,rangeText:clean,venueKeys:[],venueQuery:'',tags:[]};
+    const stripped=stripAliases(clean,[...matchedAliases,...tags]);
+    const rangeText=stripped.replace(/^(?:туса|тусовка)(?=\s|$)/iu,'тусы').replace(/(?:^|\s)(?:в|во)\s+(?=\d)/iu,' ')||'тусы все';
+    return {matched:true,showCatalog:false,rangeText,venueQuery,venueKeys:[...new Set(venueMatches.map(x=>x.key))],tags:[...new Set(tags.map(x=>x.key))]};
 }
 
 export function eventMatchesSearchFilters(event, filters = {}) {
@@ -218,7 +211,8 @@ export function eventMatchesSearchFilters(event, filters = {}) {
     const tags = Array.isArray(filters?.tags) ? filters.tags.filter(Boolean) : [];
     if (!venueKeys.length && !tags.length) return true;
 
-    const eventVenueKey = String(event?.venueKey || inferVenueKey(event?.venue)).trim();
+    // Only the event's venue is authoritative: other clubs in description are not locations.
+    const eventVenueKey=String(event?.venueKey||inferVenueKey(event?.venue||'')).trim();
     const eventTags = new Set(inferEventSearchTags(event));
     const venueOk = !venueKeys.length || venueKeys.some((key) => {
         if (key === 'diesel') return eventVenueKey === 'diesel' || eventVenueKey === 'diesel-bar' || eventVenueKey === 'diesel-hall';
@@ -227,6 +221,8 @@ export function eventMatchesSearchFilters(event, filters = {}) {
     const tagsOk = !tags.length || tags.every((tag) => eventTags.has(tag));
     return venueOk && tagsOk;
 }
+
+export {selectEventsByBestVenueMatch};
 
 export function formatEventSearchKeyCatalog() {
     return [

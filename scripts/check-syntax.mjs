@@ -25,6 +25,7 @@ const failures = [];
 
 for (const file of files) {
     const result = spawnSync(process.execPath, ['--check', file], {
+        windowsHide: true,
         cwd: root,
         encoding: 'utf8',
     });

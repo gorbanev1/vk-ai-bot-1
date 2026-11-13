@@ -120,6 +120,7 @@ async function downloadSourceImages({
     downloadTimeoutMs = DEFAULT_IMAGE_DOWNLOAD_TIMEOUT_MS,
     maxSourceImages = MAX_SOURCE_IMAGES,
     allowBrowserFallback = true,
+    fetchImage = null,
 }) {
     const urls = uniqueHttpUrls(imageUrls, maxSourceImages);
 
@@ -138,6 +139,7 @@ async function downloadSourceImages({
         try {
             const response = await runEventOperationWithRetries(
                 async () => {
+                    if (fetchImage) return fetchImage(urls[index]);
                     try {
                         return await directDownloadBuffer({
                             url: urls[index],
@@ -289,6 +291,7 @@ export async function prepareEventImages({
     downloadTimeoutMs = DEFAULT_IMAGE_DOWNLOAD_TIMEOUT_MS,
     maxSourceImages = MAX_SOURCE_IMAGES,
     allowBrowserFallback = true,
+    fetchImage = null,
     generateFallback = false,
     shareSourceImagesAcrossEvents = false,
 }) {
@@ -308,6 +311,7 @@ export async function prepareEventImages({
         downloadTimeoutMs,
         maxSourceImages,
         allowBrowserFallback,
+        fetchImage,
     });
     const sourceImageCount = uniqueHttpUrls(imageUrls, maxSourceImages).length;
     const result = [];

@@ -7,9 +7,10 @@ const diagnostics = readFileSync(new URL('../../src/features/scrapers/manualPars
 const vkPublic = readFileSync(new URL('../../src/platforms/vk/vkPublicScraper.js', import.meta.url), 'utf8');
 const vkChat = readFileSync(new URL('../../src/platforms/vk/vkChatEventScraper.js', import.meta.url), 'utf8');
 
-test('V188.83 parser-all launches main sources near-parallel with a short 1.5s stagger', () => {
-    assert.match(app, /SCRAPER_ALL_LAUNCH_STAGGER_MS/u);
-    assert.match(app, /60_000,\s*1_500/u);
+test('parser-all retains the configured randomized 10-20 second VK launch interval', () => {
+    assert.match(app, /const vkLaunchMinMs = 10_000/u);
+    assert.match(app, /const vkLaunchMaxMs = 20_000/u);
+    assert.match(app, /makeGapMs:\s*\(\) => randomInt\(vkLaunchMinMs, vkLaunchMaxMs \+ 1\)/u);
     assert.match(app, /source\.run\.scheduled/u);
     assert.match(app, /scheduledDelayMs/u);
 });
@@ -54,4 +55,14 @@ test('V188.79 healthy VK pages are never reloaded just because exact extraction 
     const reloadPosition = vkPublic.indexOf('await page.reload({', recheckPosition);
     assert.ok(recheckPosition > delayPosition, 'page health must be checked again after the wait');
     assert.ok(reloadPosition > recheckPosition, 'actual reload must happen only after the delayed recheck');
+});
+
+
+test('parser algorithm changes retain the owner-configured three-minute dwell and 25-second settling', () => {
+    const imageRecovery = readFileSync(new URL('../../src/features/scrapers/browserImageCacheRecovery.js', import.meta.url), 'utf8');
+    assert.match(vkPublic, /const minimumParserPageLifetimeMs = 180_000;/u);
+    assert.match(vkChat, /const DEFAULT_POST_SCAN_HOLD_MS = 180_000;/u);
+    assert.match(vkPublic, /await page\.waitForTimeout\?\.\(25_000\)/u);
+    assert.match(vkChat, /await livePage\.waitForTimeout\(25_000\)/u);
+    assert.match(imageRecovery, /CACHE_RECOVERY_SETTLE_MS = 25_000;/u);
 });

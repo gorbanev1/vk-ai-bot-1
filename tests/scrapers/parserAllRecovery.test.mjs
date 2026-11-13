@@ -297,7 +297,7 @@ test('resume reuses each successful image, including partial batches; source and
     const url = 'https://example.org/poster.jpg';
     const responseText = '[IMAGE 1] Это афиша события: да';
     writeFileSync(tracePath, [
-        { stage: 'item.poster-gate.batch_start', data: { ...request, semanticBodyText: request.sourceText } },
+        { stage: 'item.poster-gate.batch_start', data: { ...request, semanticBodyText: request.sourceText, posterGatePolicyVersion: 3 } },
         { stage: 'item.poster-gate.image', data: { ...request, imageNumber: 1, imageUrl: url, responseText } },
         { stage: 'item.poster-gate.image_error', data: { ...request, imageNumber: 2, imageUrl: 'https://example.org/failed.jpg' } },
     ].map(row => JSON.stringify(row)).join('\n') + '\n{');
@@ -308,4 +308,66 @@ test('resume reuses each successful image, including partial batches; source and
     assert.equal(getParserPosterGateImage(images, request, 1, 'https://example.org/changed.jpg'), '');
     assert.equal(getParserPosterGateImage(images, { ...request, sourceText: 'Changed' }, 1, url), '');
     assert.equal(getParserPosterGateImage(images, { ...request, sourceUrl: 'https://vk.ru/wall-2_1' }, 1, url), '');
+});
+
+
+test('warnings with an explicit empty remainder do not restart a completed parser', async () => {
+    const f = fixture();
+    f.write('finished', '2026-10-26T16:06:00Z', { phase: 'completed-with-warnings', unfinishedCandidates: 0 }, { status: 'completed' });
+    assert.equal(f.load(), null);
+    assert.equal(await loadLatestParserAllRecoveryAsync({ root: f.root, directory: f.directory }), null);
+    f.write('unfinished', '2026-10-26T17:00:00Z', { phase: 'completed-with-warnings', unfinishedCandidates: 1 }, { status: 'completed' });
+    assert.equal(f.load().id, 'unfinished');
+});
+
+
+test('one trace pass retains provenance, original phase-one capture and per-trace Vision batch boundaries', async () => {
+    const { default: fs } = await import('node:fs');
+    const { syncBuiltinESMExports } = await import('node:module');
+    const { loadParserPosterGateImages } = await import('../../src/features/scrapers/parserAllRecovery.js');
+    const f = fixture(), traceA = join(f.root, 'a.jsonl'), traceB = join(f.root, 'b.jsonl');
+    const newerCache = join(f.root, 'newer.json');
+    writeFileSync(f.cachePath, JSON.stringify({ runId: 'run-a', sourceId: 'vk:venue', items: [{ postId: 1, text: 'original full capture' }] }));
+    writeFileSync(newerCache, JSON.stringify({ runId: 'run-b', sourceId: 'vk:venue', items: [{ postId: 2 }] }));
+    const batch = { sourceId: 'vk:venue', itemId: '1', sourceUrl: 'https://vk.ru/wall-1_1', dateFreePhase: true,
+        semanticBodyText: 'one event', posterGatePolicyVersion: 2 };
+    const image = { sourceId: 'vk:venue', itemId: '1', imageNumber: 1, imageUrl: 'https://example.org/one.jpg', responseText: 'first' };
+    const rowsA = [
+        { stage: 'run.start', data: { runId: 'run-a' } },
+        { stage: 'run.source-registry', data: { sources: [{ sourceId: 'vk:venue' }, { sourceId: 'vk:missing' }] } },
+        { stage: 'item.poster-gate.batch_start', data: batch },
+        { stage: 'item.poster-gate.image', data: image },
+        { stage: 'item.poster-gate.batch_start', data: { ...batch, itemId: 'orphan' } },
+    ];
+    const rowsB = [
+        { stage: 'run.start', data: { runId: 'run-b' } },
+        { stage: 'source.cache.saved', data: { sourceId: 'vk:venue', path: newerCache } },
+        { stage: 'item.poster-gate.image', data: { ...image, itemId: 'orphan' } },
+        { stage: 'item.poster-gate.batch_start', data: batch },
+        { stage: 'item.poster-gate.image', data: { ...image, responseText: 'latest' } },
+    ];
+    writeFileSync(traceA, rowsA.map(row => JSON.stringify(row)).join('\n') + '\n{"incomplete":');
+    writeFileSync(traceB, 'null\n' + rowsB.map(row => JSON.stringify(row)).join('\n'));
+    f.write('combined', '2026-10-27T00:00:00Z', {
+        tracePaths: [traceA, traceB, traceA],
+        dateFreePhasePlan: { phaseOneComplete: false, originalCaptures: [{ sourceId: 'vk:venue', cachePath: f.cachePath }] },
+    });
+    const original = fs.readFileSync, reads = new Map([[traceA, 0], [traceB, 0]]);
+    fs.readFileSync = function(file, ...args) {
+        if (reads.has(String(file))) reads.set(String(file), reads.get(String(file)) + 1);
+        return original.call(this, file, ...args);
+    };
+    syncBuiltinESMExports();
+    let recovery;
+    try {
+        recovery = f.load();
+        assert.deepEqual([...reads.values()], [1, 1]);
+    } finally { fs.readFileSync = original; syncBuiltinESMExports(); }
+    assert.equal(recovery.available, true);
+    assert.deepEqual(recovery.invalidCaches, []);
+    assert.deepEqual(recovery.uncapturedSourceIds, ['vk:missing']);
+    assert.equal(recovery.cacheRows.get('vk:venue').items[0].text, 'original full capture');
+    assert.equal(recovery.posterGateImages.size, 1);
+    assert.equal([...recovery.posterGateImages.values()][0].responseText, 'latest');
+    assert.deepEqual(recovery.posterGateImages, loadParserPosterGateImages([traceA, traceB]));
 });

@@ -13,7 +13,7 @@ for (const mode of ['pro', 'pro2', 'pro3']) {
     });
 }
 
-for (const mode of ['default', 'gpt54', 'gpt55', '', null]) {
+for (const mode of ['default', '', null]) {
     assert.equal(isProResponseMode(mode), false);
     assert.deepEqual(getProInferenceControls(mode), {});
 }

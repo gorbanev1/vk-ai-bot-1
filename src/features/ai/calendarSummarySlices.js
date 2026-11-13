@@ -57,13 +57,22 @@ export function calendarSummarySliceBounds(dayKey, slot, timeZone) {
     };
 }
 
+// Bounds depend only on day and timezone, never on the individual message.
+// Keep this bounded: long historical scans must not retain every day forever.
+const sliceDayCache = new Map();
 export function calendarSummarySliceForTimestamp(timestampSeconds, dayKey, timeZone) {
     const ts = Number(timestampSeconds) || 0;
-    for (const slot of CALENDAR_SUMMARY_SLICE_SLOTS) {
-        const bounds = calendarSummarySliceBounds(dayKey, slot, timeZone);
-        if (ts >= bounds.startAt && ts < bounds.endAt) return { ...slot, ...bounds };
+    const key = JSON.stringify([dayKey, timeZone]);
+    let slices = sliceDayCache.get(key);
+    if (!slices) {
+        slices = CALENDAR_SUMMARY_SLICE_SLOTS.map(slot => ({
+            ...slot, ...calendarSummarySliceBounds(dayKey, slot, timeZone),
+        }));
+        if (sliceDayCache.size >= 128) sliceDayCache.delete(sliceDayCache.keys().next().value);
+        sliceDayCache.set(key, slices);
     }
-    return null;
+    const slice = slices.find(bounds => ts >= bounds.startAt && ts < bounds.endAt);
+    return slice ? { ...slice } : null;
 }
 
 export function calendarSummarySliceIsClosed(slice, now = new Date()) {

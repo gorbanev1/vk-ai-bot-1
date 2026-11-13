@@ -129,6 +129,19 @@ export function selectRoastContextMessages(messages, {
         .map(({ __roastOrder, ...message }) => message);
 }
 
+// Explicit bot identity takes precedence over human-roster fuzzy matching.
+// A VK [clubID|label] mention carries a real club ID; its display label
+// is not a participant name and must never be passed to the AI name tiebreak.
+export function isRoastBotSelfReference(targetQuery,{vkGroupId=0}={}){
+    const target=String(targetQuery??'').trim();
+    if(!target)return false;
+    const vkClub=target.match(/^\[club(\d+)\|[^\]\r\n]+\]$/iu);
+    if(vkClub)return Number(vkGroupId)>0&&
+        Number(vkClub[1])===Math.abs(Number(vkGroupId));
+    const normalized=target.toLocaleLowerCase('ru-RU').replace(/^@/u,'');
+    return /^(?:gigorave|gigorave_bot|gigoravebot|\u0433\u0438\u0433\u043e\u0440\u0435\u0439\u0432)$/iu.test(normalized);
+}
+
 export function parseRoastCommand(value) {
     const normalized = compactWhitespace(value).replace(BOT_PREFIX_PATTERN, '');
     const match = normalized.match(ROAST_COMMAND_PATTERN);
@@ -312,6 +325,55 @@ export function participantNamePartSimilarity(query, participant) {
         }
     }
     return Number(Math.min(1, best).toFixed(6));
+}
+
+// Compile invariant name forms once per history scan. The scalar matcher above
+// remains the routing reference; this scorer preserves its threshold/identity rules.
+export function createParticipantNamePartScorer(participant) {
+    const aliases = uniqueAliases(participant).map(normalizeParticipantAlias).filter(Boolean);
+    const aliasVariants = [...new Set(aliases.flatMap(alias =>
+        alias.split(' ').flatMap(russianNameTokenVariants)))];
+    const groups = identityAliasGroups().map(group => ({
+        ...group,
+        variants: [...group.triggers].flatMap(russianNameTokenVariants),
+        belongs: aliases.some(alias => group.members.has(alias)),
+    }));
+    const hasIdentityGroup = groups.some(group => group.belongs);
+    const tokenScores = new Map();
+    const similarity = (a, b) => a === b ? 1
+        : Math.max(0, 1 - levenshteinDistance(a, b) / Math.max(a.length, b.length));
+
+    return query => {
+        const normalized = normalizeParticipantAlias(query);
+        if (!normalized || !participant) return 0;
+        if (hasIdentityGroup) {
+            const variants = russianNameTokenVariants(normalized);
+            // Keep the first matching configured group, including non-members.
+            const group = groups.find(entry => entry.members.has(normalized) ||
+                variants.some(left => entry.variants.some(right =>
+                    similarity(left, right) > PARTICIPANT_NAME_PART_MIN_SCORE)));
+            if (group?.belongs) return 1;
+        }
+        let best = 0;
+        for (const token of normalized.split(' ')) {
+            let score = tokenScores.get(token);
+            if (score === undefined) {
+                score = 0;
+                for (const left of russianNameTokenVariants(token)) {
+                    for (const right of aliasVariants) {
+                        // A length gap is a lower bound on edit distance.
+                        if (1 - Math.abs(left.length - right.length) /
+                            Math.max(left.length, right.length) <= score) continue;
+                        score = Math.max(score, similarity(left, right));
+                    }
+                }
+                if (tokenScores.size >= 8192) tokenScores.clear();
+                tokenScores.set(token, score);
+            }
+            best = Math.max(best, score);
+        }
+        return Number(Math.min(1, best).toFixed(6));
+    };
 }
 
 function levenshteinDistance(left, right) {

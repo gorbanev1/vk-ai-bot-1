@@ -216,7 +216,7 @@ const participantVenueConflict = compareEventsDeterministic(
     sameDateSharedParticipantA,
     { ...sameDateSharedParticipantB, venue: 'Паб «Мама Анархия», Плехановская 48, Воронеж' },
 );
-assert.equal(participantVenueConflict.verdict, 'different', 'explicit different addresses remain a hard dedupe boundary');
+assert.notEqual(participantVenueConflict.verdict, 'different', 'different street addresses do not define different venues or block dedupe');
 let participantDateAiCalls = 0;
 const participantDateResult = await deduplicateEventsTwoContour([sameDateSharedParticipantA, sameDateSharedParticipantB], {
     arbitrateAmbiguous: async (pairs) => {

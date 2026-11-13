@@ -29,9 +29,10 @@ test('V188.42 hierarchy message coverage is immutable once paid', () => {
   }
 });
 
-test('V188.42 summary scan never requeues an existing message key on content hash change', () => {
+test('summary scans guard paid IDs but resolve genuinely reused legacy IDs after chat migration', () => {
   const source = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
-  assert.match(source, /if \(messageStateByKey\.has\(messageKey\)\) return false;/u);
+  assert.match(source, /resolveHierarchyMessageStateKey\(/u);
+  assert.match(source, /if \(messageStateByKey\.has\(messageKey\)\) return \[\];/u);
   assert.match(source, /recoveredMessageCanAliasPaidState\(message, paidStates\)/u);
   assert.doesNotMatch(source, /!state \|\| state\.contentHash !== hierarchyMessageContentHash\(message\)/u);
 });

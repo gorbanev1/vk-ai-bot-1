@@ -29,6 +29,7 @@ for (let index = 0; index < files.length; index += 1) {
     const dataDir = join(sandbox, 'data');
     const stateDir = join(sandbox, 'state');
     const result = spawnSync(process.execPath, ['--test', file], {
+        windowsHide: true,
         cwd: root,
         env: {
             ...process.env,

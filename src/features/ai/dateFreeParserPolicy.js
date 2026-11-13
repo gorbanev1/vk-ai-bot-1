@@ -4,12 +4,13 @@ export function createDateFreeParserPolicy({ minimumSample = 4, onChange = () =>
     const requests = new Map();
     let stopped = false;
     const snapshot = () => ({ stopped, models: structuredClone(models), lunaFailureRatio: ratio(), terraFailureRatio: ratio('gpt-5.6-terra') });
-    const ratio = (model = 'gpt-5.6-luna') => {
+    const ratio = (model = 'gpt-6-luna') => {
         const row = models[model];
         return row?.completed ? row.failures / row.completed : 0;
     };
     const failureThresholdReached = () =>
-        (models['gpt-5.6-luna']?.completed >= minimumSample && ratio() >= 0.85) ||
+        (models['gpt-6-luna']?.completed >= minimumSample && ratio() >= 0.85) ||
+        (models['gpt-5.6-luna']?.completed >= minimumSample && ratio('gpt-5.6-luna') >= 0.85) ||
         (models['gpt-5.6-terra']?.completed >= minimumSample && ratio('gpt-5.6-terra') >= 0.70);
     const stoppedError = () => Object.assign(new Error('Вторая фаза приостановлена: Luna достигла 85% отказов или Terra достигла 70%, затем по одной попытке 6.1 Sol и 6 Astra тоже завершились ошибкой. Остаток сохранён для продолжения.'), { code: 'DATE_FREE_PHASE_PAUSED' });
     let changeScheduled = false;
@@ -38,6 +39,9 @@ export function createDateFreeParserPolicy({ minimumSample = 4, onChange = () =>
         } catch (error) {
             row.failures++;
             detail.failures++;
+            // Persist the actual cause before the aggregate pause replaces it.
+            detail.lastError = { code: String(error?.code || ''), message: String(error?.message || error).slice(0, 1500), at: new Date().toISOString() };
+            row.lastError = detail.lastError;
             throw error;
         } finally {
             const duration = Date.now() - start;
@@ -52,6 +56,12 @@ export function createDateFreeParserPolicy({ minimumSample = 4, onChange = () =>
     }
     async function runAttempts(capability, request) {
         let lastError;
+        // Every ladder starts with GPT-6 Luna and spends exactly one attempt
+        // there. If that first pass fails, retain the bounded legacy Luna
+        // fallback before moving to Terra/Sol/Astra.
+        if (stopped) throw stoppedError();
+        try { return await attempt('gpt-6-luna', capability, request); }
+        catch (error) { lastError = error; }
         for (let i = 0; i < 4; i++) {
             if (stopped) throw stoppedError();
             try { return await attempt('gpt-5.6-luna', capability, request); }

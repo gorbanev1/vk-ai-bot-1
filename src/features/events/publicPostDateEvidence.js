@@ -28,6 +28,15 @@ export const RUSSIAN_EVENT_MONTHS = new Map([
     ['декабря', 12], ['декабрь', 12], ['дек', 12],
 ]);
 
+// Keep English poster dates in the same calendar/year/context validation path.
+const ENGLISH_EVENT_MONTHS = new Map([
+    ['january', 1], ['jan', 1], ['february', 2], ['feb', 2],
+    ['march', 3], ['mar', 3], ['april', 4], ['apr', 4], ['may', 5],
+    ['june', 6], ['jun', 6], ['july', 7], ['jul', 7], ['august', 8], ['aug', 8],
+    ['september', 9], ['sept', 9], ['sep', 9], ['october', 10], ['oct', 10],
+    ['november', 11], ['nov', 11], ['december', 12], ['dec', 12],
+]);
+
 const WEEKDAY_INDEX = new Map([
     ['понедельник', 1], ['понедельника', 1],
     ['вторник', 2], ['вторника', 2],
@@ -241,6 +250,42 @@ export function extractRawDateMentions(text) {
             explicitYear: match[3] ? normalizeEventYear(match[3]) : null,
             index: match.index, length: match[0].length, raw: match[0],
         });
+    }
+
+    // Recognize MAY 16 / 16 May, ordinal suffixes and same-month ranges.
+    // Word boundaries prevent names/identifiers (Mayday, XMay16) from becoming dates.
+    // Preserve source offsets and quotations; never normalize the source in-place.
+    const englishMonths = [...ENGLISH_EVENT_MONTHS.keys()].sort((a, b) => b.length - a.length).join('|');
+    const englishDay = '(\\d{1,2})(?:st|nd|rd|th)?';
+    const englishRange = `(?:[ \\t]*[—–-][ \\t]*${englishDay})?`;
+    const englishYear = '(?:(?:[ \\t]+|[ \\t]*,[ \\t]*)(\\d{4})(?!\\d))?';
+    const englishPatterns = [
+        { monthFirst: true, pattern: new RegExp(`(?<![\\p{L}\\p{N}_])(${englishMonths})\\.?\\s+${englishDay}${englishRange}${englishYear}(?![\\p{L}\\p{N}_])`, 'giu') },
+        { monthFirst: false, pattern: new RegExp(`(?<![\\p{L}\\p{N}_])${englishDay}${englishRange}\\s+(${englishMonths})\\.?${englishYear}(?![\\p{L}\\p{N}_])`, 'giu') },
+    ];
+    for (const { pattern, monthFirst } of englishPatterns) {
+        while ((match = pattern.exec(source)) !== null) {
+            if (isAdministrativeOrNonDateContext(source, match.index, match[0].length, match[0])) continue;
+            // Do not silently infer a year after a malformed explicit year.
+            if (!match[4] && /^[ \t]*,?[ \t]*\d{4,}/u.test(source.slice(match.index + match[0].length))) continue;
+            const month = ENGLISH_EVENT_MONTHS.get(match[monthFirst ? 1 : 3].toLowerCase());
+            const first = Number(match[monthFirst ? 2 : 1]);
+            const lastRaw = match[monthFirst ? 3 : 2];
+            const last = lastRaw ? Number(lastRaw) : first;
+            const explicitYear = match[4] ? normalizeEventYear(match[4]) : null;
+            if (last < first || !toIsoEventDate(explicitYear || 2000, month, first) ||
+                !toIsoEventDate(explicitYear || 2000, month, last)) continue;
+            const rangeId = lastRaw ? `english-range:${match.index}` : undefined;
+            pushMention(mentions, {
+                kind: lastRaw ? 'range-start' : 'absolute', day: first, month, explicitYear,
+                index: match.index, length: match[0].length, raw: match[0], ...(rangeId ? { rangeId } : {}),
+            });
+            if (lastRaw) pushMention(mentions, {
+                kind: 'range-end', day: last, month, explicitYear,
+                index: match.index + match[0].indexOf(lastRaw, match[0].indexOf(String(first)) + String(first).length),
+                length: lastRaw.length, raw: match[0], rangeId,
+            });
+        }
     }
 
     const words = [...RUSSIAN_EVENT_MONTHS.keys()].sort((a, b) => b.length - a.length).join('|');

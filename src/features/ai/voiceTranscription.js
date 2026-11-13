@@ -1,3 +1,4 @@
+import {isOfflineModelAllowed,getOfflineModelReliability} from './offlineModelReliability.js';
 import {
     executeRuntimeModelFailover,
     isTechnicalModelFailure,
@@ -61,7 +62,7 @@ export function collectVoiceTranscriptionProviders(env = process.env) {
             providers.push({
                 name: `${prefix}${suffix}`, apiKey,
                 baseUrl: clean(env[`${basePrefix}${suffix}`] || env[basePrefix] || base).replace(/\/+$/u, ''),
-                models: models(env[`${modelPrefix}${suffix}`] || env[modelPrefix] || env[modelPrefix.replace(/MODELS$/u, 'MODEL')], defaultModels),
+                models: models(env[`${modelPrefix}${suffix}`] || env[modelPrefix] || env[modelPrefix.replace(/MODELS$/u, 'MODEL')], defaultModels).filter(model=>isOfflineModelAllowed({provider:prefix==='GROQ_API_KEY'?'groq':prefix==='OPENAI_COMPAT_API_KEY'?'openai-compatible':'audio',envName:prefix+suffix,model,capability:'audio-transcription'})).sort((a,b)=>getOfflineModelReliability({provider:'groq',envName:prefix+suffix,model:b,capability:'audio-transcription'})-getOfflineModelReliability({provider:'groq',envName:prefix+suffix,model:a,capability:'audio-transcription'})),
             });
         }
     };

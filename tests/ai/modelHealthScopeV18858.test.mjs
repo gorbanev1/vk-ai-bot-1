@@ -11,8 +11,8 @@ test('V188.58: failure of mini quarantines only mini, not the next model on the 
     const calls = [];
     const events = [];
     const candidates = [
-        { provider: 'compat', name: 'OPENAI_COMPAT_API_KEY', secret: 'x', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.4-mini', mode: 'default', capability: 'vision' },
-        { provider: 'compat', name: 'OPENAI_COMPAT_API_KEY', secret: 'x', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.4', mode: 'gpt54', capability: 'vision' },
+        { provider: 'compat', name: 'OPENAI_COMPAT_API_KEY', secret: 'x', baseUrl: 'https://example.invalid/v1', model: 'gpt-6-luna', mode: 'default', capability: 'vision' },
+        { provider: 'compat', name: 'OPENAI_COMPAT_API_KEY', secret: 'x', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.6-luna', mode: 'pro', capability: 'vision' },
     ];
 
     const result = await executeRuntimeModelFailover({
@@ -25,22 +25,22 @@ test('V188.58: failure of mini quarantines only mini, not the next model on the 
         onEvent: (event) => events.push({ type: event.type, model: event.credential?.model || '' }),
         request: async (credential) => {
             calls.push(credential.model);
-            if (credential.model === 'gpt-5.4-mini') throw new Error('timeout');
+            if (credential.model === 'gpt-6-luna') throw new Error('timeout');
             return 'ok';
         },
     });
 
     assert.equal(result.value, 'ok');
-    assert.equal(result.credential.model, 'gpt-5.4');
-    assert.deepEqual(calls, ['gpt-5.4-mini', 'gpt-5.4']);
-    assert.ok(events.some((row) => row.type === 'rotate' && row.model === 'gpt-5.4-mini'));
-    assert.ok(events.some((row) => row.type === 'success' && row.model === 'gpt-5.4'));
-    assert.equal(events.some((row) => row.type === 'skip-quarantined' && row.model === 'gpt-5.4'), false);
+    assert.equal(result.credential.model, 'gpt-5.6-luna');
+    assert.deepEqual(calls, ['gpt-6-luna', 'gpt-5.6-luna']);
+    assert.ok(events.some((row) => row.type === 'rotate' && row.model === 'gpt-6-luna'));
+    assert.ok(events.some((row) => row.type === 'success' && row.model === 'gpt-5.6-luna'));
+    assert.equal(events.some((row) => row.type === 'skip-quarantined' && row.model === 'gpt-5.6-luna'), false);
 });
 
 test('V188.58: capability scope is independent for the same provider key/model', async () => {
     resetRuntimeModelCredentialHealth();
-    const base = { provider: 'compat', name: 'KEY', secret: 'x', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.4-mini' };
+    const base = { provider: 'compat', name: 'KEY', secret: 'x', baseUrl: 'https://example.invalid/v1', model: 'gpt-6-luna' };
 
     await assert.rejects(() => executeRuntimeModelFailover({
         candidates: [{ ...base, capability: 'vision' }],

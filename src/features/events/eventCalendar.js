@@ -1,3 +1,4 @@
+import { getSharedEventSchedule } from './sharedEventSchedule.js';
 import { Buffer } from 'node:buffer';
 import { createHmac } from 'node:crypto';
 
@@ -87,6 +88,7 @@ function utcStamp(date) {
 }
 
 function eventCalendarValues(event, timeZone = 'Europe/Moscow') {
+    if (getSharedEventSchedule(event)) return null; // A visit date must be selected first.
     const date = normalizeDate(event?.eventDate);
     if (!date) return null;
     const time = normalizeTime(event?.eventTime || event?.timeLabel);
@@ -214,7 +216,7 @@ export function buildAppleCalendarLinks(event, options = {}) {
 }
 
 export function eventCalendarAvailability(event) {
-    return Boolean(normalizeDate(event?.eventDate));
+    return !getSharedEventSchedule(event) && Boolean(normalizeDate(event?.eventDate));
 }
 
 export function eventCalendarFilename(event) {

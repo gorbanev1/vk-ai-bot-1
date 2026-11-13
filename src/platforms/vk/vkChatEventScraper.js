@@ -1,3 +1,7 @@
+import { getPendingParserPosterItems } from '../../infrastructure/database/index.js';
+import { mergePosterRepairItems } from '../../infrastructure/database/parserPosterRetry.js';
+import { cachedParserImageAsset } from '../../features/scrapers/browserImageCacheRecovery.js';
+import { selectDateProgramSegment, validateScheduleCardinality, validateSharedEventSchedule, validateTheaterRepertoireSchedule, getSharedEventSchedule, nextSharedEventDate } from '../../features/events/sharedEventSchedule.js';
 import { applyPosterGateResult } from '../../features/scrapers/posterGateResult.js';
 /**
  * Ручной скрейпер VK-бесед. Не открывает беседы сам при старте; вкладку запускает явная команда владельца.
@@ -2802,8 +2806,51 @@ function normalizeAnnouncement(value, event, rawText, links = [], { includeFullM
     return sections.join('\n\n').slice(0, 12_000);
 }
 
+function collapseVkChatTheaterRepertoire(aiResult, sourceEvents, message, visualText = '') {
+    const structure = String(aiResult?.structure ?? aiResult?.structure_decision ?? '').trim();
+    if (structure !== 'multiple_events' || !Array.isArray(sourceEvents) || sourceEvents.length < 2 || sourceEvents.length > 20) return null;
+    const context = [
+        message?.text, message?.embeddedText, message?.repostText, visualText, message?.__posterGateFacts,
+        ...sourceEvents.flatMap((event) => [event?.title, event?.venue, event?.source_segment, event?.sourceSegment, event?.announcement, event?.description]),
+    ].filter(Boolean).join(' ');
+    // A shared theatre calendar is one secondary card. Keep this guard narrow
+    // so ordinary multi-event concert announcements remain separate cards.
+    if (!/(?:репертуар|афиша\s+(?:театра|спектаклей)|театр.{0,80}(?:ноябр|декабр|октябр|репертуар)|(?:ноябр|декабр|октябр).{0,80}театр|theatre\s+repertoire|repertoire)/iu.test(context)) return null;
+    if (!/(?:театр|театральн|спектакл|theatre)/iu.test(context)) return null;
+    const rows = sourceEvents.map((event) => ({
+        date: String(event?.date ?? event?.eventDate ?? '').trim(),
+        title: trimText(event?.title ?? event?.name ?? '', 500),
+        time: normalizeEventTime(event?.time ?? event?.eventTime),
+        text: trimText(event?.source_segment ?? event?.sourceSegment ?? event?.announcement ?? event?.description ?? '', 1200),
+        evidence: trimText(event?.evidence ?? event?.source_segment ?? event?.sourceSegment ?? event?.announcement ?? '', 1600),
+        venue: trimText(event?.venue ?? event?.place ?? '', 500),
+    }));
+    if (rows.some((row) => !isCalendarIsoDate(row.date) || !row.title || !row.evidence)) return null;
+    if (new Set(rows.map((row) => row.date)).size !== rows.length || new Set(rows.map((row) => row.title.toLocaleLowerCase('ru'))).size !== rows.length) return null;
+    const dates = rows.map((row) => row.date).sort();
+    const venues = [...new Set(rows.map((row) => row.venue).filter(Boolean))];
+    return {
+        structure: 'theater_repertoire',
+        structure_reason: 'Единый театральный репертуар с отдельными постановками по датам.',
+        events: [{
+            date: dates[0],
+            title: 'Репертуар театра',
+            time: null,
+            venue: venues.length === 1 ? venues[0] : (venues[0] || ''),
+            participants: '',
+            price: '',
+            announcement: 'Театральный репертуар; даты и постановки перечислены в программе.',
+            source_segment: String(message?.text ?? ''),
+            evidence: rows.map((row) => row.evidence).join(' || '),
+            schedule: { dateMode: 'specific', startDate: dates[0], endDate: dates.at(-1), dates },
+            program_items: rows.map((row) => ({ date: row.date, title: row.title, time: row.time || null, text: row.text, evidence: row.evidence, venue: row.venue })),
+            tags: ['theater'],
+        }],
+    };
+}
+
 function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
-    const sourceEvents = Array.isArray(aiResult)
+    let sourceEvents = Array.isArray(aiResult)
         ? aiResult
         : Array.isArray(aiResult?.events)
             ? aiResult.events
@@ -2826,13 +2873,19 @@ function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
     // The chat extractor returns structure metadata once per response (alongside
     // events). Keep that decision on every child row so a multi-announcement can
     // be repaired or audited without replaying the model response.
-    const responseStructure = String(
+    let responseStructure = String(
         aiResult?.structure ?? aiResult?.structure_decision ?? '',
     ).trim();
     const responseStructureReason = trimText(
         aiResult?.structure_reason ?? aiResult?.structureReason ?? '',
         1000,
     );
+
+    const collapsedRepertoire = collapseVkChatTheaterRepertoire(aiResult, sourceEvents, message, visualText);
+    if (collapsedRepertoire) {
+        sourceEvents = collapsedRepertoire.events;
+        responseStructure = collapsedRepertoire.structure;
+    }
 
     // Do not materialize child cards while the mandatory AI cardinality step is
     // unresolved (typically one calendar date with several times). The source
@@ -2844,7 +2897,23 @@ function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
         return [];
     }
 
+    const cardinality = validateScheduleCardinality(responseStructure, sourceEvents, {
+        sourceText: message?.text || '', facts: parseIndexedImageFacts(posterGateFacts), publishedAt: message?.publishedAt,
+    });
+    if (!cardinality.ok) {
+        for (const event of sourceEvents) rejectedEvents.push({ event, reason: cardinality.reason });
+        return [];
+    }
+    if (['shared_schedule_event', 'theater_repertoire'].includes(responseStructure) && sourceEvents.length !== 1) return [];
     for (const event of sourceEvents) {
+        const shared = responseStructure === 'shared_schedule_event' ? validateSharedEventSchedule(event, {
+            sourceText: message?.text || '', facts: parseIndexedImageFacts(posterGateFacts), publishedAt: message?.publishedAt,
+        }) : null;
+        if (shared && !shared.ok) { rejectedEvents.push({ event, reason: shared.reason }); continue; }
+        const repertoire = responseStructure === 'theater_repertoire' ? validateTheaterRepertoireSchedule(event, {
+            sourceText: message?.text || '', facts: parseIndexedImageFacts(posterGateFacts), publishedAt: message?.publishedAt,
+        }) : null;
+        if (repertoire && !repertoire.ok) { rejectedEvents.push({ event, reason: repertoire.reason }); continue; }
         const eventDate = String(
             event?.date ?? event?.eventDate ?? '',
         ).trim();
@@ -2853,7 +2922,7 @@ function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
             rejectedEvents.push({ event, reason: 'invalid-or-missing-event-date' });
             continue;
         }
-        if (eventDate < todayIso) {
+        if ((shared?.schedule.endDate || repertoire?.schedule.endDate || eventDate) < todayIso) {
             rejectedEvents.push({ event, reason: 'event-date-before-today' });
             continue;
         }
@@ -2869,7 +2938,8 @@ function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
             event?.time ?? event?.eventTime,
         );
         const sourceSegment = trimText(
-            event?.source_segment ?? event?.sourceSegment ?? event?.segment ?? '',
+            (responseStructure === 'multiple_events' ? selectDateProgramSegment(event, { sourceText: message?.text || '', facts: parseIndexedImageFacts(posterGateFacts), publishedAt: message?.publishedAt }) : '') ||
+            (event?.source_segment ?? event?.sourceSegment ?? event?.segment ?? ''),
             5000,
         );
         const announcement = trimText(event?.announcement ?? '', 5000);
@@ -2900,6 +2970,7 @@ function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
         const candidate = {
             title,
             eventDate,
+            ...((shared?.ok || repertoire?.ok) ? { eventSchedule: shared?.schedule || repertoire.schedule, eventEndDate: (shared?.schedule || repertoire.schedule).endDate } : {}),
             eventTime,
             venue,
             participants,
@@ -2911,9 +2982,12 @@ function normalizeAiEvents(aiResult, message, todayIso, rejectedEvents = []) {
             structureReason,
             programItems: Array.isArray(event?.program_items ?? event?.programItems)
                 ? (event?.program_items ?? event?.programItems).slice(0, 64).map((item) => ({
+                    date: trimText(item?.date, 32),
+                    title: trimText(item?.title, 500),
                     time: trimText(item?.time, 32),
                     text: trimText(item?.text, 500),
-                })).filter((item) => item.time || item.text)
+                    evidence: trimText(item?.evidence, 1200),
+                })).filter((item) => item.date || item.title || item.time || item.text || item.evidence)
                 : [],
             isMultiAnnouncement: Number(
                 event?.is_multi_announcement ?? event?.isMultiAnnouncement ??
@@ -2963,6 +3037,7 @@ async function processMessage(message, {
     timeZone,
     dataDirectory,
     analyzeMessageWithAi,
+    prepareAnnouncements,
     hydrateMessageEvidence = null,
     notifyAttention,
     traceAi = null,
@@ -3399,6 +3474,7 @@ async function processMessage(message, {
             imageUrls: message.imageUrls,
             dataDirectory,
             targetFolder: 'vk_chat_announcements',
+            fetchImage: message?.__prepareCachedImage ? (url) => cachedParserImageAsset(message.__prepareCachedImage, url) : null,
             sourceLabel: conversationName,
             notifyAttention,
             shareSourceImagesAcrossEvents: true,
@@ -3468,6 +3544,7 @@ async function processMessage(message, {
     // The pre-AI ledger hash intentionally describes the original DOM capture.
     const provenanceForStorage = refreshProvenance();
     const contentHash = hashMessage(message);
+    if (events.length && prepareAnnouncements) events = await prepareAnnouncements(events, { sourceText: message.__sourceAnnouncementText || message.text });
     persistVkChatSourceAndEvents({ source: {
         peerId,
         conversationMessageId: message.conversationMessageId,
@@ -3572,6 +3649,7 @@ export function createVkChatEventScraper({
     intervalHours = 1,
     timeZone = 'Europe/Moscow',
     analyzeMessageWithAi,
+    prepareAnnouncements,
     hydrateMessageEvidence = null,
     notifyAttention = null,
     liveMonitor = true,
@@ -4281,6 +4359,8 @@ export function createVkChatEventScraper({
         processingLimiter = null,
         incrementalOnly = false,
         disableHistoryBackfill = false,
+        // Phase-two replay must never open the live chat page.
+        cacheOnly = false,
         cachedItems = null,
         resumeCompletedSince = 0,
         recentDays = 0,
@@ -4339,6 +4419,9 @@ export function createVkChatEventScraper({
         let staleFilteredCount = 0;
         const parserComparisons = [];
         const parserExactErrors = [];
+        if (cacheOnly && !Array.isArray(cachedItems)) {
+            throw new Error(`VK chat cache-only replay requested without a raw cache: ${peerId}`);
+        }
 
         // Если до этого была оставлена live-сессия, переводим её в конечный
         // автоматический проход. Никакой ручной прокрутки для parser-all не нужно.
@@ -4375,6 +4458,8 @@ export function createVkChatEventScraper({
             if (!livePage || livePage.isClosed()) {
                 await openLivePage();
             }
+            await diagnostics?.captureBrowserImages?.(livePage, []);
+            await livePage.waitForTimeout(25_000);
             finitePageReadyAt = Date.now();
             // Baseline before unread down-sweep or history backfill moves the chat.
             if (diagnostics?.captureVkStructureBaseline) {
@@ -4456,6 +4541,7 @@ export function createVkChatEventScraper({
                             extractRenderedMessagesWithRetry(livePage, conversationUrl, 5, { snapshotHtml }),
                         );
                         downRendered = mergeSnapshotAndRenderedMessages(exactSnapshot, liveRendered);
+                        await diagnostics?.captureBrowserImages?.(livePage, downRendered, { passive: true });
                         diagnostics?.log?.('parser.compare', {
                             sourceId: `chat:${peerId}`,
                             phase: 'unread-down-sweep',
@@ -4646,6 +4732,7 @@ export function createVkChatEventScraper({
                         ),
                     );
                     rendered = mergeSnapshotAndRenderedMessages(exactSnapshot, liveRendered);
+                    await diagnostics?.captureBrowserImages?.(livePage, rendered, { passive: true });
                     const exactIds = new Set(exactSnapshot.map((item) => Number(item?.conversationMessageId || 0)).filter(Boolean));
                     const liveIds = new Set((Array.isArray(liveRendered) ? liveRendered : []).map((item) => Number(item?.conversationMessageId || 0)).filter(Boolean));
                     const liveOnlyIds = [...liveIds].filter((id) => !exactIds.has(id)).slice(0, 40);
@@ -4877,6 +4964,7 @@ export function createVkChatEventScraper({
                     scrollSteps: 0,
                     mediaWaitMs: finiteHistoryBackfillEnabled ? 2500 : 1500,
                 })).catch(() => {});
+                await diagnostics?.captureBrowserImages?.(livePage, capturedMessages);
                 finalDomHtml = diagnostics?.captureVkDomFixture
                     ? (await withPageOperation(() => diagnostics.captureVkDomFixture({
                         page: livePage, sourceId: `chat:${peerId}`, label: 'capture-complete',
@@ -4974,10 +5062,11 @@ export function createVkChatEventScraper({
             }
             const sourceId = `chat:${peerId}`;
             const ledgerRunId = `${sourceId}:${Math.floor(finitePassStartedAt / 1000)}:${process.pid}`;
-            const orderedCapturedMessages = [...capturedMessages].sort((left, right) => (
+            const orderedCapturedMessages = mergePosterRepairItems([...capturedMessages], incrementalOnly && !Array.isArray(cachedItems) ? getPendingParserPosterItems(sourceId) : [], 'conversationMessageId').sort((left, right) => (
                 Number(left?.conversationMessageId ?? 0) - Number(right?.conversationMessageId ?? 0) ||
                 Number(left?.createdAt ?? 0) - Number(right?.createdAt ?? 0)
             ));
+            if (!Array.isArray(cachedItems)) await diagnostics?.captureBrowserImages?.(livePage, orderedCapturedMessages);
             const candidateDecisions = new Map();
             const candidateIds = new Set();
             const posterGateRequests = [];
@@ -5049,6 +5138,13 @@ export function createVkChatEventScraper({
                     recentDays,
                     contentChanged: Boolean(ledgerBefore?.contentHash && ledgerBefore.contentHash !== rawContentHash),
                 });
+                // A pending poster repair cannot bypass the universal
+                // six-month cutoff. The only exception is an explicit
+                // current/future event date already recognized by recency.
+                if (message.__posterRepairNeeded && !recency.maxAgeExceeded) {
+                    recency.allowed = true;
+                    recency.reason = 'pending-poster-repair';
+                }
                 if (!recency.allowed) staleFilteredCount += 1;
                 // Matching CMID without a matching content hash is not unchanged content.
                 // Legacy rows with no hash must be reprocessed rather than skipped.
@@ -5511,6 +5607,8 @@ export function createVkChatEventScraper({
                         return result;
                     }
                     const result = await processLiveMessage(message, {
+                        prepareCachedImage: diagnostics?.prepareCachedImage
+                            ? (url) => diagnostics.prepareCachedImage(url, message.sourceUrl) : null,
                         forceReprocess: !incrementalOnly || resumeCompletedSince > 0,
                         traceAi: (stage, data = {}) => diagnostics?.log?.(`item.ai.${stage}`, {
                             sourceId,
@@ -5957,13 +6055,14 @@ export function createVkChatEventScraper({
         return null;
     }
 
-    async function processLiveMessage(message, { traceAi = null, forceReprocess = false } = {}) {
+    async function processLiveMessage(message, { traceAi = null, forceReprocess = false, prepareCachedImage = null } = {}) {
         assertVkChatSessionActive(manualSessionActive);
 
         const normalized = normalizeBrowserMessage({
             ...message,
             conversationMessageId: Number(message?.conversationMessageId),
         }, conversationUrl);
+        if (prepareCachedImage) normalized.__prepareCachedImage = prepareCachedImage;
         const result = await processMessage(normalized, {
             peerId,
             conversationUrl,
@@ -5971,6 +6070,7 @@ export function createVkChatEventScraper({
             timeZone,
             dataDirectory: safeDataDirectory,
             analyzeMessageWithAi,
+    prepareAnnouncements,
             hydrateMessageEvidence,
             notifyAttention,
             traceAi,

@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import {
     getAllUpcomingEventRecordsForDedupe,
     getEventDedupeRegistryStats,
+    listEventDedupeGroups,
+    breakEventDedupeGroup,
     getManualUpcomingEvents,
     replaceEventDedupeRegistry,
     saveManualEvent,
@@ -73,6 +75,7 @@ assert.deepEqual(getEventDedupeRegistryStats(scope), {
     members: 2,
     duplicateMembers: 1,
 });
+assert.equal(listEventDedupeGroups(scope)[0].groupKey, `manual-${firstId}-${secondId}`);
 
 const after = getManualUpcomingEvents('2099-01-01', 500)
     .filter((event) => event.id === firstId || event.id === secondId);

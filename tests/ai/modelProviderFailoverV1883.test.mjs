@@ -57,8 +57,8 @@ resetRuntimeModelCredentialHealth();
     const rows = collectRuntimeModelCredentials(env);
     assert.equal(rows[0].provider, 'xai');
     assert.equal(rows[1].provider, 'compat');
-    assert.equal(resolveProviderModel({ credential: rows[0], mode: 'default', requestedModel: 'gpt-5.4-mini', env }), 'grok-4.6');
-    assert.equal(resolveProviderModel({ credential: rows[1], mode: 'default', requestedModel: 'gpt-5.4-mini', env }), 'gpt-5.4-mini');
+    assert.equal(resolveProviderModel({ credential: rows[0], mode: 'default', requestedModel: 'gpt-6-luna', env }), 'grok-4.6');
+    assert.equal(resolveProviderModel({ credential: rows[1], mode: 'default', requestedModel: 'gpt-6-luna', env }), 'gpt-6-luna');
 }
 
 console.log('modelProviderFailoverV1883: ok');

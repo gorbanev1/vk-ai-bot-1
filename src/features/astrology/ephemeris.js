@@ -1,6 +1,10 @@
 /**
- * Локальный расчёт джйотиш через Swiss Ephemeris/Moshier. Большой математический модуль без платформенной логики.
+ * Локальный Swiss Ephemeris: классические варги, Ashtakavarga, панчанга, даши и гармоники. GPT не вычисляет астрономические позиции.
  */
+import {calculateClassicalDivisionalCharts,calculateAshtakavarga,calculateReferenceHouseCharts,calculateActiveVimshottariMicroPeriods,calculatePartialNaturalBala,SHODASHAVARGA_DIVISIONS} from './classicalJyotishExtensions.js';
+import {calculateAdditionalPlanetStrengths,calculateAshtakavargaReductions,calculateClassicalYogaCandidates} from './technicalJyotishSupplement.js';
+import {calculateJaiminiSignTechnical,calculateAllVimshopakaSchemes} from './jaiminiTechnical.js';
+import {buildStructuredAstrologyPacket} from './astrologyStructuredPayload.js';
 import { existsSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -417,8 +421,34 @@ export async function calculateJyotishPrashna({
         warnings,
     });
 
+    const classicalDivisionalCharts=calculateClassicalDivisionalCharts({
+        ascendant,bodies,
+        ascendantSpeedDegreesPerDay:houseSystems.W?.pointSpeeds?.ascendant ?? null,
+    });
+    const ashtakavarga=calculateAshtakavarga({ascendant,bodies:primaryBodies});
+    const referenceCharts=calculateReferenceHouseCharts({
+        ascendant,bodies,
+        arudhaSignIndex:jyotishDerived.arudhaPadas?.[0]?.arudhaSignIndex ?? null,
+    });
+    const naturalStrengthBala=calculatePartialNaturalBala({bodies:primaryBodies});
+    const shadbalaComponents=calculateAdditionalPlanetStrengths({ascendant,bodies:primaryBodies,houseSystems,classicalDivisionalCharts});
+    const ashtakavargaReductions=calculateAshtakavargaReductions({ashtakavarga,bodies:primaryBodies});
+    const yogaCandidates=calculateClassicalYogaCandidates({ascendant,bodies:primaryBodies,classicalDivisionalCharts});
+    const jaiminiTechnical=calculateJaiminiSignTechnical({
+        ascendant,bodies:primaryBodies,arudhaPadas:jyotishDerived.arudhaPadas,
+        charaKarakas:jyotishDerived.charaKarakas,classicalDivisionalCharts,
+    });
+    const vimshopakaAllSchemes=calculateAllVimshopakaSchemes(shadbalaComponents);
+    const activeMicroPeriods=calculateActiveVimshottariMicroPeriods(
+        jyotishDerived.vimshottariDasha,periodReferenceDate,
+    );
+    if(jyotishDerived.vimshottariDasha) {
+        jyotishDerived.vimshottariDasha.activeMicroPeriods=activeMicroPeriods;
+        jyotishDerived.vimshottariDasha.activeSookshma=activeMicroPeriods?.activeSookshma ?? null;
+        jyotishDerived.vimshottariDasha.activePrana=activeMicroPeriods?.activePrana ?? null;
+    }
     const result = {
-        schema: 'gigorave-jyotish-maximum-v3',
+        schema: 'gigorave-jyotish-maximum-v4',
         generatedAt: new Date().toISOString(),
         input: {
             requestTimeUtc: date.toISOString(),
@@ -458,12 +488,23 @@ export async function calculateJyotishPrashna({
         relationships,
         jyotishDerived,
         harmonicCharts,
+        classicalDivisionalCharts,
+        ashtakavarga,
+        referenceCharts,
+        naturalStrengthBala,
+        shadbalaComponents,
+        ashtakavargaReductions,
+        yogaCandidates,
+        jaiminiTechnical,
+        vimshopakaAllSchemes,
         fixedStars,
         warnings: uniqueStrings(warnings),
         coverage: buildCoverage({
             bodies,
             houseSystems,
             harmonicCharts,
+            classicalDivisionalCharts,
+            ashtakavarga,
             fixedStars,
         }),
         calculationScope: {
@@ -472,6 +513,16 @@ export async function calculateJyotishPrashna({
             highPrecisionFilesLoaded: hasEphemerisFiles,
             traditionalScope: [
                 'D1 Whole Sign',
+                '16 classical Parashari Shodashavarga charts',
+                'Bhinna Ashtakavarga and 337-bindu Sarvashtakavarga',
+                'Lagna, Chandra, Surya and Arudha reference house charts',
+                'active Sookshma and Prana Vimshottari periods',
+                'Naisargika, Uchcha, Dig and Paksha Bala (partial; not a complete Shadbala total)',
+                '16-varga weighted Vimshopaka Bala (selected 20-point convention)',
+                'Trikona and Ekadhipatya Ashtakavarga reductions (raw SAV remains 337)',
+                'Mechanical candidate yoga conditions (no prediction/cancellation verdict)',
+                'Jaimini Rashi Drishti, Argala pairs, Upapada and Karakamsha references',
+                'Vimshopaka weights for 6-, 7-, 10- and 16-varga schemes',
                 'панчанга с границами',
                 'управители домов',
                 'достоинства',
@@ -481,7 +532,8 @@ export async function calculateJyotishPrashna({
                 'арудха-пады',
                 'вимшоттари маха/антар/пратьянтар-даша',
             ],
-            harmonicScope: 'D1-D60 are mathematical harmonics, not a claim that every school-specific varga rule is implemented.',
+            harmonicScope: 'D1-D60 are mathematical harmonics. Separate classicalDivisionalCharts implements the selected 16 Parashari varga assignments.',
+            classicalScope: 'Parashari Shodashavarga, BAV/SAV and selected Shodhana, Vimshopaka, partial Shadbala components, candidate yogas; full Shadbala and all traditional dasha systems are not yet implemented.',
         },
     };
 
@@ -497,10 +549,19 @@ export async function calculateJyotishPrashna({
     const fastGptPayload = buildOptimizedGptPayload(result, 'fast');
     const balancedGptPayload = buildOptimizedGptPayload(result, 'balanced');
     const fullGptPayload = buildOptimizedGptPayload(result, 'full');
-    const maximumGptPayload = buildCompactGptPayload(result);
+    // All computed numbers remain in result.data. The model sees a compact
+    // indexed schema with complete unique technical sections and codebooks.
+    const structuredPacket=buildStructuredAstrologyPacket(result);
+    const maximumGptPayload=structuredPacket.payload;
+    const legacyGptPayload=process.env.ASTROLOGY_LEGACY_PACKET_BENCHMARK==='1'
+        ? buildCompactGptPayload(result) : null;
     result.coverage.serializedJsonCharacters = json?.length ?? 0;
     result.coverage.compactGptPayloadCharacters = maximumGptPayload.length;
     result.coverage.maximumGptPayloadCharacters = maximumGptPayload.length;
+    result.coverage.structuredPayloadBytes=structuredPacket.bytes;
+    result.coverage.structuredPayloadSchema=structuredPacket.packet.schema;
+    result.coverage.structuredPayloadHash=structuredPacket.fingerprint;
+    result.coverage.legacyPayloadBytes=legacyGptPayload?Buffer.byteLength(legacyGptPayload,'utf8'):null;
     result.coverage.fastGptPayloadCharacters = fastGptPayload.length;
     result.coverage.balancedGptPayloadCharacters = balancedGptPayload.length;
     result.coverage.fullGptPayloadCharacters = fullGptPayload.length;
@@ -528,13 +589,16 @@ export async function calculateJyotishPrashna({
         /*
          * Полная структура остаётся локально в data. Для обычных вызовов сохранены
          * компактные профили, но локальная астрология маршрутизируется только в
-         * gptPayloadMaximum: он содержит все рассчитанные поля без усечения.
+         * gptPayloadMaximum передаёт все уникальные технические разделы
+         * с общим словарём колонок; полный расчёт остаётся локально в data.
          */
         gptPayload: balancedGptPayload,
         gptPayloadFast: fastGptPayload,
         gptPayloadBalanced: balancedGptPayload,
         gptPayloadFull: fullGptPayload,
         gptPayloadMaximum: maximumGptPayload,
+        gptPayloadStructuredMaximum: maximumGptPayload,
+        gptPayloadLegacyBenchmark: legacyGptPayload,
         audit: result.audit,
         statistics: result.coverage,
     };
@@ -2056,7 +2120,7 @@ function zodiacRecord(longitude) {
     };
 }
 
-function buildCoverage({ bodies, houseSystems, harmonicCharts, fixedStars }) {
+function buildCoverage({ bodies, houseSystems, harmonicCharts, classicalDivisionalCharts, ashtakavarga, fixedStars }) {
     const coordinateFrames = bodies.reduce((sum, body) => sum + [
         body.sidereal,
         body.tropical,
@@ -2070,6 +2134,8 @@ function buildCoverage({ bodies, houseSystems, harmonicCharts, fixedStars }) {
         coordinateFrameCount: coordinateFrames,
         houseSystemCount: Object.keys(houseSystems).length,
         harmonicChartCount: Object.keys(harmonicCharts).length,
+        classicalVargaCount: Object.keys(classicalDivisionalCharts ?? {}).length,
+        ashtakavargaBindus: ashtakavarga?.total ?? 0,
         fixedStarCount: fixedStars.length,
         serializedJsonCharacters: null,
     };
@@ -2088,6 +2154,7 @@ export function buildMaximumCalculationAudit(result) {
         .filter((code) => !result.houseSystems[code]);
     const missingHarmonics = Array.from({ length: 60 }, (_, index) => index + 1)
         .filter((division) => !result.harmonicCharts[`D${division}`]);
+    const missingClassicalVargas=SHODASHAVARGA_DIVISIONS.filter(n=>!result.classicalDivisionalCharts?.['D'+n]);
     const missingFixedStars = REQUESTED_FIXED_STARS.filter(
         (name) => !result.fixedStars.some((star) =>
             String(star.requestedName).toLowerCase() === name.toLowerCase()),
@@ -2120,6 +2187,14 @@ export function buildMaximumCalculationAudit(result) {
     if (!result.houseSystems?.W || result.houseSystems.W.cusps?.length !== 12) {
         criticalIssues.push('whole-sign-houses-incomplete');
     }
+    if(result.schema==='gigorave-jyotish-maximum-v4'){
+        if(missingClassicalVargas.length)criticalIssues.push('missing-classical-vargas:'+missingClassicalVargas.join(','));
+        if(result.ashtakavarga?.total!==337)criticalIssues.push('ashtakavarga-337-incomplete');
+        if(Object.keys(result.referenceCharts??{}).length<3)criticalIssues.push('reference-house-charts-incomplete');
+        if(!result.naturalStrengthBala?.values?.['Солнце'])criticalIssues.push('natural-bala-incomplete');
+        if(result.jaiminiTechnical?.signAspects?.length!==12)criticalIssues.push('jaimini-aspects-incomplete');
+        if(Object.keys(result.vimshopakaAllSchemes?.weightSets??{}).length!==4)criticalIssues.push('vimshopaka-four-schemes-incomplete');
+    }
     if (missingHarmonics.length) {
         criticalIssues.push(`missing-harmonics:${missingHarmonics.join(',')}`);
     }
@@ -2148,6 +2223,7 @@ export function buildMaximumCalculationAudit(result) {
         optionalGaps: {
             missingRequestedBodies,
             missingHouseSystems,
+            missingClassicalVargas,
             missingFixedStars,
             primaryCoordinateGaps,
             nonSwissDirectPrimaryBodies:
@@ -2160,6 +2236,12 @@ export function buildMaximumCalculationAudit(result) {
             requestedHouseSystems: HOUSE_SYSTEMS.length,
             calculatedHouseSystems: Object.keys(result.houseSystems).length,
             harmonics: Object.keys(result.harmonicCharts).length,
+            classicalVargas: Object.keys(result.classicalDivisionalCharts??{}).length,
+            jaiminiRashiSigns: result.jaiminiTechnical?.signAspects?.length??0,
+            vimshopakaSchemes: Object.keys(result.vimshopakaAllSchemes?.weightSets??{}).length,
+            partialStrengthPlanets: Object.keys(result.shadbalaComponents?.rows??{}).length,
+            ashtakavargaTotalBindus: result.ashtakavarga?.total ?? 0,
+            referenceHouseCharts: Object.keys(result.referenceCharts??{}).length,
             requestedFixedStars: REQUESTED_FIXED_STARS.length,
             calculatedFixedStars: result.fixedStars.length,
             warnings: result.warnings.length,
@@ -2172,13 +2254,15 @@ export function buildMaximumCalculationAudit(result) {
         },
         guarantees: [
             'All declared core bodies, Whole Sign houses, D1-D60 harmonic projections, panchanga boundaries and Vimshottari maha/antara/pratyantara periods are present.',
+            'The v4 calculation also validates all 16 separate Parashari vargas, BAV/SAV 337 bindus, and reference house charts.',
             'The packed maximum payload contains every locally calculated field without the shorter LLM profile omissions or silent truncation.',
             'A missing declared-core calculation aborts the request instead of being silently replaced by model invention.',
         ],
         limitations: [
             'Optional asteroids, stars, house systems and coordinate frames depend on the installed sweph API and ephemeris files; every gap is listed in optionalGaps and warnings.',
             'The engine validates actual calc_ut return flags, not only the presence of *.se1 files. Without confirmed SEFLG_SWIEPH it explicitly reports Moshier or mixed fallback; ASTROLOGY_REQUIRE_SWISS_FILES=1 forbids that fallback.',
-            'D1-D60 are mathematical harmonic projections; this audit does not claim implementation of every school-specific traditional varga mapping, yoga, shadbala or ashtakavarga system.',
+            'Harmonic D1-D60 remain mathematical projections; classicalDivisionalCharts separately implements the chosen Parashari 16-varga convention. Other lineage conventions may differ.',
+            'BAV/SAV are unreduced (no Trikona/Ekadhipatya purification or Shodhya Pinda). Naisargika is one Shadbala component only: total Shadbala, other bala components and other dasha systems are not computed.',
         ],
     };
 }
@@ -2318,6 +2402,13 @@ function buildCompactGptPayload(result) {
         relationships: result.relationships,
         jyotishDerived: result.jyotishDerived,
         harmonicsD1toD60: harmonicRows,
+        classicalDivisionalCharts: result.classicalDivisionalCharts,
+        referenceCharts: result.referenceCharts,
+        ashtakavarga: result.ashtakavarga,
+        naturalStrengthBala: result.naturalStrengthBala,
+        shadbalaComponents: result.shadbalaComponents,
+        ashtakavargaReductions: result.ashtakavargaReductions,
+        yogaCandidates: result.yogaCandidates,
         fixedStars: result.fixedStars,
         calculationScope: result.calculationScope,
         audit: result.audit,
@@ -2423,6 +2514,27 @@ function buildOptimizedGptPayload(result, profile = 'balanced') {
         }),
     ];
 
+    lines.push('',
+        'CLASSICAL_PARASHARI_VARGAS|D|LagnaSign|name:sign:house:portion',
+        ...Object.values(result.classicalDivisionalCharts??{}).map(chart=>
+            'D'+chart.division+'|'+chart.lagnaSign+'|'+chart.points.map(p=>
+                p.name+':'+(p.signIndex+1)+':'+p.houseFromVargaLagna+':'+p.partIndex).join('|')
+        ),
+        'REFERENCE_LAGNAS|reference|sign|name:house',
+        ...Object.entries(result.referenceCharts??{}).map(([key,chart])=>
+            key+'|'+chart.referenceSign+'|'+chart.planets.map(p=>p.name+':'+p.house).join('|')
+        ),
+        'ASHTAKAVARGA_BAV|planet|12-sign-bindu-array',
+        ...Object.entries(result.ashtakavarga?.bhinna??{}).map(([name,row])=>name+'|'+row.bindus.join(',')),
+        'ASHTAKAVARGA_SAV|'+(result.ashtakavarga?.sarva??[]).join(',')+'|total='+String(result.ashtakavarga?.total??0),
+        'NATURAL_BALA_ONLY_NOT_FULL_SHADBALA|'+Object.entries(result.naturalStrengthBala?.values??{}).map(([name,value])=>name+':'+value).join('|'),
+        'PARTIAL_SHADBALA_VIMSHOPAKA|planet|uchcha|dig|naisargika|paksha|vimshopaka16',
+        ...Object.entries(result.shadbalaComponents?.rows??{}).map(([name,row])=>[name,row.uchchaBalaVirupas,row.digBalaVirupas,row.naisargikaBalaVirupas,row.pakshaBalaVirupas,row.vimshopaka16Points].join('|')),
+        'REDUCED_ASHTAKAVARGA_BAV|planet|12-bindus',
+        ...Object.entries(result.ashtakavargaReductions?.reduced??{}).map(([name,row])=>name+'|'+row.afterEkadhipatya.join(',')),
+        'YOGA_CANDIDATES_ONLY|'+(result.yogaCandidates?.candidates??[]).map(y=>y.code+':'+y.participants.join(',')).join('|'),
+        'VIMSHOTTARI_SOOKSHMA_PRANA|'+(result.jyotishDerived.vimshottariDasha?.activeSookshma?.lord??'-')+'|'+(result.jyotishDerived.vimshottariDasha?.activePrana?.lord??'-')
+    );
     if (full) {
         lines.push(
             '',
@@ -2467,7 +2579,7 @@ function buildOptimizedGptPayload(result, profile = 'balanced') {
     lines.push(
         '',
         `PROFILE|${profile}`,
-        'NOTES|D1-D60 are mathematical harmonics n*sidereal longitude; Whole Sign is primary; all numbers are locally calculated.',
+        'NOTES|D1-D60 are harmonic projections; CLASSICAL_PARASHARI_VARGAS are separate selected 16 classical vargas; BAV/SAV raw 337; no Shadbala total. All positions locally calculated.',
     );
 
     return lines.join('\n');

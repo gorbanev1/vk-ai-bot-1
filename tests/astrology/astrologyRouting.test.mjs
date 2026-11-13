@@ -52,10 +52,10 @@ assert.equal(isLocalAstrologyRequest('обычный локальный вопр
 assert.equal(isProAstrologyMode('pro'), true);
 assert.equal(isProAstrologyMode('pro2'), true);
 assert.equal(isProAstrologyMode('pro3'), true);
-assert.equal(isProAstrologyMode('gpt55'), false);
+assert.equal(isProAstrologyMode('default'), false);
 
 for (const kind of ['natal', 'prashna']) {
-    for (const mode of ['default', 'gpt54', 'gpt55', 'pro', 'pro2', 'pro3']) {
+    for (const mode of ['default', 'pro', 'pro2', 'pro3']) {
         const execution = resolveAstrologyExecution({ kind, mode });
         assert.equal(execution.localCalculation, true, `${kind}/${mode}`);
         assert.equal(execution.modelCalculation, false, `${kind}/${mode}`);

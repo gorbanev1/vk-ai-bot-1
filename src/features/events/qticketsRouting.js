@@ -34,22 +34,24 @@ function cleanNumericToken(value) {
  * Лимит цены из текстовой команды. Число дней никогда не принимается за цену:
  * цена должна идти после «цена/стоимость/до/не дороже» либо рядом с валютой.
  */
-export function parseQticketsPriceLimit(value) {
-    const command = normalizeCommand(value);
-    if (!command) return null;
-
-    const patterns = [
-        new RegExp(`(?:по\\s+)?(?:цене|цена|стоимости|стоимость)\\s*(?:до|не\\s+дороже|максимум|max)?\\s*(\\d[\\d\\s]{0,8})(?:\\s*${CURRENCY})?`, 'iu'),
-        new RegExp(`(?:не\\s+дороже|максимум|max|до)\\s*(\\d[\\d\\s]{0,8})(?:\\s*${CURRENCY})?(?!\\s*(?:дн(?:я|ей)?|сут(?:ок|ки)?))`, 'iu'),
-        new RegExp(`(\\d[\\d\\s]{0,8})\\s*${CURRENCY}`, 'iu'),
+function findQticketsPriceClause(command) {
+    const patterns=[
+        new RegExp('(?:по\\s+)?(?:цене|цена|стоимости|стоимость)\\s*(?:до|не\\s+дороже|максимум|max)?\\s*(\\d(?:[\\d\\s]*\\d)?)(?:\\s*'+CURRENCY+')?','giu'),
+        new RegExp('(\\d(?:[\\d\\s]*\\d)?)\\s*'+CURRENCY,'giu'),
+        /(?:не\s+дороже|максимум|max|до)\s*(\d(?:[\d\s]*\d)?)(?!\d)/giu,
     ];
-
-    for (const pattern of patterns) {
-        const match = command.match(pattern);
-        const number = cleanNumericToken(match?.[1]);
-        if (number !== null) return number;
+    for(let i=0;i<patterns.length;i++)for(const m of command.matchAll(patterns[i])){
+        const after=command.slice(m.index+m[0].length),before=command.slice(0,m.index);
+        if(i===2){
+            if(/^\s*(?:[./-]\d|январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр|дн|сут|недел|год|г(?:\.|\s|$))/u.test(after))continue;
+            if(/^до/u.test(m[0])&&/^(?:19|20|21)\d{2}$/u.test(m[1])&&/(?:19|20|21)\d{2}\s*(?:г(?:ода|од)?\.?)?\s*$/u.test(before))continue;
+        }
+        const value=cleanNumericToken(m[1]);if(value!==null)return {index:m.index,text:m[0],value};
     }
     return null;
+}
+export function parseQticketsPriceLimit(value) {
+    return findQticketsPriceClause(normalizeCommand(value))?.value ?? null;
 }
 
 /** Для кнопочного режима цены допустима любая строка: берём первое число. */
@@ -77,19 +79,8 @@ function parseQticketsRollingDays(value) {
 }
 
 function stripQticketsPriceClause(value) {
-    let text = normalizeCommand(value);
-    if (!text) return '';
-    const price = parseQticketsPriceLimit(text);
-    if (price === null) return text;
-
-    // Убираем только хвост ценового фильтра; календарный текст сохраняется.
-    text = text
-        .replace(new RegExp(`(?:по\\s+)?(?:цене|цена|стоимости|стоимость)\\s*(?:до|не\\s+дороже|максимум|max)?\\s*${price}(?:\\s*${CURRENCY})?`, 'iu'), ' ')
-        .replace(new RegExp(`(?:не\\s+дороже|максимум|max|до)\\s*${price}(?:\\s*${CURRENCY})?`, 'iu'), ' ')
-        .replace(new RegExp(`${price}\\s*${CURRENCY}`, 'iu'), ' ')
-        .replace(/\s+/gu, ' ')
-        .trim();
-    return text;
+ const text=normalizeCommand(value),clause=findQticketsPriceClause(text);
+ return clause?(text.slice(0,clause.index)+' '+text.slice(clause.index+clause.text.length)).replace(/\s+/gu,' ').trim():text;
 }
 
 /**

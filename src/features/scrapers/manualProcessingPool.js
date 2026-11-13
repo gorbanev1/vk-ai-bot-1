@@ -292,9 +292,16 @@ export async function runManualParserPoolUntilSettled(items, worker, {
                     finalResults[entry.originalIndex] = previous;
                     continue;
                 }
+                const unresolvedReason = String(previous?.value?.unresolvedReason || '').slice(0, 300);
+                const validationReasons = [...new Set((Array.isArray(previous?.value?.validationFailures)
+                    ? previous.value.validationFailures : []).map((failure) => String(failure?.reason || '')).filter(Boolean))];
+                const details = [unresolvedReason, ...validationReasons].filter(Boolean).join('; ').replace(/\s+/gu, ' ').slice(0, 1000);
                 const error = new Error(
-                    `Manual parser retry exhausted (${reason}); item remained unresolved after ${cycle} cycle(s).`,
+                    `Manual parser retry exhausted (${reason}); item remained unresolved after ${cycle} cycle(s).` +
+                    (details ? ` Last decision: ${details}.` : ''),
                 );
+                error.unresolvedReason = unresolvedReason;
+                error.validationReasons = validationReasons;
                 error.code = 'MANUAL_PARSER_RETRY_EXHAUSTED';
                 finalResults[entry.originalIndex] = {
                     status: 'rejected',

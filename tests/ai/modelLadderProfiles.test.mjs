@@ -40,24 +40,51 @@ test('missing profiles retain independent defaults', () => {
     assert.deepEqual(profiles['parser-all-vision'], DEFAULT_MODEL_LADDER_PROFILES['parser-all-vision']);
 });
 
-test('saved Terra-first profiles migrate to Luna once and preserve step controls', () => {
+test('healthy GPT-6 Luna becomes first in all profiles with one low-reasoning attempt', () => {
     const app = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
-    const start = app.indexOf('function migrateModelLadderProfilesForGpt56Luna(');
+    const start = app.indexOf('function migrateModelLadderProfilesForGpt6Luna(');
     const end = app.indexOf('function readModelLadderProfiles()', start);
-    const migrate = vm.runInNewContext(app.slice(start, end) + '\nmigrateModelLadderProfilesForGpt56Luna', {
+    assert.ok(start >= 0 && end > start);
+    const source = app.slice(start, end) + '\nmigrateModelLadderProfilesForGpt6Luna';
+    const context = {
         validateModelLadderProfiles, DEFAULT_MODEL_LADDER_PROFILES,
         GPT56_LUNA_MODEL_ID: 'gpt-5.6-luna', GPT6_LUNA_MODEL_ID: 'gpt-6-luna',
         LUNA_HEALTH_SAMPLE_VERSION: 2,
-        getMaintenanceState: () => null,
+    };
+    const migrate = vm.runInNewContext(source, {
+        ...context, getMaintenanceState: () => ({ details: { version: 2, promoted: true } }),
     });
     const original = { ...DEFAULT_MODEL_LADDER_PROFILES, 'parser-all-text': [
         { model: 'gpt-5.6-terra', attempts: 1, timeoutMs: 150000, reasoningEffort: 'none', stream: true },
-        { model: 'gpt-5.6-luna', attempts: 1 },
+        { model: 'gpt-5.6-luna', attempts: 1, reasoningEffort: 'none' },
+        { model: 'gpt-6-luna', attempts: 1, reasoningEffort: 'none' },
+        { model: 'gpt-6.1-sol', attempts: 3, reasoningEffort: 'low' },
     ] };
+    const before = structuredClone(original);
     const first = migrate(original);
+    assert.deepEqual(original, before);
     assert.equal(first.changed, true);
-    assert.equal(first.profiles['parser-all-text'][0].model, 'gpt-5.6-luna');
-    assert.equal(first.profiles['parser-all-text'][1].timeoutMs, 150000);
-    assert.equal(first.profiles['parser-all-text'][1].stream, true);
+    for (const steps of Object.values(first.profiles)) {
+        assert.equal(steps[0].model, 'gpt-6-luna');
+        assert.equal(steps[0].attempts, 1);
+        assert.equal(steps[0].reasoningEffort, 'low');
+        assert.equal(steps[1].model, 'gpt-5.6-luna');
+        assert.equal(steps.filter((s) => s.model === 'gpt-6-luna').length, 1);
+    }
+    assert.equal(first.profiles['parser-all-text'][2].model, 'gpt-5.6-terra');
+    assert.equal(first.profiles['parser-all-text'][2].timeoutMs, 150000);
+    assert.equal(first.profiles['parser-all-text'][2].stream, true);
     assert.equal(migrate(first.profiles).changed, false);
+    assert.equal(JSON.stringify(migrate(first.profiles).profiles), JSON.stringify(first.profiles));
+
+    // GPT-6 Luna stays first even before health promotion; health telemetry
+    // must not reorder the production ladders.
+    const unpromoted = vm.runInNewContext(source, {
+        ...context, getMaintenanceState: () => null,
+    });
+    for (const steps of Object.values(unpromoted(original).profiles)) {
+        assert.equal(steps[0].model, 'gpt-6-luna');
+        assert.equal(steps[0].attempts, 1);
+        assert.equal(steps[1].model, 'gpt-5.6-luna');
+    }
 });

@@ -1,3 +1,4 @@
+import {recordPatrolTokenUsage} from './vkPatrolAdaptive.js';
 import {
     appendFileSync,
     mkdirSync,
@@ -269,6 +270,7 @@ export function recordAiTokenUsage({
         metadata: safeMetadata(metadata),
     };
 
+    try { recordPatrolTokenUsage(row); } catch (error) { console.warn('[PATROL TOKEN LOG FAILURE]', String(error?.message || error)); }
     const aggregateKey = `${row.operation}|${row.provider}|${row.model}`;
     const totals = addTotals(aggregateKey, row);
     const requestId = String(row.metadata?.requestId ?? '').trim();

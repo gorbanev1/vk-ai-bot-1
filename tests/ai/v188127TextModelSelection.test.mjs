@@ -4,13 +4,13 @@ import { readFileSync } from 'node:fs';
 import { resolveTextAttachmentModelChoice as choose } from '../../src/features/audit/textAttachmentModelSelection.js';
 
 const keyCases = [
-    ['Проведи ревью прикреплённого TXT', 'default', 'medium'],
-    ['', 'default', 'medium'],
+    ['Проведи ревью прикреплённого TXT', 'default', 'none'],
+    ['', 'default', 'none'],
     ['Гигорейв mini low, проверь TXT', 'default', 'low'],
-    ['Гигорейв gpt54 high проверь', 'gpt54', 'high'],
-    ['Гигорейв GPT-5.4 high проверь', 'gpt54', 'high'],
-    ['Гигорейв gpt55 high проверь', 'gpt55', 'high'],
-    ['Гигорейв GPT-5.5 high проверь', 'gpt55', 'high'],
+    ['Гигорейв luna high проверь', 'pro', 'high'],
+    ['Гигорейв база high проверь', 'default', 'high'],
+    ['Гигорейв sol high проверь', 'pro3', 'high'],
+    ['Гигорейв pro3 high проверь', 'pro3', 'high'],
     ['Гигорейв luna high проверь', 'pro', 'high'],
     ['Гигорейв terra high проверь', 'pro2', 'high'],
     ['Гигорейв pro2 max проверь', 'pro2', 'max'],
@@ -45,5 +45,5 @@ test('TXT route uses existing GPT_MODEL_* resolver, not a Terra-only or high-onl
     assert.match(route, /task: selection[.]prompt,/u);
     assert.doesNotMatch(route, /PROJECT_TEXT_ATTACHMENT_MODEL|\['gpt-5\.5', 'gpt-5\.6-terra'\]|reasoningEffort: 'high'/u);
     assert.match(code.slice(code.indexOf('async function executeTelegramTextJob('), end), /createTelegramDocumentAttachment\(result\)/u);
-    assert.match(code, /default: 'gpt-5\.4-mini'/u);
+    assert.match(code, /default: 'gpt-6-luna'/u);
 });

@@ -6,6 +6,7 @@ import {
     normalizedNameSimilarity,
     PARTICIPANT_NAME_PART_MIN_SCORE,
     participantNamePartSimilarity,
+    createParticipantNamePartScorer,
 } from '../personality/roastCommandRouting.js';
 
 const STOP_WORDS = new Set([
@@ -498,165 +499,96 @@ function extractMentionCandidates(text) {
     return [...candidates];
 }
 
-function normalizedTextIncludesAlias(text, alias) {
-    const normalizedText = ` ${normalizeParticipantAlias(text)} `;
-    const normalizedAlias = normalizeParticipantAlias(alias);
-
-    return Boolean(
-        normalizedAlias &&
-        normalizedText.includes(` ${normalizedAlias} `),
-    );
-}
-
-function directParticipantMentionScore(text, participant) {
-    const source = String(text ?? '');
-    const ids = new Set([
+function createDirectParticipantMentionMatcher(participant) {
+    const ids = [...new Set([
         Number(participant?.userId),
         Number(participant?.externalUserId),
         ...(Array.isArray(participant?.userIds) ? participant.userIds.map(Number) : []),
-    ].filter((value) => Number.isSafeInteger(value) && value > 0));
-
-    for (const id of ids) {
-        if (new RegExp(`\\[id${id}\\|`, 'iu').test(source)) {
-            return {
-                score: 1,
-                matchedText: `[id${id}|…]`,
-                matchedAlias: String(id),
-                method: 'direct-vk-id',
-            };
-        }
-    }
-
-    const aliases = buildParticipantMentionAliases(participant);
-
-    for (const alias of aliases) {
+    ].filter(value => Number.isSafeInteger(value) && value > 0))]
+        .map(id => ({id, pattern: new RegExp(`\\[id${id}\\|`, 'iu')}));
+    const usernames = buildParticipantMentionAliases(participant).map(alias => {
         const clean = compact(alias).replace(/^@/u, '');
-
-        if (
-            clean &&
-            new RegExp(`(^|[^\\p{L}\\p{N}_])@${escapeRegExpLocal(clean)}(?=$|[^\\p{L}\\p{N}_])`, 'iu').test(source)
-        ) {
-            return {
-                score: 1,
-                matchedText: `@${clean}`,
-                matchedAlias: alias,
-                method: 'direct-username',
-            };
+        return {alias, clean, pattern: new RegExp(`(^|[^\\p{L}\\p{N}_])@${escapeRegExpLocal(clean)}(?=$|[^\\p{L}\\p{N}_])`, 'iu')};
+    });
+    return text => {
+        for (const {id, pattern} of ids) {
+            if (pattern.test(text)) return {score: 1, matchedText: `[id${id}|…]`, matchedAlias: String(id), method: 'direct-vk-id'};
         }
-    }
-
-    return null;
+        for (const {alias, clean, pattern} of usernames) {
+            if (clean && pattern.test(text)) return {score: 1, matchedText: `@${clean}`, matchedAlias: alias, method: 'direct-username'};
+        }
+        return null;
+    };
 }
 
 function escapeRegExpLocal(value) {
     return String(value ?? '').replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
 
-export function findParticipantMentionMatches(
-    messages,
-    participant,
-    matchedPhrase = '',
-    {
-        minimumScore = PARTICIPANT_NAME_PART_MIN_SCORE,
-        excludeTargetAuthor = true,
-    } = {},
-) {
-    const aliases = buildParticipantMentionAliases(
-        participant,
-        matchedPhrase,
-    );
+export function createParticipantMentionMatcher(participant, matchedPhrase = '', {
+    minimumScore = PARTICIPANT_NAME_PART_MIN_SCORE,
+    excludeTargetAuthor = true,
+} = {}) {
+    const aliases = buildParticipantMentionAliases(participant, matchedPhrase);
+    const normalizedAliases = aliases.map(alias => ({alias, normalized: normalizeParticipantAlias(alias)}));
     const targetUserIds = new Set([
         Number(participant?.userId),
         ...(Array.isArray(participant?.userIds) ? participant.userIds.map(Number) : []),
-    ].filter((value) => Number.isSafeInteger(value) && value > 0));
-    const result = [];
+    ].filter(value => Number.isSafeInteger(value) && value > 0));
+    const directMatch = createDirectParticipantMentionMatcher(participant);
+    const partSimilarity = createParticipantNamePartScorer(participant);
+    const candidateScores = new Map();
 
-    for (const message of Array.isArray(messages) ? messages : []) {
-        const senderId = Number(message?.senderId);
+    return message => {
         const text = compact(message?.text);
-
-        if (
-            !text ||
-            (
-                excludeTargetAuthor &&
-                targetUserIds.has(senderId)
-            )
-        ) {
-            continue;
-        }
-
-        const direct = directParticipantMentionScore(text, participant);
-
-        if (direct) {
-            result.push({
-                message,
-                ...direct,
-            });
-            continue;
-        }
-
-        let best = null;
-
-        for (const alias of aliases) {
-            if (normalizedTextIncludesAlias(text, alias)) {
-                best = {
-                    score: 0.99,
-                    matchedText: alias,
-                    matchedAlias: alias,
-                    method: 'exact-alias',
-                };
-                break;
-            }
-        }
-
-        if (!best) {
-            const candidates = extractMentionCandidates(text);
-
-            for (const candidate of candidates) {
-                for (const alias of aliases) {
-                    const fuzzyScore = scorePhraseAgainstAlias(candidate, alias);
-                    const partScore = participantNamePartSimilarity(candidate, participant);
-                    if (partScore <= minimumScore) continue;
-                    const score = Math.max(partScore, Math.min(fuzzyScore, 0.999));
-
-                    const candidateTokens = normalizeParticipantAlias(candidate).split(' ').filter(Boolean).length;
-                    const bestTokens = best
-                        ? normalizeParticipantAlias(best.matchedText).split(' ').filter(Boolean).length
-                        : Number.POSITIVE_INFINITY;
-                    const candidateLength = normalizeParticipantAlias(candidate).length;
-                    const bestLength = best ? normalizeParticipantAlias(best.matchedText).length : Number.POSITIVE_INFINITY;
-
-                    if (
-                        !best ||
-                        score > best.score ||
-                        (
-                            score === best.score &&
-                            (
-                                candidateTokens < bestTokens ||
-                                (candidateTokens === bestTokens && candidateLength < bestLength)
-                            )
-                        )
-                    ) {
-                        best = {
-                            score,
-                            matchedText: candidate,
-                            matchedAlias: alias,
-                            method: 'fuzzy-alias',
-                        };
+        if (!text || (excludeTargetAuthor && targetUserIds.has(Number(message?.senderId)))) return null;
+        const direct = directMatch(text);
+        if (direct) return {message, ...direct};
+        const normalizedText = ` ${normalizeParticipantAlias(text)} `;
+        const exact = normalizedAliases.find(({normalized}) => normalized && normalizedText.includes(` ${normalized} `));
+        let best = exact ? {score: 0.99, matchedText: exact.alias, matchedAlias: exact.alias, method: 'exact-alias'} : null;
+        let bestTokens = Infinity;
+        let bestLength = Infinity;
+        if (!best && aliases.length) {
+            for (const candidate of extractMentionCandidates(text)) {
+                const normalized = normalizeParticipantAlias(candidate);
+                let value = candidateScores.get(normalized);
+                if (value === undefined) {
+                    value = null;
+                    // This gate does not depend on the alias. Reject before the
+                    // expensive fuzzy scores and never repeat it for every alias.
+                    const partScore = partSimilarity(normalized);
+                    if (partScore > minimumScore) {
+                        for (const alias of aliases) {
+                            const score = Math.max(partScore, Math.min(scorePhraseAgainstAlias(normalized, alias), 0.999));
+                            if (!value || score > value.score) value = {score, matchedAlias: alias};
+                        }
                     }
+                    if (candidateScores.size >= 8192) candidateScores.clear();
+                    candidateScores.set(normalized, value);
+                }
+                if (!value) continue;
+                const tokens = normalized.split(' ').filter(Boolean).length;
+                if (!best || value.score > best.score || (value.score === best.score &&
+                    (tokens < bestTokens || (tokens === bestTokens && normalized.length < bestLength)))) {
+                    best = {...value, matchedText: candidate, method: 'fuzzy-alias'};
+                    bestTokens = tokens;
+                    bestLength = normalized.length;
                 }
             }
         }
+        return best && best.score > minimumScore
+            ? {message, ...best, score: Number(best.score.toFixed(6))} : null;
+    };
+}
 
-        if (best && best.score > minimumScore) {
-            result.push({
-                message,
-                ...best,
-                score: Number(best.score.toFixed(6)),
-            });
-        }
+export function findParticipantMentionMatches(messages, participant, matchedPhrase = '', options = {}) {
+    const matchMessage = createParticipantMentionMatcher(participant, matchedPhrase, options);
+    const result = [];
+    for (const message of Array.isArray(messages) ? messages : []) {
+        const match = matchMessage(message);
+        if (match) result.push(match);
     }
-
     return result;
 }
 

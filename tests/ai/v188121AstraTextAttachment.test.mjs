@@ -12,7 +12,7 @@ test('regression: the exact text-file analysis intent is routed to Astra TXT des
     assert.equal(isProjectArchiveAuditCommand(longRequest), true, 'old overbroad ZIP heuristic still matches: regression is real');
     assert.equal(isAstraTextAttachmentRequest(longRequest, [md]), true);
     assert.equal(isAstraTextAttachmentRequest('Гигорейв terra high, проанализируй текстовый файл', [md]), true);
-    assert.equal(isAstraTextAttachmentRequest('Гигорейв gpt-5.5, проанализируй текстовый файл', [md]), true);
+    assert.equal(isAstraTextAttachmentRequest('Гигорейв gpt-6.1-sol, проанализируй текстовый файл', [md]), true);
     assert.equal(isAstraTextAttachmentRequest('Гигорейв gpt-5.6-terra, проанализируй текстовый файл', [md]), true);
     assert.equal(isAstraTextAttachmentRequest(longRequest, [{ ...md, filename: 'project.zip' }]), false);
 });
@@ -137,7 +137,7 @@ test('runtime Telegram text handler: ordinary review caption selects default min
         Buffer,
         console: {log: () => {}, warn: () => {}, error: (s, err) => {throw new Error(`${s}: ${err}`);}},
         resolveTextAttachmentModelChoice,
-        resolveGptModel: async (mode) => {assert.equal(mode, 'default'); return 'gpt-5.4-mini';},
+        resolveGptModel: async (mode) => {assert.equal(mode, 'default'); return 'gpt-6-luna';},
         process: { env: {} },
         isAstraModel: (model) => model === 'gpt-6-astra',
         getTelegramFileMetadataResilient: raw.telegramApi.getFile,
@@ -149,7 +149,7 @@ test('runtime Telegram text handler: ordinary review caption selects default min
         enqueueOpenAI: (fn) => fn(),
         generateOpenAIText: async (opts) => {
             seen.model++;
-            assert.equal(opts.model, 'gpt-5.4-mini');
+            assert.equal(opts.model, 'gpt-6-luna');
             assert.deepEqual(Array.from(opts.inputFiles), []);
             assert.equal(opts.streamOverride, true);
             assert.equal(opts.disableTransportFallback, true);

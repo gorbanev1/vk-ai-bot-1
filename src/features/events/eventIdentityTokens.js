@@ -1,7 +1,9 @@
+import { isNameComparisonStopWord } from './venueNameTokens.js';
+
 const FUNCTION_WORDS = new Set([
     'без','близ','в','во','вместо','вне','для','до','за','из','изо','из-за','из-под','к','ко','кроме','между','на','над','о','об','обо','около','от','ото','перед','по','под','при','про','ради','с','со','сквозь','среди','у','через',
     'и','а','но','или','либо','да','же','бы','быть','чтобы','что','как','когда','где','кто','это','этот','эта','эти','тот','та','те','его','ее','её','их','мы','вы','они','он','она','оно','мой','моя','мое','мои','твой','твоя','твое','твои','наш','наша','наше','наши','ваш','ваша','ваше','ваши','все','всё','только','еще','ещё','уже','так','там','тут','где','который','которая','которые','которое','если','то','же','ли',
-    'the','and','or','for','from','with','without','into','onto','at','in','on','to','of','a','an','is','are','this','that','these','those','by','as','be','was','were','it','its','their','they','we','you','your','our','but','not','if','then','than','only','just','after','before',
+    'the','and','or','nor','for','from','with','without','into','onto','over','under','at','in','on','to','of','a','an','is','are','am','this','that','these','those','by','as','be','been','being','was','were','it','its','their','they','we','you','your','our','but','not','if','then','than','only','just','after','before','when','where','who','whom','whose','which','what','while','although','though','because','unless','until','whether','do','does','did','doing','have','has','had','having','can','could','may','might','must','shall','should','will','would','ought','need','dare','about','across','against','along','among','around','behind','below','beneath','beside','beyond','despite','down','during','except','inside','near','off','out','outside','past','since','through','throughout','till','toward','towards','upon','via','within',
 ]);
 
 export const GENERIC_EVENT_WORDS = new Set([
@@ -24,6 +26,7 @@ export function buildEventTitleContractPrompt() {
         'Гиг/gig, рейв/rave, пати/party, туса/тусовка, вечеринка, концерт, выступление, лайв/live, шоу, фестиваль/фест, дискотека и подобные слова обычно обозначают род/формат события, а не его собственное имя. Не добавляй такое слово к уже ясному имени только ради пояснения формата: «ВОРОН-ЁЖ гиг» → title «ВОРОН-ЁЖ», если источник не подтверждает «Гиг» как часть официального названия.',
         'Но не удаляй такое слово автоматически: оно может быть частью бренда или полного имени. Оставь его, когда источник оформляет всю фразу как название — например на афише/в заголовке, в кавычках, с номером выпуска или как узнаваемое название серии: «WhattaGig?!», «What a Gig», «DANSE MACABRE PARTY VOL. 1», «ASCENSION OF THE INEFFABLE GIG», «Гигорейв», «Rave Against…». Это примеры контекста, а не безусловный список исключений.',
         'Определяй роль слова по смыслу и оформлению всей фразы: отдельное родовое слово после уже законченного имени часто является форматом; слово внутри цельного заголовка/брендовой фразы может быть частью имени. Одно лишь положение слова в начале или конце, регистр букв, близость к имени артиста или наличие слов «гиг/рейв/пати» решения не определяют. Не отрезай значимую часть официального названия и не присоединяй к нему описание формата.',
+        'Сохраняй полное подтверждённое название совместного проекта, включая обе стороны X/×/х/&. Географическое слово или аббревиатура внутри имени команды не являются отдельной геометкой: например VRN PROD — цельное имя, его нельзя сокращать до PROD. Стоп-слова поиска не являются инструкцией удалять слова из отображаемого названия.',
         'Ищи явное имя мероприятия в исходном тексте и на афише: заголовок, кавычки, повторяющийся бренд серии, номер выпуска и визуально выделенное название — полезные признаки. Не принимай имя артиста, название площадки, город, лозунг или случайную строку за имя события. Не выдумывай название: если собственного имени нет, оставь title пустым.',
     ].join(' ');
 }
@@ -37,6 +40,10 @@ function transliterate(value) {
     for (const char of String(value || '')) output += CYRILLIC_TO_LATIN.get(char) ?? char;
     return output;
 }
+
+const FUNCTION_WORDS_TRANSLITERATED = new Set(
+    [...FUNCTION_WORDS].map((word) => transliterate(word)),
+);
 
 function simpleStem(word) {
     let value = String(word || '').toLowerCase().replace(/ё/gu, 'е');
@@ -53,21 +60,22 @@ function simpleStem(word) {
     return value;
 }
 
-export function normalizeIdentityWord(value, { dropGeneric = false } = {}) {
+export function normalizeIdentityWord(value, { dropGeneric = false, includeNumbers = false } = {}) {
     const raw = String(value || '').normalize('NFKC').toLowerCase().replace(/ё/gu, 'е');
-    if (!raw || FUNCTION_WORDS.has(raw)) return '';
+    if (includeNumbers && (/^\d+$/u.test(raw) || (/\p{L}/u.test(raw) && /\d/u.test(raw)))) return raw;
+    if (!raw || isNameComparisonStopWord(raw) || FUNCTION_WORDS.has(raw) || FUNCTION_WORDS_TRANSLITERATED.has(raw)) return '';
     const stemmed = simpleStem(raw).replace(/[^\p{L}\p{N}]/gu, '');
-    if (stemmed.length < 3 || FUNCTION_WORDS.has(stemmed) || /^\d+$/u.test(stemmed)) return '';
+    if (stemmed.length < 3 || FUNCTION_WORDS.has(stemmed) || FUNCTION_WORDS_TRANSLITERATED.has(stemmed) || /^\d+$/u.test(stemmed)) return '';
     if (dropGeneric && (GENERIC_EVENT_WORDS.has(raw) || GENERIC_EVENT_WORDS.has(stemmed))) return '';
     return stemmed;
 }
 
-export function identityTokens(value, { dropGeneric = true } = {}) {
+export function identityTokens(value, { dropGeneric = true, includeNumbers = false } = {}) {
     const seen = new Set();
     const output = [];
     const raw = String(value || '').normalize('NFKC').toLowerCase().replace(/ё/gu, 'е');
     for (const token of raw.split(/[^\p{L}\p{N}]+/gu)) {
-        const normalized = normalizeIdentityWord(token, { dropGeneric });
+        const normalized = normalizeIdentityWord(token, { dropGeneric, includeNumbers });
         if (!normalized || seen.has(normalized)) continue;
         seen.add(normalized);
         output.push(normalized);
@@ -76,7 +84,7 @@ export function identityTokens(value, { dropGeneric = true } = {}) {
 }
 
 export function titleIdentityTokens(value) {
-    return identityTokens(value).filter((token) => !GENERIC_TITLE_QUALIFIERS.has(token));
+    return identityTokens(value, { includeNumbers: true }).filter((token) => !GENERIC_TITLE_QUALIFIERS.has(token));
 }
 
 export function transliteratedIdentityTokens(value, options = {}) {

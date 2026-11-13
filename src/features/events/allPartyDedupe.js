@@ -254,14 +254,88 @@ export function dedupeAllPartiesRealtime(events, metadataByKey = new Map()) {
 }
 
 
+const KURAZH_WORD = /(?<![\p{L}\p{N}])кураж(?![\p{L}\p{N}])/u;
+const WHERE_WORD = /(?<![\p{L}\p{N}])где(?![\p{L}\p{N}])/u;
+const KURAZH_FILLER_START = /^(?:(?:а|ну|вот|смотри|подскажи|покажи|скажи|расскажи|пожалуйста|мне|нам|можешь|можно|будет|будут|найти|какие|какая|какой|что|там|у|нас|хочу|узнать|давай|посмотри|посоветуй)\s+)+/u;
+const KURAZH_FILLER_END = /(?:\s+(?:а|ну|пожалуйста|будет|будут|можно|там|вообще|подскажи|покажи|скажи))+$/u;
+
 export function parseAllPartiesRequest(value) {
     const raw = String(value ?? '').normalize('NFKC').trim();
-    const normalized = raw.toLowerCase().replace(/ё/gu, 'е').replace(/\s+/gu, ' ');
+    const normalized = raw.toLowerCase().replace(/ё/gu, 'е')
+        .replace(/^(?:гигорейв|гигарейв|gigorave)[\s,.:!?-]+/iu, '')
+        .replace(/[!?]+$/gu, '').replace(/\s+/gu, ' ').trim();
+
+    // The command is identified by two whole words, not their fixed position.
+    // «на выходных где кураж» and «где на выходных кураж» are identical.
+    if (WHERE_WORD.test(normalized) && KURAZH_WORD.test(normalized)) {
+        let rangeText = normalized
+            .replace(/(?<![\p{L}\p{N}])(?:где|кураж)(?![\p{L}\p{N}])/gu, ' ')
+            .replace(/[,:;!?]+/gu, ' ').replace(/\s+/gu, ' ').trim();
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+            rangeText = rangeText.replace(KURAZH_FILLER_START, '')
+                .replace(KURAZH_FILLER_END, '').trim();
+        }
+        return {
+            matched: true,
+            rangeText,
+            commandText: 'где кураж' + (rangeText ? ' ' + rangeText : ''),
+        };
+    }
+
     const match = normalized.match(/^(?:вообще\s+все\s+тус(?:ы|овки)?|все\s+вообще\s+тус(?:ы|овки)?|общ(?:ие|ая)\s+тус(?:ы|овки)?)(?:\s+(.+))?$/u);
     if (!match) return { matched: false, rangeText: '', commandText: raw };
-    return {
-        matched: true,
-        rangeText: String(match[1] ?? '').trim(),
-        commandText: raw,
-    };
+    return { matched: true, rangeText: String(match[1] ?? '').trim(), commandText: normalized };
+}
+
+const addIsoDays = (isoDate, count) => {
+    const milliseconds = Date.parse(isoDate + 'T00:00:00.000Z');
+    if (!Number.isFinite(milliseconds)) return '';
+    return new Date(milliseconds + count * 86_400_000).toISOString().slice(0, 10);
+};
+
+/**
+ * All-party-only date parser. Keep «тусы» untouched; avoid dropping «на»
+ * from «на этих выходных» when the venue/tag search normalizes the input.
+ */
+export function resolveAllPartiesRange(request, { parseRange, createByKind }) {
+    const raw = String(request?.rangeText || '').normalize('NFKC')
+        .replace(/ё/gu, 'е')
+        .replace(/(?:^|\s)(?:кратко|коротко)(?=$|\s)/giu, ' ')
+        .replace(/[!?]+$/gu, '').replace(/\s+/gu, ' ').trim().toLowerCase();
+    if (!raw || /^(?:все|всё|все\s+будущие|вообще\s+все|все\s+вообще|все\s+тусы|вообще|за\s+все\s+время)$/u.test(raw))
+        return createByKind('all');
+
+    const currentWeek = () => createByKind('week');
+    if (/(?:^|\s)(?:на\s+|в\s+)?(?:следующ(?:ие|их)|будущ(?:ие|их))\s+выходн(?:ые|ых)(?:$|\s)/u.test(raw)) {
+        const week = currentWeek();
+        if (!week) return null;
+        return {kind:'date-range',fromDate:addIsoDays(week.toDate,5),toDate:addIsoDays(week.toDate,7),label:'Следующие выходные'};
+    }
+    if (/(?:^|\s)(?:на\s+|в\s+)?следующ(?:ей|ую|ая)\s+недел(?:е|ю|я)(?:$|\s)/u.test(raw)) {
+        const week = currentWeek();
+        if (!week) return null;
+        return {kind:'date-range',fromDate:addIsoDays(week.toDate,1),toDate:addIsoDays(week.toDate,7),label:'Следующая неделя'};
+    }
+    if (/(?:^|\s)до\s+конца\s+месяца(?:$|\s)/u.test(raw)) return createByKind('currentMonth');
+
+    // Handle numeric durations BEFORE the generic date parser: «на 2 недели»
+    // must not become the accidental calendar date «2 декабря».
+    const duration = raw.match(/(?:^|\s)(?:(?:на|за|в\s+течение|ближайшие|следующие|на\s+ближайшие|на\s+следующие)\s+)?(\d{1,3}|одну|один|одна|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять)\s+(день|дня|дней|недел[яиюьеёй]+)(?=$|\s)/u);
+    if (duration) {
+        const names = {одну:1,один:1,одна:1,два:2,две:2,три:3,четыре:4,пять:5,шесть:6,семь:7,восемь:8,девять:9,десять:10};
+        const amount = Number(duration[1]) || names[duration[1]];
+        const days = amount * (duration[2].startsWith('недел') ? 7 : 1);
+        if (days > 0 && days <= 365) return createByKind('nextDays', undefined, days);
+    }
+
+    const normalizedRaw = raw.replace(/(?:^|\s)(?:уикенд|уик-энд)(?=$|\s)/gu, ' выходные').trim();
+    return parseRange('тусы ' + normalizedRaw)
+        || parseRange('тусы ' + normalizedRaw.replace(/(?:^|\s)(?:этой|этих)\s+выходных(?=$|\s)/gu, ' на этих выходных'))
+        || null;
+}
+
+/** «Где кураж» is ONLY primary + secondary; do not consult QTickets. */
+export function includeQticketsInAllPartyRequest(request) {
+    const commandText=String(request?.commandText || request || "").trim().toLowerCase();
+    return !/^где\s+кураж(?:\s|$)/u.test(commandText);
 }

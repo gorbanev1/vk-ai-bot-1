@@ -31,6 +31,20 @@ assert.equal(
     service.parsePublicEventsRangeCommand('тусы 22 августа').fromDate,
     '2026-08-22',
 );
+assert.equal(service.parsePublicEventsRangeCommand('тусы 29').fromDate, '2026-07-29');
+assert.equal(service.parsePublicEventsRangeCommand('тусы 19').fromDate, '2026-08-19');
+for (const query of [
+    'тусы 13 по 15 января',
+    'тусы с 13 по 15 января',
+    'тусы 13.01-15.01',
+    'тусы 13-15.01',
+    'тусы с 13 января по 15 января',
+]) {
+    const range = service.parsePublicEventsRangeCommand(query);
+    assert.equal(range?.kind, 'date-range', query);
+    assert.equal(range?.fromDate, '2027-01-13', query);
+    assert.equal(range?.toDate, '2027-01-15', query);
+}
 assert.equal(
     service.publicEventsRangeFromClassifierToken('next14').toDate,
     '2026-08-11',

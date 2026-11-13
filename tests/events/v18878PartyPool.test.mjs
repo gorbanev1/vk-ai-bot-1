@@ -11,7 +11,7 @@ import {
 } from '../../src/features/events/partyPool.js';
 
 test('secondary source seed excludes the primary Club 12 source', () => {
-  assert.equal(SECONDARY_PARTY_INITIAL_SOURCES.length, 24);
+  assert.equal(SECONDARY_PARTY_INITIAL_SOURCES.length, 27);
   assert.ok(SECONDARY_PARTY_INITIAL_SOURCES.every((item) => item.initialCount === 10));
   assert.ok(SECONDARY_PARTY_INITIAL_SOURCES.some((item) => item.source === 'arena_voronez'));
   assert.ok(SECONDARY_PARTY_INITIAL_SOURCES.some((item) => item.source === 'kommunavrn'));

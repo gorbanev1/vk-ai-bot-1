@@ -39,19 +39,29 @@ function telegramRetryAfter(error) {
 /** A 429 is a definitive rejection, hence its single retry is safe. For network
  * failures delivery is ambiguous: NEVER blindly resend the same Telegram part. */
 export async function sendTelegramLongReply({ api, chatId, text, messageThreadId = null,
-    replyMarkup = null, replyToMessageId = null, log = () => {}, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)) }) {
+    entities = [], replyMarkup = null, replyToMessageId = null, log = () => {}, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)) }) {
     if (!api || typeof api.sendMessage !== 'function') throw new Error('Telegram sendMessage is unavailable');
     const parts = splitTelegramLongReply(text, TELEGRAM_LONG_REPLY_SAFE_LIMIT - 50);
     const messageIds = [];
     const record = (event, data) => { try { log(event, data); } catch {} };
+    let sourceOffset = 0;
     for (let i = 0; i < parts.length; i++) {
         const prefix = parts.length > 1 ? `Часть ${i + 1}/${parts.length}\n` : '';
         const chunk = prefix + parts[i];
+        const sourceEnd = sourceOffset + parts[i].length;
+        const chunkEntities = (Array.isArray(entities) ? entities : []).filter((entity) => {
+            const offset = Number(entity?.offset);
+            const length = Number(entity?.length);
+            return entity?.type === 'text_link' && Number.isInteger(offset) && Number.isInteger(length) &&
+                offset >= sourceOffset && length > 0 && offset + length <= sourceEnd && /^https?:\/\//iu.test(String(entity?.url || ''));
+        }).map((entity) => ({ type: 'text_link', offset: Number(entity.offset) - sourceOffset + prefix.length,
+            length: Number(entity.length), url: String(entity.url) }));
         record('part-start', { part: i + 1, total: parts.length, chars: chunk.length });
         let sent;
         for (let attempt = 0; attempt < 2; attempt++) {
             try {
                 sent = await api.sendMessage({ chatId, text: chunk, messageThreadId,
+                    ...(chunkEntities.length ? { entities: chunkEntities } : {}),
                     replyMarkup, replyToMessageId: i === 0 ? replyToMessageId : null });
                 break;
             } catch (error) {
@@ -70,6 +80,7 @@ export async function sendTelegramLongReply({ api, chatId, text, messageThreadId
         }
         const messageId = Number(sent?.message_id ?? 0) || null;
         messageIds.push(messageId);
+        sourceOffset = sourceEnd;
         record('part-sent', { part: i + 1, total: parts.length, chars: chunk.length, messageId });
     }
     return { parts: parts.length, messageIds };

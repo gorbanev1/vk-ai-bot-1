@@ -6,7 +6,7 @@ const labels = { date: 'дата', venue: 'место', participants: 'учас�
 const present = value => Boolean(String(value || '').trim() && !/^(?:нет|неизвестно|не указано|[-—.…]+)$/iu.test(String(value).trim()));
 export function proposalSubmissionStatus(events, referenceDate = '') {
     const missing = new Set();
-    const normalized = (events || []).map(normalizeEventProposalDraftEvent);
+    const normalized = (events || []).map(event => normalizeEventProposalDraftEvent(event, { allowNearAddressMatch: true }));
     for (const event of normalized) {
         if (!event.eventDate) missing.add('date');
         if (!hasUsableVenueStatement(event.venue)) missing.add('venue');
@@ -56,7 +56,8 @@ export function createEventProposalSubmission(deps) {
         await deps.send(ctx, text, rows);
     }
     function card(event, index) {
-        return '#' + (index + 1) + '\nНазвание: ' + (event.title || '—') + '\nДата: ' + (event.eventDate || '—') + '\nВремя: ' + (event.eventTime || '—') + '\nМесто: ' + (event.venue || '—') + '\nУчастники: ' + (event.participants || '—') + '\nОписание: ' + (event.description || '—') + '\nСсылка: ' + (event.sourceUrl || '—') + '\nЦена: ' + (event.price || '—') + (event.contacts ? '\nКонтакты: ' + event.contacts : '') + '\nФото: ' + ((event.imagePaths?.length || event._imageUrls?.length) ? 'есть' : 'нет');
+        const venue = normalizeEventProposalDraftEvent(event).venue || '—';
+        return '#' + (index + 1) + '\nНазвание: ' + (event.title || '—') + '\nДата: ' + (event.eventDate || '—') + '\nВремя: ' + (event.eventTime || '—') + '\nМесто: ' + venue + '\nУчастники: ' + (event.participants || '—') + '\nОписание: ' + (event.description || '—') + '\nСсылка: ' + (event.sourceUrl || '—') + '\nЦена: ' + (event.price || '—') + (event.contacts ? '\nКонтакты: ' + event.contacts : '') + '\nФото: ' + ((event.imagePaths?.length || event._imageUrls?.length) ? 'есть' : 'нет');
     }
     async function show(ctx, state) {
         if (state.mode === 'reply' || state.mode === 'reply-confirm') return send(ctx, state.mode === 'reply' ? 'Напишите ответ отправителю заявки #' + state.replyId + '.' : 'Ответ отправителю:\n' + state.replyText + '\nОтправить?', state, state.mode === 'reply-confirm' ? [['Отправить ответ', 'reply-send']] : []);

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { runInNewContext } from 'node:vm';
+import {resolveHierarchyMessageStateKey} from '../../src/features/ai/hierarchyMessageIdentity.js';
 
 const source = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
 function extract(name, following, context = {}) {
@@ -42,6 +43,7 @@ test('hierarchical scan does not discard a distinct native CMID with matching pa
         }],
         hierarchyMessageKey: (row) => `${row.sourcePeerId}:${row.conversationMessageId}`,
         hierarchyMessageContentHash: () => contentHash,
+        resolveHierarchyMessageStateKey,
         recoveredMessageCanAliasPaidState: (row, states) => states.some((state) =>
             row.sourcePeerId !== state.sourcePeerId || row.conversationMessageId <= 0 || state.conversationMessageId <= 0),
         buildSummaryEntries: async (rows) => rows,

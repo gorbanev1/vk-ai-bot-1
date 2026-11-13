@@ -47,6 +47,12 @@ export function shouldReviewEventDuplicatePairWithAi(pair, {
     const leftTitle = String(pair?.left?.title ?? '').trim();
     const rightTitle = String(pair?.right?.title ?? '').trim();
     if (!leftTitle || !rightTitle) return participantOverlap;
+    const variants = (event) => [...new Set([String(event?.title ?? '').trim(), ...(Array.isArray(event?.alternativeTitles) ? event.alternativeTitles : [])].filter(Boolean))];
+    const hasCyrillic = (value) => /[А-Яа-яЁё]/u.test(String(value ?? ''));
+    const hasLatin = (value) => /[A-Za-z]/u.test(String(value ?? ''));
+    const crossLanguage = variants(pair?.left).some((left) => variants(pair?.right).some((right) =>
+        (hasCyrillic(left) && hasLatin(right)) || (hasLatin(left) && hasCyrillic(right))));
+    if (crossLanguage) return true;
 
     const normalizedLeft = normalizeEventMatchTitle(leftTitle);
     const normalizedRight = normalizeEventMatchTitle(rightTitle);

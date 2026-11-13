@@ -33,11 +33,11 @@ assert.match(telegramChat.imageLimitText, /тот же счётчик/u);
 
 assert.equal(vkChat.prashnaEnabled, true);
 assert.equal(vkDm.prashnaEnabled, true);
-assert.equal(telegramChat.prashnaEnabled, false);
-assert.equal(telegramDm.prashnaEnabled, false);
-assert.equal(ownerTelegram.prashnaEnabled, false);
+assert.equal(telegramChat.prashnaEnabled, true);
+assert.equal(telegramDm.prashnaEnabled, true);
+assert.equal(ownerTelegram.prashnaEnabled, true);
 assert.equal(ownerVk.prashnaEnabled, true);
-assert.equal(isPrashnaAllowedForPlatform('telegram'), false);
+assert.equal(isPrashnaAllowedForPlatform('telegram'), true);
 assert.equal(isPrashnaAllowedForPlatform('vk'), true);
 
 

@@ -15,10 +15,6 @@ const cases = [
     ['джйотиш прашна sol Москва вопрос', 'pro3', 'джйотиш прашна Москва вопрос'],
     ['прашна терра Москва вопрос', 'pro2', 'прашна Москва вопрос'],
     ['прашна pro вопрос', 'pro', 'прашна вопрос'],
-    ['gpt55 подробно объясни', 'gpt55', 'подробно объясни'],
-    ['классик расскажи', 'gpt55', 'расскажи'],
-    ['gpt54 расскажи', 'gpt54', 'расскажи'],
-    ['стандарт резюмируй', 'gpt54', 'резюмируй'],
     ['mini обычный вопрос', 'default', 'обычный вопрос'],
     ['база нарисуй кота', 'default', 'нарисуй кота'],
     ['самая дешевая модель ответь', 'default', 'ответь'],
@@ -26,7 +22,7 @@ const cases = [
     ['profile пользователя', 'default', 'profile пользователя'],
     ['pro30 вопрос', 'default', 'pro30 вопрос'],
     ['pro вопрос mini', 'pro', 'вопрос mini'],
-    ['pro3 вопрос gpt55', 'pro3', 'вопрос gpt55'],
+    ['pro3 вопрос sol', 'pro3', 'вопрос sol'],
 ];
 
 for (const [input, expectedMode, expectedBody] of cases) {
@@ -35,12 +31,12 @@ for (const [input, expectedMode, expectedBody] of cases) {
     assert.equal(parsed.body, expectedBody, input);
 }
 
-for (const mode of ['default', 'gpt54', 'gpt55', 'pro', 'pro2', 'pro3']) {
+for (const mode of ['default', 'pro', 'pro2', 'pro3']) {
     assert.equal(resolvePrashnaGptMode(mode), mode);
     assert.notEqual(getPrashnaPayloadProfile(mode), 'fast');
 }
 
-for (const mode of ['default', 'gpt54', 'gpt55']) {
+for (const mode of ['default']) {
     assert.equal(getPrashnaPayloadProfile(mode), 'maximum');
 }
 

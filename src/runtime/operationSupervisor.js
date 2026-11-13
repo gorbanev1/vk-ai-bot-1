@@ -4,10 +4,12 @@ import {
     renameSync,
     writeFileSync,
 } from 'node:fs';
-import { appendFile, mkdir, rename, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { Worker } from 'node:worker_threads';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { renameCheckpointWithRetry } from './checkpointFilePersistence.js';
 import { classifyInterruptedOperation } from './operationRecoveryPolicy.js';
 
 export const DEFAULT_OPERATION_TIMEOUT_MS = 2 * 60 * 60 * 1000;
@@ -253,7 +255,7 @@ function persistCheckpoint(record, reason = 'update') {
         .then(async () => {
             await mkdir(OPERATION_CHECKPOINT_DIRECTORY, { recursive: true });
             await writeFile(temporary, serialized, 'utf8');
-            await rename(temporary, target);
+            await renameCheckpointWithRetry(temporary, target);
         })
         .catch((error) => {
             setImmediate(() => process.stderr.write(
@@ -539,6 +541,106 @@ export function reconcileInterruptedOperationCheckpoints({
             // One damaged checkpoint must not block bot startup or other recoveries.
         }
     }
+    return recovered;
+}
+
+/**
+ * Startup variant of checkpoint reconciliation. The checkpoint directory can
+ * contain hundreds of thousands of historical snapshots, so both directory
+ * traversal and file reads must stay off the event loop's synchronous path.
+ */
+export async function reconcileInterruptedOperationCheckpointsAsync({
+    directory = OPERATION_CHECKPOINT_DIRECTORY,
+    now = new Date(),
+    writeAudit = true,
+    maxFiles = Number(process.env.OPERATION_RECONCILE_MAX_FILES) || 5000,
+} = {}) {
+    const reconcileStartedAtMs = Date.now();
+    const finishedAt = now instanceof Date ? now.toISOString() : new Date(now).toISOString();
+    const recovered = [];
+    const safeMaxFiles = Math.max(100, Math.min(50_000, Number(maxFiles) || 5000));
+    const scanResult = await new Promise((resolvePromise, rejectPromise) => {
+        const worker = new Worker(new URL('./operationCheckpointScannerWorker.js', import.meta.url), {
+            workerData: { directory, maxFiles: safeMaxFiles, startedAtMs: reconcileStartedAtMs },
+        });
+        worker.once('message', resolvePromise);
+        worker.once('error', rejectPromise);
+        worker.once('exit', (code) => {
+            if (code !== 0) rejectPromise(new Error(`Checkpoint scanner worker exited with code ${code}`));
+        });
+    }).catch((error) => {
+        console.error('[OPERATION CHECKPOINT SCAN WORKER ERROR]', error?.message || error);
+        return null;
+    });
+    const newest = Array.isArray(scanResult?.candidates) ? scanResult.candidates : [];
+    const fileCount = Number(scanResult?.fileCount || newest.length);
+    if (!scanResult) return recovered;
+    if (fileCount > newest.length) {
+        console.warn(
+            '[OPERATION CHECKPOINT RECONCILE BOUNDED]',
+            `files=${fileCount}`,
+            `scanned=${newest.length}`,
+            `skipped=${fileCount - newest.length}`,
+        );
+    }
+
+    for (const name of newest) {
+        const path = join(directory, name);
+        try {
+            const payload = JSON.parse(await readFile(path, 'utf8'));
+            const operation = payload?.operation;
+            if (!operation || !['running', 'stopping', 'timed-out-stopping'].includes(String(operation.status || ''))) continue;
+            if (String(operation.name || '') === 'vk-message' || String(operation.category || '') === 'user-request' || String(operation.category || '').startsWith('test')) {
+                operation.status = 'abandoned';
+                operation.stopReason = String(operation.category || '').startsWith('test')
+                    ? 'test-artifact-ignored-on-restart'
+                    : 'non-resumable-short-request';
+                operation.finishedAt = finishedAt;
+                operation.updatedAt = finishedAt;
+                operation.underlyingSettled = true;
+                payload.recovery = classifyInterruptedOperation(operation);
+                payload.reason = String(operation.category || '').startsWith('test')
+                    ? 'ignored-test-artifact'
+                    : 'ignored-non-resumable-request';
+                payload.savedAt = finishedAt;
+                const temporary = `${path}.tmp-${process.pid}-${Date.now()}`;
+                await writeFile(temporary, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+                await renameCheckpointWithRetry(temporary, path);
+                continue;
+            }
+            operation.status = 'interrupted';
+            operation.stopReason = operation.stopReason || 'process-restarted-before-operation-settled';
+            operation.finishedAt = finishedAt;
+            operation.updatedAt = finishedAt;
+            operation.underlyingSettled = false;
+            payload.version = 2;
+            payload.reason = 'process-restarted';
+            payload.savedAt = finishedAt;
+            payload.recovery = classifyInterruptedOperation(operation);
+            const temporary = `${path}.tmp-${process.pid}-${Date.now()}`;
+            await writeFile(temporary, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+            await renameCheckpointWithRetry(temporary, path);
+            recovered.push({
+                id: String(operation.id || name.replace(/\.json$/u, '')),
+                name: String(operation.name || ''),
+                category: String(operation.category || ''),
+                checkpoint: operation.checkpoint || {},
+                progress: operation.progress || {},
+                recovery: payload.recovery,
+            });
+            if (writeAudit) {
+                appendAuditRow({ ts: finishedAt, level: 'error', type: 'operation.interrupted-after-restart', operationId: operation.id || '', operationName: operation.name || '', operationCategory: operation.category || '', data: { stopReason: operation.stopReason, checkpoint: compactAuditSnapshot(operation.checkpoint || {}), progress: compactAuditSnapshot(operation.progress || {}) } });
+            }
+        } catch {
+            // One damaged checkpoint must not block bot startup or other recoveries.
+        }
+    }
+    console.info(
+        '[OPERATION CHECKPOINT RECONCILE COMPLETE]',
+        `elapsedMs=${Date.now() - reconcileStartedAtMs}`,
+        `scanned=${newest.length}`,
+        `interrupted=${recovered.length}`,
+    );
     return recovered;
 }
 

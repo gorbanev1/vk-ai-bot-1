@@ -20,17 +20,18 @@ assert.equal(appSource.includes('🌌 НАТАЛЬНАЯ КАРТА РАССЧИ
 assert.equal(appSource.includes('buildPrashnaTechnicalPreview'), false);
 assert.equal(appSource.includes('buildNatalTechnicalPreview'), false);
 assert.equal(appSource.includes('[ASTROLOGY PAYLOAD HIDDEN]'), true);
-assert.equal(appSource.includes('const responseHeader = visibleTextModelHeader(effectiveResponseModel);'), true);
+assert.match(appSource, /const responseHeader = experimentPlan \? 'Модель: ' \+ effectiveResponseModel : visibleTextModelHeader\(effectiveResponseModel\);/u);
 
 // Любой локальный маршрут, включая pro, обязан использовать maximum-пакет.
 assert.match(routingSource, /packet: localCalculation \? 'maximum' : 'none'/u);
 assert.match(routingSource, /explicit-local-maximum/u);
 assert.match(appSource, /maximum: astrologyCalculation\.gptPayloadMaximum/u);
-assert.match(appSource, /ПАКЕТ_МАКСИМУМ_БЕЗ_УСЕЧЕНИЯ/u);
+assert.match(appSource, /ПАКЕТ_SWISS_СТРУКТУРИРОВАННЫЙ_ПОЛНЫЙ_JSON/u);
+assert.match(appSource, /\[ASTROLOGY GENERATION\]/u);
 assert.match(appSource, /АУДИТ_МАКСИМАЛЬНОГО_РАСЧЁТА/u);
 
 // Максимальный пакет включает полный результат вычислителя и аудит покрытия.
-assert.match(ephemerisSource, /schema: 'gigorave-jyotish-maximum-v3'/u);
+assert.match(ephemerisSource, /schema: 'gigorave-jyotish-maximum-v4'/u);
 assert.match(ephemerisSource, /function buildMaximumCalculationAudit/u);
 assert.match(ephemerisSource, /gptPayloadMaximum: maximumGptPayload/u);
 assert.match(ephemerisSource, /pratyantardashaCount/u);

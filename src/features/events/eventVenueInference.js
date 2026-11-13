@@ -123,8 +123,7 @@ export function stripKnownVenueNamesFromEventTitle(value) {
     const original = clean(value, 500);
     if (!original) return '';
     let result = original
-        .replace(/\(\s*(?:г\.?\s*)?(?:воронеж|vrn)\s*\)/giu, ' ')
-        .replace(/(?:^|[\s,;|—–-])(?:г\.?\s*)?(?:воронеж|vrn)(?=$|[\s,;|—–-])/giu, ' ');
+        .replace(/\(\s*(?:г\.?\s*)?(?:воронеж|vrn)\s*\)/giu, ' ');
 
     for (const venue of KNOWN_VENUES) {
         for (const pattern of venue.patterns) {
@@ -133,6 +132,10 @@ export function stripKnownVenueNamesFromEventTitle(value) {
         }
     }
 
+    // Keep a city token inside a multiword brand. Strip only an isolated
+    // location suffix, after removing known venue labels.
+    result = result.replace(/(?:^|[\s,;|—–-])(?:г\.?\s*)?(?:воронеж|vrn)\s*$/iu,
+        (match, offset, text) => /(?:^|\s)[xх×&]\s*$/iu.test(text.slice(0, offset)) ? match : ' ');
     return result
         .replace(/\s+(?:в|во|на)\s*$/iu, ' ')
         .replace(/^[\s,;:|—–-]+|[\s,;:|—–-]+$/gu, '')

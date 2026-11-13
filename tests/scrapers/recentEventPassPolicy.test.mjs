@@ -40,6 +40,25 @@ test('old post without future date is filtered', () => {
     assert.equal(result.reason, 'stale-post-outside-recent-window');
 });
 
+test('post older than six months is admitted when its event date is future', () => {
+    const result = explainRecentOrFuturePost({
+        publishedAt: Math.floor(new Date('2025-01-01T12:00:00+03:00').getTime() / 1000),
+        text: 'Концерт 12 октября 2026', referenceNow: now, recentDays: 0,
+    });
+    assert.equal(result.allowed, true);
+    assert.equal(result.reason, 'window-disabled');
+    assert.deepEqual(result.futureDates, ['2026-10-12']);
+});
+
+test('post older than six months without a future event date is filtered', () => {
+    const result = explainRecentOrFuturePost({
+        publishedAt: Math.floor(new Date('2025-01-01T12:00:00+03:00').getTime() / 1000),
+        text: 'Старый фотоотчёт', referenceNow: now, recentDays: 0,
+    });
+    assert.equal(result.allowed, false);
+    assert.equal(result.reason, 'parser-post-older-than-six-months');
+});
+
 test('unknown timestamp is retained to prevent silent card loss', () => {
     const result = explainRecentOrFuturePost({ text: 'Анонс без даты', referenceNow: now, recentDays: 3 });
     assert.equal(result.allowed, true);

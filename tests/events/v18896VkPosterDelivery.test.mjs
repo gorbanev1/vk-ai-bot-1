@@ -49,7 +49,8 @@ test('future events without a proven poster remain visible as text cards', () =>
 
 test('compact public event output includes future cards even when they have no poster', () => {
     const begin = app.indexOf('async function sendCompactPublicEventList');
-    const end = app.indexOf('\nfunction buildSinglePublicEventMessage', begin);
+    const end = app.indexOf('\nexport function buildSinglePublicEventMessage', begin);
+    assert.ok(end > begin, 'compact renderer boundary must exist');
     const source = app.slice(begin, end);
     assert.match(source, /filter\(\(item\) => item\?\.event\)/u);
     assert.doesNotMatch(source, /eventHasSafePosterMatch|filterGarbageEventImagePaths/u);

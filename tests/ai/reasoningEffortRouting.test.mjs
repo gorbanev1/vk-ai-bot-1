@@ -5,13 +5,11 @@ import {
   getDefaultReasoningEffortForMode,
 } from '../../src/features/ai/reasoningEffortRouting.js';
 
-test('defaults use medium for cheap models and high for GPT-5.6 family', () => {
-  assert.equal(getDefaultReasoningEffortForMode('default', {}), 'medium');
-  assert.equal(getDefaultReasoningEffortForMode('gpt54', {}), 'medium');
-  assert.equal(getDefaultReasoningEffortForMode('gpt55', {}), 'medium');
-  assert.equal(getDefaultReasoningEffortForMode('pro', {}), 'high');
-  assert.equal(getDefaultReasoningEffortForMode('pro2', {}), 'high');
-  assert.equal(getDefaultReasoningEffortForMode('pro3', {}), 'high');
+test('Luna defaults to none, Sol/Astra to low', () => {
+  assert.equal(getDefaultReasoningEffortForMode('default', {}), 'none');
+  assert.equal(getDefaultReasoningEffortForMode('pro', {}), 'none');
+  assert.equal(getDefaultReasoningEffortForMode('pro2', {}), 'low');
+  assert.equal(getDefaultReasoningEffortForMode('pro3', {}), 'low');
 });
 
 test('parses xhigh/max at prefix or suffix and labelled form', () => {

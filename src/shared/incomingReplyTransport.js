@@ -5,6 +5,7 @@
 const vkReplyContextTargets = new WeakMap();
 const INTERNAL_REPLY_FIELDS = Object.freeze([
     'replyToConversationMessageId',
+    'replyWithForwardConversationMessageId',
     'replyToMessageId',
 ]);
 
@@ -32,6 +33,26 @@ function getExplicitReplyMessageId(payload, params) {
     }
 
     return null;
+}
+
+function getForwardReplyMessageId(payload, params) {
+    for (const source of [payload, params]) {
+        const normalized = normalizeMessageId(source?.replyWithForwardConversationMessageId);
+        if (normalized) return normalized;
+    }
+    return null;
+}
+
+function buildVkForwardReply(peerId, conversationMessageId) {
+    const normalizedPeerId = Number(peerId);
+    if (!Number.isSafeInteger(normalizedPeerId) || normalizedPeerId <= 0 || !conversationMessageId) return null;
+    // VK API требует conversation_message_ids как массив, не скаляр.
+    // Все остальные call-sites в кодовой базе передают [cmid] — см. vkImageEditReplyTransport.js.
+    return JSON.stringify({
+        conversation_message_ids: [conversationMessageId],
+        peer_id: normalizedPeerId,
+        is_reply: true,
+    });
 }
 
 function removeInternalReplyFields(value) {
@@ -64,7 +85,7 @@ function buildTelegramReplyParameters(messageId) {
  * MessageContext.reply(). Если обработчик явно передал индекс старого
  * сообщения из базы, вызываем исходный send() с reply_to этого cmid.
  */
-function createVkIncomingReplyContext(context) {
+function createVkIncomingReplyContext(context, onDelivered = null) {
     if (
         !context ||
         typeof context !== 'object' ||
@@ -81,11 +102,24 @@ function createVkIncomingReplyContext(context) {
     const proxy = new Proxy(context, {
         get(target, property) {
             if (property === 'send') {
-                return (payload, params) => {
+                const sendMessage = (payload, params) => {
+                    const forwardReplyId = getForwardReplyMessageId(payload, params);
                     const explicitReplyId = getExplicitReplyMessageId(
                         payload,
                         params,
                     );
+
+                    if (forwardReplyId && send) {
+                        const peerId = normalizeMessageId(target.peerId);
+                        const forward = buildVkForwardReply(peerId, forwardReplyId);
+                        return send(
+                            removeInternalReplyFields(payload),
+                            {
+                                ...removeInternalReplyFields(params),
+                                ...(forward ? { forward } : {}),
+                            },
+                        );
+                    }
 
                     if (explicitReplyId && send) {
                         return send(
@@ -101,6 +135,14 @@ function createVkIncomingReplyContext(context) {
                         removeInternalReplyFields(payload),
                         removeInternalReplyFields(params),
                     );
+                };
+                return (payload,params) => {
+                    const result=sendMessage(payload,params);
+                    if(typeof onDelivered!=='function')return result;
+                    return Promise.resolve(result).then(delivery=>{
+                        try{onDelivered(payload,delivery)}catch{}
+                        return delivery;
+                    });
                 };
             }
 

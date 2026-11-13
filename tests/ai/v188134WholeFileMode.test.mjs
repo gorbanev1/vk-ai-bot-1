@@ -18,7 +18,7 @@ for (const [prefix, mode, effort] of [
     ['Гигорейв astra max', 'astra', 'max'],
     ['Гигорейв terra high', 'pro2', 'high'],
     ['Гигорейв sol xhigh', 'pro3', 'xhigh'],
-    ['Гигорейв gpt-5.5 high', 'gpt55', 'high'],
+    ['Гигорейв gpt-6.1-sol high', 'pro3', 'high'],
     ['Гигорейв mini low', 'default', 'low'],
     ['Гигорейв luna medium', 'pro', 'medium'],
 ]) {

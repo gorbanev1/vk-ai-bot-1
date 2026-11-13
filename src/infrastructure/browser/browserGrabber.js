@@ -666,6 +666,7 @@ export async function openScraperTab({
     bringToFront = false,
     deadlineAt = 0,
     minimumOpenMs = BROWSER_TAB_MINIMUM_OPEN_MS,
+    onPageCreated = null,
 }) {
     const context = await getScraperBrowserContext({
         dataDirectory,
@@ -680,6 +681,7 @@ export async function openScraperTab({
         : null;
 
     try {
+        await onPageCreated?.(page);
         if (deadlineAt > 0 && remainingBudgetMs() <= 0) {
             throw new Error('Browser page review deadline elapsed before navigation.');
         }
@@ -1155,6 +1157,10 @@ export async function openEventLinkForReview({
     // Manual «Добавить тусу» links have their own short, bounded browser budget.
     maxReviewMs = 0,
     trace = null,
+    beforeScrollWaitMs = 0,
+    onPageCreated = null,
+    onPageReady = null,
+    onFinalSnapshot = null,
 }) {
     const requestedMinimumOpenMs = Math.trunc(Number(minimumOpenMs) || EVENT_REVIEW_MINIMUM_OPEN_MS);
     const safeMinimumOpenMs = keepPageOpen
@@ -1193,7 +1199,7 @@ export async function openEventLinkForReview({
     // openScraperPage may claim an existing blank tab. For «бф», use the
     // dedicated opener that ALWAYS calls context.newPage() in the same
     // browser context, without recycling or closing other source tabs.
-    const openPagePromise = reviewBudgetMs > 0 || separateTab
+    const openPagePromise = reviewBudgetMs > 0 || separateTab || onPageCreated
         ? openScraperTab({
             url,
             source: 'MANUAL EVENT',
@@ -1204,6 +1210,7 @@ export async function openEventLinkForReview({
             manualAccessTimeoutMs: boundedManualAccessTimeoutMs,
             deadlineAt: reviewDeadline,
             minimumOpenMs: safeMinimumOpenMs,
+            onPageCreated,
         })
         : openScraperPage({
             url,
@@ -1287,7 +1294,7 @@ export async function openEventLinkForReview({
                     }
                 }
                 const imageUrlsFrom = (root) => unique([
-                    ...[...root.querySelectorAll('img')].flatMap((image) => [image.currentSrc, image.src, image.getAttribute('data-src'), image.getAttribute('data-original')]),
+                    ...[...root.querySelectorAll('img')].filter((image) => !image.closest?.('.tgme_widget_message_user_photo, .tgme_widget_message_user')).flatMap((image) => [image.currentSrc, image.src, image.getAttribute('data-src'), image.getAttribute('data-original')]),
                     ...[...root.querySelectorAll('[style*="background-image"]')].map((node) => {
                         const match = String(node.getAttribute('style') || '').match(/url\(["']?([^"')]+)["']?\)/i);
                         return match?.[1] || '';
@@ -1331,6 +1338,7 @@ export async function openEventLinkForReview({
         return durableDomSnapshot;
     };
     try {
+    await onPageReady?.(page);
     trace?.('browser.open.ready', {
         requestedUrl: url,
         finalUrl: page.url?.() || '',
@@ -1364,6 +1372,7 @@ export async function openEventLinkForReview({
      * архив. Для обычной предложки/ручного добавления проход конечный;
      * keepPageOpen используется только если это явно запросил вызывающий код.
      */
+    if (beforeScrollWaitMs > 0) await page.waitForTimeout(Math.min(30_000, Number(beforeScrollWaitMs)));
     let stableScrollRounds = 0;
     let previousHeight = 0;
     let previousPostCount = 0;
@@ -1618,6 +1627,9 @@ export async function openEventLinkForReview({
             };
 
             for (const image of root.querySelectorAll('img')) {
+                // Telegram message header avatars are NOT post media.
+                // Their wrapper contains 'photo', so the generic media-marker heuristic is unsafe.
+                if (image.closest?.('.tgme_widget_message_user_photo, .tgme_widget_message_user')) continue;
                 const rect = image.getBoundingClientRect?.() || { width: 0, height: 0 };
                 const width = Math.max(Number(image.naturalWidth || 0), Number(rect.width || 0));
                 const height = Math.max(Number(image.naturalHeight || 0), Number(rect.height || 0));
@@ -2119,6 +2131,9 @@ export async function openEventLinkForReview({
         );
     }
 
+    // Cache recovery consumes the same final, post-scroll capture as review.
+    // It never changes the minimum dwell or the snapshots taken during scrolling.
+    if (onFinalSnapshot && !page.isClosed()) await onFinalSnapshot({ page, snapshot: extracted });
     if (reviewBudgetMs > 0 && durableDomSnapshot?.domCaptured && !page.isClosed()) {
         console.log(
             '[EVENT LINK DOM CAPTURED; CLOSING PAGE]',

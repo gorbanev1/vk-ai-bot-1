@@ -10,10 +10,15 @@ const poolOf = (operation) => operation.metadata?.partyPool === 'secondary' ||
 // on old checkpoints. A newer successful invocation supersedes every old failure.
 export function loadLatestParserAllRecovery({
     directory = resolve('data/operation-checkpoints'),
-    root = process.cwd(), partyPool = 'primary', expectedId = '',
+    root = process.cwd(), partyPool = 'primary', expectedId = '', exactId = '',
 } = {}) {
     let names;
-    try { names = readdirSync(directory).filter((name) => name.endsWith('.json')); } catch { return null; }
+    try {
+        const requestedId = String(exactId || '').trim();
+        names = requestedId
+            ? [requestedId + '.json']
+            : readdirSync(directory).filter((name) => name.endsWith('.json'));
+    } catch { return null; }
     const rows = [];
     for (const name of names) {
         try {
@@ -32,7 +37,9 @@ export function loadLatestParserAllRecovery({
     const checkpoint = operation.checkpoint || {};
     const phase = String(checkpoint.phase || operation.progress?.phase || 'unknown');
     const id = String(operation.id || '');
-    const completed = (phase === 'completed' || (!checkpoint.phase && operation.status === 'completed')) && !Number(checkpoint.unfinishedCandidates || 0);
+    const completed = (phase === 'completed' ||
+        (phase === 'completed-with-warnings' && checkpoint.unfinishedCandidates === 0) ||
+        (!checkpoint.phase && operation.status === 'completed')) && !Number(checkpoint.unfinishedCandidates || 0);
     if (expectedId && id !== expectedId) return { id, available: false, reason: 'superseded', partyPool };
     if (completed || checkpoint.recoveryDismissed || operation.status === 'superseded') return null;
     const cachePaths = new Map();
@@ -52,36 +59,21 @@ export function loadLatestParserAllRecovery({
     };
     consumeCheckpoint(checkpoint);
     if (operation.progress?.tracePath) traces.add(resolve(root, operation.progress.tracePath));
-    for (const trace of traces) {
-        let lines;
-        try { lines = readFileSync(trace, 'utf8').split(/\r?\n/u); } catch { continue; }
-        for (const line of lines) {
-            try {
-                const row = JSON.parse(line);
-                if (row.stage === 'run.source-registry') {
-                    for (const source of row.data?.sources || []) sourceIds.add(source.sourceId);
-                }
-                if (row.stage === 'source.cache.saved') addCache(row.data?.sourceId, row.data?.path);
-            } catch { /* An incomplete JSONL tail does not invalidate earlier rows. */ }
+    const traceRunIds = new Set();
+    // Collect provenance, cache paths and Vision responses in one trace pass.
+    const posterGateImages = collectParserTraceImages([...traces], (row) => {
+        if (row.stage === 'run.start' && row.data?.runId) traceRunIds.add(String(row.data.runId));
+        if (row.stage === 'run.source-registry') {
+            for (const source of row.data?.sources || []) sourceIds.add(source.sourceId);
         }
-    }
+        if (row.stage === 'source.cache.saved') addCache(row.data?.sourceId, row.data?.path);
+    });
     // A partial phase one must resume its original full capture generation.
     if (checkpoint.dateFreePhasePlan?.phaseOneComplete === false) {
         for (const row of checkpoint.dateFreePhasePlan.originalCaptures || []) addCache(row.sourceId, row.cachePath);
     }
     const cacheRows = new Map();
     const invalidCaches = [];
-    const traceRunIds = new Set();
-    for (const trace of traces) {
-        let lines;
-        try { lines = readFileSync(trace, 'utf8').split(/\r?\n/u); } catch { continue; }
-        for (const line of lines) {
-            try {
-                const row = JSON.parse(line);
-                if (row.stage === 'run.start' && row.data?.runId) traceRunIds.add(String(row.data.runId));
-            } catch { /* incomplete trace tail */ }
-        }
-    }
     const recaptureSourceIds = new Set([...sourceIds].filter((sourceId) => !cachePaths.has(sourceId)));
     for (const [sourceId, cachePath] of cachePaths) {
         try {
@@ -121,7 +113,7 @@ export function loadLatestParserAllRecovery({
         available: cacheRows.size > 0,
         reason: cacheRows.size ? 'ready' : invalidCaches.length ? 'invalid-cache' : 'no-cache',
         noticePath: `${path}.recovery-notice`,
-        posterGateImages: loadParserPosterGateImages([...traces]),
+        posterGateImages,
     };
 }
 
@@ -220,6 +212,10 @@ export function claimParserAllRecovery(recovery) {
 }
 
 export function loadParserPosterGateImages(tracePaths = []) {
+    return collectParserTraceImages(tracePaths);
+}
+
+function collectParserTraceImages(tracePaths, visit = null) {
     const images = new Map();
     for (const path of tracePaths) {
         let lines;
@@ -228,6 +224,8 @@ export function loadParserPosterGateImages(tracePaths = []) {
         for (const line of lines) {
             let row;
             try { row = JSON.parse(line); } catch { continue; }
+            if (!row || typeof row !== 'object') continue;
+            try { visit?.(row); } catch { /* A malformed trace row cannot hide later evidence. */ }
             const data = row.data || {};
             const key = `${data.sourceId || ''}\u0000${data.itemId || ''}`;
             if (row.stage === 'item.poster-gate.batch_start') batches.set(key, data);
@@ -255,6 +253,7 @@ export function getParserPosterGateImage(images, request, imageNumber, imageUrl)
     if (saved.dateFreePhase !== (request.visionPhase === 'phase2-date-free-image')) return '';
     // Old joint-gate negatives are not reusable under independent poster
     // admission. Successful metadata is still useful and remains cached.
+    if (saved.secondaryJointGate && !saved.dateFreePhase && Number(saved.posterGatePolicyVersion || 1) < 3) return '';
     if (saved.dateFreePhase && Number(saved.posterGatePolicyVersion || 1) < 2 &&
         !/Это афиша события:\s*да/iu.test(saved.responseText)) return '';
     if ((saved.secondaryJointGate || saved.dateFreePhase) && saved.semanticBodyText !== String(request.sourceText || '')) return '';

@@ -59,8 +59,8 @@ test('V188.53: two failures on one vision candidate move to the next model in th
     resetRuntimeModelCredentialHealth();
     const calls = [];
     const candidates = [
-        { provider: 'compat', name: 'KEY_A', secret: 'a', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.4-mini', mode: 'default' },
-        { provider: 'compat', name: 'KEY_A', secret: 'a', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.4', mode: 'gpt54' },
+        { provider: 'compat', name: 'KEY_A', secret: 'a', baseUrl: 'https://example.invalid/v1', model: 'gpt-6-luna', mode: 'default' },
+        { provider: 'compat', name: 'KEY_A', secret: 'a', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.6-luna', mode: 'pro' },
     ];
 
     const result = await executeRuntimeModelFailover({
@@ -72,7 +72,7 @@ test('V188.53: two failures on one vision candidate move to the next model in th
         sleep: async () => {},
         request: async (credential) => {
             calls.push(credential.model);
-            if (credential.model === 'gpt-5.4-mini') {
+            if (credential.model === 'gpt-6-luna') {
                 throw new Error('GPT vision API 400: model does not support image_url');
             }
             return 'ok';
@@ -80,16 +80,16 @@ test('V188.53: two failures on one vision candidate move to the next model in th
     });
 
     assert.equal(result.value, 'ok');
-    assert.equal(result.credential.model, 'gpt-5.4');
-    assert.deepEqual(calls, ['gpt-5.4-mini', 'gpt-5.4-mini', 'gpt-5.4']);
+    assert.equal(result.credential.model, 'gpt-5.6-luna');
+    assert.deepEqual(calls, ['gpt-6-luna', 'gpt-6-luna', 'gpt-5.6-luna']);
 });
 
 test('V188.53: media vision failover never loops after one requested round', async () => {
     resetRuntimeModelCredentialHealth();
     let calls = 0;
     const candidates = [
-        { provider: 'compat', name: 'KEY_A', secret: 'a', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.4-mini', mode: 'default' },
-        { provider: 'compat', name: 'KEY_B', secret: 'b', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.4', mode: 'gpt54' },
+        { provider: 'compat', name: 'KEY_A', secret: 'a', baseUrl: 'https://example.invalid/v1', model: 'gpt-6-luna', mode: 'default' },
+        { provider: 'compat', name: 'KEY_B', secret: 'b', baseUrl: 'https://example.invalid/v1', model: 'gpt-5.6-luna', mode: 'pro' },
     ];
 
     await assert.rejects(() => executeRuntimeModelFailover({

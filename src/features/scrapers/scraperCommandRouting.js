@@ -1,3 +1,4 @@
+import { parseBulkSourceAddCommand } from './bulkSourceAddCommand.js';
 /**
  * Разбирает административные команды ручного запуска конкретного скрейпера.
  */
@@ -113,11 +114,26 @@ const LEGACY_START_COMMANDS = new Set([
  *   парсер запустить <source-id>
  */
 function parseScraperStartCommandInternal(input) {
+    const bulkSourceCommand = parseBulkSourceAddCommand(input);
+    if (bulkSourceCommand) {
+        return {
+            matched: true, sourceId: '', legacy: false, all: false, help: false,
+            addSourcesBulk: true,
+            partyPool: bulkSourceCommand.partyPool,
+            bulkSources: bulkSourceCommand.sources,
+            bulkInvalid: bulkSourceCommand.invalid,
+            bulkDuplicates: bulkSourceCommand.duplicates,
+        };
+    }
+
     let command = normalizeCommand(input)
         .replace(/^(?:гигорейв|gigorave)\s+/u, '')
         .trim();
     if (['обработать ошибки парсера', 'обработать ошибку парсера', 'повторить ошибки парсера'].includes(command)) {
         return { matched: true, parserErrors: true, sourceId: '', legacy: false, all: false, help: false };
+    }
+    if (['попытаться исправить ошибки', 'перепарсить нескачанное'].includes(command)) {
+        return { matched: true, parserErrors: true, missingCapture: command === 'перепарсить нескачанное', sourceId: '', legacy: false, all: false, help: false };
     }
     // Turbo is an orthogonal modifier; strip it before the established
     // command grammar so all primary/secondary/clean aliases continue to

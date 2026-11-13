@@ -3,12 +3,11 @@
  */
 import {
     existsSync,
-    mkdirSync,
     openAsBlob,
     readFileSync,
     statSync,
-    writeFileSync,
 } from 'node:fs';
+import { mkdir, rename, writeFile } from 'node:fs/promises';
 import { basename, resolve } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { buildTelegramReplyParameters } from '../../shared/incomingReplyTransport.js';
@@ -25,9 +24,10 @@ import { isAstraChannelMode } from '../../runtime/aiChannelMode.js';
 import { EVENT_PROPOSAL_TEMPLATE } from '../../features/events/eventProposalSubmission.js';
 
 const TELEGRAM_TEXT_LIMIT = 4096;
-const TELEGRAM_CAPTION_LIMIT = 1024;
+const TELEGRAM_CAPTION_LIMIT = 1000;
 const TELEGRAM_PHOTO_LIMIT_BYTES = 10 * 1024 * 1024;
 const TELEGRAM_PENDING_MENU_TTL_MS = 30 * 60 * 1000;
+const TELEGRAM_NAMED_EVENT_DATE_INPUT = /(?:^|\s)\d{1,2}\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)(?:\s+\d{4})?(?=$|\s)/iu;
 
 
 
@@ -76,6 +76,7 @@ const TELEGRAM_MENU_BUTTONS = Object.freeze({
     qticketsPriceReset: '🧹 Сбросить фильтр стоимости',
     coords: '📍 Корды Пересоздание',
     thankEvent: '🖤 Поблагодарить за Пересоздание',
+    imageMenu: '🖼 Изображения',
     image: '🖼 Изображение · выбрать модель',
     imageEdit: '🛠 Изображение · редактировать',
     imageModel2: '🖼 GPT Image 2',
@@ -86,6 +87,8 @@ const TELEGRAM_MENU_BUTTONS = Object.freeze({
     imageEditMode: '🛠 Отредактировать',
     imageModelTest: '🧪 Тест 3 image-моделей · петух',
     documents: '📄 Документы',
+    huinglish: '🌭 Хуинглиш 🍆',
+    huinglishReset: '🔄 Хуинглиш · сбросить',
     documentWord: '📝 Word',
     documentPdf: '📕 PDF',
     documentPptx: '📊 Презентация',
@@ -97,6 +100,21 @@ const TELEGRAM_MENU_BUTTONS = Object.freeze({
     addEvent: '➕ Добавить тусу',
     addSource: 'Добавить источник',
     week: '📅 Эта неделя',
+    primaryToday: '☀️ Основные сегодня',
+    primaryTomorrow: '🌅 Основные завтра',
+    secondaryToday: '🍺 Второстепенные сегодня',
+    secondaryTomorrow: '🍺 Второстепенные завтра',
+    secondaryWeek: '📅 На этой неделе',
+    secondaryMonth: '📆 На месяц вперёд',
+    qticketsToday: '🎟 QTickets афиша сегодня',
+    allToday: '🌐 Вообще все сегодня',
+    allTomorrow: '🌐 Вообще все завтра',
+    primaryUntilWeekEnd: '📅 Основные до конца недели',
+    allUntilWeekEnd: '🌐 Вообще все до конца недели',
+    allWeek: '🌐 Вообще все на этой неделе',
+    allTwoWeeks: '🌐 Вообще все на две недели вперёд',
+    allMonth: '🌐 Вообще все на месяц вперёд',
+    allAll: '🌐 Все',
     weekend: '🎊 Эти выходные',
     twoWeeks: '🗓 На две недели вперёд',
     month: '📆 На месяц вперёд',
@@ -105,11 +123,9 @@ const TELEGRAM_MENU_BUTTONS = Object.freeze({
     compact: '🧾 Кратко',
     full: '🖼 Полно',
     secondaryParties: '🍺 Второстепенные тусы',
-    secondaryWeek: '📅 Второстепенные · эта неделя',
     secondaryWeekend: '🎊 Второстепенные · эти выходные',
     secondaryTwoWeeks: '🗓 Второстепенные · 2 недели вперёд',
-    secondaryMonth: '📆 Второстепенные · месяц вперёд',
-    secondaryAllParties: '♾ Второстепенные · все',
+    secondaryAllParties: '♾ Все',
     hideKeyboard: '⌨️ Скрыть клавиатуру',
     modelPro: '🌙 Pro · Luna',
     modelPro2: '🌍 Pro2 · Terra',
@@ -174,14 +190,55 @@ function shouldShowTelegramThankEventButton(now = new Date()) {
     return !Number.isNaN(date.getTime()) && date >= TELEGRAM_PERESOZDANIE_THANK_START && date < TELEGRAM_PERESOZDANIE_THANK_END;
 }
 
+function buildTelegramHuinglishMenu({isOwner=false}={}) {
+    return createTelegramReplyKeyboard([
+        ['📖 Хуинглиш · далее','📚 Хуинглиш · уроки'],
+        ...(isOwner?[['🔄 Хуинглиш · сбросить']]:[]),
+        [TELEGRAM_MENU_BUTTONS.back, TELEGRAM_MENU_BUTTONS.mainMenu],
+    ],'HuInglish — продолжить, посмотреть уроки или вернуться');
+}
+function buildTelegramHuinglishLessonPickerMenu({lessonIds=[]}={}) {
+    const ids=[...new Set(lessonIds.map(Number))].filter(n=>Number.isInteger(n)&&n>=1&&n<=999).sort((a,b)=>a-b).slice(0,25);
+    const rows=[];
+    for(let i=0;i<ids.length;i+=4)rows.push(ids.slice(i,i+4).map(String));
+    rows.push([TELEGRAM_MENU_BUTTONS.back,TELEGRAM_MENU_BUTTONS.mainMenu]);
+    return createTelegramReplyKeyboard(rows,'Выбери номер завершённого урока');
+}
+let milanaMarkerModeProvider=()=>null;
+export function setTelegramMilanaMarkerModeProvider(fn){milanaMarkerModeProvider=typeof fn==='function'?fn:()=>null}
+function currentMilanaMarkerMode(chatId,userId){
+ try{const mode=milanaMarkerModeProvider({chatId:String(chatId||''),userId:String(userId||'')});
+  return mode==='active'||mode==='paused'?mode:null;
+ }catch{return null}
+}
+// Quiz controls decorate the CURRENT reply keyboard, not the main menu.
+// Otherwise a paused quiz hides nested party and image menus.
+export function buildTelegramMilanaMarkerMenu({mode,isOwner=false,now=new Date(),baseMenu=null}={}){
+ const base=baseMenu&&Array.isArray(baseMenu.keyboard)?baseMenu:buildTelegramMainMenu({isOwner,now});
+ const button=mode==='active'?'🚪 Выйти из режима теста по словам-маркерам':
+  mode==='paused'?'▶️ Продолжить тест по словам-маркерам':'';
+ if(!button)return base;
+ const controls=new Set(['🚪 Выйти из режима теста по словам-маркерам','▶️ Продолжить тест по словам-маркерам']);
+ const rows=base.keyboard.map(row=>row.filter(item=>!controls.has(String(item?.text||'')))).filter(row=>row.length>0);
+ return {...base,keyboard:[[{text:button}],...rows],
+  input_field_placeholder:mode==='active'?'Ответь текстом или голосом на текущий вопрос':'Продолжи тест или выбери обычное действие'};
+}
+export function withTelegramMarkerMenu(replyMarkup,{mode,isOwner=false,now=new Date()}={}){
+ if(!mode)return replyMarkup;
+ // Inline callback buttons belong to a message. Do not replace their markup.
+ if(replyMarkup&&!Array.isArray(replyMarkup.keyboard))return replyMarkup;
+ return buildTelegramMilanaMarkerMenu({mode,isOwner,now,baseMenu:replyMarkup});
+}
+
 function buildTelegramMainMenu({ isOwner = false, now = new Date() } = {}) {
     const channelButton = isAstraChannelMode()
         ? TELEGRAM_MENU_BUTTONS.ordinaryChannel
         : TELEGRAM_MENU_BUTTONS.astraChannel;
     const rows = [
         [TELEGRAM_MENU_BUTTONS.parties, isOwner ? TELEGRAM_MENU_BUTTONS.addEvent : TELEGRAM_MENU_BUTTONS.proposeEvent],
-        [TELEGRAM_MENU_BUTTONS.image, TELEGRAM_MENU_BUTTONS.imageEdit],
-        [TELEGRAM_MENU_BUTTONS.documents, TELEGRAM_MENU_BUTTONS.models],
+        [TELEGRAM_MENU_BUTTONS.imageMenu],
+        [TELEGRAM_MENU_BUTTONS.huinglish, TELEGRAM_MENU_BUTTONS.models],
+        ...(isOwner ? [[TELEGRAM_MENU_BUTTONS.huinglishReset]] : []),
         [TELEGRAM_MENU_BUTTONS.help],
         [TELEGRAM_MENU_BUTTONS.contactDeveloper],
         [TELEGRAM_MENU_BUTTONS.operationStatus, TELEGRAM_MENU_BUTTONS.cancelOperation],
@@ -208,6 +265,14 @@ const TELEGRAM_IMAGE_MODELS = Object.freeze([
     { id: 'gpt-image-2.5-flare', button: TELEGRAM_MENU_BUTTONS.imageModel25Flare, description: 'Вариант Flare семейства Image 2.5.' },
     { id: 'gpt-image-2.5-sunburst', button: TELEGRAM_MENU_BUTTONS.imageModel25Sunburst, description: 'Вариант Sunburst семейства Image 2.5.' },
 ]);
+
+function buildTelegramImageSectionMenu() {
+    return createTelegramReplyKeyboard([
+        [TELEGRAM_MENU_BUTTONS.image],
+        [TELEGRAM_MENU_BUTTONS.imageEdit],
+        [TELEGRAM_MENU_BUTTONS.back, TELEGRAM_MENU_BUTTONS.home],
+    ], 'Выбери создание или редактирование изображения');
+}
 
 function buildTelegramImageModelMenu({ isOwner = false } = {}) {
     const rows = [
@@ -254,8 +319,7 @@ function buildTelegramPartyMenu({ isOwner = false, compact = false } = {}) {
         [TELEGRAM_MENU_BUTTONS.week, TELEGRAM_MENU_BUTTONS.twoWeeks],
         [TELEGRAM_MENU_BUTTONS.month, TELEGRAM_MENU_BUTTONS.allParties],
         [TELEGRAM_MENU_BUTTONS.secondaryParties],
-        [TELEGRAM_MENU_BUTTONS.qtickets],
-        [TELEGRAM_MENU_BUTTONS.allPartiesUnified],
+        [TELEGRAM_MENU_BUTTONS.allPartiesUnified, TELEGRAM_MENU_BUTTONS.qtickets],
         [partyDisplayToggleButton(compact), isOwner ? TELEGRAM_MENU_BUTTONS.addEvent : TELEGRAM_MENU_BUTTONS.proposeEvent],
     ];
 
@@ -294,8 +358,7 @@ const TELEGRAM_QTICKETS_MENU = buildTelegramQticketsMenu({ isOwner: false });
 
 function buildTelegramSecondaryPartyMenu({ compact = false } = {}) {
     return createTelegramReplyKeyboard([
-        [TELEGRAM_MENU_BUTTONS.secondaryWeek, TELEGRAM_MENU_BUTTONS.secondaryTwoWeeks],
-        [TELEGRAM_MENU_BUTTONS.secondaryMonth, TELEGRAM_MENU_BUTTONS.secondaryAllParties],
+        [TELEGRAM_MENU_BUTTONS.secondaryWeek, TELEGRAM_MENU_BUTTONS.secondaryMonth, TELEGRAM_MENU_BUTTONS.secondaryAllParties],
         [partyDisplayToggleButton(compact)],
         [TELEGRAM_MENU_BUTTONS.operationStatus, TELEGRAM_MENU_BUTTONS.cancelOperation],
         [TELEGRAM_MENU_BUTTONS.back, TELEGRAM_MENU_BUTTONS.mainMenu],
@@ -304,8 +367,9 @@ function buildTelegramSecondaryPartyMenu({ compact = false } = {}) {
 
 function buildTelegramAllPartiesMenu({ compact = false } = {}) {
     return createTelegramReplyKeyboard([
-        [TELEGRAM_MENU_BUTTONS.week, TELEGRAM_MENU_BUTTONS.twoWeeks],
-        [TELEGRAM_MENU_BUTTONS.month, TELEGRAM_MENU_BUTTONS.allParties],
+        [TELEGRAM_MENU_BUTTONS.allWeek, TELEGRAM_MENU_BUTTONS.allTwoWeeks],
+        [TELEGRAM_MENU_BUTTONS.allMonth, TELEGRAM_MENU_BUTTONS.allAll],
+        [TELEGRAM_MENU_BUTTONS.allPartiesUnified],
         [partyDisplayToggleButton(compact)],
         [TELEGRAM_MENU_BUTTONS.operationStatus, TELEGRAM_MENU_BUTTONS.cancelOperation],
         [TELEGRAM_MENU_BUTTONS.back, TELEGRAM_MENU_BUTTONS.mainMenu],
@@ -314,13 +378,16 @@ function buildTelegramAllPartiesMenu({ compact = false } = {}) {
 
 function buildTelegramPrivateMenuForState(state = {}, { isOwner = false, now = new Date() } = {}) {
     const compact = state.partyDisplayMode === 'compact';
+    if (state.menuPath === 'huinglish') return buildTelegramHuinglishMenu({isOwner});
+    if (state.menuPath === 'huinglish-lessons') return buildTelegramHuinglishLessonPickerMenu({lessonIds:state.huinglishLessonIds||[]});
     if (state.menuPath === 'qtickets') {
         return buildTelegramQticketsMenu({ isOwner, maxPrice: state.qticketsMaxPrice, compact });
     }
     if (state.menuPath === 'secondary-parties') return buildTelegramSecondaryPartyMenu({ compact });
     if (state.menuPath === 'all-parties') return buildTelegramAllPartiesMenu({ compact });
     if (state.menuPath === 'parties') return buildTelegramPartyMenu({ isOwner, compact });
-    if (state.menuPath === 'image-models') return buildTelegramImageModelMenu();
+    if (state.menuPath === 'image-section') return buildTelegramImageSectionMenu();
+    if (state.menuPath === 'image-models') return buildTelegramImageModelMenu({ isOwner });
     if (state.menuPath === 'image-modes') return buildTelegramImageOperationMenu(state.imageModel);
     if (state.menuPath === 'image-prompt') return TELEGRAM_ACTION_BACK_MENU;
     return buildTelegramMainMenu({ isOwner, now });
@@ -329,30 +396,75 @@ function buildTelegramPrivateMenuForState(state = {}, { isOwner = false, now = n
 function telegramPartySectionHint() {
     return [
         'Тусы: выбери период кнопкой или напиши команду.',
-        'Периоды: «тусы на эту неделю», «тусы на две недели вперёд», «тусы на месяц вперёд», «все тусы».',
+        'Основные тусы: «тусы сегодня», «тусы завтра», «тусы эта неделя» / «тусы на эту неделю» / «тусы на этой неделе»; также можно написать «тусы на две недели вперёд», «тусы на месяц вперёд» или «все тусы».',
         'Выходные можно запросить текстом: «тусы на этих выходных».',
-        'Примеры: «тусы сегодня», «тусы в пятницу», «тусы 22.09.2026» (22 сентября 2026), «тусы в октябре 2026», «тусы дизель на эти выходные».',
+        'Примеры: «тусы в пятницу», «тусы 22.09.2026» (22 сентября 2026), «тусы в октябре 2026», «тусы на ближайшие три дня в Дизеле». Если указать место — Дизель, Ливерпуль или Мама Анархия — покажу события только в этом месте.',
         'Для QTickets цена не ограничена, пока не задан фильтр: «qtickets тусы за ближайшие 3 дня не дороже 500 рублей» или «qtickets выходные до 600 рублей».',
-        'Добавь «кратко», чтобы убрать фото и сократить описание. Разделы: «Второстепенные тусы», «Вообще все тусы», «QTickets афиша».',
+        'Добавь «кратко», чтобы убрать фото и сократить описание. Разделы: «Второстепенные тусы», «Вообще все тусы» (основные + второстепенные + QTickets) и «QTickets афиша».',
     ].join('\n');
+}
+
+function telegramPartyHintFollowUp() {
+    return {
+        text: telegramPartySectionHint(),
+        replyMarkup: telegramPartyQuickButtons(),
+    };
+}
+
+function telegramPartyQuickButtons() {
+    return { inline_keyboard: [
+        [{ text: TELEGRAM_MENU_BUTTONS.primaryToday, callback_data: 'party_quick:primary:today' }],
+        [{ text: TELEGRAM_MENU_BUTTONS.secondaryToday, callback_data: 'party_quick:secondary:today' }],
+        [{ text: TELEGRAM_MENU_BUTTONS.allToday, callback_data: 'party_quick:all:today' }],
+        [{ text: TELEGRAM_MENU_BUTTONS.qticketsToday, callback_data: 'party_quick:qtickets:today' }],
+        [{ text: TELEGRAM_MENU_BUTTONS.primaryTomorrow, callback_data: 'party_quick:primary:tomorrow' }],
+        [{ text: TELEGRAM_MENU_BUTTONS.secondaryTomorrow, callback_data: 'party_quick:secondary:tomorrow' }],
+        [{ text: TELEGRAM_MENU_BUTTONS.allTomorrow, callback_data: 'party_quick:all:tomorrow' }],
+        [{ text: TELEGRAM_MENU_BUTTONS.primaryUntilWeekEnd, callback_data: 'party_quick:primary:until-week-end' }],
+        [{ text: TELEGRAM_MENU_BUTTONS.allUntilWeekEnd, callback_data: 'party_quick:all:until-week-end' }],
+    ] };
+}
+
+function telegramSecondaryPartyQuickButtons() {
+    return { inline_keyboard: [
+        [{ text: '☀️ Сегодня', callback_data: 'party_quick:secondary:today' }],
+        [{ text: '🌅 Завтра', callback_data: 'party_quick:secondary:tomorrow' }],
+        [{ text: '📅 На этой неделе', callback_data: 'party_quick:secondary:week' }],
+        [{ text: '🗓 На две недели вперёд', callback_data: 'party_quick:secondary:two-weeks' }],
+        [{ text: '📆 В этом месяце', callback_data: 'party_quick:secondary:current-month' }],
+        [{ text: '♾ Все', callback_data: 'party_quick:secondary:all' }],
+    ] };
+}
+
+function telegramQticketsQuickButtons() {
+    return { inline_keyboard: [
+        [{ text: '☀️ Сегодня', callback_data: 'party_quick:qtickets:today' }],
+        [{ text: '🌅 Завтра', callback_data: 'party_quick:qtickets:tomorrow' }],
+        [{ text: '📅 На этой неделе', callback_data: 'party_quick:qtickets:week' }],
+        [{ text: '🗓 На две недели вперёд', callback_data: 'party_quick:qtickets:two-weeks' }],
+        [{ text: '📆 В этом месяце', callback_data: 'party_quick:qtickets:current-month' }],
+        [{ text: '♾ Все', callback_data: 'party_quick:qtickets:all' }],
+    ] };
 }
 
 function telegramSecondaryPartySectionHint() {
     return [
         'Второстепенные тусы: выбери период кнопкой или напиши запрос.',
-        'Периоды: «второстепенные тусы на этой неделе», «на две недели вперёд», «на месяц вперёд», «все второстепенные тусы».',
+        'Периоды: «второстепенные тусы на этой неделе», «второстепенные тусы на две недели вперёд», «второстепенные тусы на месяц вперёд», «все второстепенные тусы». Также понимаются «эта неделя» и «на этой неделе».',
         'Выходные можно запросить текстом: «второстепенные тусы на этих выходных».',
-        'Можно задать дату или жанр: «второстепенные тусы 10.10», «второстепенные тусы на выходных рок».',
+        'Можно задать дату, диапазон, жанр или место: «второстепенные тусы 10.10», «второстепенные тусы 13-15.01», «второстепенные тусы с 13 по 15 января», «тусы второстепенные в ближайшие три дня», «второстепенные тусы на выходных рок», «второстепенные тусы в Дизеле». Указанное место ограничивает выдачу только событиями там.',
         'Добавь «кратко», чтобы убрать фото и сократить описание.',
+        'Подсказка по кнопкам: сегодня/завтра, эта неделя, выходные, 2 недели, месяц или все события.',
     ].join('\n');
 }
 
 function telegramAllPartiesSectionHint() {
     return [
-        'Вообще все тусы: обычные + второстепенные + QTickets; перед выдачей выполняется дедуп.',
-        'Периоды: «вообще все тусы на эту неделю», «на две недели вперёд», «на месяц вперёд», «вообще все тусы».',
+        'Вообще все тусы: основные + второстепенные + афиша QTickets; одинаковые события объединяются перед выдачей.',
+        'Команды можно начинать с «вообще все тусы» или «все тусы»: «вообще все тусы сегодня», «вообще все тусы завтра», «вообще все тусы эта неделя» / «вообще все тусы на этой неделе», «вообще все тусы на две недели вперёд», «вообще все тусы на месяц вперёд» или просто «вообще все тусы».',
         'Выходные можно запросить текстом: «вообще все тусы на этих выходных».',
-        'Примеры: «вообще все тусы 10.10», «вообще все тусы на выходных рок», «вообще все тусы на месяц вперёд кратко».',
+        'Примеры: «вообще все тусы в ближайшие три дня», «вообще все тусы 10.10», «вообще все тусы 13.01-15.01», «вообще все тусы с 13 по 15 января», «вообще все тусы на выходных рок», «вообще все тусы на месяц вперёд кратко», «вообще все тусы в Ливерпуле». Если указать Дизель, Ливерпуль или Мама Анархия, покажу только выбранное место.',
+        '«Эта неделя» и «на этой неделе» означают один и тот же период.',
     ].join('\n');
 }
 
@@ -442,6 +554,18 @@ function buildTelegramEventOwnerActions({ sourceType = '', id = 0 } = {}) {
     };
 }
 
+function telegramAllPartiesQuickButtons() {
+    return { inline_keyboard: [
+        [{ text: '🌐 Сегодня', callback_data: 'party_quick:all:today' }],
+        [{ text: '🌐 Завтра', callback_data: 'party_quick:all:tomorrow' }],
+        [{ text: '🌐 На этой неделе', callback_data: 'party_quick:all:week' }],
+        [{ text: '🌐 На две недели вперёд', callback_data: 'party_quick:all:two-weeks' }],
+        [{ text: '🌐 В этом месяце', callback_data: 'party_quick:all:current-month' }],
+        [{ text: '🌐 На месяц вперёд', callback_data: 'party_quick:all:month' }],
+        [{ text: '🌐 Все', callback_data: 'party_quick:all:all' }],
+    ] };
+}
+
 function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, now = new Date(), hasImageAttachment = false, hasDocumentAttachment = false, botUsername = '', hasProposalDraft = false } = {}) {
     const text = String(value ?? '').trim();
     const state = {
@@ -461,7 +585,7 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
     const qticketsMenu = buildTelegramQticketsMenu({ isOwner, maxPrice: state.qticketsMaxPrice, compact });
 
     if (/^(?:сбросить\s+состояние|отменить\s+отправку)$/iu.test(text)) return { type: 'command', text, state: clearState };
-    if (hasProposalDraft && (text === TELEGRAM_MENU_BUTTONS.proposeEvent || text === TELEGRAM_MENU_BUTTONS.back || /^(?:назад|back)$/iu.test(text))) return { type: 'command', text: text === TELEGRAM_MENU_BUTTONS.proposeEvent ? 'предложить тусу' : 'назад', state: clearState };
+    if (hasProposalDraft && !['huinglish','huinglish-lessons'].includes(state.menuPath) && (text === TELEGRAM_MENU_BUTTONS.proposeEvent || text === TELEGRAM_MENU_BUTTONS.back || /^(?:назад|back)$/iu.test(text))) return { type: 'command', text: text === TELEGRAM_MENU_BUTTONS.proposeEvent ? 'предложить тусу' : 'назад', state: clearState };
     // Любой незавершённый Telegram-режим обязан иметь явный выход.
     // Это проверяется раньше image/document/proposal state, чтобы «отмена»
     // никогда не превращалась в содержимое картинки, документа или заявки.
@@ -536,6 +660,7 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
     }
 
     if (/^(?:\/(?:start|menu|home)(?:@[a-z0-9_]+)?|главная|главное\s+меню|домой)$/iu.test(text) || text === TELEGRAM_MENU_BUTTONS.home || text === TELEGRAM_MENU_BUTTONS.mainMenu) {
+        if(['huinglish','huinglish-lessons'].includes(state.menuPath))return {type:'command',text:'хуинглиш выход',state:clearState};
         return {
             type: 'response',
             text: 'Главное меню.',
@@ -580,9 +705,19 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
     if (text === TELEGRAM_MENU_BUTTONS.qtickets) {
         return {
             type: 'response',
-            text: telegramQticketsSectionHint(),
+            text: 'Раздел «QTickets афиша» открыт.',
             replyMarkup: buildTelegramQticketsMenu({ isOwner, compact }),
+            followUp: { text: telegramQticketsSectionHint(), replyMarkup: telegramQticketsQuickButtons() },
             state: { ...partyClearState, menuPath: 'qtickets', qticketsMaxPrice: '' },
+        };
+    }
+
+    if (text === TELEGRAM_MENU_BUTTONS.imageMenu) {
+        return {
+            type: 'response',
+            text: 'Изображения: выбери модель для создания или редактирования.',
+            replyMarkup: buildTelegramImageSectionMenu(),
+            state: { ...clearState, menuPath: 'image-section' },
         };
     }
 
@@ -614,11 +749,12 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
     const imageModelByButton = new Map(TELEGRAM_IMAGE_MODELS.map((item) => [item.button, item]));
     if (imageModelByButton.has(text)) {
         const selectedImageModel = imageModelByButton.get(text);
+        const editingSelected = state.pendingAction === 'image_edit' || state.imageEditMode === true;
         return {
             type: 'response',
-            text: `${selectedImageModel.id}: ${selectedImageModel.description}\nОтправь описание для генерации. Режим включён по умолчанию. Если приложишь изображение, текст будет инструкцией редактирования; без вложения начни с «измени изображение».`,
+            text: (editingSelected ? 'Редактирование: прикрепи картинку и укажи, что исправить.\n' : '') + `${selectedImageModel.id}: ${selectedImageModel.description}\nОтправь описание для генерации. Режим включён по умолчанию. Если приложишь изображение, текст будет инструкцией редактирования; без вложения начни с «измени изображение».`,
             replyMarkup: TELEGRAM_ACTION_BACK_MENU,
-            state: { pendingAction: 'image', pendingModel: '', imageModel: selectedImageModel.id, imageEditMode: false, menuPath: 'image-prompt' },
+            state: { pendingAction: editingSelected ? 'image_edit' : 'image', pendingModel: '', imageModel: selectedImageModel.id, imageEditMode: editingSelected, menuPath: 'image-prompt' },
         };
     }
 
@@ -681,8 +817,19 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
     if (text === TELEGRAM_MENU_BUTTONS.parties) {
         return {
             type: 'response',
-            text: telegramPartySectionHint(),
-            replyMarkup: partyMenu,
+            text: 'Раздел «Тусы» открыт.',
+            replyMarkup: buildTelegramPartyMenu({ isOwner, compact }),
+            followUp: telegramPartyHintFollowUp(),
+            state: { ...partyClearState, menuPath: 'parties' },
+        };
+    }
+
+    if (/^тусы$/iu.test(text)) {
+        return {
+            type: 'response',
+            text: 'Раздел «Тусы» открыт.',
+            replyMarkup: buildTelegramPartyMenu({ isOwner, compact }),
+            followUp: telegramPartyHintFollowUp(),
             state: { ...partyClearState, menuPath: 'parties' },
         };
     }
@@ -690,8 +837,9 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
     if (text === TELEGRAM_MENU_BUTTONS.secondaryParties) {
         return {
             type: 'response',
-            text: telegramSecondaryPartySectionHint(),
+            text: 'Раздел «Второстепенные тусы» открыт.',
             replyMarkup: buildTelegramSecondaryPartyMenu({ compact }),
+            followUp: { text: telegramSecondaryPartySectionHint(), replyMarkup: telegramSecondaryPartyQuickButtons() },
             state: { ...partyClearState, menuPath: 'secondary-parties' },
         };
     }
@@ -699,8 +847,9 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
     if (text === TELEGRAM_MENU_BUTTONS.allPartiesUnified) {
         return {
             type: 'response',
-            text: telegramAllPartiesSectionHint(),
+            text: 'Раздел «Вообще все тусы» открыт.',
             replyMarkup: buildTelegramAllPartiesMenu({ compact }),
+            followUp: { text: telegramAllPartiesSectionHint(), replyMarkup: telegramAllPartiesQuickButtons() },
             state: { ...partyClearState, menuPath: 'all-parties' },
         };
     }
@@ -763,6 +912,14 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
         };
     }
 
+    if(state.menuPath==='huinglish-lessons'&&/^\d{1,3}$/u.test(text))
+        return {type:'command',text:'хуинглиш урок '+Number(text),state:{...clearState,menuPath:'huinglish'}};
+    if(text==='📖 Хуинглиш · далее')return {type:'command',text:'хуинглиш далее',state:{...clearState,menuPath:'huinglish'}};
+    if(text==='📚 Хуинглиш · уроки')return {type:'command',text:'хуинглиш список',state:{...clearState,menuPath:'huinglish-lessons'}};
+    if(/^хуинглиш список$/iu.test(text))return {type:'command',text:'хуинглиш список',state:{...clearState,menuPath:'huinglish-lessons'}};
+    if(/^хуинглиш меню$/iu.test(text))return {type:'command',text:'хуинглиш меню',state:{...clearState,menuPath:'huinglish'}};
+    if (text === TELEGRAM_MENU_BUTTONS.huinglishReset && isOwner) return {type:'command',text:'хуинглиш сбросить',state:clearState};
+    if (text === TELEGRAM_MENU_BUTTONS.huinglish) return { type:'command', text:'хуинглиш меню', state:{...clearState,menuPath:'huinglish'} };
     if (text === TELEGRAM_MENU_BUTTONS.documents) {
         return {
             type: 'response',
@@ -877,13 +1034,18 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
     }
 
     if (text === TELEGRAM_MENU_BUTTONS.back || /^(?:назад|back)$/iu.test(text)) {
+        if(state.menuPath==='huinglish-lessons')return {type:'command',text:'хуинглиш раздел',state:{...clearState,menuPath:'huinglish'}};
+        if(state.menuPath==='huinglish')return {type:'command',text:'хуинглиш выход',state:clearState};
         if (state.menuPath === 'image-prompt') {
-            return { type: 'response', text: 'Главное меню.', replyMarkup: mainMenu, state: clearState };
+            return { type: 'response', text: 'Выбери image-модель.', replyMarkup: buildTelegramImageModelMenu({ isOwner }), state: { ...clearState, menuPath: 'image-models' } };
         }
         if (state.menuPath === 'image-modes') {
             return { type: 'response', text: 'Выбери image-модель.', replyMarkup: buildTelegramImageModelMenu(), state: { ...clearState, menuPath: 'image-models' } };
         }
         if (state.menuPath === 'image-models') {
+            return { type: 'response', text: 'Изображения.', replyMarkup: buildTelegramImageSectionMenu(), state: { ...clearState, menuPath: 'image-section' } };
+        }
+        if (state.menuPath === 'image-section') {
             return { type: 'response', text: 'Главное меню.', replyMarkup: mainMenu, state: clearState };
         }
         if (state.menuPath === 'qtickets' && state.pendingAction === 'qtickets_price_filter') {
@@ -935,16 +1097,38 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
     }
 
     const partyCommands = new Map([
+        [TELEGRAM_MENU_BUTTONS.primaryToday, 'тусы сегодня'],
+        [TELEGRAM_MENU_BUTTONS.primaryTomorrow, 'тусы завтра'],
+        [TELEGRAM_MENU_BUTTONS.allToday, 'вообще все тусы сегодня'],
+        [TELEGRAM_MENU_BUTTONS.allTomorrow, 'вообще все тусы завтра'],
         [TELEGRAM_MENU_BUTTONS.week, 'тусы на этой неделе'],
         [TELEGRAM_MENU_BUTTONS.twoWeeks, 'тусы на две недели'],
         [TELEGRAM_MENU_BUTTONS.month, 'тусы на месяц вперёд'],
         [TELEGRAM_MENU_BUTTONS.allParties, 'все тусы'],
     ]);
 
+    const allPartyCommands = new Map([
+        [TELEGRAM_MENU_BUTTONS.allWeek, 'вообще все тусы на этой неделе'],
+        [TELEGRAM_MENU_BUTTONS.allTwoWeeks, 'вообще все тусы на две недели'],
+        [TELEGRAM_MENU_BUTTONS.allMonth, 'вообще все тусы на месяц вперёд'],
+        [TELEGRAM_MENU_BUTTONS.allAll, 'вообще все тусы'],
+    ]);
+
+    if (allPartyCommands.has(text)) {
+        const commandText = allPartyCommands.get(text);
+        return {
+            type: 'command',
+            text: compact ? commandText + ' кратко' : commandText,
+            state: { ...partyClearState, menuPath: 'all-parties' },
+        };
+    }
+
     if (partyCommands.has(text)) {
         const baseCommand = partyCommands.get(text);
         const commandText = state.menuPath === 'all-parties'
-            ? `вообще все ${baseCommand.replace(/^тусы\s*/iu, 'тусы ').replace(/^все\s+тусы$/iu, 'тусы')}`.replace(/\s+/gu, ' ').trim()
+            ? /^(?:вообще\s+все|все\s+вообще)\s+тусы/iu.test(baseCommand)
+                ? baseCommand
+                : `вообще все ${baseCommand.replace(/^тусы\s*/iu, 'тусы ').replace(/^все\s+тусы$/iu, 'тусы')}`.replace(/\s+/gu, ' ').trim()
             : baseCommand;
         return {
             type: 'command',
@@ -986,8 +1170,9 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
     }
 
     const secondaryPartyCommands = new Map([
+        [TELEGRAM_MENU_BUTTONS.secondaryToday, 'второстепенные / быдлячьи тусы сегодня'],
+        [TELEGRAM_MENU_BUTTONS.secondaryTomorrow, 'второстепенные / быдлячьи тусы завтра'],
         [TELEGRAM_MENU_BUTTONS.secondaryWeek, 'второстепенные / быдлячьи тусы на этой неделе'],
-        [TELEGRAM_MENU_BUTTONS.secondaryTwoWeeks, 'второстепенные / быдлячьи тусы на две недели'],
         [TELEGRAM_MENU_BUTTONS.secondaryMonth, 'второстепенные / быдлячьи тусы на месяц вперёд'],
         [TELEGRAM_MENU_BUTTONS.secondaryAllParties, 'второстепенные / быдлячьи тусы'],
     ]);
@@ -1050,7 +1235,7 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
 
     if (
         state.menuPath === 'qtickets' &&
-        /(?:тус|событ|афиш|выходн|ближайш|следующ|дн(?:я|ей)?|недел|месяц|сегодня|завтра|цен|стоим|не\s+дороже|до\s+\d)/iu.test(text)
+        (/(?:тус|событ|афиш|выходн|ближайш|следующ|дн(?:я|ей)?|недел|месяц|сегодня|завтра|цен|стоим|не\s+дороже|до\s+\d|\d{1,2}\s*(?:[.\/-]|[-–—]|по)\s*\d{1,2}|\d{1,2}[.\/-]\d{1,2}|\bс\s+\d{1,2})/iu.test(text) || TELEGRAM_NAMED_EVENT_DATE_INPUT.test(text) || /^\d{1,2}$/u.test(text))
     ) {
         const explicitPrice = parseQticketsPriceLimit(text);
         const suffix = explicitPrice === null && state.qticketsMaxPrice
@@ -1076,7 +1261,7 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
 
     if (
         state.menuPath === 'parties' &&
-        /(?:тус|выходн|ближайш|следующ|дн(?:я|ей)?|недел|месяц|сегодня|завтра|понедель|вторник|сред|четверг|пятниц|суббот|воскрес)/iu.test(text)
+        (/(?:тус|выходн|ближайш|следующ|дн(?:я|ей)?|недел|месяц|сегодня|завтра|понедель|вторник|сред|четверг|пятниц|суббот|воскрес|\d{1,2}\s*(?:[.\/-]|[-–—]|по)\s*\d{1,2}|\d{1,2}[.\/-]\d{1,2}|\bс\s+\d{1,2})/iu.test(text) || TELEGRAM_NAMED_EVENT_DATE_INPUT.test(text) || /^\d{1,2}$/u.test(text))
     ) {
         const baseText = /^(?:тусы|тусовки|события)\b/iu.test(text) ? text : `тусы ${text}`;
         return {
@@ -1088,7 +1273,7 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
 
     if (
         state.menuPath === 'all-parties' &&
-        /(?:тус|выходн|ближайш|следующ|дн(?:я|ей)?|недел|месяц|сегодня|завтра|понедель|вторник|сред|четверг|пятниц|суббот|воскрес)/iu.test(text)
+        (/(?:тус|выходн|ближайш|следующ|дн(?:я|ей)?|недел|месяц|сегодня|завтра|понедель|вторник|сред|четверг|пятниц|суббот|воскрес|\d{1,2}\s*(?:[.\/-]|[-–—]|по)\s*\d{1,2}|\d{1,2}[.\/-]\d{1,2}|\bс\s+\d{1,2})/iu.test(text) || TELEGRAM_NAMED_EVENT_DATE_INPUT.test(text) || /^\d{1,2}$/u.test(text))
     ) {
         const baseText = /^(?:вообще\s+все|все\s+вообще|общие)\s+тус/iu.test(text)
             ? text
@@ -1102,7 +1287,7 @@ function resolveTelegramMenuInput(value, currentState = {}, { isOwner = false, n
 
     if (
         state.menuPath === 'secondary-parties' &&
-        /(?:тус|выходн|ближайш|следующ|дн(?:я|ей)?|недел|месяц|сегодня|завтра|понедель|вторник|сред|четверг|пятниц|суббот|воскрес)/iu.test(text)
+        (/(?:тус|выходн|ближайш|следующ|дн(?:я|ей)?|недел|месяц|сегодня|завтра|понедель|вторник|сред|четверг|пятниц|суббот|воскрес|\d{1,2}\s*(?:[.\/-]|[-–—]|по)\s*\d{1,2}|\d{1,2}[.\/-]\d{1,2}|\bс\s+\d{1,2})/iu.test(text) || TELEGRAM_NAMED_EVENT_DATE_INPUT.test(text) || /^\d{1,2}$/u.test(text))
     ) {
         const baseText = /(?:второстепенн|быдляч)/iu.test(text)
             ? text
@@ -1220,6 +1405,22 @@ function fitTelegramCaption(value, limit = TELEGRAM_CAPTION_LIMIT) {
     if (cut < Math.floor(target * 0.6)) cut = source.lastIndexOf(' ', target);
     if (cut < Math.floor(target * 0.6)) cut = target;
     return `${source.slice(0, cut).trimEnd()}${suffix}`.slice(0, limit);
+}
+
+function clampTelegramEntities(entities, textLength) {
+    const max = Math.max(0, Number(textLength) || 0);
+    return (Array.isArray(entities) ? entities : []).filter((entity) => {
+        const offset = Number(entity?.offset);
+        const length = Number(entity?.length);
+        return Number.isInteger(offset) && Number.isInteger(length) && offset >= 0 && length > 0 && offset + length <= max &&
+            String(entity?.type || '') === 'text_link' && /^https?:\/\//iu.test(String(entity?.url || ''));
+    }).map((entity) => ({ type: 'text_link', offset: Number(entity.offset), length: Number(entity.length), url: String(entity.url) }));
+}
+
+function sliceTelegramEntities(entities, offset, length) {
+    return (Array.isArray(entities) ? entities : []).filter((entity) =>
+        Number(entity?.offset) >= offset && Number(entity?.offset) + Number(entity?.length) <= offset + length)
+        .map((entity) => ({ ...entity, offset: Number(entity.offset) - offset }));
 }
 
 function splitTelegramText(value, limit = TELEGRAM_TEXT_LIMIT) {
@@ -1524,7 +1725,7 @@ class TelegramBotApi {
                 offset,
                 limit: 100,
                 timeout,
-                allowed_updates: ['message', 'callback_query'],
+                allowed_updates: ['message', 'callback_query', 'message_reaction', 'message_reaction_count'],
             },
             {
                 signal: AbortSignal.timeout((timeout + 15) * 1000),
@@ -1545,7 +1746,7 @@ class TelegramBotApi {
             ...(text ? { text: String(text).slice(0, 200) } : {}),
             ...(showAlert ? { show_alert: true } : {}),
             ...(url ? { url } : {}),
-        });
+        }, { timeoutMs: 3000 });
     }
 
     async downloadFile(fileId, { timeoutMs = 120_000 } = {}) {
@@ -1588,6 +1789,8 @@ class TelegramBotApi {
     sendMessage({
         chatId,
         text,
+        entities = null,
+        parseMode = null,
         messageThreadId = null,
         replyMarkup = null,
         replyToMessageId = null,
@@ -1597,6 +1800,8 @@ class TelegramBotApi {
         return this.call('sendMessage', {
             chat_id: chatId,
             text,
+            ...(Array.isArray(entities) && entities.length ? { entities } : {}),
+            ...(parseMode ? { parse_mode: parseMode } : {}),
             ...(messageThreadId
                 ? { message_thread_id: messageThreadId }
                 : {}),
@@ -1654,10 +1859,30 @@ class TelegramBotApi {
         });
     }
 
+    async sendVideo({chatId, video, caption = '', captionEntities = null, captionParseMode = null,
+        messageThreadId = null, replyMarkup = null, replyToMessageId = null}) {
+        const size = Number(video?.fileSize || video?.buffer?.length || (video?.filePath ? statSync(video.filePath).size : 0));
+        if (!size || size > 50 * 1024 * 1024) throw new Error('Video exceeds Telegram upload limit or is empty');
+        const form = new FormData();
+        form.set('chat_id', String(chatId));
+        if (caption) form.set('caption', caption);
+        if (captionEntities?.length) form.set('caption_entities', JSON.stringify(captionEntities));
+        if (captionParseMode) form.set('parse_mode', captionParseMode);
+        if (messageThreadId) form.set('message_thread_id', String(messageThreadId));
+        if (replyMarkup) form.set('reply_markup', JSON.stringify(replyMarkup));
+        const reply = buildTelegramReplyParameters(replyToMessageId);
+        if (reply) form.set('reply_parameters', JSON.stringify(reply));
+        const blob = video.filePath ? await openAsBlob(video.filePath, {type:'video/mp4'}) : new Blob([video.buffer], {type:'video/mp4'});
+        form.set('video', blob, video.filename || 'event.mp4');
+        return this.call('sendVideo', form, {multipart:true, timeoutMs:TELEGRAM_DOCUMENT_SEND_TIMEOUT_MS});
+    }
+
     async sendPhoto({
         chatId,
         photo,
         caption = '',
+        captionEntities = null,
+        captionParseMode = null,
         messageThreadId = null,
         replyMarkup = null,
         replyToMessageId = null,
@@ -1673,6 +1898,8 @@ class TelegramBotApi {
         if (caption) {
             form.set('caption', caption);
         }
+        if (Array.isArray(captionEntities) && captionEntities.length) form.set('caption_entities', JSON.stringify(captionEntities));
+        if (captionParseMode) form.set('parse_mode', captionParseMode);
 
         if (replyMarkup) {
             form.set('reply_markup', JSON.stringify(replyMarkup));
@@ -1699,6 +1926,8 @@ class TelegramBotApi {
         chatId,
         photos,
         caption = '',
+        captionEntities = null,
+        captionParseMode = null,
         messageThreadId = null,
         replyToMessageId = null,
     }) {
@@ -1725,7 +1954,9 @@ class TelegramBotApi {
             return {
                 type: 'photo',
                 media: `attach://${field}`,
-                ...(index === 0 && caption ? { caption: fitTelegramCaption(caption) } : {}),
+                ...(index === 0 && caption ? { caption: captionParseMode === 'HTML' ? caption : fitTelegramCaption(caption) } : {}),
+                ...(index === 0 && captionEntities?.length && captionParseMode !== 'HTML' ? { caption_entities: clampTelegramEntities(captionEntities, fitTelegramCaption(caption).length) } : {}),
+                ...(index === 0 && captionParseMode ? { parse_mode: captionParseMode } : {}),
             };
         });
         form.set('media', JSON.stringify(media));
@@ -1736,6 +1967,8 @@ class TelegramBotApi {
         chatId,
         document,
         caption = '',
+        captionEntities = null,
+        captionParseMode = null,
         messageThreadId = null,
         replyMarkup = null,
         replyToMessageId = null,
@@ -1748,6 +1981,8 @@ class TelegramBotApi {
 
             if (messageThreadId) form.set('message_thread_id', String(messageThreadId));
             if (caption) form.set('caption', caption);
+            if (Array.isArray(captionEntities) && captionEntities.length) form.set('caption_entities', JSON.stringify(clampTelegramEntities(captionEntities, caption.length)));
+            if (captionParseMode) form.set('parse_mode', captionParseMode);
             if (replyMarkup) form.set('reply_markup', JSON.stringify(replyMarkup));
             if (replyParameters) form.set('reply_parameters', JSON.stringify(replyParameters));
 
@@ -1820,11 +2055,12 @@ function createTelegramContext({
     const isOwner = Boolean(
         ownerUserId && externalSenderId === String(ownerUserId),
     );
-    const privateReplyMenu = buildTelegramPrivateMenuForState(menuState, {
-        isOwner,
-        now: new Date(),
-    });
-    const peerId = resolvePeerId({
+    const markerMode=privateMode?currentMilanaMarkerMode(externalChatId,externalSenderId):null;
+    const privateReplyMenu = withTelegramMarkerMenu(
+        buildTelegramPrivateMenuForState(menuState,{isOwner,now:new Date()}),
+        {mode:markerMode,isOwner,now:new Date()},
+    );
+        const peerId = resolvePeerId({
         chatId: externalChatId,
         chatType,
     });
@@ -1842,6 +2078,11 @@ function createTelegramContext({
     let durableIntakeResolve = null;
     const durableIntakePromise = new Promise((resolveDurable) => {
         durableIntakeResolve = resolveDurable;
+    });
+    let messagePersistenceResolved = false;
+    let messagePersistenceResolve = null;
+    const messagePersistencePromise = new Promise((resolvePersistence) => {
+        messagePersistenceResolve = resolvePersistence;
     });
 
     const context = {
@@ -1912,8 +2153,13 @@ function createTelegramContext({
             const messageText = String(
                 objectPayload.message ?? objectPayload.text ?? '',
             ).trim();
+            const messageEntities = Array.isArray(objectPayload.entities) ? objectPayload.entities : [];
+            const messageHtml = typeof objectPayload.html === 'string' ? objectPayload.html : '';
+            const captionHtml = typeof objectPayload.htmlCaption === 'string' ? objectPayload.htmlCaption : messageHtml;
             const attachment = objectPayload.attachment;
             const photo = readTelegramPhotoAttachment(attachment);
+            const video = attachment?.platform === 'telegram' && attachment?.type === 'video'
+                ? readTelegramDocumentAttachment({...attachment, type:'document'}) : null;
             const document = readTelegramDocumentAttachment(attachment);
             const mediaGroupPhotos = Boolean(objectPayload.mediaGroup)
                 ? (Array.isArray(objectPayload.attachments) ? objectPayload.attachments : [])
@@ -1934,8 +2180,23 @@ function createTelegramContext({
                 ? explicitReplyMessageId
                 : incomingMessageId;
             let lastSent = null;
+            // When Telegram cannot fit the full card into a photo caption, the
+            // text is sent as a normal message.  Keep the media message id so
+            // that the text is visibly attached to the photo instead of
+            // appearing as an unrelated second card.
+            let mediaAnchorMessageId = null;
+            const captionHtmlFits = Boolean(captionHtml && (captionHtml === messageHtml ? messageText.length : String(captionHtml).replace(/<[^>]*>/gu, '').replace(/&(?:amp|lt|gt|quot|apos|#\d+|#x[\da-f]+);/giu, 'x').length) <= TELEGRAM_CAPTION_LIMIT);
 
             if (mediaGroupPhotos.length >= 2) {
+                const fullCardAfterAlbum = Boolean(messageHtml && messageText.length > TELEGRAM_CAPTION_LIMIT);
+                const albumUsesHtml = captionHtmlFits && (
+                    messageText.length <= TELEGRAM_CAPTION_LIMIT || captionHtml !== messageHtml
+                );
+                const albumCaption = albumUsesHtml
+                    ? captionHtml
+                    : messageText.length <= TELEGRAM_CAPTION_LIMIT
+                        ? messageText
+                        : fitTelegramCaption(messageText);
                 try {
                     await api.sendChatAction({
                         chatId: externalChatId,
@@ -1946,14 +2207,29 @@ function createTelegramContext({
                 lastSent = await api.sendMediaGroup({
                     chatId: externalChatId,
                     photos: mediaGroupPhotos,
-                    caption: fitTelegramCaption(messageText),
+                    caption: albumCaption,
+                    captionEntities: albumUsesHtml
+                        ? []
+                        : clampTelegramEntities(messageEntities, albumCaption.length),
+                    ...(albumUsesHtml
+                        ? { captionParseMode: 'HTML' }
+                        : {}),
                     messageThreadId: threadId,
                     replyToMessageId: replyMessageId,
                 });
+                mediaAnchorMessageId = Number(
+                    (Array.isArray(lastSent) ? lastSent[0] : lastSent)?.message_id ?? 0,
+                ) || null;
                 // Telegram does not accept reply_markup in sendMediaGroup.
                 // Keep the album intact and send a tiny action row immediately
                 // after it when the caller supplied owner controls.
-                if (hasExplicitInlineMarkup) {
+                if (fullCardAfterAlbum) {
+                    lastSent = await api.sendMessage({
+                        chatId: externalChatId, text: messageHtml, parseMode: 'HTML',
+                        messageThreadId: threadId, replyMarkup,
+                        replyToMessageId: mediaAnchorMessageId || replyMessageId,
+                    });
+                } else if (hasExplicitInlineMarkup) {
                     lastSent = await api.sendMessage({
                         chatId: externalChatId,
                         text: '⚙️ Действия карточки',
@@ -1962,57 +2238,91 @@ function createTelegramContext({
                         replyToMessageId: replyMessageId,
                     });
                 }
-                // One event = one Telegram media album. Telegram allows a
-                // caption only on an album item and caps it at 1024 chars; do
-                // not emit the tail as a separate text message because that
-                // breaks the event card into multiple messages.
-            } else if (photo) {
+                // Long event cards are sent intact after the album: captions
+                // have a smaller limit than normal Telegram messages.
+            } else if (photo || video) {
                 try {
                     await api.sendChatAction({
                         chatId: externalChatId,
-                        action: 'upload_photo',
+                        action: video ? 'upload_video' : 'upload_photo',
                         messageThreadId: threadId,
                     });
                 } catch {
                     // Статус набора не обязателен для основной отправки.
                 }
 
+                // Large cards fit a text message, but not a photo caption.
                 const singleMediaMessage = Boolean(objectPayload.singleMediaMessage);
                 const caption = singleMediaMessage
                     ? fitTelegramCaption(messageText)
                     : messageText.length <= TELEGRAM_CAPTION_LIMIT
                         ? messageText
-                        : '';
+                        : fitTelegramCaption(messageText);
+                const captionEntities = caption ? clampTelegramEntities(messageEntities, caption.length) : [];
+                const useHtmlCaption = captionHtmlFits && (
+                    messageText.length <= TELEGRAM_CAPTION_LIMIT || captionHtml !== messageHtml
+                );
+                const outgoingCaption = caption ? (useHtmlCaption ? captionHtml : caption) : '';
 
-                if (photo.buffer.length <= TELEGRAM_PHOTO_LIMIT_BYTES) {
+                if (video) {
+                    lastSent = await api.sendVideo({
+                        chatId: externalChatId, video, caption: outgoingCaption,
+                        captionEntities: useHtmlCaption ? [] : captionEntities,
+                        ...(useHtmlCaption ? {captionParseMode:'HTML'} : {}),
+                        messageThreadId: threadId, replyMarkup, replyToMessageId: replyMessageId,
+                    });
+                } else if (photo.buffer.length <= TELEGRAM_PHOTO_LIMIT_BYTES) {
                     lastSent = await api.sendPhoto({
                         chatId: externalChatId,
                         photo,
-                        caption,
+                        caption: outgoingCaption,
+                        captionEntities: useHtmlCaption ? [] : captionEntities,
+                        ...(useHtmlCaption ? { captionParseMode: 'HTML' } : {}),
                         messageThreadId: threadId,
-                        replyMarkup,
+                        replyMarkup: replyMarkup,
                         replyToMessageId: replyMessageId,
                     });
                 } else {
                     lastSent = await api.sendDocument({
                         chatId: externalChatId,
                         document: photo,
-                        caption,
+                        caption: outgoingCaption,
+                        captionEntities: useHtmlCaption ? [] : captionEntities,
+                        ...(useHtmlCaption ? { captionParseMode: 'HTML' } : {}),
                         messageThreadId: threadId,
                         replyMarkup,
                         replyToMessageId: replyMessageId,
                     });
                 }
+                mediaAnchorMessageId = Number(lastSent?.message_id ?? 0) || null;
 
-                if (messageText && !caption && !singleMediaMessage) {
+                // A photo caption is limited to 1024 characters, while the
+                // event card itself may use the full text-message limit.  An
+                // event card carries the complete HTML in messageHtml, so it
+                // must be emitted as a follow-up reply to the photo even when
+                // singleMediaMessage was requested.  Image-only sends have no
+                // HTML body and therefore stay a single media message.
+                if (messageText && messageText.length > TELEGRAM_CAPTION_LIMIT && messageHtml) {
+                    if (messageHtml && messageText.length <= TELEGRAM_TEXT_LIMIT) {
+                        lastSent = await api.sendMessage({
+                            chatId: externalChatId, text: messageHtml, parseMode: 'HTML',
+                            messageThreadId: threadId, replyMarkup,
+                            replyToMessageId: mediaAnchorMessageId || replyMessageId,
+                        });
+                        return { conversationMessageId: Number(lastSent?.message_id ?? 0) || null, telegramMessage: lastSent };
+                    }
+                    let offset = 0;
                     for (const chunk of splitTelegramText(messageText)) {
+                        const entities = sliceTelegramEntities(messageEntities, offset, chunk.length);
                         lastSent = await api.sendMessage({
                             chatId: externalChatId,
                             text: chunk,
+                            ...(entities.length ? { entities } : {}),
                             messageThreadId: threadId,
                             replyMarkup,
-                            replyToMessageId: replyMessageId,
+                            replyToMessageId: mediaAnchorMessageId || replyMessageId,
                         });
+                        offset += chunk.length;
                     }
                 }
             } else if (document) {
@@ -2026,20 +2336,33 @@ function createTelegramContext({
                 lastSent = await api.sendDocument({
                     chatId: externalChatId,
                     document,
-                    caption: messageText.length <= TELEGRAM_CAPTION_LIMIT ? messageText : '',
+                    caption: messageText.length <= TELEGRAM_CAPTION_LIMIT ? (captionHtml || messageText) : '',
+                    captionEntities: messageText.length <= TELEGRAM_CAPTION_LIMIT ? clampTelegramEntities(messageEntities, messageText.length) : [],
+                    ...(captionHtml && messageText.length <= TELEGRAM_CAPTION_LIMIT ? { captionParseMode: 'HTML', captionEntities: [] } : {}),
                     messageThreadId: threadId,
                     replyMarkup,
                     replyToMessageId: replyMessageId,
                 });
                 if (messageText.length > TELEGRAM_CAPTION_LIMIT) {
+                    if (messageHtml && messageText.length <= TELEGRAM_TEXT_LIMIT) {
+                        lastSent = await api.sendMessage({
+                            chatId: externalChatId, text: messageHtml, parseMode: 'HTML',
+                            messageThreadId: threadId, replyMarkup, replyToMessageId: replyMessageId,
+                        });
+                        return { conversationMessageId: Number(lastSent?.message_id ?? 0) || null, telegramMessage: lastSent };
+                    }
+                    let offset = 0;
                     for (const chunk of splitTelegramText(messageText)) {
+                        const entities = sliceTelegramEntities(messageEntities, offset, chunk.length);
                         lastSent = await api.sendMessage({
                             chatId: externalChatId,
                             text: chunk,
+                            ...(entities.length ? { entities } : {}),
                             messageThreadId: threadId,
                             replyMarkup,
                             replyToMessageId: replyMessageId,
                         });
+                        offset += chunk.length;
                     }
                 }
             } else if (messageText) {
@@ -2053,8 +2376,17 @@ function createTelegramContext({
                     // Статус набора не обязателен для основной отправки.
                 }
 
+                if (messageHtml && messageText.length <= TELEGRAM_TEXT_LIMIT) {
+                    lastSent = await api.sendMessage({
+                        chatId: externalChatId, text: messageHtml, parseMode: 'HTML',
+                        messageThreadId: threadId, replyMarkup, replyToMessageId: replyMessageId,
+                    });
+                    return { conversationMessageId: Number(lastSent?.message_id ?? 0) || null, telegramMessage: lastSent };
+                }
+
                 const delivery = await sendTelegramLongReply({
                     api, chatId: externalChatId, text: messageText,
+                    entities: messageEntities,
                     messageThreadId: threadId, replyMarkup, replyToMessageId: replyMessageId,
                     log(event, info) {
                         // Content-free transport logs; AI text and access tokens never logged.
@@ -2090,6 +2422,20 @@ function createTelegramContext({
         },
         enumerable: false,
     });
+    Object.defineProperty(context, 'markMessagePersistence', {
+        value(details = {}) {
+            if (messagePersistenceResolved) return;
+            messagePersistenceResolved = true;
+            messagePersistenceResolve?.(details);
+        },
+        enumerable: false,
+    });
+    Object.defineProperty(context, 'waitForMessagePersistence', {
+        value() {
+            return messagePersistencePromise;
+        },
+        enumerable: false,
+    });
 
     Object.defineProperty(context, 'telegramApi', {
         value: api,
@@ -2120,19 +2466,67 @@ function loadOffset(path) {
     }
 }
 
-function saveOffset(path, offset) {
-    mkdirSync(resolve(path, '..'), { recursive: true });
-    writeFileSync(
-        path,
-        JSON.stringify({ offset }, null, 2),
-        'utf8',
-    );
+function createAsyncOffsetWriter(path, { logger = console } = {}) {
+    let pendingOffset = null;
+    let scheduled = false;
+    let scheduledPromise = Promise.resolve();
+    let writeTail = Promise.resolve();
+    let sequence = 0;
+
+    const schedule = () => {
+        if (scheduled) return;
+        scheduled = true;
+        scheduledPromise = new Promise(resolveScheduled => setImmediate(() => {
+            scheduled = false;
+            const nextOffset = pendingOffset;
+            pendingOffset = null;
+            if (nextOffset == null) {
+                resolveScheduled();
+                return;
+            }
+            const tempPath = `${path}.tmp-${process.pid}-${++sequence}`;
+            writeTail = writeTail.then(async () => {
+                await mkdir(resolve(path, '..'), { recursive: true });
+                await writeFile(tempPath, JSON.stringify({ offset: nextOffset }, null, 2), 'utf8');
+                await rename(tempPath, path);
+            }).catch(error => {
+                logger.error?.('[TELEGRAM OFFSET WRITE ERROR]', {
+                    path,
+                    offset: nextOffset,
+                    name: error?.name,
+                    message: error?.message,
+                });
+            }).finally(() => {
+                try {
+                    if (pendingOffset != null) schedule();
+                } catch {}
+                resolveScheduled();
+            });
+        }));
+    };
+
+    return {
+        enqueue(offset) {
+            const value = Number(offset);
+            if (!Number.isSafeInteger(value) || value < 0) return;
+            pendingOffset = pendingOffset == null ? value : Math.max(pendingOffset, value);
+            schedule();
+        },
+        async flush() {
+            do {
+                await scheduledPromise;
+                if (pendingOffset != null) schedule();
+                await writeTail;
+            } while (scheduled || pendingOffset != null);
+        },
+    };
 }
 
 function createTelegramBot({
     token,
     onMessage,
     onCallbackQuery = null,
+    onReaction = null,
     onMenuAction = null,
     hasProposalDraft = () => false,
     resolvePeerId,
@@ -2155,6 +2549,8 @@ function createTelegramBot({
     let botUser = null;
     let loopPromise = null;
     const dmMenuStates = new Map();
+    const offsetWriter = createAsyncOffsetWriter(absoluteStatePath, { logger });
+    let updateAckTail = Promise.resolve();
 
     async function pollLoop() {
         let retryDelay = 1000;
@@ -2170,11 +2566,21 @@ function createTelegramBot({
 
                 for (const update of updates) {
                     const nextOffset = Number(update.update_id ?? 0) + 1;
+                    const updateTasks = [];
+                    if ((update.message_reaction || update.message_reaction_count) && onReaction) {
+                        updateTasks.push(Promise.resolve().then(() => onReaction(update)).catch((error) => {
+                            logger.error('[TELEGRAM REACTION TASK ERROR]', {
+                                name: error?.name,
+                                message: error?.message,
+                            });
+                        }));
+                    }
                     const callbackQuery = update.callback_query;
                     if (callbackQuery?.id && callbackQuery.message && !callbackQuery.from?.is_bot) {
                         const callbackMessage = callbackQuery.message;
                         if (String(callbackMessage.chat?.type ?? '') === 'private') {
-                            dmMenuStates.delete(String(callbackMessage.chat?.id ?? ''));
+                            if(!String(callbackQuery.data||'').startsWith('huinglish:')||/^huinglish:menu:no:/u.test(String(callbackQuery.data||'')))
+                                dmMenuStates.delete(String(callbackMessage.chat?.id ?? ''));
                         }
                         const callbackContext = createTelegramContext({
                             api,
@@ -2185,18 +2591,20 @@ function createTelegramBot({
                                 caption: undefined,
                             },
                             callbackQuery,
+                            menuState:dmMenuStates.get(String(callbackMessage.chat?.id??''))||{},
                             botUser,
                             resolvePeerId,
                             resolveUserId,
                             ownerUserId,
                         });
                         if (typeof onCallbackQuery === 'function') {
-                            void Promise.resolve(onCallbackQuery(callbackContext)).catch((error) => {
+                            const callbackTask = Promise.resolve().then(() => onCallbackQuery(callbackContext)).catch((error) => {
                                 logger.error('[TELEGRAM CALLBACK TASK ERROR]', {
                                     name: error?.name,
                                     message: error?.message,
                                 });
                             });
+                            updateTasks.push(callbackTask);
                         } else {
                             void callbackContext.answerCallbackQuery().catch(() => {});
                         }
@@ -2276,18 +2684,19 @@ function createTelegramBot({
                                 // Навигационная кнопка не имеет права останавливать long polling.
                                 // Даже если Telegram API зависнет до сетевого timeout, следующий update
                                 // уже может быть принят и обработан параллельно.
-                                void api.sendMessage({
+                                const menuTask = api.sendMessage({
                                     chatId: menuKey,
                                     text: menuResult.text,
-                                    replyMarkup:
-                                        menuResult.replyMarkup ?? buildTelegramMainMenu({
-                                            isOwner: Boolean(
-                                                ownerUserId &&
-                                                String(message.from?.id ?? '') === String(ownerUserId)
-                                            ),
-                                            now: new Date(),
+                                    replyMarkup: withTelegramMarkerMenu(
+                                        menuResult.replyMarkup ?? buildTelegramPrivateMenuForState(menuResult.state,{
+                                            isOwner:Boolean(ownerUserId&&String(message.from?.id??'')===String(ownerUserId)),
+                                            now:new Date(),
                                         }),
-                                    replyToMessageId: message.message_id,
+                                        {mode:currentMilanaMarkerMode(menuKey,message.from?.id),
+                                         isOwner:Boolean(ownerUserId&&String(message.from?.id??'')===String(ownerUserId)),
+                                         now:new Date()},
+                                    ),
+                                                                        replyToMessageId: message.message_id,
                                 }).then(async () => {
                                     if (menuResult.followUp) await api.sendMessage({ chatId: menuKey, ...menuResult.followUp });
                                 }).catch((error) => {
@@ -2296,6 +2705,7 @@ function createTelegramBot({
                                         message: error?.message,
                                     });
                                 });
+                                updateTasks.push(menuTask);
                                 handledByMenu = !menuResult.applicationCommand;
                                 if (menuResult.applicationCommand) effectiveMessage = { ...message, text: menuResult.applicationCommand, caption: undefined };
                             } else if (menuResult.type === 'command') {
@@ -2331,7 +2741,12 @@ function createTelegramBot({
                             );
 
                             if (context.text || hasImageAttachment || hasVoiceAttachment || hasModelFileAttachment) {
-                                const taskPromise = Promise.resolve(onMessage(context));
+                                let taskPromise;
+                                try {
+                                    taskPromise = Promise.resolve(onMessage(context));
+                                } catch (error) {
+                                    taskPromise = Promise.reject(error);
+                                }
                                 const documentName = String(effectiveMessage?.document?.file_name ?? '');
                                 const documentMime = String(effectiveMessage?.document?.mime_type ?? '');
                                 const durableZipIntake = Boolean(
@@ -2349,18 +2764,38 @@ function createTelegramBot({
                                     ]);
                                 }
 
-                                void taskPromise.catch((error) => {
+                                const handledTask = taskPromise.catch((error) => {
                                     logger.error('[TELEGRAM MESSAGE TASK ERROR]', {
                                         name: error?.name,
                                         message: error?.message,
                                     });
+                                }).finally(() => {
+                                    if (!context.messagePersistenceRequired) {
+                                        context.markMessagePersistence?.({ reason: 'handler-finished' });
+                                    }
                                 });
+                                updateTasks.push(handledTask);
+                                if (context.messagePersistenceRequired) {
+                                    updateTasks.push(context.waitForMessagePersistence().then((result) => {
+                                        if (result?.failed) throw new Error('Telegram message persistence failed');
+                                    }));
+                                }
                             }
                         }
                     }
 
                     offset = Math.max(offset, nextOffset);
-                    saveOffset(absoluteStatePath, offset);
+                    const updateCompletion = Promise.all(updateTasks);
+                    updateAckTail = updateAckTail
+                        .then(() => updateCompletion)
+                        .then(() => offsetWriter.enqueue(nextOffset));
+                    void updateAckTail.catch((error) => {
+                        logger.error('[TELEGRAM UPDATE ACK ERROR]', {
+                            name: error?.name,
+                            message: error?.message,
+                        });
+                        running = false;
+                    });
                 }
             } catch (error) {
                 if (!running) {
@@ -2415,6 +2850,8 @@ function createTelegramBot({
             } catch {
                 // Остановка не должна ломать завершение процесса.
             }
+            await Promise.race([updateAckTail, sleep(2000)]).catch(() => {});
+            await offsetWriter.flush().catch(() => {});
         },
         api,
     };
@@ -2435,6 +2872,8 @@ export {
     TELEGRAM_TEXT_LIMIT,
     TelegramBotApi,
     buildTelegramMainMenu,
+    buildTelegramHuinglishMenu,
+    buildTelegramHuinglishLessonPickerMenu,
     buildTelegramPartyMenu,
     buildTelegramQticketsMenu,
     buildTelegramSecondaryPartyMenu,

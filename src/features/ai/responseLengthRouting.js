@@ -2,6 +2,7 @@
  * Ограничения длины ответа: короткий базовый профиль, подробный профиль и расширенный профиль pro/натала.
  */
 const DETAILED_RESPONSE_PATTERN = /(?:^|[\s,.;:!?()\[\]{}«»"'`-])(?:подробно|подробнее|детально|развернуто|развёрнуто|максимально\s+(?:подробно|глубоко)|глубок(?:ий|ая|ое|ую)\s+(?:разбор|анализ)|полный\s+тех(?:нический)?\s*расч[её]т|максимальн(?:ый|ая|ое|ую)\s+(?:расч[её]т|техрасч[её]т))(?=$|[\s,.;:!?()\[\]{}«»"'`-])/iu;
+const EXPANDED_RESPONSE_PATTERN = /(?:^|[\s,.;:!?()\[\]{}«»"'`-])(?:развернуто|развёрнуто|максимально\s+развернуто|максимально\s+развёрнуто|без\s+ограничений|без\s+лимита|насколько\s+возможно\s+подробно)(?=$|[\s,.;:!?()\[\]{}«»"'`-])/iu;
 
 export const RESPONSE_LENGTH_PROFILES = Object.freeze({
     concise: Object.freeze({
@@ -30,15 +31,21 @@ export const RESPONSE_LENGTH_PROFILES = Object.freeze({
     }),
     prashna: Object.freeze({
         name: 'prashna',
-        maxParagraphs: 3,
-        maxCharacters: 3200,
-        maxCompletionTokens: 1800,
+        maxParagraphs: 8,
+        maxCharacters: 3800,
+        maxCompletionTokens: 2400,
     }),
     prashnaDetailed: Object.freeze({
         name: 'prashna-detailed',
         maxParagraphs: 14,
         maxCharacters: 12000,
         maxCompletionTokens: 8000,
+    }),
+    prashnaExpanded: Object.freeze({
+        name: 'prashna-expanded',
+        maxParagraphs: 1000,
+        maxCharacters: 60000,
+        maxCompletionTokens: 30000,
     }),
     prashnaPro: Object.freeze({
         name: 'prashna-pro',
@@ -120,6 +127,10 @@ export function getResponseLengthProfile(text, {
     }
 
     if (prashna) {
+        if (EXPANDED_RESPONSE_PATTERN.test(String(text ?? ''))) {
+            return RESPONSE_LENGTH_PROFILES.prashnaExpanded;
+        }
+
         if (['pro', 'pro2', 'pro3'].includes(mode)) {
             return RESPONSE_LENGTH_PROFILES.prashnaPro;
         }

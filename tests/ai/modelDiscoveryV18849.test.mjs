@@ -6,6 +6,7 @@ import { join } from 'node:path';
 
 const root = mkdtempSync(join(tmpdir(), 'gigorave-v18849-'));
 process.env.GIGORAVE_STATE_DIR = join(root, 'state');
+process.env.GIGORAVE_DATA_DIR = join(root, 'data');
 
 const scheduler = await import(`../../src/features/ai/modelDiscoveryScheduler.js?v18849=${Date.now()}`);
 const db = await import(`../../src/infrastructure/database/index.js?v18849=${Date.now()}`);
@@ -67,13 +68,14 @@ try {
         }
     });
 
-    test('V188.49: app appends only qualified discovery models after the static ladder and schedules supervised discovery', () => {
+    test('V188.49: app appends only qualified discovery models after the static ladder and disables scheduled discovery in favor of historical model evidence', () => {
         const source = readFileSync(new URL('../../src/app/botApplication.js', import.meta.url), 'utf8');
         assert.match(source, /getQualifiedDiscoveredAiModels\(requiredCapability\)/u);
         assert.match(source, /mode:\s*'discovered'/u);
         assert.match(source, /logicalModes\.includes\('pro3'\)/u);
-        assert.match(source, /ai-model-discovery:startup/u);
-        assert.match(source, /AI_MODEL_DISCOVERY_TICK_MS/u);
+        // V189: automatic catalog sweeps are prohibited; old scheduler stays for historical logic only.
+        assert.doesNotMatch(source, /ai-model-discovery:startup/u);
+        assert.match(source, /model-sweep-permanently-disabled-offline-ranking/u);
         assert.match(source, /ЖЁСТКИЙ ИНВАРИАНТ ДЖЙОТИШ/u);
         assert.doesNotMatch(source, /Локальный Swiss Ephemeris не запускался/u);
         assert.doesNotMatch(source, /Самостоятельно выполни максимально полный расчёт натальной карты/u);

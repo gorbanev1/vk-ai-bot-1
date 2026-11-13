@@ -1,3 +1,4 @@
+import {extractAutoSummaryModifiers} from './autoSummaryPreferences.js';
 import {
     addDaysToDateString,
     getLocalDateString,
@@ -206,6 +207,7 @@ export function parseAutoSummaryCommand(value) {
     let text = normalize(value)
         .replace(/^(?:гигорейв|gigorave)(?:\s*[:,.!?—-]\s*|\s+)/u, '')
         .trim()
+        .replace(/^(выключ|выкл|выключить|выключи|откл|отключить|отключи|off|включ|вкл|включить|включи|on)\s+(авторезюме|резюмирование)(?=\s|$)(.*)$/u, (_,action,feature,rest)=>feature+' '+action+rest)
         .replace(/^резюмирование(?![\p{L}\p{N}_])/u, 'авторезюме');
 
     if (!/^авторезюме(?![\p{L}\p{N}_])/u.test(text)) {
@@ -218,6 +220,12 @@ export function parseAutoSummaryCommand(value) {
         text = text.replace(target.matchedText, ' ').replace(/\s+/gu, ' ').trim();
     }
 
+    const mods=extractAutoSummaryModifiers(text);
+    text=mods.text;
+    const extra=mods.hasModifiers?{preferences:mods.preferences}:{};
+    if(mods.hasModifiers && (!text || /^(?:вкл|включи|включить|on)$/u.test(text))) {
+        return {matched:true,action:'preferences',...extra,...(target?{target}:{})};
+    }
     if (!text) {
         return {
             matched: true,
@@ -245,11 +253,11 @@ export function parseAutoSummaryCommand(value) {
         return { matched: true, action: 'run-now', ...(target ? { target } : {}) };
     }
 
-    if (/^(?:вкл|включить|включи|on)$/u.test(text)) {
-        return { matched: true, action: 'enable', mode: AUTO_SUMMARY_MODE_FULL, ...(target ? { target } : {}) };
+    if (/^(?:вкл|включ|включить|включи|on)$/u.test(text)) {
+        return { matched: true, action: 'enable', mode: AUTO_SUMMARY_MODE_FULL, resume: true, ...(target ? { target } : {}) };
     }
 
-    if (/^(?:выкл|выключить|выключи|откл|отключить|отключи|стоп|off)$/u.test(text)) {
+    if (/^(?:выкл|выключ|выключить|выключи|откл|отключить|отключи|стоп|off)$/u.test(text)) {
         return { matched: true, action: 'disable', ...(target ? { target } : {}) };
     }
 
@@ -278,6 +286,7 @@ export function parseAutoSummaryCommand(value) {
             action: 'enable',
             mode: AUTO_SUMMARY_MODE_CUSTOM,
             schedule,
+            ...extra,
             ...(target ? { target } : {}),
         };
     }

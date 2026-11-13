@@ -109,6 +109,7 @@ const prompts = buildActiveCommunicationPrompts({
     currentText: 'Пошли пивка попьём',
     senderName: 'Сева',
     recentTranscript: 'Игорь: дождь идёт',
+    replyFocus: 'CMID 42 — исходная реплика',
     communicationStylePrompt: 'Роль: быдло.',
 });
 assert.match(prompts.systemPrompt, /обычный живой участник/u);
@@ -117,6 +118,7 @@ assert.match(prompts.systemPrompt, /Не используй абстрактну
 assert.match(prompts.systemPrompt, /одна короткая естественная реплика/u);
 assert.match(prompts.systemPrompt, /Роль: быдло/u);
 assert.match(prompts.userPrompt, /Сева/u);
+assert.match(prompts.userPrompt, /CMID 42/u);
 
 console.log('active communication routing tests passed');
 

@@ -1,0 +1,670 @@
+{
+  "stored": {
+    "id": 310,
+    "title": "NO NAME RAVE x Prod",
+    "eventDate": "2026-12-05",
+    "eventTime": "22:00",
+    "venue": "Клуб «Сто Ручьёв», ул. Кирова, 5",
+    "participants": "Polyharm, JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYARM, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, ARCTIQUE, BLANSHE, MORĒNA, JILLYX, MONDEBLD, FRAMASOUND, ARCTYQUE, артисты и диджеи из Воронежа и других городов, MORENA (MORĒNA), MODEBIP, FRAMASCUNE",
+    "price": "Лимитированная партия ранних билетов уже в продаже; текущая цена не указана / Лимитированная партия ранних билетов в продаже; актуальная цена не указана ❗ уточните стоимость на странице события",
+    "description": "Рейв электронной музыки с сетами диджеев и live-выступлением MORĒNA. Polyharm представит uptempo-сет; заявлены тяжёлая электронная музыка, интенсивные световые эффекты и возрастное ограничение 18+.",
+    "evidence": "05.12.2026; START 22:00; NONAME RAVE X VRN PRO; JILLYX | ISCRIM | MORENA | SIMDC; NUMBACK | POLYHARM | MONDEBLD | SEKTA; ANDROBEATS | WHITE MASS | ANTIPOZITIVE; FRAMASOUND | ARCTYQUE | BLANSHE; Воронеж, ул. Кирова, 5; 18+",
+    "sourceType": "telegram",
+    "channel": "nnrravew",
+    "messageId": 521,
+    "sourceUrl": "https://t.me/nnrravew/536",
+    "canonicalPostUrl": "https://t.me/nnrravew/536",
+    "sourceItemId": "telegram:nnrravew:536",
+    "sourceOriginalUrl": "https://t.me/nnrravew/526",
+    "canonicalOrigin": "telegram-post",
+    "sourceMessageId": 536,
+    "imagePaths": [
+      "telegram_announcements/nnrravew/536-1.jpg"
+    ],
+    "posterVisionFacts": [
+      {
+        "index": 2,
+        "text": "Тип изображения: logo\nЭто афиша события: нет\nУверенность афиши: 95\nЧитаемость текста: 90\nНазвание: NO NAME RAVE\nДата:\nВремя:\nНачало:\nОкончание:\nМесто:\nГород:\nНаселенный пункт:\nАдрес:\nУчастники:\nЦена:\nВозраст:\nПрограмма:\nТеги: [\"rave\"]\nСтруктура расписания: uncertain\nОснование расписания:\nСвязи дат и программ: []\nРаспознанный текст:\nNO NAME RAVE\nПричина: На изображении виден логотип/название «NO NAME RAVE», но нет даты, места, участников или других читаемых сведений о конкретном событии.",
+        "visionStatus": "metadata_found",
+        "visionInspected": true,
+        "visionError": false,
+        "imageType": "logo",
+        "poster": false,
+        "posterConfidence": 95,
+        "textReadability": 90,
+        "title": "NO NAME RAVE",
+        "dates": "",
+        "time": "",
+        "startTime": "",
+        "endTime": "",
+        "venue": "",
+        "city": "",
+        "locality": "",
+        "address": "",
+        "participants": "",
+        "price": "",
+        "age": "",
+        "program": "",
+        "tags": [
+          "[\"rave\"]"
+        ],
+        "recognizedText": "NO NAME RAVE",
+        "scheduleKind": "uncertain",
+        "scheduleEvidence": "",
+        "dateProgramBindings": [],
+        "reason": "На изображении виден логотип/название «NO NAME RAVE», но нет даты, места, участников или других читаемых сведений о конкретном событии."
+      },
+      {
+        "index": 5,
+        "text": "Тип изображения: ordinary-photo\nЭто афиша события: нет\nУверенность афиши: 99\nЧитаемость текста: 0\nНазвание:\nДата:\nВремя:\nНачало:\nОкончание:\nМесто:\nГород:\nНаселенный пункт:\nАдрес:\nУчастники:\nЦена:\nВозраст:\nПрограмма:\nТеги: []\nСтруктура расписания: uncertain\nОснование расписания:\nСвязи дат и программ: []\nРаспознанный текст:\nПричина: Обычная фотография человека; визуального анонса события и читаемого текста нет.",
+        "visionStatus": "metadata_not_found",
+        "visionInspected": true,
+        "visionError": false,
+        "imageType": "ordinary-photo",
+        "poster": false,
+        "posterConfidence": 99,
+        "textReadability": 0,
+        "title": "",
+        "dates": "",
+        "time": "",
+        "startTime": "",
+        "endTime": "",
+        "venue": "",
+        "city": "",
+        "locality": "",
+        "address": "",
+        "participants": "",
+        "price": "",
+        "age": "",
+        "program": "",
+        "tags": [
+          "[]"
+        ],
+        "recognizedText": "",
+        "scheduleKind": "uncertain",
+        "scheduleEvidence": "",
+        "dateProgramBindings": [],
+        "reason": "Обычная фотография человека; визуального анонса события и читаемого текста нет."
+      },
+      {
+        "index": 7,
+        "text": "Тип изображения: avatar\nЭто афиша события: нет\nУверенность афиши: 0\nЧитаемость текста: 0\nСтруктура расписания: uncertain\nОснование расписания: Нет читаемого текста с датами или программой.\nСвязи дат и программ: []\nНазвание:\nДата:\nВремя:\nНачало:\nОкончание:\nМесто:\nГород:\nНаселенный пункт:\nАдрес:\nУчастники:\nЦена:\nВозраст:\nПрограмма:\nТеги: []\nРаспознанный текст:\nПричина: На изображении показан небольшой персонаж Sonic на прозрачном фоне; текста и фактов о мероприятии нет.",
+        "visionStatus": "metadata_not_found",
+        "visionInspected": true,
+        "visionError": false,
+        "imageType": "avatar",
+        "poster": false,
+        "posterConfidence": 0,
+        "textReadability": 0,
+        "title": "",
+        "dates": "",
+        "time": "",
+        "startTime": "",
+        "endTime": "",
+        "venue": "",
+        "city": "",
+        "locality": "",
+        "address": "",
+        "participants": "",
+        "price": "",
+        "age": "",
+        "program": "",
+        "tags": [
+          "[]"
+        ],
+        "recognizedText": "",
+        "scheduleKind": "uncertain",
+        "scheduleEvidence": "Нет читаемого текста с датами или программой.",
+        "dateProgramBindings": [],
+        "reason": "На изображении показан небольшой персонаж Sonic на прозрачном фоне; текста и фактов о мероприятии нет."
+      },
+      {
+        "index": 1,
+        "text": "Тип изображения: poster\nЭто афиша события: да\nУверенность афиши: 99\nЧитаемость текста: 95\nНазвание: NO NAME RAVE x Vrn Prod\nДата: 05.12.2026\nВремя: 22:00\nНачало: 22:00\nОкончание:\nМесто: Клуб «100 Ручьев»\nГород: Воронеж\nНаселенный пункт: Воронеж\nАдрес: ул. Кирова, 5\nУчастники: Polyharm\nЦена:\nВозраст: 18+\nПрограмма: uptempo\nТеги: [\"rave\", \"hardcore\"]\nСтруктура расписания: single_event\nОснование расписания: «05.12.2026»; «POLYHARM»; «[uptempo]»; «NO NAME RAVE x VRN PROD»\nСвязи дат и программ: [{\"dateText\":\"05.12.2026\",\"title\":\"NO NAME RAVE x Vrn Prod\",\"participants\":\"Polyharm\",\"program\":\"uptempo\",\"evidence\":\"05.12.2026 / POLYHARM / [uptempo] / NO NAME RAVE x VRN PROD\"}]\nРаспознанный текст:\nSTART 22:00\n\n05.12.2026\n\n[логотип]\n\nPOLYHARM\n\n[uptempo]\n\nNO NAME RAVE\nX\nVRN PROD\n\nКлуб \"100 Ручьев\"\nВоронеж, ул. Кирова, 5\n\n18+\n\nКУПИТЬ БИЛЕТЫ\n\n@VRNPROD36\n@NRRAVE\nПричина: На изображении явно указаны название события, дата, время начала, участник, программа, место, адрес и возрастное ограничение.",
+        "visionStatus": "metadata_found",
+        "visionInspected": true,
+        "visionError": false,
+        "imageType": "poster",
+        "poster": true,
+        "posterConfidence": 99,
+        "textReadability": 95,
+        "title": "NO NAME RAVE x Vrn Prod",
+        "dates": "05.12.2026",
+        "time": "22:00",
+        "startTime": "22:00",
+        "endTime": "",
+        "venue": "Клуб «100 Ручьев»",
+        "city": "Воронеж",
+        "locality": "Воронеж",
+        "address": "ул. Кирова, 5",
+        "participants": "Polyharm",
+        "price": "",
+        "age": "18+",
+        "program": "uptempo",
+        "tags": [
+          "[\"rave\"",
+          "\"hardcore\"]"
+        ],
+        "recognizedText": "START 22:00\n\n05.12.2026\n\n[логотип]\n\nPOLYHARM\n\n[uptempo]\n\nNO NAME RAVE\nX\nVRN PROD\n\nКлуб \"100 Ручьев\"\nВоронеж, ул. Кирова, 5\n\n18+\n\nКУПИТЬ БИЛЕТЫ\n\n@VRNPROD36\n@NRRAVE",
+        "scheduleKind": "single_event",
+        "scheduleEvidence": "«05.12.2026»; «POLYHARM»; «[uptempo]»; «NO NAME RAVE x VRN PROD»",
+        "dateProgramBindings": [
+          {
+            "dateText": "05.12.2026",
+            "title": "NO NAME RAVE x Vrn Prod",
+            "participants": "Polyharm",
+            "program": "uptempo",
+            "evidence": "05.12.2026 / POLYHARM / [uptempo] / NO NAME RAVE x VRN PROD"
+          }
+        ],
+        "reason": "На изображении явно указаны название события, дата, время начала, участник, программа, место, адрес и возрастное ограничение.",
+        "fallbackBinding": "single-event-source-media",
+        "sourceMediaBinding": true,
+        "sourceEventCount": 1,
+        "sourceImageCount": 1,
+        "imagePath": "telegram_announcements/nnrravew/536-1.jpg",
+        "imageFilename": "536-1.jpg",
+        "imageSha256": "fce2ef50818566f52baf69e68b3e242b0f4681c686ce8c9e7101dd59d29c3f05"
+      }
+    ],
+    "posterImageIndex": 1,
+    "posterMatchStatus": "verified_title_date_poster",
+    "posterMatchReason": "dedupe-best-metadata:date+title-majority",
+    "sourceSegment": "🔥 Сегодня начинаем знакомить вас с артистами, которые выступят для вас 05.12 на NO NAME RAVE x Vrn Prod🔥\nPolyharm - молодая кровь русского хардкора. Начал свой путь недавно, но уже активно выступает на Moscow Madness и других московских рейвах.",
+    "isMultiAnnouncement": false,
+    "structureDecision": "single_event",
+    "alternativeTitles": [
+      "NO NAME RAVE x Vrn Prod",
+      "NO NAME RAVE",
+      "NO NAME RAVE × VRN PROD",
+      "NONAME RAVE X VRN PRO",
+      "NO NAME RAVE x Prod"
+    ]
+  },
+  "sourceCards": [
+    {
+      "sourceType": "telegram",
+      "channel": "nnrravew",
+      "messageId": 521,
+      "sourceUrl": "https://t.me/nnrravew/521",
+      "canonicalPostUrl": "https://t.me/nnrravew/521",
+      "sourceItemId": "telegram:nnrravew:521",
+      "sourceMessageId": 521,
+      "canonicalOrigin": "telegram-post",
+      "title": "NO NAME RAVE x VRN PROD",
+      "eventDate": "2026-12-05",
+      "eventTime": "22:00",
+      "venue": "не указано",
+      "participants": "JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYHARM, MONDERB, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE",
+      "sourceText": "🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔣🔠🔠🔠🔠\n\nночь, где музыка объединяет\n🔡🔣🔡🔣🔡🔣🔡🔣🔡🔣\nИногда самое сильное чувство — то, что не получается описать словами. Это вибрация в груди, это момент, когда весь зал дышит в одном ритме, это свет, который стирает границы между тобой и музыкой.\n🚶🚶🚶🚶🚶🚶🚶🚶🚶🚶\nЗвук, который бьёт прямо в грудную клетку, световое безумие и энергия, которую нельзя удержать.\n🎵🎵🎵🎵🎵🎵🎵🎵🎵🎵\nЭта ночь, подарит вам тонный классной электронной музыки, сеты от диджеев старой и новой школы, шикарные голоса артистов из разных городов, ну и конечно же море эмоций.\n0️⃣5️⃣🔣1️⃣2️⃣🔣2️⃣6️⃣\n2️⃣2️⃣🔣0️⃣0️⃣🟰0️⃣4️⃣🔣0️⃣0️⃣\n«Сто Ручьев» (г. Воронеж ул. Кирова, 5)\n\n💯Сейчас — лучшие цены. Лимитированная партия ранних билетов уже в продаже\nЧем ближе дата — тем дороже.\n\nПриходи, чтобы почувствовать. 🌟https://t.me/QticketsBuyBot/buy?startapp=261634\n❗️18+ / FC / Внимание: интенсивные световые эффекты.\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n10\n1",
+      "description": "🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔣🔠🔠🔠🔠\n\nночь, где музыка объединяет\n🔡🔣🔡🔣🔡🔣🔡🔣🔡🔣\nИногда самое сильное чувство — то, что не получается описать словами. Это вибрация в груди, это момент, когда весь зал дышит в одном ритме, это свет, который стирает границы между тобой и музыкой.\n🚶🚶🚶🚶🚶🚶🚶🚶🚶🚶\nЗвук, который бьёт прямо в грудную клетку, световое безумие и энергия, которую нельзя удержать.\n🎵🎵🎵🎵🎵🎵🎵🎵🎵🎵\nЭта ночь, подарит вам тонный классной электронной музыки, сеты от диджеев старой и новой школы, шикарные голоса артистов из разных городов, ну и конечно же море эмоций.\n0️⃣5️⃣🔣1️⃣2️⃣🔣2️⃣6️⃣\n2️⃣2️⃣🔣0️⃣0️⃣🟰0️⃣4️⃣🔣0️⃣0️⃣\n«Сто Ручьев» (г. Воронеж ул. Кирова, 5)\n\n💯Сейчас — лучшие цены. Лимитированная партия ранних билетов уже в продаже\nЧем ближе дата — тем дороже.\n\nПриходи, чтобы почувствовать. 🌟https://t.me/QticketsBuyBot/buy?startapp=261634\n❗️18+ / FC / Внимание: интенсивные световые эффекты.\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n10\n1",
+      "sourceSegment": "🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔠🔣🔠🔠🔠🔠\n\nночь, где музыка объединяет\n🔡🔣🔡🔣🔡🔣🔡🔣🔡🔣\nИногда самое сильное чувство — то, что не получается описать словами. Это вибрация в груди, это момент, когда весь зал дышит в одном ритме, это свет, который стирает границы между тобой и музыкой.\n🚶🚶🚶🚶🚶🚶🚶🚶🚶🚶\nЗвук, который бьёт прямо в грудную клетку, световое безумие и энергия, которую нельзя удержать.\n🎵🎵🎵🎵🎵🎵🎵🎵🎵🎵\nЭта ночь, подарит вам тонный классной электронной музыки, сеты от диджеев старой и новой школы, шикарные голоса артистов из разных городов, ну и конечно же море эмоций.\n0️⃣5️⃣🔣1️⃣2️⃣🔣2️⃣6️⃣\n2️⃣2️⃣🔣0️⃣0️⃣🟰0️⃣4️⃣🔣0️⃣0️⃣\n«Сто Ручьев» (г. Воронеж ул. Кирова, 5)\n\n💯Сейчас — лучшие цены. Лимитированная партия ранних билетов уже в продаже\nЧем ближе дата — тем дороже.\n\nПриходи, чтобы почувствовать. 🌟https://t.me/QticketsBuyBot/buy?startapp=261634\n❗️18+ / FC / Внимание: интенсивные световые эффекты.\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n10\n1",
+      "isMultiAnnouncement": false,
+      "structureDecision": "single_event",
+      "imagePaths": [
+        "telegram_announcements/nnrravew/521-1.jpg"
+      ],
+      "sourceImagePaths": [
+        "telegram_announcements/nnrravew/521-1.jpg"
+      ],
+      "posterVisionFacts": [
+        {
+          "index": 1,
+          "text": "Это афиша события: да\nТип изображения: poster\nУверенность афиши: 99\nЧитаемость текста: 95\nНазвание: NO NAME RAVE x VRN PROD\nДата: 05.12.2026\nВремя: 22:00\nМесто: не указано\nГород: Воронеж\nАдрес: ул. Кирова, 5\nУчастники: JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYHARM, MONDERB, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE\nЦена: не указана\nПрограмма: Rave; состав участников указан на афише\nТеги: [\"rave\", \"dj\", \"electronics\"]\nСтруктура расписания: single_event\nОснование расписания: «05.12.2026»; «NO NAME RAVE x VRN PROD»; «JILIX | ISCRIM | MORENA | SIMDC»\nСвязи дат и программ: [{\"dateText\":\"05.12.2026\",\"title\":\"NO NAME RAVE x VRN PROD\",\"participants\":\"JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYHARM, MONDERB, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE\",\"program\":\"Rave\",\"evidence\":\"05.12.2026; NO NAME RAVE x VRN PROD; JILIX | ISCRIM | MORENA | SIMDC | NUMBACK | POLYHARM | MONDERB | SEKTA | ANDROBEATS | WHITE MASS | ANTIPOZITIVE | FRAMASOUND | ARCTYQUE | BLANSHE\"}]\nРаспознанный текст:\nSTART 22:00\n[логотип]\n05.12.2026\n\nNO NAME RAVE\nx\nVRN\nPROD\n\nJILIX | ISCRIM | MORENA | SIMDC\nNUMBACK | POLYHARM | MONDERB | SEKTA\nANDROBEATS | WHITE MASS | ANTIPOZITIVE\nFRAMASOUND | ARCTYQUE | BLANSHE\n\nВоронеж, ул. Кирова, 5\n18+\nПричина: Афиша содержит дату, время, адрес и список участников мероприятия.",
+          "visionStatus": "metadata_found",
+          "visionInspected": true,
+          "visionError": false,
+          "imageType": "poster",
+          "poster": true,
+          "posterConfidence": 99,
+          "textReadability": 95,
+          "title": "NO NAME RAVE x VRN PROD",
+          "dates": "05.12.2026",
+          "time": "22:00",
+          "startTime": "22:00",
+          "endTime": "",
+          "venue": "не указано",
+          "city": "Воронеж",
+          "locality": "",
+          "address": "ул. Кирова, 5",
+          "participants": "JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYHARM, MONDERB, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE",
+          "price": "не указана",
+          "age": "",
+          "program": "Rave; состав участников указан на афише",
+          "tags": [
+            "[\"rave\"",
+            "\"dj\"",
+            "\"electronics\"]"
+          ],
+          "recognizedText": "START 22:00\n[логотип]\n05.12.2026\n\nNO NAME RAVE\nx\nVRN\nPROD\n\nJILIX | ISCRIM | MORENA | SIMDC\nNUMBACK | POLYHARM | MONDERB | SEKTA\nANDROBEATS | WHITE MASS | ANTIPOZITIVE\nFRAMASOUND | ARCTYQUE | BLANSHE\n\nВоронеж, ул. Кирова, 5\n18+",
+          "scheduleKind": "single_event",
+          "scheduleEvidence": "«05.12.2026»; «NO NAME RAVE x VRN PROD»; «JILIX | ISCRIM | MORENA | SIMDC»",
+          "dateProgramBindings": [
+            {
+              "dateText": "05.12.2026",
+              "title": "NO NAME RAVE x VRN PROD",
+              "participants": "JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYHARM, MONDERB, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE",
+              "program": "Rave",
+              "evidence": "05.12.2026; NO NAME RAVE x VRN PROD; JILIX | ISCRIM | MORENA | SIMDC | NUMBACK | POLYHARM | MONDERB | SEKTA | ANDROBEATS | WHITE MASS | ANTIPOZITIVE | FRAMASOUND | ARCTYQUE | BLANSHE"
+            }
+          ],
+          "reason": "Афиша содержит дату, время, адрес и список участников мероприятия.",
+          "imagePath": "telegram_announcements/nnrravew/521-1.jpg",
+          "imageFilename": "521-1.jpg",
+          "imageSha256": "f44b5ff5b1b0cfda42168dcbe7443835e74387a37200d63cd9b6e2caf3dbf5be"
+        }
+      ],
+      "imageVisionFacts": [
+        {
+          "index": 1,
+          "text": "Это афиша события: да\nТип изображения: poster\nУверенность афиши: 99\nЧитаемость текста: 95\nНазвание: NO NAME RAVE x VRN PROD\nДата: 05.12.2026\nВремя: 22:00\nМесто: не указано\nГород: Воронеж\nАдрес: ул. Кирова, 5\nУчастники: JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYHARM, MONDERB, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE\nЦена: не указана\nПрограмма: Rave; состав участников указан на афише\nТеги: [\"rave\", \"dj\", \"electronics\"]\nСтруктура расписания: single_event\nОснование расписания: «05.12.2026»; «NO NAME RAVE x VRN PROD»; «JILIX | ISCRIM | MORENA | SIMDC»\nСвязи дат и программ: [{\"dateText\":\"05.12.2026\",\"title\":\"NO NAME RAVE x VRN PROD\",\"participants\":\"JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYHARM, MONDERB, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE\",\"program\":\"Rave\",\"evidence\":\"05.12.2026; NO NAME RAVE x VRN PROD; JILIX | ISCRIM | MORENA | SIMDC | NUMBACK | POLYHARM | MONDERB | SEKTA | ANDROBEATS | WHITE MASS | ANTIPOZITIVE | FRAMASOUND | ARCTYQUE | BLANSHE\"}]\nРаспознанный текст:\nSTART 22:00\n[логотип]\n05.12.2026\n\nNO NAME RAVE\nx\nVRN\nPROD\n\nJILIX | ISCRIM | MORENA | SIMDC\nNUMBACK | POLYHARM | MONDERB | SEKTA\nANDROBEATS | WHITE MASS | ANTIPOZITIVE\nFRAMASOUND | ARCTYQUE | BLANSHE\n\nВоронеж, ул. Кирова, 5\n18+\nПричина: Афиша содержит дату, время, адрес и список участников мероприятия.",
+          "visionStatus": "metadata_found",
+          "visionInspected": true,
+          "visionError": false,
+          "imageType": "poster",
+          "poster": true,
+          "posterConfidence": 99,
+          "textReadability": 95,
+          "title": "NO NAME RAVE x VRN PROD",
+          "dates": "05.12.2026",
+          "time": "22:00",
+          "startTime": "22:00",
+          "endTime": "",
+          "venue": "не указано",
+          "city": "Воронеж",
+          "locality": "",
+          "address": "ул. Кирова, 5",
+          "participants": "JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYHARM, MONDERB, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE",
+          "price": "не указана",
+          "age": "",
+          "program": "Rave; состав участников указан на афише",
+          "tags": [
+            "[\"rave\"",
+            "\"dj\"",
+            "\"electronics\"]"
+          ],
+          "recognizedText": "START 22:00\n[логотип]\n05.12.2026\n\nNO NAME RAVE\nx\nVRN\nPROD\n\nJILIX | ISCRIM | MORENA | SIMDC\nNUMBACK | POLYHARM | MONDERB | SEKTA\nANDROBEATS | WHITE MASS | ANTIPOZITIVE\nFRAMASOUND | ARCTYQUE | BLANSHE\n\nВоронеж, ул. Кирова, 5\n18+",
+          "scheduleKind": "single_event",
+          "scheduleEvidence": "«05.12.2026»; «NO NAME RAVE x VRN PROD»; «JILIX | ISCRIM | MORENA | SIMDC»",
+          "dateProgramBindings": [
+            {
+              "dateText": "05.12.2026",
+              "title": "NO NAME RAVE x VRN PROD",
+              "participants": "JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYHARM, MONDERB, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE",
+              "program": "Rave",
+              "evidence": "05.12.2026; NO NAME RAVE x VRN PROD; JILIX | ISCRIM | MORENA | SIMDC | NUMBACK | POLYHARM | MONDERB | SEKTA | ANDROBEATS | WHITE MASS | ANTIPOZITIVE | FRAMASOUND | ARCTYQUE | BLANSHE"
+            }
+          ],
+          "reason": "Афиша содержит дату, время, адрес и список участников мероприятия.",
+          "imagePath": "telegram_announcements/nnrravew/521-1.jpg",
+          "imageFilename": "521-1.jpg",
+          "imageSha256": "f44b5ff5b1b0cfda42168dcbe7443835e74387a37200d63cd9b6e2caf3dbf5be"
+        }
+      ],
+      "posterImageIndex": 1,
+      "posterMatchStatus": "verified_title_date_poster",
+      "posterMatchReason": "archived-source-image-verified"
+    },
+    {
+      "sourceType": "telegram",
+      "channel": "nnrravew",
+      "messageId": 526,
+      "sourceUrl": "https://t.me/nnrravew/526",
+      "canonicalPostUrl": "https://t.me/nnrravew/526",
+      "sourceItemId": "telegram:nnrravew:526",
+      "sourceMessageId": 526,
+      "canonicalOrigin": "telegram-post",
+      "title": "NONAME RAVE",
+      "eventDate": "2026-12-05",
+      "eventTime": "22:00",
+      "venue": "клуб «100 Ручьёв»",
+      "participants": "JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYARM, MODEEBLP, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE",
+      "sourceText": "🌟🌟🌟🌟🌟🌟\n\nВот и подступила пятница, а мы спешим к вам с обещанным анонсом.\n\n⚡️У нас будет секретный гость, некая легенда московских рейвов новой школы ⚡️\n\nРаскрывать пока не будем, ожидайте анонс, но мы уже ему заплатили за молчание.\n\n🔥Скажем лишь то, что он играл на Moscow Madnes и других крупных рейвах и фестивалях 🔥\n\nА билеты по вкусной цене можно купить по ссылке ниже. Торопитесь, скоро подорожание!!!\n\n🎫 Билеты по самой выгодной цене\n\n❗️18+ FC/DC\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n6",
+      "description": "🌟🌟🌟🌟🌟🌟\n\nВот и подступила пятница, а мы спешим к вам с обещанным анонсом.\n\n⚡️У нас будет секретный гость, некая легенда московских рейвов новой школы ⚡️\n\nРаскрывать пока не будем, ожидайте анонс, но мы уже ему заплатили за молчание.\n\n🔥Скажем лишь то, что он играл на Moscow Madnes и других крупных рейвах и фестивалях 🔥\n\nА билеты по вкусной цене можно купить по ссылке ниже. Торопитесь, скоро подорожание!!!\n\n🎫 Билеты по самой выгодной цене\n\n❗️18+ FC/DC\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n6",
+      "sourceSegment": "🌟🌟🌟🌟🌟🌟\n\nВот и подступила пятница, а мы спешим к вам с обещанным анонсом.\n\n⚡️У нас будет секретный гость, некая легенда московских рейвов новой школы ⚡️\n\nРаскрывать пока не будем, ожидайте анонс, но мы уже ему заплатили за молчание.\n\n🔥Скажем лишь то, что он играл на Moscow Madnes и других крупных рейвах и фестивалях 🔥\n\nА билеты по вкусной цене можно купить по ссылке ниже. Торопитесь, скоро подорожание!!!\n\n🎫 Билеты по самой выгодной цене\n\n❗️18+ FC/DC\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n6",
+      "isMultiAnnouncement": false,
+      "structureDecision": "single_event",
+      "imagePaths": [
+        "telegram_announcements/nnrravew/526-1.jpg"
+      ],
+      "sourceImagePaths": [
+        "telegram_announcements/nnrravew/526-1.jpg"
+      ],
+      "posterVisionFacts": [
+        {
+          "index": 1,
+          "text": "Это афиша события: да  \nТип изображения: poster  \nУверенность афиши: 99  \nЧитаемость текста: 93  \nНазвание: NONAME RAVE  \nДата: 05.12.2026  \nВремя: 22:00  \nМесто: клуб «100 Ручьёв»  \nГород: Воронеж  \nАдрес: ул. Крупской, 5  \nУчастники: JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYARM, MODEEBLP, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE  \nЦена:  \nПрограмма:  \nСтруктура расписания: single_event  \nОснование расписания: «NONAME RAVE», «05.12.2026», «START 22:00»  \nСвязи дат и программ: [{\"dateText\":\"05.12.2026\",\"title\":\"NONAME RAVE\",\"participants\":\"JILIX | ISCRIM | MORENA | SIMDC | NUMBACK | POLYARM | MODEEBLP | SEKTA | ANDROBEATS | WHITE MASS | ANTIPOZITIVE | FRAMASOUND | ARCTYQUE | BLANSHE\",\"program\":\"\",\"evidence\":\"05.12.2026 / START 22:00 / NONAME RAVE / JILIX | ISCRIM | MORENA | SIMDC / NUMBACK | POLYARM | MODEEBLP | SEKTA / ANDROBEATS | WHITE MASS | ANTIPOZITIVE / FRAMASOUND | ARCTYQUE | BLANSHE\"}]  \nРаспознанный текст:  \nSTART 22:00  \n05.12.2026  \nNONAME RAVE  \nX  \nVRN PROD  \nJILIX | ISCRIM | MORENA | SIMDC  \nNUMBACK | POLYARM | MODEEBLP | SEKTA  \nANDROBEATS | WHITE MASS | ANTIPOZITIVE  \nFRAMASOUND | ARCTYQUE | BLANSHE  \nКлуб «100 Ручьёв»  \nВоронеж, ул. Крупской, 5  \nКупить билеты  \n18+  \nПричина: На изображении явно указаны название события, дата, время, место проведения и состав участников.  \ntags: [\"rave\"]",
+          "visionStatus": "metadata_found",
+          "visionInspected": true,
+          "visionError": false,
+          "imageType": "poster",
+          "poster": true,
+          "posterConfidence": 99,
+          "textReadability": 93,
+          "title": "NONAME RAVE",
+          "dates": "05.12.2026",
+          "time": "22:00",
+          "startTime": "22:00",
+          "endTime": "",
+          "venue": "клуб «100 Ручьёв»",
+          "city": "Воронеж",
+          "locality": "",
+          "address": "ул. Крупской, 5",
+          "participants": "JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYARM, MODEEBLP, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE",
+          "price": "",
+          "age": "",
+          "program": "",
+          "tags": [
+            "[\"rave\"]"
+          ],
+          "recognizedText": "START 22:00  \n05.12.2026  \nNONAME RAVE  \nX  \nVRN PROD  \nJILIX | ISCRIM | MORENA | SIMDC  \nNUMBACK | POLYARM | MODEEBLP | SEKTA  \nANDROBEATS | WHITE MASS | ANTIPOZITIVE  \nFRAMASOUND | ARCTYQUE | BLANSHE  \nКлуб «100 Ручьёв»  \nВоронеж, ул. Крупской, 5  \nКупить билеты  \n18+",
+          "scheduleKind": "single_event",
+          "scheduleEvidence": "«NONAME RAVE», «05.12.2026», «START 22:00»",
+          "dateProgramBindings": [
+            {
+              "dateText": "05.12.2026",
+              "title": "NONAME RAVE",
+              "participants": "JILIX | ISCRIM | MORENA | SIMDC | NUMBACK | POLYARM | MODEEBLP | SEKTA | ANDROBEATS | WHITE MASS | ANTIPOZITIVE | FRAMASOUND | ARCTYQUE | BLANSHE",
+              "program": "",
+              "evidence": "05.12.2026 / START 22:00 / NONAME RAVE / JILIX | ISCRIM | MORENA | SIMDC / NUMBACK | POLYARM | MODEEBLP | SEKTA / ANDROBEATS | WHITE MASS | ANTIPOZITIVE / FRAMASOUND | ARCTYQUE | BLANSHE"
+            }
+          ],
+          "reason": "На изображении явно указаны название события, дата, время, место проведения и состав участников.",
+          "imagePath": "telegram_announcements/nnrravew/526-1.jpg",
+          "imageFilename": "526-1.jpg",
+          "imageSha256": "e7837f7a1a171ba0e83545009ff18bdffbd54f4eed6468c6f5a0ff43067da2c5"
+        }
+      ],
+      "imageVisionFacts": [
+        {
+          "index": 1,
+          "text": "Это афиша события: да  \nТип изображения: poster  \nУверенность афиши: 99  \nЧитаемость текста: 93  \nНазвание: NONAME RAVE  \nДата: 05.12.2026  \nВремя: 22:00  \nМесто: клуб «100 Ручьёв»  \nГород: Воронеж  \nАдрес: ул. Крупской, 5  \nУчастники: JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYARM, MODEEBLP, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE  \nЦена:  \nПрограмма:  \nСтруктура расписания: single_event  \nОснование расписания: «NONAME RAVE», «05.12.2026», «START 22:00»  \nСвязи дат и программ: [{\"dateText\":\"05.12.2026\",\"title\":\"NONAME RAVE\",\"participants\":\"JILIX | ISCRIM | MORENA | SIMDC | NUMBACK | POLYARM | MODEEBLP | SEKTA | ANDROBEATS | WHITE MASS | ANTIPOZITIVE | FRAMASOUND | ARCTYQUE | BLANSHE\",\"program\":\"\",\"evidence\":\"05.12.2026 / START 22:00 / NONAME RAVE / JILIX | ISCRIM | MORENA | SIMDC / NUMBACK | POLYARM | MODEEBLP | SEKTA / ANDROBEATS | WHITE MASS | ANTIPOZITIVE / FRAMASOUND | ARCTYQUE | BLANSHE\"}]  \nРаспознанный текст:  \nSTART 22:00  \n05.12.2026  \nNONAME RAVE  \nX  \nVRN PROD  \nJILIX | ISCRIM | MORENA | SIMDC  \nNUMBACK | POLYARM | MODEEBLP | SEKTA  \nANDROBEATS | WHITE MASS | ANTIPOZITIVE  \nFRAMASOUND | ARCTYQUE | BLANSHE  \nКлуб «100 Ручьёв»  \nВоронеж, ул. Крупской, 5  \nКупить билеты  \n18+  \nПричина: На изображении явно указаны название события, дата, время, место проведения и состав участников.  \ntags: [\"rave\"]",
+          "visionStatus": "metadata_found",
+          "visionInspected": true,
+          "visionError": false,
+          "imageType": "poster",
+          "poster": true,
+          "posterConfidence": 99,
+          "textReadability": 93,
+          "title": "NONAME RAVE",
+          "dates": "05.12.2026",
+          "time": "22:00",
+          "startTime": "22:00",
+          "endTime": "",
+          "venue": "клуб «100 Ручьёв»",
+          "city": "Воронеж",
+          "locality": "",
+          "address": "ул. Крупской, 5",
+          "participants": "JILIX, ISCRIM, MORENA, SIMDC, NUMBACK, POLYARM, MODEEBLP, SEKTA, ANDROBEATS, WHITE MASS, ANTIPOZITIVE, FRAMASOUND, ARCTYQUE, BLANSHE",
+          "price": "",
+          "age": "",
+          "program": "",
+          "tags": [
+            "[\"rave\"]"
+          ],
+          "recognizedText": "START 22:00  \n05.12.2026  \nNONAME RAVE  \nX  \nVRN PROD  \nJILIX | ISCRIM | MORENA | SIMDC  \nNUMBACK | POLYARM | MODEEBLP | SEKTA  \nANDROBEATS | WHITE MASS | ANTIPOZITIVE  \nFRAMASOUND | ARCTYQUE | BLANSHE  \nКлуб «100 Ручьёв»  \nВоронеж, ул. Крупской, 5  \nКупить билеты  \n18+",
+          "scheduleKind": "single_event",
+          "scheduleEvidence": "«NONAME RAVE», «05.12.2026», «START 22:00»",
+          "dateProgramBindings": [
+            {
+              "dateText": "05.12.2026",
+              "title": "NONAME RAVE",
+              "participants": "JILIX | ISCRIM | MORENA | SIMDC | NUMBACK | POLYARM | MODEEBLP | SEKTA | ANDROBEATS | WHITE MASS | ANTIPOZITIVE | FRAMASOUND | ARCTYQUE | BLANSHE",
+              "program": "",
+              "evidence": "05.12.2026 / START 22:00 / NONAME RAVE / JILIX | ISCRIM | MORENA | SIMDC / NUMBACK | POLYARM | MODEEBLP | SEKTA / ANDROBEATS | WHITE MASS | ANTIPOZITIVE / FRAMASOUND | ARCTYQUE | BLANSHE"
+            }
+          ],
+          "reason": "На изображении явно указаны название события, дата, время, место проведения и состав участников.",
+          "imagePath": "telegram_announcements/nnrravew/526-1.jpg",
+          "imageFilename": "526-1.jpg",
+          "imageSha256": "e7837f7a1a171ba0e83545009ff18bdffbd54f4eed6468c6f5a0ff43067da2c5"
+        }
+      ],
+      "posterImageIndex": 1,
+      "posterMatchStatus": "verified_title_date_poster",
+      "posterMatchReason": "archived-source-image-verified"
+    },
+    {
+      "sourceType": "telegram",
+      "channel": "nnrravew",
+      "messageId": 536,
+      "sourceUrl": "https://t.me/nnrravew/536",
+      "canonicalPostUrl": "https://t.me/nnrravew/536",
+      "sourceItemId": "telegram:nnrravew:536",
+      "sourceMessageId": 536,
+      "canonicalOrigin": "telegram-post",
+      "title": "NO NAME RAVE x Vrn Prod",
+      "eventDate": "2026-12-05",
+      "eventTime": "22:00",
+      "venue": "Клуб «100 Ручьев»",
+      "participants": "Polyharm",
+      "sourceText": "🔥 Сегодня начинаем знакомить вас с артистами, которые выступят для вас 05.12 на NO NAME RAVE x Vrn Prod🔥\n\nPolyharm - молодая кровь русского хардкора. Начал свой путь недавно, но уже активно выступает на Moscow Madness и других московских рейвах.\n\n05.12 сыграет для вас мощный сет uptempo. В нем не будет времени для передышки. Только драйв, бешеный ритм и дикая энергия!\n\n🎫 Купить билет по выгодной цене\n\n❗️18+ FC/DC ❗️\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n75\n5🤡1",
+      "description": "🔥 Сегодня начинаем знакомить вас с артистами, которые выступят для вас 05.12 на NO NAME RAVE x Vrn Prod🔥\n\nPolyharm - молодая кровь русского хардкора. Начал свой путь недавно, но уже активно выступает на Moscow Madness и других московских рейвах.\n\n05.12 сыграет для вас мощный сет uptempo. В нем не будет времени для передышки. Только драйв, бешеный ритм и дикая энергия!\n\n🎫 Купить билет по выгодной цене\n\n❗️18+ FC/DC ❗️\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n75\n5🤡1",
+      "sourceSegment": "🔥 Сегодня начинаем знакомить вас с артистами, которые выступят для вас 05.12 на NO NAME RAVE x Vrn Prod🔥\n\nPolyharm - молодая кровь русского хардкора. Начал свой путь недавно, но уже активно выступает на Moscow Madness и других московских рейвах.\n\n05.12 сыграет для вас мощный сет uptempo. В нем не будет времени для передышки. Только драйв, бешеный ритм и дикая энергия!\n\n🎫 Купить билет по выгодной цене\n\n❗️18+ FC/DC ❗️\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n75\n5🤡1",
+      "isMultiAnnouncement": false,
+      "structureDecision": "single_event",
+      "imagePaths": [
+        "telegram_announcements/nnrravew/536-1.jpg"
+      ],
+      "sourceImagePaths": [
+        "telegram_announcements/nnrravew/536-1.jpg"
+      ],
+      "posterVisionFacts": [
+        {
+          "index": 1,
+          "text": "Тип изображения: poster\nЭто афиша события: да\nУверенность афиши: 99\nЧитаемость текста: 95\nНазвание: NO NAME RAVE x Vrn Prod\nДата: 05.12.2026\nВремя: 22:00\nНачало: 22:00\nОкончание:\nМесто: Клуб «100 Ручьев»\nГород: Воронеж\nНаселенный пункт: Воронеж\nАдрес: ул. Кирова, 5\nУчастники: Polyharm\nЦена:\nВозраст: 18+\nПрограмма: uptempo\nТеги: [\"rave\", \"hardcore\"]\nСтруктура расписания: single_event\nОснование расписания: «05.12.2026»; «POLYHARM»; «[uptempo]»; «NO NAME RAVE x VRN PROD»\nСвязи дат и программ: [{\"dateText\":\"05.12.2026\",\"title\":\"NO NAME RAVE x Vrn Prod\",\"participants\":\"Polyharm\",\"program\":\"uptempo\",\"evidence\":\"05.12.2026 / POLYHARM / [uptempo] / NO NAME RAVE x VRN PROD\"}]\nРаспознанный текст:\nSTART 22:00\n\n05.12.2026\n\n[логотип]\n\nPOLYHARM\n\n[uptempo]\n\nNO NAME RAVE\nX\nVRN PROD\n\nКлуб \"100 Ручьев\"\nВоронеж, ул. Кирова, 5\n\n18+\n\nКУПИТЬ БИЛЕТЫ\n\n@VRNPROD36\n@NRRAVE\nПричина: На изображении явно указаны название события, дата, время начала, участник, программа, место, адрес и возрастное ограничение.",
+          "visionStatus": "metadata_found",
+          "visionInspected": true,
+          "visionError": false,
+          "imageType": "poster",
+          "poster": true,
+          "posterConfidence": 99,
+          "textReadability": 95,
+          "title": "NO NAME RAVE x Vrn Prod",
+          "dates": "05.12.2026",
+          "time": "22:00",
+          "startTime": "22:00",
+          "endTime": "",
+          "venue": "Клуб «100 Ручьев»",
+          "city": "Воронеж",
+          "locality": "Воронеж",
+          "address": "ул. Кирова, 5",
+          "participants": "Polyharm",
+          "price": "",
+          "age": "18+",
+          "program": "uptempo",
+          "tags": [
+            "[\"rave\"",
+            "\"hardcore\"]"
+          ],
+          "recognizedText": "START 22:00\n\n05.12.2026\n\n[логотип]\n\nPOLYHARM\n\n[uptempo]\n\nNO NAME RAVE\nX\nVRN PROD\n\nКлуб \"100 Ручьев\"\nВоронеж, ул. Кирова, 5\n\n18+\n\nКУПИТЬ БИЛЕТЫ\n\n@VRNPROD36\n@NRRAVE",
+          "scheduleKind": "single_event",
+          "scheduleEvidence": "«05.12.2026»; «POLYHARM»; «[uptempo]»; «NO NAME RAVE x VRN PROD»",
+          "dateProgramBindings": [
+            {
+              "dateText": "05.12.2026",
+              "title": "NO NAME RAVE x Vrn Prod",
+              "participants": "Polyharm",
+              "program": "uptempo",
+              "evidence": "05.12.2026 / POLYHARM / [uptempo] / NO NAME RAVE x VRN PROD"
+            }
+          ],
+          "reason": "На изображении явно указаны название события, дата, время начала, участник, программа, место, адрес и возрастное ограничение.",
+          "imagePath": "telegram_announcements/nnrravew/536-1.jpg",
+          "imageFilename": "536-1.jpg",
+          "imageSha256": "fce2ef50818566f52baf69e68b3e242b0f4681c686ce8c9e7101dd59d29c3f05"
+        }
+      ],
+      "imageVisionFacts": [
+        {
+          "index": 1,
+          "text": "Тип изображения: poster\nЭто афиша события: да\nУверенность афиши: 99\nЧитаемость текста: 95\nНазвание: NO NAME RAVE x Vrn Prod\nДата: 05.12.2026\nВремя: 22:00\nНачало: 22:00\nОкончание:\nМесто: Клуб «100 Ручьев»\nГород: Воронеж\nНаселенный пункт: Воронеж\nАдрес: ул. Кирова, 5\nУчастники: Polyharm\nЦена:\nВозраст: 18+\nПрограмма: uptempo\nТеги: [\"rave\", \"hardcore\"]\nСтруктура расписания: single_event\nОснование расписания: «05.12.2026»; «POLYHARM»; «[uptempo]»; «NO NAME RAVE x VRN PROD»\nСвязи дат и программ: [{\"dateText\":\"05.12.2026\",\"title\":\"NO NAME RAVE x Vrn Prod\",\"participants\":\"Polyharm\",\"program\":\"uptempo\",\"evidence\":\"05.12.2026 / POLYHARM / [uptempo] / NO NAME RAVE x VRN PROD\"}]\nРаспознанный текст:\nSTART 22:00\n\n05.12.2026\n\n[логотип]\n\nPOLYHARM\n\n[uptempo]\n\nNO NAME RAVE\nX\nVRN PROD\n\nКлуб \"100 Ручьев\"\nВоронеж, ул. Кирова, 5\n\n18+\n\nКУПИТЬ БИЛЕТЫ\n\n@VRNPROD36\n@NRRAVE\nПричина: На изображении явно указаны название события, дата, время начала, участник, программа, место, адрес и возрастное ограничение.",
+          "visionStatus": "metadata_found",
+          "visionInspected": true,
+          "visionError": false,
+          "imageType": "poster",
+          "poster": true,
+          "posterConfidence": 99,
+          "textReadability": 95,
+          "title": "NO NAME RAVE x Vrn Prod",
+          "dates": "05.12.2026",
+          "time": "22:00",
+          "startTime": "22:00",
+          "endTime": "",
+          "venue": "Клуб «100 Ручьев»",
+          "city": "Воронеж",
+          "locality": "Воронеж",
+          "address": "ул. Кирова, 5",
+          "participants": "Polyharm",
+          "price": "",
+          "age": "18+",
+          "program": "uptempo",
+          "tags": [
+            "[\"rave\"",
+            "\"hardcore\"]"
+          ],
+          "recognizedText": "START 22:00\n\n05.12.2026\n\n[логотип]\n\nPOLYHARM\n\n[uptempo]\n\nNO NAME RAVE\nX\nVRN PROD\n\nКлуб \"100 Ручьев\"\nВоронеж, ул. Кирова, 5\n\n18+\n\nКУПИТЬ БИЛЕТЫ\n\n@VRNPROD36\n@NRRAVE",
+          "scheduleKind": "single_event",
+          "scheduleEvidence": "«05.12.2026»; «POLYHARM»; «[uptempo]»; «NO NAME RAVE x VRN PROD»",
+          "dateProgramBindings": [
+            {
+              "dateText": "05.12.2026",
+              "title": "NO NAME RAVE x Vrn Prod",
+              "participants": "Polyharm",
+              "program": "uptempo",
+              "evidence": "05.12.2026 / POLYHARM / [uptempo] / NO NAME RAVE x VRN PROD"
+            }
+          ],
+          "reason": "На изображении явно указаны название события, дата, время начала, участник, программа, место, адрес и возрастное ограничение.",
+          "imagePath": "telegram_announcements/nnrravew/536-1.jpg",
+          "imageFilename": "536-1.jpg",
+          "imageSha256": "fce2ef50818566f52baf69e68b3e242b0f4681c686ce8c9e7101dd59d29c3f05"
+        }
+      ],
+      "posterImageIndex": 1,
+      "posterMatchStatus": "verified_title_date_poster",
+      "posterMatchReason": "archived-source-image-verified"
+    },
+    {
+      "sourceType": "telegram",
+      "channel": "nnrravew",
+      "messageId": 537,
+      "sourceUrl": "https://t.me/nnrravew/537",
+      "canonicalPostUrl": "https://t.me/nnrravew/537",
+      "sourceItemId": "telegram:nnrravew:537",
+      "sourceMessageId": 537,
+      "canonicalOrigin": "telegram-post",
+      "title": "NO NAME RAVE",
+      "eventDate": "2026-12-05",
+      "eventTime": "22:00",
+      "venue": "Клуб «100 Ручьёв»",
+      "participants": "MORENA",
+      "sourceText": "🔥 MORENA 🔥\n\nАртистка из Москвы. Одна из организаторов NNR,\nРаботает в разных жанрах электронной музыки.\nЕе творчество проходит через призму личного безумия. Эта девушка сначала заворожит тебя своим голосом, а потом, ты не заметишь, как твои ноги топчат центр танцпола.\n\n06.15 на NO NAME RAVE х Vrn Prod исполнит для вас live сет от итало диско до хардстайла!\n\nУспей купить билет по выгодной цене, чтобы не пропустить эту ночь! 👇\n\n🎫 Купить билеты\n\n❗️ 18+ FC/DC ❗️\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n7🤡44\n21",
+      "description": "🔥 MORENA 🔥\n\nАртистка из Москвы. Одна из организаторов NNR,\nРаботает в разных жанрах электронной музыки.\nЕе творчество проходит через призму личного безумия. Эта девушка сначала заворожит тебя своим голосом, а потом, ты не заметишь, как твои ноги топчат центр танцпола.\n\n06.15 на NO NAME RAVE х Vrn Prod исполнит для вас live сет от итало диско до хардстайла!\n\nУспей купить билет по выгодной цене, чтобы не пропустить эту ночь! 👇\n\n🎫 Купить билеты\n\n❗️ 18+ FC/DC ❗️\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n7🤡44\n21",
+      "sourceSegment": "🔥 MORENA 🔥\n\nАртистка из Москвы. Одна из организаторов NNR,\nРаботает в разных жанрах электронной музыки.\nЕе творчество проходит через призму личного безумия. Эта девушка сначала заворожит тебя своим голосом, а потом, ты не заметишь, как твои ноги топчат центр танцпола.\n\n06.15 на NO NAME RAVE х Vrn Prod исполнит для вас live сет от итало диско до хардстайла!\n\nУспей купить билет по выгодной цене, чтобы не пропустить эту ночь! 👇\n\n🎫 Купить билеты\n\n❗️ 18+ FC/DC ❗️\n\nPlease open Telegram to view this post\n\nVIEW IN TELEGRAM\n\n7🤡44\n21",
+      "isMultiAnnouncement": false,
+      "structureDecision": "single_event",
+      "imagePaths": [
+        "telegram_announcements/nnrravew/537-1.jpg"
+      ],
+      "sourceImagePaths": [
+        "telegram_announcements/nnrravew/537-1.jpg"
+      ],
+      "posterVisionFacts": [
+        {
+          "index": 1,
+          "text": "Это афиша события: да  \nТип изображения: poster  \nУверенность афиши: 99  \nЧитаемость текста: 96  \nНазвание: NO NAME RAVE  \nДата: 05.12.2026  \nВремя: 22:00  \nМесто: Клуб «100 Ручьёв»  \nГород: Воронеж  \nАдрес: ул. Кирова, 5  \nУчастники: MORENA  \nЦена: не указана  \nПрограмма: MORENA — live  \nТеги: [\"rave\", \"party\"]  \nСтруктура расписания: single_event  \nОснование расписания: «05.12.2026» — «MORENA» — «(LIVE)» — «START 22:00»  \nСвязи дат и программ: [{\"dateText\":\"05.12.2026\",\"title\":\"NO NAME RAVE\",\"participants\":\"MORENA\",\"program\":\"MORENA — live\",\"evidence\":\"05.12.2026 / MORENA / (LIVE) / START 22:00\"}]  \nРаспознанный текст:  \nSTART 22:00  \n05.12.2026  \n\nMORENA  \n(LIVE)  \n\nNO NAME RAVE  \nX  \nVRNPROD  \n\nКлуб «100 Ручьёв»  \nВоронеж, ул. Кирова, 5  \n\nкупить билеты  \n18+  \n\n@VRNPROD36  \n@NNRAVEW  \nПричина: На изображении явно указаны название события, дата, время, участник, площадка и адрес; присутствуют билетный QR-код и возрастное ограничение 18+.",
+          "visionStatus": "metadata_found",
+          "visionInspected": true,
+          "visionError": false,
+          "imageType": "poster",
+          "poster": true,
+          "posterConfidence": 99,
+          "textReadability": 96,
+          "title": "NO NAME RAVE",
+          "dates": "05.12.2026",
+          "time": "22:00",
+          "startTime": "22:00",
+          "endTime": "",
+          "venue": "Клуб «100 Ручьёв»",
+          "city": "Воронеж",
+          "locality": "",
+          "address": "ул. Кирова, 5",
+          "participants": "MORENA",
+          "price": "не указана",
+          "age": "",
+          "program": "MORENA — live",
+          "tags": [
+            "[\"rave\"",
+            "\"party\"]"
+          ],
+          "recognizedText": "START 22:00  \n05.12.2026  \n\nMORENA  \n(LIVE)  \n\nNO NAME RAVE  \nX  \nVRNPROD  \n\nКлуб «100 Ручьёв»  \nВоронеж, ул. Кирова, 5  \n\nкупить билеты  \n18+  \n\n@VRNPROD36  \n@NNRAVEW",
+          "scheduleKind": "single_event",
+          "scheduleEvidence": "«05.12.2026» — «MORENA» — «(LIVE)» — «START 22:00»",
+          "dateProgramBindings": [
+            {
+              "dateText": "05.12.2026",
+              "title": "NO NAME RAVE",
+              "participants": "MORENA",
+              "program": "MORENA — live",
+              "evidence": "05.12.2026 / MORENA / (LIVE) / START 22:00"
+            }
+          ],
+          "reason": "На изображении явно указаны название события, дата, время, участник, площадка и адрес; присутствуют билетный QR-код и возрастное ограничение 18+.",
+          "imagePath": "telegram_announcements/nnrravew/537-1.jpg",
+          "imageFilename": "537-1.jpg",
+          "imageSha256": "0cf5b85e0a6e98da79aef312b8e9d44c1c0f069d66bd46d8dca88fc5542754e8"
+        }
+      ],
+      "imageVisionFacts": [
+        {
+          "index": 1,
+          "text": "Это афиша события: да  \nТип изображения: poster  \nУверенность афиши: 99  \nЧитаемость текста: 96  \nНазвание: NO NAME RAVE  \nДата: 05.12.2026  \nВремя: 22:00  \nМесто: Клуб «100 Ручьёв»  \nГород: Воронеж  \nАдрес: ул. Кирова, 5  \nУчастники: MORENA  \nЦена: не указана  \nПрограмма: MORENA — live  \nТеги: [\"rave\", \"party\"]  \nСтруктура расписания: single_event  \nОснование расписания: «05.12.2026» — «MORENA» — «(LIVE)» — «START 22:00»  \nСвязи дат и программ: [{\"dateText\":\"05.12.2026\",\"title\":\"NO NAME RAVE\",\"participants\":\"MORENA\",\"program\":\"MORENA — live\",\"evidence\":\"05.12.2026 / MORENA / (LIVE) / START 22:00\"}]  \nРаспознанный текст:  \nSTART 22:00  \n05.12.2026  \n\nMORENA  \n(LIVE)  \n\nNO NAME RAVE  \nX  \nVRNPROD  \n\nКлуб «100 Ручьёв»  \nВоронеж, ул. Кирова, 5  \n\nкупить билеты  \n18+  \n\n@VRNPROD36  \n@NNRAVEW  \nПричина: На изображении явно указаны название события, дата, время, участник, площадка и адрес; присутствуют билетный QR-код и возрастное ограничение 18+.",
+          "visionStatus": "metadata_found",
+          "visionInspected": true,
+          "visionError": false,
+          "imageType": "poster",
+          "poster": true,
+          "posterConfidence": 99,
+          "textReadability": 96,
+          "title": "NO NAME RAVE",
+          "dates": "05.12.2026",
+          "time": "22:00",
+          "startTime": "22:00",
+          "endTime": "",
+          "venue": "Клуб «100 Ручьёв»",
+          "city": "Воронеж",
+          "locality": "",
+          "address": "ул. Кирова, 5",
+          "participants": "MORENA",
+          "price": "не указана",
+          "age": "",
+          "program": "MORENA — live",
+          "tags": [
+            "[\"rave\"",
+            "\"party\"]"
+          ],
+          "recognizedText": "START 22:00  \n05.12.2026  \n\nMORENA  \n(LIVE)  \n\nNO NAME RAVE  \nX  \nVRNPROD  \n\nКлуб «100 Ручьёв»  \nВоронеж, ул. Кирова, 5  \n\nкупить билеты  \n18+  \n\n@VRNPROD36  \n@NNRAVEW",
+          "scheduleKind": "single_event",
+          "scheduleEvidence": "«05.12.2026» — «MORENA» — «(LIVE)» — «START 22:00»",
+          "dateProgramBindings": [
+            {
+              "dateText": "05.12.2026",
+              "title": "NO NAME RAVE",
+              "participants": "MORENA",
+              "program": "MORENA — live",
+              "evidence": "05.12.2026 / MORENA / (LIVE) / START 22:00"
+            }
+          ],
+          "reason": "На изображении явно указаны название события, дата, время, участник, площадка и адрес; присутствуют билетный QR-код и возрастное ограничение 18+.",
+          "imagePath": "telegram_announcements/nnrravew/537-1.jpg",
+          "imageFilename": "537-1.jpg",
+          "imageSha256": "0cf5b85e0a6e98da79aef312b8e9d44c1c0f069d66bd46d8dca88fc5542754e8"
+        }
+      ],
+      "posterImageIndex": 1,
+      "posterMatchStatus": "verified_title_date_poster",
+      "posterMatchReason": "archived-source-image-verified"
+    }
+  ]
+}

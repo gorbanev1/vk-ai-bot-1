@@ -1,3 +1,4 @@
+import { normalizePosterScheduleKind, normalizeDateProgramBindings } from './posterScheduleEvidence.js';
 /**
  * Deterministic, auditable poster-to-event matching.
  *
@@ -17,7 +18,7 @@ function normalizeImageMatchText(value) {
         .normalize('NFKC')
         .toLowerCase()
         .replace(/ё/gu, 'е')
-        .replace(/[^a-zа-я0-9]+/giu, ' ')
+        .replace(/[^a-zа-я0-9$]+/giu, ' ')
         .replace(/\s+/gu, ' ')
         .trim();
 }
@@ -55,13 +56,25 @@ const MONTHS = new Map([
 function imageMatchTokens(value) {
     return normalizeImageMatchText(value)
         .split(' ')
-        .filter((token) => token.length >= 3 && !/^\d+$/u.test(token) && !WEAK_IDENTITY_TOKENS.has(token));
+        .filter((token) => token.length >= 3 && !/^\d+$/u.test(token) && /[a-zа-я0-9]/iu.test(token) && !WEAK_IDENTITY_TOKENS.has(token));
 }
 
 function readFactField(text, names) {
     const escaped = names.map((name) => String(name).replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')).join('|');
     const match = String(text ?? '').match(new RegExp(`(?:^|[\\n;])[ \\t]*(?:${escaped})[ \\t]*:[ \\t]*([^\\r\\n]*?)(?=;[ \\t]*[\\p{L} -]+:|\\r?\\n|$)`, 'iu'));
     return String(match?.[1] ?? '').trim();
+}
+
+// OCR and the JSON bindings may span several lines. readFactField is for
+// scalar metadata and would discard every line after the first calendar row.
+function readPosterOcr(text) {
+    const match = String(text || '').match(/(?:^|[\n;])[ \t]*(?:Распознанный текст|OCR|Текст на изображении)[ \t]*:[ \t]*([\s\S]*?)(?=(?:[\n;][ \t]*(?:Причина|Почему|Reason|Структура расписания|Основание расписания|Связи дат и программ|Теги|Tags)[ \t]*:)|$)/iu);
+    return String(match?.[1] || '').trim();
+}
+function readDateProgramBindings(text) {
+    const match = String(text || '').match(/(?:^|\n)[ \t]*Связи дат и программ[ \t]*:[ \t]*([\s\S]*?)(?=\r?\n[ \t]*(?:Распознанный текст|OCR|Причина|Структура расписания|Основание расписания|Теги)[ \t]*:|$)/iu);
+    if (!match) return [];
+    try { return normalizeDateProgramBindings(JSON.parse(match[1].trim())); } catch { return []; }
 }
 
 function readPercentField(text, names) {
@@ -72,7 +85,7 @@ function readPercentField(text, names) {
 
 function readTagFactField(text) {
     const match = String(text ?? '').match(
-        /(?:^|[\n;])[ \t]*(?:Теги|Жанры|Tags)[ \t]*:[ \t]*([\s\S]*?)(?=(?:[\n;][ \t]*(?:Распознанный текст|OCR|Текст на изображении|Причина|Почему|Reason)[ \t]*:)|$)/iu,
+        /(?:^|[\n;])[ \t]*(?:Теги|Жанры|Tags)[ \t]*:[ \t]*([\s\S]*?)(?=(?:[\n;][ \t]*(?:Распознанный текст|OCR|Текст на изображении|Причина|Почему|Reason|Структура расписания|Основание расписания|Связи дат и программ)[ \t]*:)|$)/iu,
     );
     return String(match?.[1] ?? '').trim();
 }
@@ -84,6 +97,8 @@ function inferPosterFlag(posterRaw, imageType) {
     if (POSTER_TYPES.test(imageType)) return true;
     return null;
 }
+
+import { normalizePosterRole, posterPresentationRank, parsePosterContextCorrections } from './eventPosterRole.js';
 
 export function parseIndexedImageFacts(imageFacts) {
     const text = String(imageFacts ?? '');
@@ -105,7 +120,7 @@ export function parseIndexedImageFacts(imageFacts) {
             readFactField(blockText, ['Программа', 'Program']),
             readFactField(blockText, ['Адрес', 'Address']),
             readFactField(blockText, ['Город', 'City'])];
-        const recognizedText = readFactField(blockText, ['Распознанный текст', 'OCR', 'Текст на изображении']);
+        const recognizedText = readPosterOcr(blockText);
         const genericNoText = /^(?:текст на изображении отсутствует|нет текста|no text)(?:[.;, ]|$)/iu.test(recognizedText);
         const hasMetadata = metadataFields.some((value) => String(value ?? '').trim()) ||
             (String(recognizedText || '').trim().length >= 16 && !genericNoText);
@@ -143,7 +158,16 @@ export function parseIndexedImageFacts(imageFacts) {
             program: readFactField(blockText, ['Программа', 'Program']),
             tags: readTagFactField(blockText)
                 .split(/[,;|]/u).map((value) => value.trim()).filter(Boolean).slice(0, 16),
-            recognizedText: readFactField(blockText, ['Распознанный текст', 'OCR', 'Текст на изображении']),
+            posterContextHash: readFactField(blockText, ['Контекст поста SHA256']),
+            posterRole: normalizePosterRole(readFactField(blockText, ['Роль афиши'])),
+            posterRoleImageEvidence: readFactField(blockText, ['Основание роли на изображении']),
+            posterRoleTextEvidence: readFactField(blockText, ['Основание роли в тексте']),
+            programCompleteness: readFactField(blockText, ['Полнота программы']),
+            contextCorrections: parsePosterContextCorrections(readFactField(blockText, ['Уточнения по тексту'])),
+            recognizedText: readPosterOcr(blockText),
+            scheduleKind: normalizePosterScheduleKind(readFactField(blockText, ['Структура расписания'])),
+            scheduleEvidence: readFactField(blockText, ['Основание расписания']),
+            dateProgramBindings: readDateProgramBindings(blockText),
             reason: readFactField(blockText, ['Причина', 'Почему', 'Reason']),
         };
     }).filter((item) => Number.isInteger(item.index) && item.index > 0 && item.text);
@@ -162,7 +186,13 @@ export function serializeIndexedImageFacts(facts) {
             if (!Number.isInteger(index) || index <= 0 || !rawBody) return '';
             // Normalize a legacy body that may already contain a stale marker;
             // one canonical marker per fact keeps reparsing deterministic.
-            const body = rawBody.replace(/^\s*\[IMAGE\s+\d+\]\s*/iu, '').trim();
+            let body = rawBody.replace(/^\s*\[IMAGE\s+\d+\]\s*/iu, '').trim();
+            if (fact.posterRole && fact.posterRole !== 'uncertain' && !/^Роль афиши:/imu.test(body)) {
+                body = ['Роль афиши: ' + normalizePosterRole(fact.posterRole),
+                    'Основание роли на изображении: ' + String(fact.posterRoleImageEvidence || ''),
+                    'Основание роли в тексте: ' + String(fact.posterRoleTextEvidence || ''),
+                    'Полнота программы: ' + String(fact.programCompleteness || 'unknown'), body].join('\n');
+            }
             return body ? '[IMAGE ' + index + ']\n' + body : '';
         })
         .filter(Boolean)
@@ -187,6 +217,21 @@ export function extractPosterDateKeys(value) {
         const month = MONTHS.get(String(match[2]).toLowerCase());
         const key = dateKey(match[1], month);
         if (key) result.add(key);
+    }
+    // A shared month applies to the entire explicit day range, including
+    // the first day: "30–31 октября" must bind both October 30 and 31.
+    const words = [...MONTHS.keys()].filter((word) => !/^\d+$/u.test(word))
+        .sort((a, b) => b.length - a.length).join('|');
+    const ranges = new RegExp(`(?<![\\p{L}\\p{N}])(?:с\\s+)?([0-3]?\\d)\\s*(?:[–—-]|по)\\s*([0-3]?\\d)\\s+(${words})(?![\\p{L}\\p{N}])`, 'giu');
+    for (const match of source.matchAll(ranges)) {
+        const first = Number(match[1]), last = Number(match[2]);
+        const month = MONTHS.get(match[3].toLowerCase());
+        if (first < 1 || last > 31 || first > last) continue;
+        for (let day = first; day <= last; day += 1) {
+            if (new Date(Date.UTC(2000, month - 1, day)).getUTCMonth() !== month - 1) continue;
+            const key = dateKey(day, month);
+            if (key) result.add(key);
+        }
     }
     return [...result];
 }
@@ -232,6 +277,29 @@ function posterIdentityAudit(event, block) {
     return { titleTokens, participantTokens, titleHits, participantHits, identityHits, venueHits, titleCoverage, eventIdentitySize, enoughTitle };
 }
 
+// Calendar metadata from a joint text+image gate can accidentally repeat
+// dates/artists from the post. The image's own month and dated OCR blocks win.
+function posterCalendarEvidence(event, block) {
+    const ocr = String(block.recognizedText || readPosterOcr(block.text));
+    const words = [...MONTHS.keys()].filter(word => !/^\d+$/u.test(word)).sort((a,b)=>b.length-a.length).join('|');
+    const heading = ocr.match(new RegExp('(?:афиша|расписание|программа)[^\\n]{0,100}?(?:на|в)\\s+(' + words + ')(?![\\p{L}])', 'iu'));
+    if (!heading) return null;
+    const headingLine = ocr.slice(heading.index).split('\n')[0];
+    const namedMonths = new Set([...headingLine.matchAll(new RegExp('(?<![\\p{L}])(' + words + ')(?![\\p{L}])', 'giu'))].map(match => MONTHS.get(match[1].toLowerCase())));
+    if (namedMonths.size !== 1) return null; // cross-month calendars need their explicit bindings
+    const month = MONTHS.get(heading[1].toLowerCase());
+    const wanted = eventDateKey(event?.eventDate ?? event?.date);
+    if (!wanted) return null;
+    const wantedMonth = Number(wanted.slice(3)), wantedDay = Number(wanted.slice(0,2));
+    if (wantedMonth !== month) return { matched: false, reason: 'poster-calendar-month-conflict' };
+    const days = [...ocr.matchAll(new RegExp('^[ \\t]*([0-3]?\\d)[ \\t]+(?:понедельник|вторник|среда|четверг|пятница|суббота|воскресенье|' + words + ')(?![\\p{L}])', 'gimu'))];
+    if (!days.length) return null;
+    const sections = days.flatMap((match,index) => Number(match[1]) === wantedDay
+        ? [ocr.slice(match.index, days[index+1]?.index ?? ocr.length)] : []);
+    if (!sections.length) return { matched: false, reason: 'poster-calendar-day-missing' };
+    return { matched: true, text: sections.join('\n'), date: wanted };
+}
+
 export function evaluatePosterFactForEvent(event, block) {
     if (!block) return { accepted: false, score: -1000, reason: 'missing-facts', dateMatched: false };
     if (block.poster !== true) {
@@ -247,6 +315,21 @@ export function evaluatePosterFactForEvent(event, block) {
     }
     if (Number.isFinite(block.posterConfidence) && block.posterConfidence < 55) {
         return { accepted: false, score: -200, reason: 'poster-confidence-too-low', dateMatched: false };
+    }
+    const calendar = posterCalendarEvidence(event, block);
+    if (calendar && !calendar.matched) return { accepted: false, score: 0, reason: calendar.reason, dateMatched: false };
+    if (calendar?.matched) {
+        const scoped = posterIdentityAudit(event, { title: calendar.text, venue: block.venue });
+        if (scoped.enoughTitle || scoped.identityHits.length >= 2 || (scoped.identityHits.length === 1 && scoped.eventIdentitySize <= 2)) {
+            return { accepted: true, score: 220 + scoped.identityHits.length * 22, reason: 'calendar-date+program', dateMatched: true, ...scoped, posterDates: [calendar.date] };
+        }
+        // A headline may precede its date (birthday layout). A scalar date/title
+        // can still identify that block; a pooled participant list cannot.
+        const scalarDates = extractPosterDateKeys(block.dates);
+        const headline = posterIdentityAudit(event, { title: block.title });
+        if (!(scalarDates.length === 1 && scalarDates[0] === calendar.date && headline.enoughTitle)) {
+            return { accepted: false, score: 0, reason: 'calendar-date-program-mismatch', dateMatched: true, ...scoped };
+        }
     }
     // Phase two creates the card from this very poster. Comparing the newly
     // composed title/date back to OCR or unrelated body text is a second gate
@@ -342,6 +425,7 @@ export function selectBestCompatiblePosterFact(event, facts, { preferredIndex = 
         .map((fact) => ({ fact, match: evaluatePosterFactForEvent(event, fact) }))
         .filter((item) => item.match.accepted)
         .sort((left, right) => (
+            Number(posterPresentationRank(right.fact) === 1) - Number(posterPresentationRank(left.fact) === 1) ||
             Number(Number(right.fact?.index || 0) === Number(preferredIndex || 0)) - Number(Number(left.fact?.index || 0) === Number(preferredIndex || 0)) ||
             right.match.score - left.match.score ||
             Number(right.fact?.posterConfidence || 0) - Number(left.fact?.posterConfidence || 0) ||
@@ -355,7 +439,8 @@ export function selectBestCompatiblePosterFact(event, facts, { preferredIndex = 
     const strongIdentityLead = Number(best.match?.titleHits?.length || 0) > Number(second?.match?.titleHits?.length || 0) ||
         Number(best.match?.identityHits?.length || 0) > Number(second?.match?.identityHits?.length || 0);
     const scoreLead = second ? best.match.score - second.match.score : 999;
-    const ambiguous = Boolean(second && !preferredWins && !strongIdentityLead && scoreLead < 18);
+    const roleLead = second && posterPresentationRank(best.fact) === 1 && posterPresentationRank(second.fact) !== 1;
+    const ambiguous = Boolean(second && !roleLead && !preferredWins && !strongIdentityLead && scoreLead < 18);
     return {
         ...best,
         ambiguous,
@@ -458,16 +543,23 @@ export function assignEventImageIndexesFromParsedFacts(events, parsedFacts, { on
 }
 
 export function applyPosterDerivedVenueFallback(events) {
+    // A bare Vision/template field label such as "Город:" must not become
+    // the event venue. Keep an actual venue name (including "Город..." names).
+    const genericVenueLabel = /^(?:город|место|адрес|локация|площадка|venue|city|не указано|место не указано)$/iu;
     return (Array.isArray(events) ? events : []).map((event) => {
         const currentVenue = String(event?.venue ?? '').trim();
-        if (currentVenue && currentVenue !== 'место не указано') {
+        if (currentVenue && !genericVenueLabel.test(currentVenue)) {
             return { ...event, venue: currentVenue, venueSource: String(event?.venueSource || 'structured-or-text') };
         }
         const selectedIndex = Number(event?.posterImageIndex || 0);
         const blocks = Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : [];
-        const selected = blocks.find((block) => Number(block?.index || 0) === selectedIndex);
+        // A source can have several Vision passes for the same image index.
+        // Prefer the first concrete venue, not an earlier empty pass.
+        const selected = blocks.find((block) => Number(block?.index || 0) === selectedIndex &&
+            String(block?.venue ?? '').trim() &&
+            !genericVenueLabel.test(String(block?.venue ?? '').trim()));
         const posterVenue = String(selected?.venue ?? '').trim();
         if (posterVenue) return { ...event, venue: posterVenue, venueSource: 'poster' };
-        return { ...event, venue: currentVenue, venueSource: String(event?.venueSource || '') };
+        return { ...event, venue: '', venueSource: String(event?.venueSource || '') };
     });
 }

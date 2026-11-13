@@ -1,3 +1,8 @@
+import {appendDurableJournalAsync} from './durableJournalQueue.js';
+import {measureSynchronousStage} from '../../runtime/eventLoopResponsiveness.js';
+import {loadVkCrossChatMiniDossier} from '../../features/personality/crossChatMiniDossier.js';
+import { createParserPosterRetryStore, MISSING_POSTER_RETRY } from './parserPosterRetry.js';
+import { getSharedEventSchedule, normalizeEventSchedule, validateSharedEventSchedule, validateTheaterRepertoireSchedule, eventScheduleMatchesRange, sharedEventDateLabel } from '../../features/events/sharedEventSchedule.js';
 import { storedEventDateSupported } from '../../features/events/dateFreeEventEvidence.js';
 import { extractExplicitDates } from '../../features/events/publicPostDateEvidence.js';
 /**
@@ -15,9 +20,11 @@ import { DatabaseSync } from 'node:sqlite';
 import { createHash } from 'node:crypto';
 import { createVoiceTranscriptJobStore } from './voiceTranscriptJobs.js';
 import { createVkInactivityQueries } from './vkInactivityQueries.js';
+import { createRecoveredVkMessageBatchWriter } from '../../features/history/recoveredVkMessageBatch.js';
 
 import {
     createAutoSummaryStateStore,
+    ensureAutoSummaryCustomModeSchema,
 } from './autoSummaryStateStore.js';
 import {
     extractExplicitDateMentions,
@@ -233,7 +240,7 @@ database.exec(`
         platform TEXT NOT NULL DEFAULT 'vk',
         endpoint_key TEXT NOT NULL DEFAULT 'vk:primary',
         external_peer_id TEXT NOT NULL DEFAULT '',
-        mode TEXT NOT NULL DEFAULT 'full' CHECK (mode IN ('full', 'day', 'evening')),
+        mode TEXT NOT NULL DEFAULT 'full' CHECK (mode IN ('full', 'day', 'evening', 'custom')),
         enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
         next_run_at INTEGER NOT NULL DEFAULT 0,
         updated_by INTEGER NOT NULL DEFAULT 0,
@@ -778,8 +785,11 @@ qticketsDatabase.exec(`
         updated_at INTEGER NOT NULL
     );
 
+    -- Keep the bootstrap index compatible with QTickets databases created by
+    -- releases before event_end_date was introduced. The column migration
+    -- below runs immediately after this block and rebuilds the full index.
     CREATE INDEX IF NOT EXISTS qtickets_events_date_idx
-    ON qtickets_events (event_date, event_end_date, event_time, status);
+    ON qtickets_events (event_date, event_time, status);
 
     CREATE INDEX IF NOT EXISTS qtickets_events_listing_idx
     ON qtickets_events (listing_url, status, updated_at);
@@ -792,6 +802,27 @@ qticketsDatabase.exec(`
     );
     CREATE INDEX IF NOT EXISTS qtickets_listing_cards_listing_idx
     ON qtickets_listing_cards (listing_url);
+`);
+
+// QTickets is stored separately from the main bot database. CREATE TABLE IF
+// NOT EXISTS does not add columns to an existing file, so an older
+// qtickets.sqlite could reach event-range queries without event_end_date and
+// fail with `no such column`. Migrate that file before preparing any statements.
+function ensureQticketsTableColumn(tableName, columnName, definition) {
+    const columns = new Set(
+        qticketsDatabase.prepare(`PRAGMA table_info(${tableName})`)
+            .all()
+            .map((row) => String(row.name ?? '')),
+    );
+    if (!columns.has(columnName)) {
+        qticketsDatabase.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
+    }
+}
+ensureQticketsTableColumn('qtickets_events', 'event_end_date', "TEXT NOT NULL DEFAULT ''");
+qticketsDatabase.exec(`
+    DROP INDEX IF EXISTS qtickets_events_date_idx;
+    CREATE INDEX IF NOT EXISTS qtickets_events_date_idx
+    ON qtickets_events (event_date, event_end_date, event_time, status);
 `);
 
 // V188.88: отдельный индекс метаданных агрегированного раздела «Вообще все тусы».
@@ -884,12 +915,13 @@ if (resolve(qticketsDatabasePath) !== resolve(databasePath)) {
  * user-level SQLite database outside the release directory. The legacy tables
  * above remain for backwards compatibility and one-time migration.
  */
+ensureAutoSummaryCustomModeSchema(database);
 const autoSummaryStateStore = createAutoSummaryStateStore();
 
 try {
     const legacySettings = database.prepare(`
         SELECT peer_id, platform, endpoint_key, external_peer_id, mode, enabled,
-               next_run_at, updated_by, updated_at
+               next_run_at, updated_by, updated_at, schedule_json
         FROM auto_summary_settings
     `).all();
     const legacyRuns = database.prepare(`
@@ -1602,8 +1634,8 @@ const getAutoSummarySettingsStatement = database.prepare(`
 const upsertAutoSummarySettingsStatement = database.prepare(`
     INSERT INTO auto_summary_settings (
         peer_id, platform, endpoint_key, external_peer_id, mode, enabled,
-        next_run_at, updated_by, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        next_run_at, updated_by, updated_at, schedule_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(peer_id) DO UPDATE SET
         platform = excluded.platform,
         endpoint_key = excluded.endpoint_key,
@@ -1612,7 +1644,8 @@ const upsertAutoSummarySettingsStatement = database.prepare(`
         enabled = excluded.enabled,
         next_run_at = excluded.next_run_at,
         updated_by = excluded.updated_by,
-        updated_at = excluded.updated_at
+        updated_at = excluded.updated_at,
+        schedule_json = excluded.schedule_json
 `);
 
 const dueAutoSummarySettingsStatement = database.prepare(`
@@ -2033,6 +2066,9 @@ const insertManualEventStatement = database.prepare(`
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
+ensureTableColumn('manual_events', 'event_end_date', "TEXT NOT NULL DEFAULT ''");
+ensureTableColumn('manual_events', 'event_schedule_json', "TEXT NOT NULL DEFAULT '{}'");
+
 const selectManualUpcomingEventsStatement = database.prepare(`
     SELECT
         id,
@@ -2054,7 +2090,7 @@ const selectManualUpcomingEventsStatement = database.prepare(`
         updated_at
     FROM manual_events
     WHERE status IN ('approved', 'pending')
-      AND event_date >= ?
+      AND COALESCE(NULLIF(event_end_date, ''), event_date) >= ?
       AND NOT EXISTS (
           SELECT 1
           FROM event_dedupe_members AS dm
@@ -2715,6 +2751,9 @@ const upsertTelegramScraperStateStatement = database.prepare(`
         events_found = excluded.events_found
 `);
 
+ensureTableColumn('telegram_events', 'event_end_date', "TEXT NOT NULL DEFAULT ''");
+ensureTableColumn('telegram_events', 'event_schedule_json', "TEXT NOT NULL DEFAULT '{}'");
+
 const selectTelegramUpcomingEventsStatement = database.prepare(`
     SELECT
         e.id,
@@ -2740,7 +2779,7 @@ const selectTelegramUpcomingEventsStatement = database.prepare(`
        AND p.message_id = e.message_id
     WHERE e.channel = ?
       AND e.status IN ('approved', 'pending')
-      AND e.event_date >= ?
+      AND COALESCE(NULLIF(e.event_end_date, ''), e.event_date) >= ?
       AND NOT EXISTS (
           SELECT 1
           FROM event_dedupe_members AS dm
@@ -2956,6 +2995,23 @@ if (!v101CoordsFullMessageMigration) {
  * Одноразово обновляем уже существующие V101-базы; после применения owner снова
  * может заменить сообщение через `корды сообщение`, и рестарт его не откатит.
  */
+// Retire obsolete 22-August party FAQ replies without removing their audit rows.
+// They are no longer used by VK DM routing. This one-time migration also
+// prevents disabled legacy responses from being revived on a new bot.sqlite.
+const vkDmLegacyFaqDisabledKey = 'vk-dm-legacy-party-faq-disabled-v188';
+if (!database.prepare('SELECT 1 FROM bot_code_migrations WHERE migration_key=? LIMIT 1').get(vkDmLegacyFaqDisabledKey)) {
+    const at = Math.floor(Date.now() / 1000);
+    database.exec('BEGIN IMMEDIATE');
+    try {
+        database.prepare("UPDATE dm_faq_answers SET enabled=0, updated_at=? WHERE topic IN ('party_date','party_format','party_info') AND enabled<>0").run(at);
+        database.prepare("UPDATE dm_party_faq SET enabled=0, updated_at=? WHERE intent IN ('party_date','party_format','party_info') AND enabled<>0").run(at);
+        database.prepare('INSERT INTO bot_code_migrations(migration_key,applied_at) VALUES (?,?)').run(vkDmLegacyFaqDisabledKey, at);
+        database.exec('COMMIT');
+    } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+    }
+}
 const v102CoordsSberDonationMigrationKey = 'events-v102-coords-sber-donation';
 const v102CoordsSberDonationMigration = database.prepare(`
     SELECT migration_key
@@ -3592,6 +3648,7 @@ export function replaceTelegramEventsForPost({
     const storedRows = database.prepare(`
         SELECT * FROM telegram_events WHERE channel = ? AND message_id = ? ORDER BY event_index ASC, id ASC
     `).all(safeChannel, safeMessageId);
+    if (persistSharedScheduleReplacement('telegram_events', storedRows, incomingEvents, sourceUrl)) return;
     const matchedStoredIds = new Set();
     let safeEvents = incomingEvents.map((event, index) => {
         const stored = selectStoredEventForIncoming(storedRows, event, index, { allowIndexFallback: !preserveUnmatchedStoredEvents });
@@ -3614,6 +3671,35 @@ export function replaceTelegramEventsForPost({
         SELECT image_urls_json, source_url, image_vision_facts_json, raw_text FROM telegram_source_posts
         WHERE channel = ? AND message_id = ? LIMIT 1
     `).get(safeChannel, safeMessageId);
+    // Explicit venue + address in an announcement outrank a poster Vision guess.
+    // This authority applies only to single-event posts, never multi-announcements.
+    if (safeEvents.length === 1 && !sourceIsMulti) {
+        const sourceText = String(sourceMeta?.raw_text || '');
+        const namedVenues = [...sourceText.matchAll(/[«“"]([^»”"\n]{3,70})[»”"]\s*\(([^)\n]{0,120})\)/gu)]
+            .filter((match) => /(?:ул\.?\s|улиц|проспект|пр-т|\bг\.?\s)/iu.test(match[2]));
+        const textVenue = namedVenues.length === 1
+            ? '«' + namedVenues[0][1].trim() + '», ' +
+                namedVenues[0][2].replace(/^г\.\s*/iu, '').trim()
+            : '';
+        const override = database.prepare(
+            'SELECT details_json FROM maintenance_state WHERE task_key = ? LIMIT 1',
+        ).get('event-venue-owner-confirmed:telegram:' + safeChannel + ':' + safeMessageId);
+        let ownerVenue = '';
+        if (override) {
+            try {
+                const data = JSON.parse(String(override.details_json || '{}'));
+                if (data.confirmed === true) ownerVenue = String(data.venue || '').trim();
+            } catch {
+                // Malformed owner state is never authoritative.
+            }
+        }
+        const venue = ownerVenue || textVenue;
+        if (venue) safeEvents = safeEvents.map((event) => ({
+            ...event,
+            venue,
+            venueSource: ownerVenue ? 'owner-confirmed-source' : 'explicit-source-text',
+        }));
+    }
     const sourceUrls = safeStoredJsonArray(sourceMeta?.image_urls_json);
     safeEvents = applyCurrentSourceSafePosterBindings(safeEvents, imagePaths, sourceUrls, {
         sourceKind: 'telegram',
@@ -3856,6 +3942,24 @@ export function getOrCreatePlatformIdentity({
     }
 }
 
+/** Live-only nonblocking journal path. It awaits journal append before SQLite.
+ * Synchronous replay/backfill API remains unchanged for crash compatibility. */
+export async function saveIncomingMessageAsync({
+    peerId,senderId,conversationMessageId,text,
+    createdAt=Math.floor(Date.now()/1000),durableJournal=true,
+}={}) {
+    const safeCreatedAt=Number(createdAt);
+    const safeCmid=Number.isSafeInteger(Number(conversationMessageId))
+        ?Number(conversationMessageId)
+        :safeCreatedAt*100000+Math.floor(Math.random()*100000);
+    const entry={peerId:Number(peerId),senderId:Number(senderId),
+        conversationMessageId:safeCmid,text:String(text??''),createdAt:safeCreatedAt};
+    if (durableJournal && !(await appendDurableJournalAsync(liveMessageJournalPath, entry, { label: 'LIVE MESSAGE' }))) {
+        throw new Error('Live message journal append failed; SQLite insert skipped');
+    }
+    return measureSynchronousStage('sqlite.live-message-insert',()=>
+        saveIncomingMessage({...entry,durableJournal:false}));
+}
 export function saveIncomingMessage({
     peerId,
     senderId,
@@ -4114,6 +4218,7 @@ export function saveAutoSummarySettings({
             Number(nextRunAt) || 0,
             Number(updatedBy) || 0,
             Number(updatedAt) || Math.floor(Date.now() / 1000),
+            JSON.stringify(Array.isArray(schedule) ? schedule : []),
         );
     } catch (error) {
         console.warn('[AUTO SUMMARY LEGACY MIRROR ERROR]', error);
@@ -4668,6 +4773,20 @@ function saveVkMessageArchiveRecordInternal({
     );
 }
 
+const saveRecoveredVkMessagesBatchInternal = createRecoveredVkMessageBatchWriter({
+    database,
+    insertMessage: ({ peerId, senderId, conversationMessageId, text, createdAt }) =>
+        insertMessageStatement.run(peerId, senderId, conversationMessageId, text, createdAt),
+    saveArchive: ({ peerId, sourcePeerId, conversationMessageId, senderId, createdAt, text }) =>
+        saveVkMessageArchiveRecordInternal({ peerId, sourcePeerId, conversationMessageId,
+            senderId, createdAt, isOutbox: false, text }),
+});
+
+/** Persist one bounded local-history recovery page in one transaction. */
+export function saveRecoveredVkMessagesBatch(messages = []) {
+    return saveRecoveredVkMessagesBatchInternal(messages);
+}
+
 function replayVkMessageArchiveJournal() {
     if (!existsSync(vkMessageArchiveJournalPath)) return;
 
@@ -4718,6 +4837,24 @@ function replayVkMessageArchiveJournal() {
     console.log('[VK MESSAGE ARCHIVE JOURNAL REPLAY]', `parsed=${parsed}`, `replayed=${replayed}`, `invalid=${invalid}`);
 }
 
+/** Live-only async journal, identical normalized archive entry and SQLite upsert. */
+export async function saveVkMessageArchiveRecordAsync({
+    peerId,sourcePeerId=peerId,conversationMessageId,messageId=0,senderId=0,
+    createdAt=0,isOutbox=false,text='',actionType='',actionJson='',
+    rawMessageJson='',durableJournal=false,
+}={}) {
+    const p=Number(peerId),sp=Number(sourcePeerId),cmid=Number(conversationMessageId);
+    if(!Number.isSafeInteger(p)||!Number.isSafeInteger(sp)||!Number.isSafeInteger(cmid)||cmid<=0)return 0;
+    const entry={peerId:p,sourcePeerId:sp,conversationMessageId:cmid,
+        messageId:Number(messageId||0),senderId:Number(senderId||0),createdAt:Number(createdAt||0),
+        isOutbox:Boolean(isOutbox),text:String(text??''),actionType:String(actionType??'').trim(),
+        actionJson:normalizeVkArchiveJson(actionJson),rawMessageJson:normalizeVkArchiveJson(rawMessageJson)};
+    if (durableJournal && !(await appendDurableJournalAsync(vkMessageArchiveJournalPath, entry, { label: 'VK MESSAGE ARCHIVE' }))) {
+        throw new Error('VK message archive journal append failed; SQLite upsert skipped');
+    }
+    return measureSynchronousStage('sqlite.vk-archive-upsert',()=>
+        saveVkMessageArchiveRecord({...entry,durableJournal:false}));
+}
 export function saveVkMessageArchiveRecord({
     peerId,
     sourcePeerId = peerId,
@@ -5655,6 +5792,10 @@ export function getParticipantMessagesBetween({
         .map(mapMessage);
 }
 
+export function getVkCrossChatMiniDossier(userId) {
+    return loadVkCrossChatMiniDossier(database, userId);
+}
+
 export function getDossierFacts(peerId, userId) {
     return dossierFactsStatement
         .all(Number(peerId), Number(userId))
@@ -6184,13 +6325,19 @@ export function saveManualEvent({
     posterImageIndex = 0,
     posterVisionFacts = [],
     eventTags = [],
+    alternativeTitles = [],
     venueSource = '',
     ownerManual = false,
+    isMultiAnnouncement = false,
+    sourceSegment = '',
+    structureDecision = '',
+    structureReason = '',
+    programItems = [],
 }) {
     const permanentCheck = filterPermanentlyBlockedIncomingEvents([{
         title, eventDate, eventTime, venue, participants, price, description, evidence,
         sourceUrl, sourceText, imagePaths, canonicalPostUrl, provenanceSourceType,
-        sourceItemId, sourceOriginalUrl, posterVisionFacts, eventTags,
+        sourceItemId, sourceOriginalUrl, posterVisionFacts, eventTags, alternativeTitles,
     }], {
         sourceType: 'manual',
         sourceUrl,
@@ -6228,6 +6375,7 @@ export function saveManualEvent({
     const resolvedCanonicalPostUrl = String(canonicalPostUrl || '').trim() ||
         canonicalVkWallUrlForDb(sourceUrl) || canonicalTelegramUrlForDb(sourceUrl);
     writeEventV18867Metadata('manual_events', id, {
+        title: String(title ?? '').trim(),
         venue: normalizedPersistedVenue(venue),
         canonicalPostUrl: resolvedCanonicalPostUrl,
         provenanceSourceType,
@@ -6242,7 +6390,9 @@ export function saveManualEvent({
         posterImageIndex,
         posterVisionFacts,
         eventTags,
+        alternativeTitles,
         venueSource,
+        isMultiAnnouncement, sourceSegment, structureDecision, structureReason, programItems,
     }, { sourceType: 'manual' });
     return id;
 }
@@ -6863,6 +7013,33 @@ export function getAllPartyMetadata({ fromDate = '0000-00-00', toDate = '9999-12
     });
 }
 
+// Owner buttons and reminder callbacks resolve a single primary key. Do not
+// hydrate every source post and its image metadata to find one selected card.
+export function getStoredEventByIdentity({ sourceType, id, fromDate = '0000-00-00' } = {}) {
+    const spec = {
+        manual: ['manual_events', '', 'e.source_text'],
+        telegram: ['telegram_events', 'LEFT JOIN telegram_source_posts p ON p.channel=e.channel AND p.message_id=e.message_id', 'p.raw_text'],
+        vk: ['vk_events', 'LEFT JOIN vk_source_posts p ON p.screen_name=e.screen_name AND p.post_id=e.post_id', 'p.raw_text'],
+        vk_chat: ['vk_chat_events', 'LEFT JOIN vk_chat_source_messages p ON p.peer_id=e.peer_id AND p.conversation_message_id=e.conversation_message_id', 'p.raw_text'],
+    }[sourceType];
+    if (!Number.isSafeInteger(Number(id)) || Number(id) <= 0) return null;
+    if (sourceType === 'qtickets') {
+        const row = qticketsDatabase.prepare("SELECT * FROM qtickets_events WHERE id=? AND event_date>=? AND status IN ('approved','pending')").get(Number(id), fromDate);
+        return row ? mapQticketsEventRow(row) : null;
+    }
+    if (!spec) return null;
+    const row = database.prepare(`SELECT e.*, ${spec[2]} AS original_text FROM ${spec[0]} e ${spec[1]} WHERE e.id=? AND e.event_date>=? AND e.status IN ('approved','pending')`).get(Number(id), fromDate);
+    if (!row) return null;
+    return {
+        ...readEventV18867MetadataForType(sourceType, row.id),
+        id: Number(row.id), sourceType, title: row.title, eventDate: row.event_date, eventTime: row.event_time,
+        venue: row.venue, participants: row.participants, price: row.price, description: row.description,
+        sourceUrl: row.source_url, sourceText: row.original_text || '', rawSource: row.original_text || '',
+        sourceName: row.screen_name || row.channel || (sourceType === 'manual' ? 'добавлено владельцем' : ''),
+        imagePaths: parseQticketsJsonArray(row.image_paths_json), status: row.status,
+    };
+}
+
 export function getAllUpcomingEventRecordsForDedupe({
     fromDate = currentIsoDate(),
     limitPerTable = 5000,
@@ -6892,7 +7069,7 @@ export function getAllUpcomingEventRecordsForDedupe({
         LEFT JOIN telegram_source_posts AS source
           ON source.channel = events.channel AND source.message_id = events.message_id
         WHERE events.status IN ('approved', 'pending')
-          AND events.event_date >= ?
+          AND COALESCE(NULLIF(events.event_end_date, ''), events.event_date) >= ?
         ORDER BY events.event_date ASC, COALESCE(events.event_time, '23:59') ASC, events.id ASC
         LIMIT ?
     `).all(safeDate, safeLimit).map((row) => ({
@@ -6940,7 +7117,7 @@ export function getAllUpcomingEventRecordsForDedupe({
         LEFT JOIN vk_source_posts AS source
           ON source.screen_name = events.screen_name AND source.post_id = events.post_id
         WHERE events.status IN ('approved', 'pending')
-          AND events.event_date >= ?
+          AND COALESCE(NULLIF(events.event_end_date, ''), events.event_date) >= ?
         ORDER BY events.event_date ASC, COALESCE(events.event_time, '23:59') ASC, events.id ASC
         LIMIT ?
     `).all(safeDate, safeLimit).map((row) => ({
@@ -6999,7 +7176,7 @@ export function getAllUpcomingEventRecordsForDedupe({
           ON source.peer_id = events.peer_id
          AND source.conversation_message_id = events.conversation_message_id
         WHERE events.status IN ('approved', 'pending')
-          AND events.event_date >= ?
+          AND COALESCE(NULLIF(events.event_end_date, ''), events.event_date) >= ?
         ORDER BY events.event_date ASC, COALESCE(events.event_time, '23:59') ASC, events.id ASC
         LIMIT ?
     `).all(safeDate, safeLimit).map((row) => ({
@@ -7042,7 +7219,7 @@ export function getAllUpcomingEventRecordsForDedupe({
                description, evidence, source_url, source_text, image_paths_json, status, owner_manual, is_multi_announcement
         FROM manual_events
         WHERE status IN ('approved', 'pending')
-          AND event_date >= ?
+          AND COALESCE(NULLIF(event_end_date, ''), event_date) >= ?
         ORDER BY event_date ASC, COALESCE(event_time, '23:59') ASC, id ASC
         LIMIT ?
     `).all(safeDate, safeLimit).map((row) => ({
@@ -7183,7 +7360,7 @@ export function getStartupPosterRepairGroupsV18877({
         FROM vk_events e
         JOIN vk_source_posts s
           ON s.screen_name = e.screen_name AND s.post_id = e.post_id
-        WHERE e.status IN ('approved', 'pending') AND e.event_date >= ?
+        WHERE e.status IN ('approved', 'pending') AND COALESCE(NULLIF(e.event_end_date, ''), e.event_date) >= ?
         ORDER BY e.screen_name, e.post_id, e.event_index, e.id
         LIMIT ?
     `).all(safeDate, safeLimit);
@@ -7223,7 +7400,7 @@ export function getStartupPosterRepairGroupsV18877({
         FROM telegram_events e
         JOIN telegram_source_posts s
           ON s.channel = e.channel AND s.message_id = e.message_id
-        WHERE e.status IN ('approved', 'pending') AND e.event_date >= ?
+        WHERE e.status IN ('approved', 'pending') AND COALESCE(NULLIF(e.event_end_date, ''), e.event_date) >= ?
         ORDER BY e.channel, e.message_id, e.event_index, e.id
         LIMIT ?
     `).all(safeDate, safeLimit);
@@ -7237,7 +7414,8 @@ export function getStartupPosterRepairGroupsV18877({
                 channel: String(row.channel ?? ''), messageId: Number(row.message_id ?? 0),
                 rawText: String(row.raw_text ?? ''),
                 imageUrls: safeStoredJsonArray(row.image_urls_json).map(String).filter(Boolean),
-                imagePaths: parseStoredImagePaths(row.source_image_paths_json),
+                imagePaths: recoverIndexedLegacyMediaPaths(parseStoredImagePaths(row.source_image_paths_json),
+                    safeStoredJsonArray(row.image_urls_json), { relativeDirectory: 'telegram_announcements/' + String(row.channel || ''), itemId: String(row.message_id || '') }),
                 imageVisionFacts: parseStoredPosterFacts(row.image_vision_facts_json),
                 imageVisionStatuses: parseStoredPosterFacts(row.image_vision_status_json),
                 imageMedia: [], events: [],
@@ -7260,7 +7438,7 @@ export function getStartupPosterRepairGroupsV18877({
         JOIN vk_chat_source_messages s
           ON s.peer_id = e.peer_id
          AND s.conversation_message_id = e.conversation_message_id
-        WHERE e.status IN ('approved', 'pending') AND e.event_date >= ?
+        WHERE e.status IN ('approved', 'pending') AND COALESCE(NULLIF(e.event_end_date, ''), e.event_date) >= ?
         ORDER BY e.peer_id, e.conversation_message_id, e.event_index, e.id
         LIMIT ?
     `).all(safeDate, safeLimit);
@@ -7376,6 +7554,11 @@ function resolveSafeReparsePosterPath(table, previous, event) {
     if (!Number.isSafeInteger(requestedIndex) || requestedIndex <= 0) return '';
     const facts = Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : [];
     if (!storedPosterStatusIsSafe(event?.posterMatchStatus, facts)) return '';
+
+    // A selected Vision fact owns its exact file, including archive hash suffix.
+    // A gallery position is not an interchangeable file identity.
+    const boundPath = String(posterFactForIndex(facts, requestedIndex)?.imagePath || '').trim();
+    if (boundPath) return boundPath;
 
     let paths = [];
     try {
@@ -7526,7 +7709,7 @@ export function getStoredPosterReviewEventsV18893({ fromDate = '0000-00-00', lim
                    image_paths_json, poster_image_index, poster_vision_facts_json, poster_review_candidates_json,
                    poster_match_status, poster_match_reason
             FROM ${table}
-            WHERE event_date >= ? AND poster_match_status = 'poster_review_required'
+            WHERE COALESCE(NULLIF(event_end_date, ''), event_date) >= ? AND poster_match_status = 'poster_review_required'
             ORDER BY event_date ASC, id ASC LIMIT ?
         `).all(String(fromDate ?? '0000-00-00'), safeLimit);
         for (const row of rows) {
@@ -7734,7 +7917,7 @@ export function updateStoredEventRecordFromReparse({
             JSON.stringify(imagePaths)];
         const parseMethod = String(event?.parseMethod ?? 'source_link_reparse_force_no_poster').trim();
         const result = safeType === 'manual'
-            ? database.prepare(`UPDATE manual_events SET title=?,event_date=?,event_time=?,venue=?,participants=?,price=?,description=?,evidence=?,source_url=?,image_paths_json=?,status='approved',updated_at=? WHERE id=?`).run(...values, Number(updatedAt), eventId)
+            ? database.prepare(`UPDATE manual_events SET title=?,event_date=?,event_time=?,venue=?,participants=?,price=?,description=?,evidence=?,source_url=?,image_paths_json=?,source_text=CASE WHEN ?<>'' THEN ? ELSE source_text END,status='approved',updated_at=? WHERE id=?`).run(...values, String(event.sourceText || ''), String(event.sourceText || ''), Number(updatedAt), eventId)
             : database.prepare(`UPDATE ${table} SET title=?,event_date=?,event_time=?,venue=?,participants=?,price=?,description=?,evidence=?,source_url=?,image_paths_json=?,parse_method=?,poster_image_index=?,poster_match_status=?,poster_match_reason=?,poster_vision_facts_json=?,poster_review_candidates_json=?,status='approved',updated_at=? WHERE id=?`).run(...values, parseMethod, Number(event?.posterImageIndex || (imagePaths.length ? 1 : 0)), String(event?.posterMatchStatus || (imagePaths.length ? 'exact_poster_match' : 'no_safe_poster')), String(event?.posterMatchReason || 'force-reparse-no-poster'), JSON.stringify(Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : []), JSON.stringify(Array.isArray(event?.posterReviewCandidates) ? event.posterReviewCandidates : []), Number(updatedAt), eventId);
         writeEventV18867Metadata(table, eventId, event, { venue: String(event?.venue ?? '').trim() });
         return Number(result.changes ?? 0);
@@ -7837,7 +8020,9 @@ export function updateStoredEventRecordFromReparse({
     const storedIndex = Number(previous?.poster_image_index || sourceMediaIndexFromPathV18886(oldImagePaths[0]) || 0);
     const incomingAudit = eventPosterBindingAudit(comparisonEvent, incomingFacts, incomingIndex);
     const storedAudit = storedRowPosterBindingAudit(comparisonEvent, previous, storedFacts);
-    const incomingSafe = storedPosterStatusIsSafe(event?.posterMatchStatus, incomingFacts) && incomingAudit.accepted;
+    const incomingBoundPath = String(posterFactForIndex(incomingFacts, incomingIndex)?.imagePath || '').trim();
+    const incomingPathMatches = !incomingBoundPath || incomingImagePaths.includes(incomingBoundPath);
+    const incomingSafe = incomingPathMatches && storedPosterStatusIsSafe(event?.posterMatchStatus, incomingFacts) && incomingAudit.accepted;
     const storedStatusTrusted = [
         'exact_poster_match', 'verified_multi_event_poster',
         'verified_title_date_poster', 'legacy_manual_poster',
@@ -7845,7 +8030,9 @@ export function updateStoredEventRecordFromReparse({
     // A reparse with no fresh media/facts cannot invalidate an already bound
     // source image. Keep its prior status and metadata while the source remains
     // available for a later Vision retry.
-    const storedSafe = (storedPosterStatusIsSafe(previous?.poster_match_status, storedFacts) && storedAudit.accepted) ||
+    const storedBoundPath = String(posterFactForIndex(storedFacts, storedIndex)?.imagePath || '').trim();
+    const storedPathMatches = !storedBoundPath || oldImagePaths.includes(storedBoundPath);
+    const storedSafe = (storedPathMatches && storedPosterStatusIsSafe(previous?.poster_match_status, storedFacts) && storedAudit.accepted) ||
         (oldImagePaths.length > 0 && storedStatusTrusted && !incomingImagePaths.length && !incomingFacts.length);
     const storedMetadataPending = oldImagePaths.length > 0 && !posterPathIsGeneratedV18892(oldImagePaths[0]) && !posterFactForIndex(storedFacts, storedIndex);
     const resolvedPosterPath = incomingSafe ? resolveSafeReparsePosterPath(table, previous, event) : '';
@@ -8075,6 +8262,18 @@ export function updateStoredEventSemanticFieldsByOwner({
     return Number(result.changes ?? 0);
 }
 
+export function updateStoredEventVenueFromCatalog({ sourceType, id, venue, updatedAt = Math.floor(Date.now() / 1000) }) {
+    const table = { manual: 'manual_events', telegram: 'telegram_events', vk: 'vk_events', vk_chat: 'vk_chat_events' }[String(sourceType ?? '').trim()];
+    const eventId = Number(id);
+    const normalizedVenue = String(venue ?? '').trim();
+    if (!table || !Number.isSafeInteger(eventId) || eventId <= 0 || !normalizedVenue) return 0;
+    const result = database.prepare(`UPDATE ${table} SET venue = ?, updated_at = ? WHERE id = ? AND venue <> ?`).run(
+        normalizedVenue, Number(updatedAt) || Math.floor(Date.now() / 1000), eventId, normalizedVenue,
+    );
+    if (Number(result.changes || 0)) writeEventV18867Metadata(table, eventId, { venue: normalizedVenue }, { venue: normalizedVenue });
+    return Number(result.changes || 0);
+}
+
 export function replaceEventDedupeRegistry(groups, {
     scope = 'configured',
     now = Math.floor(Date.now() / 1000),
@@ -8134,9 +8333,10 @@ export function replaceEventDedupeRegistry(groups, {
             const members = Array.isArray(group?.members) ? group.members : [];
             if (!groupKey || members.length < 2) continue;
             const keepKey = String(group?.keepKey ?? '').trim();
-            const registryMembers = purgeDuplicateRows
-                ? members.filter((member) => `${String(member?.ref?.sourceType ?? '').trim()}:${Number(member?.ref?.id ?? 0)}` === keepKey)
-                : members;
+            // Keep every member in the registry even when the duplicate row is
+            // physically purged.  The archive and group listing need the full
+            // identity set so an owner can inspect or break a group by ID.
+            const registryMembers = members;
             if (!registryMembers.length) continue;
 
             insertGroup.run(
@@ -8156,7 +8356,6 @@ export function replaceEventDedupeRegistry(groups, {
                 const eventId = Number(member?.ref?.id ?? 0);
                 const refKey = `${sourceType}:${eventId}`;
                 if (!sourceType || !Number.isInteger(eventId) || eventId <= 0) continue;
-                if (purgeDuplicateRows && refKey !== keepKey) continue;
                 insertMember.run(
                     safeScope,
                     sourceType,
@@ -8282,6 +8481,91 @@ export function getEventDedupeRegistryStats(scope = 'configured') {
         members: Number(memberRow?.count ?? 0),
         duplicateMembers: Number(memberRow?.duplicates ?? 0),
     };
+}
+
+export function listEventDedupeGroups(scope = 'configured') {
+    const safeScope = String(scope ?? 'configured').trim().slice(0, 64) || 'configured';
+    const groups = database.prepare(`
+        SELECT group_key, canonical_json, member_count, updated_at
+        FROM event_dedupe_groups WHERE scope = ? ORDER BY updated_at DESC, group_key
+    `).all(safeScope);
+    const members = database.prepare(`
+        SELECT group_key, source_type, event_id, role
+        FROM event_dedupe_members WHERE scope = ? ORDER BY group_key, role DESC, source_type, event_id
+    `).all(safeScope);
+    const byGroup = new Map();
+    for (const row of members) {
+        if (!byGroup.has(String(row.group_key))) byGroup.set(String(row.group_key), []);
+        byGroup.get(String(row.group_key)).push({
+            sourceType: String(row.source_type || ''), id: Number(row.event_id || 0), role: String(row.role || ''),
+        });
+    }
+    return groups.map((row) => {
+        let canonical = {};
+        try { canonical = JSON.parse(String(row.canonical_json || '{}')); } catch {}
+        return {
+            groupKey: String(row.group_key || ''),
+            canonical,
+            memberCount: Number(row.member_count || 0),
+            updatedAt: Number(row.updated_at || 0),
+            members: byGroup.get(String(row.group_key || '')) || [],
+        };
+    });
+}
+
+export function breakEventDedupeGroup(groupKey, scope = 'configured') {
+    const safeScope = String(scope ?? 'configured').trim().slice(0, 64) || 'configured';
+    const key = String(groupKey ?? '').trim();
+    if (!key) return { ok: false, reason: 'missing-group-key', restored: 0 };
+    const rows = database.prepare(`
+        SELECT source_type, event_id FROM event_dedupe_members
+        WHERE scope = ? AND group_key = ?
+    `).all(safeScope, key);
+    const archivedRows = database.prepare(`
+        SELECT source_type, event_id, event_row_json
+        FROM event_dedupe_archive WHERE group_key = ?
+    `).all(key);
+    const restoreRows = [...rows];
+    const seenRestore = new Set(rows.map((row) => `${row.source_type}:${row.event_id}`));
+    for (const row of archivedRows) {
+        const identity = `${row.source_type}:${row.event_id}`;
+        if (!seenRestore.has(identity)) { restoreRows.push(row); seenRestore.add(identity); }
+    }
+    if (!restoreRows.length) return { ok: false, reason: 'group-not-found', restored: 0 };
+    database.exec('BEGIN IMMEDIATE');
+    let restored = 0;
+    try {
+        for (const row of restoreRows) {
+            const archived = row.event_row_json
+                ? row
+                : database.prepare(`
+                    SELECT event_row_json FROM event_dedupe_archive WHERE source_type = ? AND event_id = ?
+                `).get(String(row.source_type || ''), Number(row.event_id || 0));
+            if (!archived) continue;
+            let snapshot = null;
+            try { snapshot = JSON.parse(String(archived.event_row_json || '{}')); } catch {}
+            const eventRow = snapshot?.eventRow;
+            const table = { manual: 'manual_events', telegram: 'telegram_events', vk: 'vk_events', vk_chat: 'vk_chat_events' }[String(row.source_type || '')];
+            if (!table || !eventRow || !Number.isInteger(Number(row.event_id))) continue;
+            const exists = database.prepare(`SELECT 1 FROM ${table} WHERE id = ?`).get(Number(row.event_id));
+            if (!exists) {
+                const columns = Object.keys(eventRow).filter((column) => /^[a-z_][a-z0-9_]*$/u.test(column));
+                const values = columns.map((column) => eventRow[column]);
+                if (columns.length) {
+                    database.prepare(`INSERT INTO ${table} (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`).run(...values);
+                    restored += 1;
+                }
+            }
+        }
+        database.prepare('DELETE FROM event_dedupe_members WHERE scope = ? AND group_key = ?').run(safeScope, key);
+        database.prepare('DELETE FROM event_dedupe_groups WHERE scope = ? AND group_key = ?').run(safeScope, key);
+        database.prepare('DELETE FROM event_dedupe_archive WHERE group_key = ?').run(key);
+        database.exec('COMMIT');
+    } catch (error) {
+        database.exec('ROLLBACK');
+        throw error;
+    }
+    return { ok: true, groupKey: key, restored, members: restoreRows.length };
 }
 
 // Public reads need the same duplicate suppression as the scraper-specific
@@ -9434,6 +9718,9 @@ const upsertVkScraperStateStatement = database.prepare(`
         events_found = excluded.events_found
 `);
 
+ensureTableColumn('vk_events', 'event_end_date', "TEXT NOT NULL DEFAULT ''");
+ensureTableColumn('vk_events', 'event_schedule_json', "TEXT NOT NULL DEFAULT '{}'");
+
 const selectVkUpcomingEventsStatement = database.prepare(`
     SELECT
         e.id,
@@ -9459,7 +9746,7 @@ const selectVkUpcomingEventsStatement = database.prepare(`
        AND p.post_id = e.post_id
     WHERE e.screen_name = ?
       AND e.status IN ('approved', 'pending')
-      AND e.event_date >= ?
+      AND COALESCE(NULLIF(e.event_end_date, ''), e.event_date) >= ?
       AND NOT EXISTS (
           SELECT 1
           FROM event_dedupe_members AS dm
@@ -9902,6 +10189,7 @@ export function replaceVkEventsForPost({
     const storedRows = mergeStoredEvents ? database.prepare(`
         SELECT * FROM vk_events WHERE screen_name = ? AND post_id = ? ORDER BY event_index ASC, id ASC
     `).all(safeScreenName, safePostId) : [];
+    if (persistSharedScheduleReplacement('vk_events', storedRows, incomingEvents, sourceUrl)) return;
     const matchedStoredIds = new Set();
     let safeEvents = incomingEvents.map((event, index) => {
         const stored = selectStoredEventForIncoming(storedRows, event, index, { allowIndexFallback: !preserveUnmatchedStoredEvents });
@@ -9938,6 +10226,36 @@ export function replaceVkEventsForPost({
         sourceText: String(sourceMeta?.raw_text || ''),
         posterVisionFacts: parseStoredPosterFacts(sourceMeta?.image_vision_facts_json),
     }).events;
+    // Owner-verified corrections for specific VK source posts; general venue
+    // identity protection (Diesel Bar vs Diesel Hall) remains unchanged.
+    const manualRecord = database.prepare(
+        'SELECT details_json FROM maintenance_state WHERE task_key = ? LIMIT 1',
+    ).get('event-owner-post-override:vk:' + safeScreenName + ':' + safePostId);
+    if (manualRecord) {
+        let rule = null;
+        try { rule = JSON.parse(String(manualRecord.details_json || '{}')); } catch {}
+        const sourceBody = String(sourceMeta?.raw_text || '');
+        if (rule?.verified === true && rule.sourcePhrase && sourceBody.includes(String(rule.sourcePhrase))) {
+            if (rule.action === 'suppress-repeated-announcement' && Number(rule.canonicalPostId) > 0) {
+                safeEvents = [];
+            } else if (rule.action === 'correct-single-event' && safeEvents.length > 0) {
+                const original = safeEvents[0];
+                safeEvents = [{
+                    ...original,
+                    title: String(rule.title || original.title || ""),
+                    eventDate: String(rule.eventDate || original.eventDate || ""),
+                    venue: String(rule.venue || original.venue || ""),
+                    venueSource: 'owner-confirmed-source-text',
+                    isMultiAnnouncement: 0,
+                    structureDecision: 'single_event',
+                    imagePaths: Array.isArray(rule.imagePaths) ? rule.imagePaths : original.imagePaths,
+                    posterImageIndex: Number(rule.posterImageIndex || 1),
+                    posterMatchStatus: 'exact_poster_match',
+                    posterMatchReason: 'owner-reviewed-single-source-poster',
+                }];
+            }
+        }
+    }
     const imagePathsJson = JSON.stringify(safeJsonArray(imagePaths));
 
     const ownsTransaction = !database.isTransaction;
@@ -10229,6 +10547,7 @@ for (const tableName of ['manual_events', 'telegram_events', 'vk_events', 'vk_ch
     ensureTableColumn(tableName, 'poster_vision_facts_json', "TEXT NOT NULL DEFAULT '[]'");
     ensureTableColumn(tableName, 'poster_review_candidates_json', "TEXT NOT NULL DEFAULT '[]'");
     ensureTableColumn(tableName, 'event_tags_json', "TEXT NOT NULL DEFAULT '[]'");
+    ensureTableColumn(tableName, 'alternative_titles_json', "TEXT NOT NULL DEFAULT '[]'");
     ensureTableColumn(tableName, 'venue_source', "TEXT NOT NULL DEFAULT ''");
     // Durable AI cardinality/provenance for multi-announcement repair. The
     // complete source post remains in the source table; these fields retain
@@ -10283,7 +10602,16 @@ function writeEventV18867Metadata(tableName, id, event = {}, defaults = {}) {
         : Array.isArray(defaults?.posterVisionFacts)
             ? normalizeVisionFacts(defaults.posterVisionFacts)
             : [];
-    const structureDecision = String(event?.structureDecision ?? event?.structure_decision ?? defaults?.structureDecision ?? '').trim();
+    // Poster/venue-only updates must not erase an existing schedule.
+    const storedSchedule = parseEventScheduleMetadata(database.prepare(`SELECT event_schedule_json FROM ${tableName} WHERE id = ?`).get(eventId)).eventSchedule;
+    const schedule = getSharedEventSchedule(event) || storedSchedule || null;
+    const incomingStructure = String(event?.structureDecision ?? event?.structure_decision ?? defaults?.structureDecision ?? '').trim();
+    // Both shared schedules and theatre repertoires use the durable schedule
+    // columns, but keep the semantic type so theatre cards remain in the
+    // secondary pool after a restart/reparse.
+    const structureDecision = schedule
+        ? (incomingStructure === 'theater_repertoire' ? 'theater_repertoire' : 'shared_schedule_event')
+        : incomingStructure;
     const values = {
         canonicalPostUrl: String(event?.canonicalPostUrl ?? defaults?.canonicalPostUrl ?? '').trim(),
         sourceType: String(event?.provenanceSourceType ?? defaults?.sourceType ?? '').trim(),
@@ -10299,6 +10627,10 @@ function writeEventV18867Metadata(tableName, id, event = {}, defaults = {}) {
         posterVisionFactsJson: JSON.stringify(facts),
         posterReviewCandidatesJson: JSON.stringify(Array.isArray(event?.posterReviewCandidates) ? event.posterReviewCandidates : (Array.isArray(defaults?.posterReviewCandidates) ? defaults.posterReviewCandidates : [])),
         eventTagsJson: JSON.stringify(Array.isArray(event?.eventTags) ? event.eventTags : (Array.isArray(defaults?.eventTags) ? defaults.eventTags : [])),
+        alternativeTitlesJson: JSON.stringify([...new Set([
+            ...(Array.isArray(event?.alternativeTitles) ? event.alternativeTitles : []),
+            String(event?.title ?? '').trim(),
+        ].map((value) => String(value ?? '').replace(/\s+/gu, ' ').trim()).filter(Boolean))].slice(0, 16)),
         venueSource: String(event?.venueSource ?? defaults?.venueSource ?? '').trim(),
         structureDecision,
         structureReason: String(event?.structureReason ?? event?.structure_reason ?? defaults?.structureReason ?? '').trim(),
@@ -10311,7 +10643,8 @@ function writeEventV18867Metadata(tableName, id, event = {}, defaults = {}) {
     };
     database.prepare(`
         UPDATE ${tableName}
-        SET canonical_post_url = CASE WHEN ? <> '' THEN ? ELSE canonical_post_url END,
+        SET event_schedule_json = ?, event_end_date = ?,
+            canonical_post_url = CASE WHEN ? <> '' THEN ? ELSE canonical_post_url END,
             source_type = CASE WHEN ? <> '' THEN ? ELSE source_type END,
             source_chat_id = CASE WHEN ? <> 0 THEN ? ELSE source_chat_id END,
             source_chat_name = CASE WHEN ? <> '' THEN ? ELSE source_chat_name END,
@@ -10325,6 +10658,7 @@ function writeEventV18867Metadata(tableName, id, event = {}, defaults = {}) {
             poster_vision_facts_json = CASE WHEN ? <> '[]' THEN ? ELSE poster_vision_facts_json END,
             poster_review_candidates_json = CASE WHEN ? <> '[]' THEN ? ELSE poster_review_candidates_json END,
             event_tags_json = CASE WHEN ? <> '[]' THEN ? ELSE event_tags_json END,
+            alternative_titles_json = CASE WHEN ? <> '[]' THEN ? ELSE alternative_titles_json END,
             venue_source = CASE WHEN ? <> '' THEN ? ELSE venue_source END,
             structure_decision = CASE WHEN ? <> '' THEN ? ELSE structure_decision END,
             structure_reason = CASE WHEN ? <> '' THEN ? ELSE structure_reason END,
@@ -10334,6 +10668,7 @@ function writeEventV18867Metadata(tableName, id, event = {}, defaults = {}) {
             venue = CASE WHEN TRIM(venue) = '' THEN ? ELSE venue END
         WHERE id = ?
     `).run(
+        JSON.stringify(schedule || {}), schedule?.endDate || '',
         values.canonicalPostUrl, values.canonicalPostUrl,
         values.sourceType, values.sourceType,
         values.sourceChatId, values.sourceChatId,
@@ -10348,6 +10683,7 @@ function writeEventV18867Metadata(tableName, id, event = {}, defaults = {}) {
         values.posterVisionFactsJson, values.posterVisionFactsJson,
         values.posterReviewCandidatesJson, values.posterReviewCandidatesJson,
         values.eventTagsJson, values.eventTagsJson,
+        values.alternativeTitlesJson, values.alternativeTitlesJson,
         values.venueSource, values.venueSource,
         values.structureDecision, values.structureDecision,
         values.structureReason, values.structureReason,
@@ -10540,11 +10876,13 @@ function storedRowToEvent(row) {
     let imagePaths = [];
     let posterVisionFacts = [];
     let eventTags = [];
+    let alternativeTitles = [];
     let posterReviewCandidates = [];
     let programItems = [];
     try { imagePaths = JSON.parse(row.image_paths_json || '[]'); } catch {}
     try { posterVisionFacts = parseStoredPosterFacts(row.poster_vision_facts_json); } catch {}
     try { eventTags = JSON.parse(row.event_tags_json || '[]'); } catch {}
+    try { alternativeTitles = JSON.parse(row.alternative_titles_json || '[]'); } catch {}
     try { posterReviewCandidates = JSON.parse(row.poster_review_candidates_json || '[]'); } catch {}
     try { programItems = JSON.parse(row.program_items_json || '[]'); } catch {}
     return {
@@ -10556,6 +10894,7 @@ function storedRowToEvent(row) {
         imagePaths: Array.isArray(imagePaths) ? imagePaths : [],
         parseMethod: String(row.parse_method || ''), status: String(row.status || 'pending'),
         posterVisionFacts, eventTags: Array.isArray(eventTags) ? eventTags : [],
+        alternativeTitles: Array.isArray(alternativeTitles) ? alternativeTitles : [],
         posterReviewCandidates: Array.isArray(posterReviewCandidates) ? posterReviewCandidates : [],
         programItems: Array.isArray(programItems) ? programItems : [],
         isMultiAnnouncement: Boolean(Number(row.is_multi_announcement || 0)),
@@ -10564,6 +10903,7 @@ function storedRowToEvent(row) {
         posterImageIndex: Number(row.poster_image_index || 0),
         canonicalPostUrl: String(row.canonical_post_url || ''),
         sourceSegment: String(row.source_segment_text || ''),
+        ...parseEventScheduleMetadata(row),
         structureDecision: String(row.structure_decision || ''),
         structureReason: String(row.structure_reason || ''),
     };
@@ -10598,6 +10938,9 @@ function mergeIncomingEventWithStoredRow(event, storedRow) {
         storedFacts = parseStoredPosterFacts(storedRow?.poster_vision_facts_json);
     } catch { storedFacts = []; }
     const incomingFacts = Array.isArray(event?.posterVisionFacts) ? event.posterVisionFacts : [];
+    let storedAlternativeTitles = [];
+    try { storedAlternativeTitles = JSON.parse(storedRow?.alternative_titles_json ?? '[]'); } catch { storedAlternativeTitles = []; }
+    if (!Array.isArray(storedAlternativeTitles)) storedAlternativeTitles = [];
     let storedTags = [];
     let storedReviewCandidates = [];
     try { storedTags = JSON.parse(storedRow?.event_tags_json ?? '[]'); } catch { storedTags = []; }
@@ -10627,6 +10970,12 @@ function mergeIncomingEventWithStoredRow(event, storedRow) {
     return {
         ...event,
         title: pick(event?.title, storedRow?.title),
+        alternativeTitles: [...new Set([
+            ...storedAlternativeTitles,
+            ...(Array.isArray(event?.alternativeTitles) ? event.alternativeTitles : []),
+            String(event?.title ?? '').trim(),
+            String(storedRow?.title ?? '').trim(),
+        ].map((value) => String(value ?? '').replace(/\s+/gu, ' ').trim()).filter(Boolean))].slice(0, 16),
         eventDate: pick(event?.eventDate, storedRow?.event_date),
         eventTime: pick(event?.eventTime, storedRow?.event_time) || null,
         venue,
@@ -10638,6 +10987,7 @@ function mergeIncomingEventWithStoredRow(event, storedRow) {
         evidence: pick(event?.evidence, storedRow?.evidence),
         announcement: pick(event?.announcement, storedRow?.announcement),
         sourceSegment: pick(event?.sourceSegment ?? event?.source_segment, storedRow?.source_segment_text),
+        eventSchedule: event?.eventSchedule || parseEventScheduleMetadata(storedRow).eventSchedule,
         structureDecision: pick(event?.structureDecision ?? event?.structure_decision, storedRow?.structure_decision),
         structureReason: pick(event?.structureReason ?? event?.structure_reason, storedRow?.structure_reason),
         programItems: Array.isArray(event?.programItems ?? event?.program_items)
@@ -10687,6 +11037,7 @@ function parseEventV18867Metadata(row) {
     let posterVisionFacts = [];
     let posterReviewCandidates = [];
     let eventTags = [];
+    let alternativeTitles = [];
     let programItems = [];
     try {
         posterVisionFacts = parseStoredPosterFacts(row?.poster_vision_facts_json);
@@ -10699,6 +11050,10 @@ function parseEventV18867Metadata(row) {
         const parsed = JSON.parse(row?.event_tags_json ?? '[]');
         eventTags = Array.isArray(parsed) ? parsed.map((item) => String(item ?? '').trim()).filter(Boolean) : [];
     } catch { eventTags = []; }
+    try {
+        const parsed = JSON.parse(row?.alternative_titles_json ?? '[]');
+        alternativeTitles = Array.isArray(parsed) ? parsed.map((item) => String(item ?? '').replace(/\s+/gu, ' ').trim()).filter(Boolean) : [];
+    } catch { alternativeTitles = []; }
     try {
         const parsed = JSON.parse(row?.program_items_json ?? '[]');
         programItems = Array.isArray(parsed) ? parsed : [];
@@ -10718,7 +11073,9 @@ function parseEventV18867Metadata(row) {
         posterVisionFacts,
         posterReviewCandidates,
         eventTags,
+        alternativeTitles,
         venueSource: String(row?.venue_source ?? ''),
+        ...parseEventScheduleMetadata(row),
         structureDecision: String(row?.structure_decision ?? ''),
         structureReason: String(row?.structure_reason ?? ''),
         sourceSegment: String(row?.source_segment_text ?? ''),
@@ -10737,8 +11094,8 @@ function readEventV18867Metadata(tableName, id) {
             SELECT canonical_post_url, source_type, source_chat_id, source_chat_name,
                    source_message_id, source_item_id, source_original_url, canonical_origin,
                    poster_match_status, poster_match_reason, poster_image_index,
-                   poster_vision_facts_json, poster_review_candidates_json, event_tags_json, venue_source,
-                   structure_decision, structure_reason, source_segment_text, program_items_json,
+                   poster_vision_facts_json, poster_review_candidates_json, event_tags_json, alternative_titles_json, venue_source,
+                   event_schedule_json, event_end_date, structure_decision, structure_reason, source_segment_text, program_items_json,
                    is_multi_announcement
             FROM ${tableName} WHERE id = ? LIMIT 1
         `);
@@ -12310,6 +12667,11 @@ const finalizeManualParserSeenItemStatement = database.prepare(`
     WHERE source_id = ? AND item_id = ?
 `);
 
+const parserPosterRetryStore = createParserPosterRetryStore(database, dataDirectory, currentIsoDate);
+export const reopenManualParserPosterItems = candidates => parserPosterRetryStore.reopen(candidates);
+export const settleRestoredParserPosterItems = candidates => parserPosterRetryStore.settleRestored(candidates);
+export const getPendingParserPosterItems = sourceId => parserPosterRetryStore.pending(sourceId);
+
 export function getManualParserSeenItem({ sourceId, itemId }) {
     const row = selectManualParserSeenItemStatement.get(
         String(sourceId ?? '').trim(),
@@ -12447,8 +12809,12 @@ export function finalizeManualParserSeenItem({
     error = '',
     processedAt = Math.floor(Date.now() / 1000),
 }) {
-    const status = String(parseStatus ?? '').trim();
+    let status = String(parseStatus ?? '').trim();
     if (!status) throw new Error('finalizeManualParserSeenItem requires parseStatus');
+    if (['processed_event', 'processed_existing', 'event'].includes(status) && parserPosterRetryStore.missing(sourceId, itemId)) {
+        status = 'failed_retryable';
+        error = MISSING_POSTER_RETRY;
+    }
     const retryable = status === 'failed_retryable' || status === 'processed_unresolved' || status === 'processing';
     const effectiveProcessedAt = retryable ? 0 : Number(processedAt ?? Math.floor(Date.now() / 1000));
     return Number(finalizeManualParserSeenItemStatement.run(
@@ -12628,6 +12994,9 @@ const upsertVkChatScraperStateStatement = database.prepare(`
         events_found = excluded.events_found
 `);
 
+ensureTableColumn('vk_chat_events', 'event_end_date', "TEXT NOT NULL DEFAULT ''");
+ensureTableColumn('vk_chat_events', 'event_schedule_json', "TEXT NOT NULL DEFAULT '{}'");
+
 const selectVkChatUpcomingEventsStatement = database.prepare(`
     SELECT
         events.id,
@@ -12651,7 +13020,7 @@ const selectVkChatUpcomingEventsStatement = database.prepare(`
      AND source.conversation_message_id = events.conversation_message_id
     WHERE events.peer_id = ?
       AND events.status IN ('approved', 'pending')
-      AND events.event_date >= ?
+      AND COALESCE(NULLIF(events.event_end_date, ''), events.event_date) >= ?
       AND NOT EXISTS (
           SELECT 1
           FROM event_dedupe_members AS dm
@@ -12935,6 +13304,7 @@ export function replaceVkChatEventsForMessage({
     const storedRows = database.prepare(`
         SELECT * FROM vk_chat_events WHERE peer_id = ? AND conversation_message_id = ? ORDER BY event_index ASC, id ASC
     `).all(safePeerId, safeMessageId);
+    if (persistSharedScheduleReplacement('vk_chat_events', storedRows, incomingEvents, sourceUrl)) return;
     const matchedStoredIds = new Set();
     let safeEvents = incomingEvents.map((event, index) => {
         const stored = selectStoredEventForIncoming(storedRows, event, index, { allowIndexFallback: !preserveUnmatchedStoredEvents });
@@ -13866,4 +14236,76 @@ export function getAiRuntimeModePolicy({ provider = '', envName = '', model = ''
         reasoningPolicies,
         testedAt: Number(row.tested_at ?? 0),
     };
+}
+
+function parseEventScheduleMetadata(row) {
+    let eventSchedule = null;
+    try { eventSchedule = normalizeEventSchedule(JSON.parse(row?.event_schedule_json || '{}')); } catch {}
+    if (!eventSchedule) return {};
+    const structureDecision = String(row?.structure_decision || '').trim() || 'shared_schedule_event';
+    return { eventSchedule, eventEndDate: eventSchedule.endDate,
+        displayDate: sharedEventDateLabel({ structureDecision, eventSchedule }) };
+}
+
+// One semantic shared event keeps its id across reparses. The ordinary source
+// replacement path deliberately remains unchanged for unrelated multi-events.
+function persistSharedScheduleReplacement(table, storedRows, incoming, sourceUrl) {
+    const active = storedRows.filter(row => ['approved', 'pending'].includes(row.status));
+    const storedShared = active.find(row => ['shared_schedule_event', 'theater_repertoire'].includes(String(row.structure_decision || '')));
+    const event = incoming.length === 1 ? incoming[0] : null;
+    const schedule = getSharedEventSchedule(event);
+    const isTheaterRepertoire = String(event?.structureDecision || '') === 'theater_repertoire';
+    if (storedShared && !schedule) {
+        console.warn('[SHARED SCHEDULE PRESERVED]', table, storedShared.id, 'non-shared-or-partial-reparse');
+        return true;
+    }
+    if (!schedule || !active.length) return false;
+    const normalize = value => String(value || '').replace(/\s+/gu, ' ').trim();
+    const anchor = storedShared || active.find(row => row.event_date === schedule.startDate) || (isTheaterRepertoire ? active[0] : null);
+    const fields = ['title', 'venue', 'participants', 'price', 'source_segment_text', 'image_paths_json'];
+    const repertoireRowsOutsideSchedule = isTheaterRepertoire && active.some(row =>
+        !eventScheduleMatchesRange(event, String(row.event_date || '').trim(), String(row.event_date || '').trim()));
+    if (!anchor || repertoireRowsOutsideSchedule || (!isTheaterRepertoire && active.some(row => !eventScheduleMatchesRange(event, row.event_date, row.event_date) ||
+        fields.some(key => normalize(row[key]) !== normalize(anchor[key]))))) {
+        console.warn('[SHARED SCHEDULE PRESERVED]', table, 'different-stored-programs-or-media');
+        return true;
+    }
+    const sourceConfig = {
+        telegram_events: ['telegram_source_posts', 'channel', 'message_id'],
+        vk_events: ['vk_source_posts', 'screen_name', 'post_id'],
+        vk_chat_events: ['vk_chat_source_messages', 'peer_id', 'conversation_message_id'],
+    }[table];
+    const [sourceTable, key1, key2] = sourceConfig;
+    const source = database.prepare(`SELECT * FROM ${sourceTable} WHERE ${key1} = ? AND ${key2} = ?`).get(anchor[key1], anchor[key2]);
+    const validation = String(event?.structureDecision || '') === 'theater_repertoire'
+        ? validateTheaterRepertoireSchedule(event, { sourceText: source?.raw_text || '',
+            facts: parseStoredPosterFacts(source?.image_vision_facts_json), publishedAt: Number(source?.published_at || 0) })
+        : validateSharedEventSchedule(event, { sourceText: source?.raw_text || '',
+            facts: parseStoredPosterFacts(source?.image_vision_facts_json), publishedAt: Number(source?.published_at || 0) });
+    if (!validation.ok) { console.warn('[SHARED SCHEDULE PRESERVED]', table, validation.reason); return true; }
+    const blockedDates = database.prepare(`SELECT event_date FROM event_permanent_blocks
+        WHERE active = 1 AND (source_url = ? OR canonical_post_url = ?)
+        AND event_date >= ? AND event_date <= ?`).all(sourceUrl, sourceUrl, schedule.startDate, schedule.endDate).map(row => row.event_date);
+    const finalSchedule = { ...validation.schedule, excludedDates: [...new Set([...(schedule.excludedDates || []), ...blockedDates])].sort() };
+    const merged = mergeIncomingEventWithStoredRow({ ...event, eventSchedule: finalSchedule, isMultiAnnouncement: 0 }, anchor);
+    const finalStructure = String(event?.structureDecision || '') === 'theater_repertoire' ? 'theater_repertoire' : 'shared_schedule_event';
+    const ownsTransaction = !database.isTransaction;
+    if (ownsTransaction) database.exec('BEGIN IMMEDIATE');
+    try {
+        database.exec(`CREATE TABLE IF NOT EXISTS shared_schedule_conversion_audit (
+            id INTEGER PRIMARY KEY, table_name TEXT, event_id INTEGER, source_url TEXT, rows_json TEXT, created_at INTEGER)`);
+        if (!storedShared) database.prepare(`INSERT INTO shared_schedule_conversion_audit
+            (table_name, event_id, source_url, rows_json, created_at) VALUES (?, ?, ?, ?, ?)`)
+            .run(table, anchor.id, sourceUrl, JSON.stringify(storedRows), Math.floor(Date.now()/1000));
+        // Moderation and owner fields stay on the existing anchor row.
+        database.prepare(`UPDATE ${table} SET is_multi_announcement = 0, description = ?, source_segment_text = ? WHERE id = ?`)
+            .run(source.raw_text || merged.description, source.raw_text || merged.sourceSegment, anchor.id);
+        writeEventV18867Metadata(table, anchor.id, { ...merged, eventSchedule: finalSchedule,
+            structureDecision: finalStructure, isMultiAnnouncement: 0,
+            sourceSegment: source.raw_text || merged.sourceSegment });
+        for (const row of active) if (row.id !== anchor.id) database.prepare(`UPDATE ${table} SET status = 'ignored' WHERE id = ?`).run(row.id);
+        if (ownsTransaction) database.exec('COMMIT');
+    } catch (error) { if (ownsTransaction) database.exec('ROLLBACK'); throw error; }
+    console.log(finalStructure === 'theater_repertoire' ? '[THEATER REPERTOIRE STORED]' : '[SHARED SCHEDULE STORED]', table, anchor.id, schedule.startDate, schedule.endDate, 'excluded=' + blockedDates.join(','));
+    return true;
 }

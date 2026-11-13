@@ -4,7 +4,6 @@ const CATALOG = [
     ['gpt-5.6-luna', ['5.6 luna', '5.6 луна', 'luna56']],
     ['gpt-5.6-terra', ['5.6 terra', '5.6 терра', 'terra56']],
     ['gpt-5.6-sol', ['5.6 sol', '5.6 сол', 'sol56']],
-    ['gpt-5.5', ['5.5', 'gpt 5.5']],
     ['gpt-6-luna', ['6 luna', '6 луна', 'луна', 'luna']],
     ['gpt-6-sol', ['6 sol', '6 сол', 'sol']],
     ['gpt-6.1-sol', ['6.1 sol', '6.1 сол', '6 1 sol', '6 1 сол']],
@@ -18,21 +17,21 @@ export const MODEL_LADDER_PROFILE_LABELS = Object.freeze({
     'parser-all-new-text': 'Парсер все новые · текст', 'parser-all-new-vision': 'Парсер все новые · изображения',
 });
 export const DEFAULT_MODEL_LADDER_PROFILES = Object.freeze({
-    chat: [{ model: 'gpt-5.6-luna', attempts: 1 }, { model: 'gpt-6.1-sol', attempts: 3 }, { model: 'gpt-6-astra', attempts: 2 }],
-    conversation: [{ model: 'gpt-5.6-luna', attempts: 1 }, { model: 'gpt-6.1-sol', attempts: 3 }, { model: 'gpt-6-astra', attempts: 2 }],
-    'chat-vision': [{ model: 'gpt-5.6-luna', attempts: 1, detail: 'high', reasoningEffort: 'none' }, { model: 'gpt-6.1-sol', attempts: 3, detail: 'original', reasoningEffort: 'low' }, { model: 'gpt-6-astra', attempts: 2, detail: 'original', reasoningEffort: 'low' }],
+    chat: [{ model: 'gpt-6-luna', attempts: 1, reasoningEffort: 'low' }, { model: 'gpt-5.6-luna', attempts: 1 }, { model: 'gpt-6.1-sol', attempts: 3 }, { model: 'gpt-6-astra', attempts: 2 }],
+    conversation: [{ model: 'gpt-6-luna', attempts: 1, reasoningEffort: 'low' }, { model: 'gpt-5.6-luna', attempts: 1 }, { model: 'gpt-6.1-sol', attempts: 3 }, { model: 'gpt-6-astra', attempts: 2 }],
+    'chat-vision': [{ model: 'gpt-6-luna', attempts: 1, detail: 'high', reasoningEffort: 'low' }, { model: 'gpt-5.6-luna', attempts: 1, detail: 'high', reasoningEffort: 'none' }, { model: 'gpt-6.1-sol', attempts: 3, detail: 'original', reasoningEffort: 'low' }, { model: 'gpt-6-astra', attempts: 2, detail: 'original', reasoningEffort: 'low' }],
     'parser-all-text': [
+        { model: 'gpt-6-luna', attempts: 1, reasoningEffort: 'low' },
         { model: 'gpt-5.6-luna', attempts: 1, reasoningEffort: 'none' },
         { model: 'gpt-5.6-terra', attempts: 1, timeoutMs: 150000, reasoningEffort: 'none' },
-        { model: 'gpt-5.6-sol', attempts: 1, reasoningEffort: 'none' },
         { model: 'gpt-6.1-sol', attempts: 3, reasoningEffort: 'low' },
         { model: 'gpt-6-astra', attempts: 2, reasoningEffort: 'low' },
     ],
     'parser-all-vision': POSTER_VISION_MODEL_LADDER.map(({ mode, ...step }) => ({ ...step })),
     'parser-all-new-text': [
+        { model: 'gpt-6-luna', attempts: 1, reasoningEffort: 'low' },
         { model: 'gpt-5.6-luna', attempts: 1, reasoningEffort: 'none' },
         { model: 'gpt-5.6-terra', attempts: 1, timeoutMs: 150000, reasoningEffort: 'none' },
-        { model: 'gpt-5.6-sol', attempts: 1, reasoningEffort: 'none' },
         { model: 'gpt-6.1-sol', attempts: 3, reasoningEffort: 'low' },
         { model: 'gpt-6-astra', attempts: 2, reasoningEffort: 'low' },
     ],
@@ -99,6 +98,14 @@ export function parseModelLadderCommand(input) {
     if (sections.some(s => new Set(s.steps.map(x => x.model)).size !== s.steps.length)) return { action: 'invalid', error: 'В профиле нельзя повторять одну модель.' };
     return { action: 'save', profiles: Object.fromEntries(sections.map(s => [s.profile, s.steps])) };
 }
-export function validateModelLadderProfiles(value) { return Object.fromEntries(Object.keys(DEFAULT_MODEL_LADDER_PROFILES).map(key => [key, (Array.isArray(value?.[key]) ? value[key] : DEFAULT_MODEL_LADDER_PROFILES[key]).map(step => ({ ...step, model: resolveModelAlias(step.model) || step.model, attempts: Math.max(1, Math.min(10, Number(step.attempts) || 1)) }))])); }
+export function validateModelLadderProfiles(value) {
+    const retired = model => /^gpt[-_ ]?5[._ -]?[45](?:$|[-_ ])/iu.test(String(model ?? '')) || /^gpt5[45]$/iu.test(String(model ?? ''));
+    return Object.fromEntries(Object.keys(DEFAULT_MODEL_LADDER_PROFILES).map(key => {
+        const provided = Array.isArray(value?.[key]) ? value[key] : DEFAULT_MODEL_LADDER_PROFILES[key];
+        const clean = provided.filter(step => step && !retired(step.model))
+            .map(step => ({ ...step, model: resolveModelAlias(step.model) || step.model, attempts: Math.max(1, Math.min(10, Number(step.attempts) || 1)) }));
+        return [key, clean.length ? clean : structuredClone(DEFAULT_MODEL_LADDER_PROFILES[key])];
+    }));
+}
 export function formatModelLadderProfiles(value = DEFAULT_MODEL_LADDER_PROFILES) { const aliases = new Map(CATALOG.map(([id, names]) => [id, names[0]])); return Object.entries(validateModelLadderProfiles(value)).map(([key, steps]) => [MODEL_LADDER_PROFILE_LABELS[key] + ' [' + key + ']:', ...steps.map(step => '  ' + (aliases.get(step.model) || step.model) + ' ' + step.attempts + (step.stream === true ? ' stream' : step.stream === false ? ' nostream' : '') + (step.detail ? ' detail=' + step.detail : '') + (step.reasoningEffort ? ' reasoning=' + step.reasoningEffort : '') + (step.timeoutMs ? ' timeout=' + Math.round(step.timeoutMs / 1000) + 's' : ''))].join(String.fromCharCode(10))).join(String.fromCharCode(10) + String.fromCharCode(10)); }
 export function buildModelLadderHelp(profiles = DEFAULT_MODEL_LADDER_PROFILES) { return ['Текущие лестницы моделей:', formatModelLadderProfiles(profiles), '', 'Изменение: «лестница изменить» и ниже профили с моделями сверху вниз.', 'Профили: чат:, беседы:, изображения чата:, парсер все текст:, парсер все изображения:, парсер все новые текст:, парсер все новые изображения:.', 'Строка: <алиас> <1–10 попыток> [stream|nostream] [detail=high|original] [reasoning=none|low|medium|high] [timeout=240s].', 'Алиасы:', ...CATALOG.map(([id, names]) => id + ': ' + names.join(', '))].join(String.fromCharCode(10)); }

@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { reconcileInterruptedOperationCheckpoints } from '../../src/runtime/operationSupervisor.js';
+import {
+    reconcileInterruptedOperationCheckpoints,
+    reconcileInterruptedOperationCheckpointsAsync,
+} from '../../src/runtime/operationSupervisor.js';
 import { classifyInterruptedOperation } from '../../src/runtime/operationRecoveryPolicy.js';
 
 test('restart policy explains built-in startup jobs without requesting owner action', () => {
@@ -91,4 +94,61 @@ test('startup recovery does not report short vk-message handlers as resumable wo
         assert.equal(saved.operation.status, 'abandoned');
         assert.equal(saved.reason, 'ignored-non-resumable-request');
     } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('async startup recovery preserves resumable operation checkpoints', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'operation-checkpoint-async-recovery-'));
+    try {
+        const path = join(directory, 'parser-run.json');
+        writeFileSync(path, JSON.stringify({
+            version: 1,
+            operation: {
+                id: 'parser-run', name: 'parser-all:primary', category: 'parser', status: 'running',
+                checkpoint: { phase: 'poster-gate', tracePath: 'trace.jsonl' },
+                progress: { phase: 'parser-poster-gate' },
+            },
+        }), 'utf8');
+
+        const recovered = await reconcileInterruptedOperationCheckpointsAsync({
+            directory, now: new Date('2026-10-02T08:30:00.000Z'), writeAudit: false,
+        });
+        const saved = JSON.parse(readFileSync(path, 'utf8'));
+
+        assert.equal(recovered.length, 1);
+        assert.equal(recovered[0].id, 'parser-run');
+        assert.equal(saved.operation.status, 'interrupted');
+        assert.equal(saved.operation.checkpoint.tracePath, 'trace.jsonl');
+        assert.equal(saved.reason, 'process-restarted');
+        assert.equal(saved.recovery.policy, 'managed-parser-recovery');
+    } finally {
+        rmSync(directory, { recursive: true, force: true });
+    }
+});
+
+test('async startup recovery bounds work to the newest checkpoint files', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'operation-checkpoint-bounded-recovery-'));
+    const createdPaths = [];
+    try {
+        const baseTimestamp = Date.now() - 30_000;
+        for (let index = 0; index < 101; index += 1) {
+            const timestamp = (baseTimestamp + index * 100).toString(36);
+            const suffix = index.toString(16).padStart(8, '0');
+            const path = join(directory, `${timestamp}-${suffix}.json`);
+            createdPaths.push(path);
+            writeFileSync(path, JSON.stringify({ operation: {
+                id: `${timestamp}-${suffix}`, name: 'parser-all:primary', category: 'parser', status: 'running',
+                checkpoint: { phase: 'scan' },
+            } }), 'utf8');
+        }
+
+        const recovered = await reconcileInterruptedOperationCheckpointsAsync({
+            directory, maxFiles: 100, writeAudit: false,
+        });
+
+        assert.equal(recovered.length, 100);
+        assert.equal(JSON.parse(readFileSync(createdPaths[0], 'utf8')).operation.status, 'running');
+        assert.equal(JSON.parse(readFileSync(createdPaths.at(-1), 'utf8')).operation.status, 'interrupted');
+    } finally {
+        rmSync(directory, { recursive: true, force: true });
+    }
 });

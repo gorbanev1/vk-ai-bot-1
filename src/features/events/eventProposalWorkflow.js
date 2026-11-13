@@ -1,6 +1,8 @@
+import { canonicalizeEventVenue } from './eventVenueCatalog.js';
 import { extractEventTime } from './eventMetadata.js';
 import { extractExplicitDates } from './publicPostDateEvidence.js';
 import { classifyEventSourceUrl } from './eventSourceLink.js';
+import { inferEventSearchTags } from './eventSearchTaxonomy.js';
 
 const UNKNOWN_VALUE_PATTERN = /^(?:[-—–]+|нет|неизвестно|неизвестен|неизвестна|неизвестное|не\s+указан(?:о|а)?|не\s+уточнен(?:о|а)?|не\s+определен(?:о|а)?|unknown|tbd|n\/a)$/iu;
 const GENERIC_CITY_ONLY_PATTERN = /^(?:г\.?\s*)?(?:воронеж|москва|санкт[- ]?петербург|спб)$/iu;
@@ -71,19 +73,34 @@ function normalizeIsoDate(value) {
     return `${match[1]}-${match[2]}-${match[3]}`;
 }
 
-export function normalizeEventProposalDraftEvent(event = {}) {
+export function normalizeEventProposalDraftEvent(event = {}, { allowNearAddressMatch = false } = {}) {
     const eventDate = normalizeIsoDate(event?.eventDate ?? event?.date);
     const rawTime = clean(event?.eventTime ?? event?.time, 32);
     const eventTime = /^([01]\d|2[0-3]):[0-5]\d$/u.test(rawTime)
         ? rawTime
         : null;
 
+    const rawVenue = [event?.venue, event?.address].map((value) => clean(value, 500)).filter(Boolean).join(', ');
+    const venue = canonicalizeEventVenue(rawVenue, { allowNearAddressMatch }).venue;
+    const normalizedTags = [...new Set([
+        ...(Array.isArray(event?.eventTags) ? event.eventTags : Array.isArray(event?.tags) ? event.tags : []),
+        ...inferEventSearchTags({
+            ...event,
+            title: clean(event?.title, 500),
+            venue: clean(venue, 500),
+            description: clean(event?.description ?? event?.announcement, 6000),
+        }),
+        ...inferEventSearchTags({
+            description: clean([event?.sourceText, event?.evidence, event?.posterText, event?.ocrText].filter(Boolean).join(' '), 16000),
+            eventTags: Array.isArray(event?.eventTags) ? event.eventTags : event?.tags,
+        }),
+    ].map((value) => clean(value, 80)).filter(Boolean))].slice(0, 16);
     return {
         ...event,
         title: clean(event?.title, 500),
         eventDate,
         eventTime,
-        venue: clean(event?.venue, 500),
+        venue: clean(venue, 500),
         participants: clean(event?.participants, 2000),
         contacts: clean(event?.contacts, 2000),
         price: clean(event?.price, 700),
@@ -94,9 +111,8 @@ export function normalizeEventProposalDraftEvent(event = {}) {
         imagePaths: Array.isArray(event?.imagePaths)
             ? event.imagePaths.map((value) => clean(value, 2000)).filter(Boolean).slice(0, 10)
             : [],
-        eventTags: [...new Set((Array.isArray(event?.eventTags) ? event.eventTags : Array.isArray(event?.tags) ? event.tags : [])
-            .map((value) => clean(value, 80))
-            .filter(Boolean))].slice(0, 16),
+        eventTags: normalizedTags,
+        tags: normalizedTags,
     };
 }
 

@@ -126,8 +126,6 @@ export function resolveProviderModel({
 
     const suffix = {
         default: 'DEFAULT',
-        gpt54: 'GPT54',
-        gpt55: 'GPT55',
         pro: 'PRO',
         pro2: 'PRO2',
         pro3: 'PRO3',
@@ -180,6 +178,18 @@ function markFailure(credential, error, { failuresBeforeQuarantine, quarantineMs
         return true;
     }
     return false;
+}
+
+// Only an explicit balance/billing failure may bypass same-key retries.
+// Non-billing request errors must retain their original model retry policy.
+// No inference is repeated after output or a durable response ID exists.
+export function isCompatRouterBalanceExhaustion(error) {
+    if (error?.inferenceMayHaveStarted || error?.streamOutputStarted || error?.responseId || error?.inferenceCompleted) return false;
+    const status = Number(error?.status ?? error?.statusCode ?? error?.response?.status);
+    const code = clean(error?.code).toLowerCase();
+    const message = clean(error?.message || error).toLowerCase();
+    if (status === 402 || /(?:^|\\D)402(?:\\D|$)/u.test(message)) return true;
+    return /insufficient[_ -]?(?:credits?|funds?|balance|quota)|credit[_ -]?balance[_ -]?exhausted|balance[_ -]?(?:exhausted|depleted|too low|insufficient)|budget[_ -]?exceeded|billing[_ -]?account[_ -]?locked|payment[_ -]?required|(?:spend|credit)[_ -]?limit[_ -]?exceeded/u.test(code + ' ' + message);
 }
 
 export function isTechnicalModelFailure(error) {

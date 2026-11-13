@@ -1,3 +1,4 @@
+import { inspectVkMessageStructure, vkStickerImageUrl } from '../../platforms/vk/vkMessageStructure.js';
 const DEFAULT_MAX_DEPTH = 20;
 const DEFAULT_MAX_IMAGES = 64;
 const DEFAULT_MAX_NODES = 512;
@@ -163,7 +164,7 @@ function attachmentIdentity(platform, type, payload, fallback = '') {
         return compactLine(payload.file_unique_id || payload.file_id || fallback);
     }
     const owner = firstDefined(payload, ['owner_id', 'ownerId']);
-    const id = firstDefined(payload, ['id', 'photo_id', 'photoId', 'doc_id', 'docId']);
+    const id = firstDefined(payload, ['id', 'photo_id', 'photoId', 'doc_id', 'docId', 'sticker_id', 'stickerId']);
     const accessKey = firstDefined(payload, ['access_key', 'accessKey']);
     if (owner != null && id != null) return `${type}:${owner}:${id}${accessKey ? `:${accessKey}` : ''}`;
     if (id != null) return `${type}:${id}`;
@@ -331,7 +332,7 @@ function collectVkContext(rawMessage, state) {
             const attachment = toPlainObject(raw);
             const type = getVkAttachmentType(attachment);
             const payload = getVkAttachmentPayload(attachment, type);
-            return type === 'photo' || ((type === 'doc' || type === 'document') && isVkImageDocument(payload));
+            return type === 'photo' || type === 'sticker' || ((type === 'doc' || type === 'document') && isVkImageDocument(payload));
         }).length;
         let imageAttachmentIndex = 0;
 
@@ -342,13 +343,13 @@ function collectVkContext(rawMessage, state) {
             const payload = getVkAttachmentPayload(attachment, type);
             const itemPath = `${path}[${index}]${type ? `:${type}` : ''}`;
 
-            if (type === 'photo') {
+            if (type === 'photo' || type === 'sticker') {
                 imageAttachmentIndex += 1;
-                const url = selectLargestImageUrl(payload);
+                const url = type === 'sticker' ? vkStickerImageUrl(attachment) : selectLargestImageUrl(payload);
                 state.addImage({
                     platform: 'vk',
-                    attachmentType: 'photo',
-                    attachmentId: attachmentIdentity('vk', 'photo', payload, itemPath),
+                    attachmentType: type,
+                    attachmentId: attachmentIdentity('vk', type, payload, itemPath),
                     attachmentIndex: imageAttachmentIndex,
                     attachmentCount: imageAttachmentCount,
                     sourceMessageId,
@@ -642,6 +643,7 @@ export async function collectIncomingMediaContext(rawContext, {
     return {
         platform,
         rawMessage,
+        ...(platform==='vk'?{structure:inspectVkMessageStructure(rawMessage)}:{}),
         images: state.images,
         textNodes: state.textNodes,
         events: state.events,

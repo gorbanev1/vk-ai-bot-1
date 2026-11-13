@@ -1,4 +1,12 @@
-import { applyPosterGateResult } from '../../features/scrapers/posterGateResult.js';
+import { parsePublicPostLocallyAsync } from '../../features/scrapers/parserWorkAsync.js';
+import { inspectTelegramPublicPostMedia, enrichTelegramPostsWithPublicEmbed } from './telegramPostMedia.js';
+import { captureTelegramVideoPost, prepareTelegramEventVideo } from './telegramEventVideo.js';
+import { getPendingParserPosterItems } from '../../infrastructure/database/index.js';
+import { mergePosterRepairItems } from '../../infrastructure/database/parserPosterRetry.js';
+import { cachedParserImageAsset } from '../../features/scrapers/browserImageCacheRecovery.js';
+import { getSharedEventSchedule, nextSharedEventDate } from '../../features/events/sharedEventSchedule.js';
+import { applyPosterGateResult, allowTextOnlyAfterImageSkip } from '../../features/scrapers/posterGateResult.js';
+import { explainRecentOrFuturePost } from '../../features/scrapers/recentEventPassPolicy.js';
 /**
  * Скрейпер публичных Telegram-каналов через браузер: читает посты, сохраняет источники и передаёт только строгие события.
  */
@@ -267,11 +275,16 @@ function getAttribute(tag, attributeName) {
 function splitMessageBlocks(html) {
     const source = String(html ?? '');
     const starts = [];
-    const pattern = /<div\b[^>]*class=(?:"[^"]*\btgme_widget_message_wrap\b[^"]*"|'[^']*\btgme_widget_message_wrap\b[^']*')[^>]*>/giu;
+    // Channel feeds contain _wrap; single-post Telegram Embed does not.
+    // Prefer feed wrappers if present, to avoid splitting one post twice.
+    let pattern = /<div\b[^>]*class=(?:"[^"]*\btgme_widget_message_wrap\b[^"]*"|'[^']*\btgme_widget_message_wrap\b[^']*')[^>]*>/giu;
     let match;
 
-    while ((match = pattern.exec(source)) !== null) {
-        starts.push(match.index);
+    while ((match = pattern.exec(source)) !== null) starts.push(match.index);
+
+    if (!starts.length) {
+        pattern = /<div\b[^>]*class=(?:"[^"]*\btgme_widget_message\b[^"]*"|'[^']*\btgme_widget_message\b[^']*')[^>]*\bdata-post=(?:"[^"]+"|'[^']+')[^>]*>/giu;
+        while ((match = pattern.exec(source)) !== null) starts.push(match.index);
     }
 
     return starts.map((start, index) => {
@@ -309,7 +322,7 @@ function extractImageUrls(block) {
         urls.push(url);
     };
     const tags = source.match(
-        /<(?:a|div)\b[^>]*class=(?:"[^"]*\btgme_widget_message_(?:photo_wrap|video_thumb)\b[^"]*"|'[^']*\btgme_widget_message_(?:photo_wrap|video_thumb)\b[^']*')[^>]*>/giu,
+        /<(?:a|div|i)\b[^>]*class=(?:"[^"]*\btgme_widget_message_(?:photo_wrap|video_thumb)\b[^"]*"|'[^']*\btgme_widget_message_(?:photo_wrap|video_thumb)\b[^']*')[^>]*>/giu,
     ) ?? [];
 
     for (const tag of tags) {
@@ -321,11 +334,16 @@ function extractImageUrls(block) {
         if (urls.length >= MAX_IMAGES_PER_POST) return urls.slice(0, MAX_IMAGES_PER_POST);
     }
 
-    // Telegram occasionally changes the public widget from CSS background-image
-    // to real <img>/<source> elements. Keep this as the second DOM contour so a
-    // harmless markup change does not turn a fully loaded post into "no media".
+    // A confirmed CSS video cover/photo is preferred over <img> avatars and
+    // <source> video files, neither of which is a standalone photo.
+    if (urls.length) return urls.slice(0, MAX_IMAGES_PER_POST);
+
+    // Some widgets use real image elements instead of CSS backgrounds.
     const mediaTags = source.match(/<(?:img|source)\b[^>]*>/giu) ?? [];
     for (const tag of mediaTags) {
+        const mediaType = getAttribute(tag, 'type').toLowerCase();
+        const src = getAttribute(tag, 'src') || getAttribute(tag, 'data-src');
+        if (/^(?:video|audio)\//u.test(mediaType) || /\.(?:mp4|webm|mov|m4v)(?:[?#]|$)/iu.test(src)) continue;
         const srcset = getAttribute(tag, 'srcset') || getAttribute(tag, 'data-srcset');
         if (srcset) {
             const candidates = srcset.split(',')
@@ -360,13 +378,18 @@ export function parseTelegramPublicHtml(html, expectedChannel) {
             continue;
         }
 
-        const timeTag = block.match(/<time\b[^>]*>/iu)?.[0] ?? '';
+        // Video duration also uses <time>; only datetime is publication time.
+        const timeTag = block.match(/<time\b(?=[^>]*\bdatetime\s*=)[^>]*>/iu)?.[0] ?? '';
         const datetime = getAttribute(timeTag, 'datetime');
         const publishedAt = Number.isFinite(Date.parse(datetime))
             ? Math.floor(Date.parse(datetime) / 1000)
             : 0;
         const text = extractTextBlock(block);
-        const imageUrls = extractImageUrls(block);
+        let imageUrls = extractImageUrls(block);
+        // Video thumbnails are previews, not proof of a downloadable video.
+        const media = inspectTelegramPublicPostMedia(block);
+        const videoPreviewUrls = media.hasVideo && !media.hasPhoto ? imageUrls : [];
+        if (media.hasVideo && !media.hasPhoto) imageUrls = [];
         const sourceUrl = `${TELEGRAM_BASE_URL}/${channel}/${messageId}`;
 
         posts.push({
@@ -376,6 +399,8 @@ export function parseTelegramPublicHtml(html, expectedChannel) {
             publishedAt,
             text,
             imageUrls,
+            videoPreviewUrls,
+            ...media,
         });
     }
 
@@ -522,6 +547,7 @@ async function fetchHtmlPage({
                 reuseKey: (keepPageOpen || deferClose) ? `telegram-public:${channel}` : '',
             });
             openedAtMs = Date.now();
+            await diagnostics?.captureBrowserImages?.(page, []);
         } catch (error) {
             if (keepPageOpen && isScraperTargetClosedError(error)) {
                 return { html: '', stoppedByOwner: true, page: null };
@@ -663,6 +689,7 @@ async function fetchHtmlPage({
                     });
                 }
             }
+            await diagnostics?.captureBrowserImages?.(page, parseTelegramPublicHtml(html, channel));
             const parsedCount = parseTelegramPublicHtml(html, channel).length;
             console.log(
                 '[TG HTML PAGE CAPTURED]',
@@ -769,6 +796,26 @@ async function downloadEventImages({
     return paths;
 }
 
+async function recoverTelegramPostMedia(posts, { dataDirectory = './data' } = {}) {
+    const enriched = await enrichTelegramPostsWithPublicEmbed(posts, {
+        // A bounded, unauthenticated retry on the specific Telegram post.
+        fetchEmbedHtml: async (post) => {
+            const response = await fetchWithTimeout(
+                `${TELEGRAM_BASE_URL}/${post.channel}/${post.messageId}?embed=1&mode=tme`,
+                { timeoutMs: 8_000, maximumBytes: 2 * 1024 * 1024 },
+            );
+            return response.buffer.toString('utf8');
+        },
+        parsePosts: parseTelegramPublicHtml,
+        isEventCandidate: publicPostLooksLikeEventCandidate,
+        maxAttempts: 2,
+    });
+    await Promise.all(enriched.filter(post => post.mediaUnavailableReason && publicPostLooksLikeEventCandidate(post)).map(async post => {
+        Object.assign(post, await captureTelegramVideoPost(post, {dataDirectory}));
+    }));
+    return enriched;
+}
+
 async function collectInitialPosts({
     channel,
     targetCount,
@@ -832,6 +879,7 @@ async function collectInitialPosts({
     const result = [...collected.values()]
         .sort((left, right) => right.messageId - left.messageId)
         .slice(0, targetCount);
+    if (!stoppedByOwner) await recoverTelegramPostMedia(result, {dataDirectory});
     Object.defineProperty(result, 'stoppedByOwner', {
         value: stoppedByOwner,
         enumerable: false,
@@ -918,6 +966,7 @@ async function collectNewPosts({
     const result = [...collected.values()].sort(
         (left, right) => left.messageId - right.messageId,
     );
+    if (!stoppedByOwner) await recoverTelegramPostMedia(result, {dataDirectory});
     Object.defineProperty(result, 'stoppedByOwner', {
         value: stoppedByOwner,
         enumerable: false,
@@ -972,7 +1021,9 @@ async function fingerprintTelegramPostImages(post, {
         imageUrls: post.imageUrls,
         maximum: MAX_IMAGES_PER_POST,
         includeUiImages: true,
-        fetchBuffer: browserFallback
+        fetchBuffer: post?.__prepareCachedImage
+            ? (url) => cachedParserImageAsset(post.__prepareCachedImage, url)
+            : browserFallback
             ? (url) => browserDownloadBuffer({
                 url,
                 dataDirectory,
@@ -993,6 +1044,7 @@ async function processPost(post, {
     dataDirectory,
     downloadImages,
     extractEventsWithAi,
+    prepareAnnouncements,
     extractImageFactsWithAi,
     notifyAttention,
     timeZone,
@@ -1060,7 +1112,7 @@ async function processPost(post, {
         : 0;
     const nearDuplicateText = Boolean(previous && textSimilarity >= 0.90);
     const todayIso = currentIsoDate(timeZone);
-    const textOnlyLocalEvents = parsePublicPostLocally(post);
+    const textOnlyLocalEvents = await parsePublicPostLocallyAsync(post);
     const textComplete = textEventsAreComplete(textOnlyLocalEvents, {
         sourceText: post.text,
         publishedAt: post.publishedAt,
@@ -1245,7 +1297,7 @@ async function processPost(post, {
         };
     }
 
-    let events = imageFacts ? parsePublicPostLocally(enrichedPost) : textOnlyLocalEvents;
+    let events = imageFacts ? await parsePublicPostLocallyAsync(enrichedPost) : textOnlyLocalEvents;
     const localParsedCount = events.length;
     // После чтения афиши финальная семантическая сверка нужна даже если текст
     // сам по себе выглядел полным: poster facts могут исправить дату/место/title.
@@ -1308,6 +1360,7 @@ async function processPost(post, {
                 reason: validatedRaw.aiStructureReason,
                 valid: validatedRaw.aiResponseValid,
                 error: validatedRaw.aiResponseError,
+                validationFailures: validatedRaw.aiValidationFailures,
             });
             aiValidatedCount = validatedAiEvents.length;
         } catch (error) {
@@ -1330,7 +1383,7 @@ async function processPost(post, {
     const parsedEvents = events;
     const rejectedEvents = [];
     events = parsedEvents.filter((event) => {
-        if (String(event?.eventDate ?? '') < todayIso) {
+        if (getSharedEventSchedule(event) ? !nextSharedEventDate(event, todayIso) : String(event?.eventDate ?? '') < todayIso) {
             rejectedEvents.push({ event, reason: 'event-date-before-today' });
             return false;
         }
@@ -1363,6 +1416,9 @@ async function processPost(post, {
         aiOutcome.resolved = false;
         aiOutcome.unresolved = true;
         aiOutcome.reason = 'ai-event-failed-final-validation';
+        aiOutcome.validationFailures = rejectedEvents.map(({ event, reason }) => ({
+            date: event.eventDate, title: event.title, reason,
+        }));
     }
     const aiUnresolvedAfterValidation = Boolean(aiOutcome.unresolved && aiDecisionRequired);
 
@@ -1404,8 +1460,13 @@ async function processPost(post, {
             sourceLabel: `Telegram @${post.channel}`,
             notifyAttention,
             allowBrowserFallback: !manualRun,
+            fetchImage: post?.__prepareCachedImage ? (url) => cachedParserImageAsset(post.__prepareCachedImage, url) : null,
             shareSourceImagesAcrossEvents: true,
         });
+        if ((post.hasVideo || post.mediaUnavailableReason) && events.length) {
+            try { await prepareTelegramEventVideo(post, events, {dataDirectory, trace: traceAi || (() => {})}); }
+            catch (error) { traceAi?.('video.prepare-error', {sourceUrl: post.sourceUrl, error: String(error.message || error)}); }
+        }
         events = filterEventsWithAnnouncementImages(events, {
             onRejected: (event, reason) => rejectedEvents.push({ event, reason }),
         });
@@ -1439,6 +1500,7 @@ async function processPost(post, {
             events: parsedEvents, rejectedEvents, acceptedEventCount: effectiveEventCount,
         }) }
         : null;
+    if (events.length && prepareAnnouncements) events = await prepareAnnouncements(events, { sourceText: post.__sourceAnnouncementText || post.text });
     await runEventOperationWithRetries(
         () => persistTelegramSourceAndEvents({
             source: {
@@ -1506,6 +1568,8 @@ async function processPost(post, {
             aiEligible: canCallAi,
             aiRawCount,
             aiValidatedCount,
+            aiOutcomeReason: aiOutcome.reason,
+            validationFailures: aiOutcome.validationFailures || [],
             aiError,
             localParsedCount,
             parsedCount: parsedEvents.length,
@@ -1536,6 +1600,8 @@ async function processPost(post, {
         candidate,
         aiError,
         unresolved: aiUnresolvedAfterValidation,
+        unresolvedReason: aiUnresolvedAfterValidation ? aiOutcome.reason || aiError : '',
+        validationFailures: aiOutcome.validationFailures || [],
     };
 }
 
@@ -1544,6 +1610,7 @@ function startTelegramManualLiveParser({
     dataDirectory,
     downloadImages,
     extractEventsWithAi,
+    prepareAnnouncements,
     extractImageFactsWithAi,
     notifyAttention,
     timeZone,
@@ -1575,6 +1642,7 @@ function startTelegramManualLiveParser({
                     dataDirectory,
                     downloadImages,
                     extractEventsWithAi,
+    prepareAnnouncements,
                     extractImageFactsWithAi,
                     notifyAttention,
                     timeZone,
@@ -1634,6 +1702,7 @@ export function createTelegramHtmlScraper({
     intervalHours = 24,
     downloadImages = true,
     extractEventsWithAi = null,
+    prepareAnnouncements = null,
     extractImageFactsWithAi = null,
     notifyAttention = null,
     timeZone = 'Europe/Moscow',
@@ -1645,7 +1714,7 @@ export function createTelegramHtmlScraper({
     const safeInitialMessages = clampInteger(
         initialMessages,
         1,
-        20,
+        channel === 'nnrravew' ? 35 : 20,
         20,
     );
     const intervalMs = clampInteger(
@@ -1675,6 +1744,10 @@ export function createTelegramHtmlScraper({
         processingConcurrency = getManualParserProcessingConcurrency(),
         processingLimiter = null,
         incrementalOnly = false,
+        recentDays = 0,
+        // Parser phase two replays the durable raw cache and must never
+        // reopen Telegram in a blank browser tab.
+        cacheOnly = false,
         cachedItems = null,
         resumeCompletedSince = 0,
         phaseCount = 2,
@@ -1689,6 +1762,9 @@ export function createTelegramHtmlScraper({
             const startedAt = Math.floor(Date.now() / 1000);
             const state = getTelegramScraperState(channel);
             const initialMode = forceInitial || !state?.initialCompleted;
+            if (cacheOnly && !Array.isArray(cachedItems)) {
+                throw new Error(`Telegram cache-only replay requested without a raw cache: @${channel}`);
+            }
             const posts = Array.isArray(cachedItems)
                 ? cachedItems.map((item) => ({ ...item }))
                 : initialMode
@@ -1749,9 +1825,9 @@ export function createTelegramHtmlScraper({
 
             const sourceId = `tg:${channel}`;
             const ledgerRunId = `${sourceId}:${startedAt}:${process.pid}`;
-            const orderedPosts = [...posts].sort(
-                (left, right) => left.messageId - right.messageId,
-            );
+            const orderedPosts = mergePosterRepairItems(posts,
+                incrementalOnly && !Array.isArray(cachedItems) ? getPendingParserPosterItems(sourceId) : [], 'messageId')
+                .sort((left, right) => left.messageId - right.messageId);
             const candidateDecisions = new Map();
             const candidateIds = new Set();
             const posterGateRequests = [];
@@ -1783,6 +1859,15 @@ export function createTelegramHtmlScraper({
                 });
                 if (incrementalKnown) incrementalKnownSkippedCount += 1;
                 else incrementalNewCount += 1;
+                const recency = explainRecentOrFuturePost({
+                    publishedAt: Number(post?.publishedAt || 0),
+                    updatedAt: Number(post?.updatedAt || 0),
+                    text: String(post?.text || ''),
+                    referenceNow: post?.referenceNow,
+                    timeZone,
+                    recentDays,
+                    contentChanged: Boolean(ledgerBefore?.contentHash && ledgerBefore.contentHash !== rawContentHash),
+                });
                 const secondaryTextGate = !incrementalKnown && secondaryMode
                     ? explainSecondaryPartyTextGate({
                         text: String(post?.text || ''),
@@ -1793,7 +1878,9 @@ export function createTelegramHtmlScraper({
                         hasImage: Array.isArray(post?.imageUrls) && post.imageUrls.length > 0,
                     })
                     : null;
-                const decision = incrementalKnown
+                const decision = !recency.allowed
+                    ? { candidate: false, aiEligible: false, score: -1000, reasons: [recency.reason], evidence: { recency }, aiAdmission: { rejectionReason: recency.reason, dateSource: 'recent-pass-policy' } }
+                    : incrementalKnown
                     ? { candidate: false, aiEligible: false, score: -1000, reasons: ['clean-mode-content-hash-known'], evidence: { contentHashMatched: true }, aiAdmission: { rejectionReason: 'clean-mode-content-hash-known', dateSource: 'not-evaluated', contentHashMatched: true } }
                     : secondaryMode
                         ? {
@@ -1871,6 +1958,15 @@ export function createTelegramHtmlScraper({
                     incrementalHashMatched: incrementalKnown,
                     secondaryTextGate,
                     semanticBodyText: String(post?.text || ''),
+                    telegramMedia: {
+                        mediaType: String(post?.mediaType || 'unknown'),
+                        hasVideo: Boolean(post?.hasVideo),
+                        videoAccess: String(post?.videoAccess || 'not-checked'),
+                        videoDurationSeconds: post?.videoDurationSeconds ?? null,
+                        videoPreviewAvailable: Boolean(post?.videoPreviewAvailable),
+                        mediaReviewStatus: String(post?.mediaReviewStatus || 'not-required'),
+                        reviewUrl: String(post?.sourceUrl || ''),
+                    },
                     domAudit: post?.domAudit || null,
                     preview: parserCandidatePreview(post?.text),
                 });
@@ -2010,6 +2106,7 @@ export function createTelegramHtmlScraper({
                 );
                 // Phase 2 is poster-first. A confirmed poster carries its own
                 // event evidence; text is enrichment and cannot veto it.
+                const textOnlyAfterImageSkip = secondaryMode && allowTextOnlyAfterImageSkip(post, gate, secondaryTextGate);
                 const phaseTwoPosterAccepted = Boolean(secondaryMode && dateFreeVisionAccepted);
                 if (secondaryMode) post.__secondaryJointVisionAccepted = jointVisionAccepted;
                 const decision = before.incrementalKnown
@@ -2017,7 +2114,7 @@ export function createTelegramHtmlScraper({
                     : secondaryMode
                         ? {
                             candidate: Boolean(secondaryTextGate?.visionEligible || dateFreeVisionAccepted),
-                            aiEligible: phaseTwoPosterAccepted || jointVisionAccepted,
+                            aiEligible: phaseTwoPosterAccepted || jointVisionAccepted || textOnlyAfterImageSkip,
                             score: Number(before.score || 0),
                             reasons: [
                                 ...(Array.isArray(before.reasons) ? before.reasons : []),
@@ -2029,9 +2126,9 @@ export function createTelegramHtmlScraper({
                                 posterGateAttempted: Boolean(gate?.attempted),
                             },
                             aiAdmission: {
-                                eligible: phaseTwoPosterAccepted || jointVisionAccepted,
-                                admissionPath: 'secondary-joint-text-image',
-                                rejectionReason: jointVisionAccepted
+                                eligible: phaseTwoPosterAccepted || jointVisionAccepted || textOnlyAfterImageSkip,
+                                admissionPath: textOnlyAfterImageSkip ? 'secondary-text-after-unavailable-media' : 'secondary-joint-text-image',
+                                rejectionReason: (jointVisionAccepted || textOnlyAfterImageSkip)
                                     ? ''
                                     : !secondaryTextGate?.visionEligible
                                         ? secondaryTextGate?.rejectionReason || 'secondary-pre-ai-gate-rejected'
@@ -2193,10 +2290,14 @@ export function createTelegramHtmlScraper({
                             domAudit: post?.domAudit || null,
                         });
                     } else {
-                        result = await processPost(post, {
+                        result = await processPost({ ...post,
+                            __prepareCachedImage: diagnostics?.prepareCachedImage
+                                ? (url) => diagnostics.prepareCachedImage(url, post.sourceUrl) : undefined,
+                        }, {
                             dataDirectory: safeDataDirectory,
                             downloadImages: Boolean(downloadImages),
                             extractEventsWithAi,
+    prepareAnnouncements,
                             extractImageFactsWithAi,
                             notifyAttention,
                             timeZone,
@@ -2367,6 +2468,7 @@ export function createTelegramHtmlScraper({
                     dataDirectory: safeDataDirectory,
                     downloadImages: Boolean(downloadImages),
                     extractEventsWithAi,
+    prepareAnnouncements,
                     extractImageFactsWithAi,
                     notifyAttention,
                     timeZone,

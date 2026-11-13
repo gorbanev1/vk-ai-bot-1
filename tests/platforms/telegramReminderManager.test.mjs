@@ -178,6 +178,126 @@ test('event reminder delivery uses the existing tick scheduler and includes its 
     assert.equal(manager.getState().reminders.find(item => item.eventReminder).active, false);
 });
 
+test('group event reminder asks for a schedule, then sends a short notice before a separate card delivery', async t => {
+    const directory = mkdtempSync(join(tmpdir(), 'vk-event-reminder-group-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    let current = Date.parse('2026-10-01T08:00:00.000Z');
+    const delivered = [];
+    const event = { sourceType: 'vk', id: 77, eventDate: '2026-10-24', eventTime: '19:00', title: 'Концерт', venue: 'Diesel Hall' };
+    const manager = createReminderManager({ ownerVkUserId: '17',
+        api: { sendMessage: async () => ({ message_id: 1 }) },
+        storagePath: join(directory, 'state.json'), now: () => current, resolveEvent: async () => event,
+        sendEventReminder: async payload => { delivered.push(payload); return { message_id: delivered.length }; },
+    });
+    const replies = [];
+    const context = { platform: 'vk', isDM: false, externalPeerId: '2000000017', externalSenderId: '17', peerId: 701, send: async value => replies.push(value) };
+    await manager.handleGroupEventReminder(context, event, { platform: 'vk', chatId: '2000000017', peerId: 701, endpointKey: 'vk:primary' });
+    assert.equal(manager.getState().reminders.some(item => item.groupEventReminder), false);
+    assert.match(replies[0].message, /Я напомню в этой беседе/iu);
+    assert.match(replies[0].message, /Концерт/u);
+    assert.match(replies[0].message, /24 октября 2026/u);
+    assert.match(replies[0].message, /Diesel Hall/u);
+    assert.match(replies[0].message, /Начало: 19:00/u);
+    assert.deepEqual(JSON.parse(replies[0].keyboard).buttons.map(row => row[0].action.label), [
+        'В 09:00', 'В 12:00', 'В 09:00 и 12:00', 'В 12:00 и 14:00', 'В 10:00, 13:00 и 15:00',
+    ]);
+    const session = manager.getState().eventSessions.find(item => item.kind === 'group-event-reminder');
+    await manager.handleCallback({ ...context, callbackQuery: { data: 'evgrouprem:choose:' + session.id + ':0' } });
+    const reminder = manager.getState().reminders.find(item => item.groupEventReminder);
+    assert.ok(reminder);
+    assert.equal(reminder.chatId, '2000000017');
+    assert.equal(reminder.deliveryTarget, 'chat');
+    assert.match(replies.at(-1), /Напоминания придут в этот чат/iu);
+    assert.match(replies.at(-1), /24 октября 2026/u);
+    assert.match(replies.at(-1), /Diesel Hall/u);
+    assert.match(replies.at(-1), /Начало: 19:00/u);
+    assert.ok(reminder);
+    current = reminder.nextAt;
+    await manager.tick();
+    assert.equal(delivered.length, 1);
+    assert.equal(delivered[0].text, '🔔 Напоминаю вам о сегодняшнем событии.');
+    assert.equal(delivered[0].chatId, '2000000017');
+    assert.equal(delivered[0].groupEventReminder, true);
+    assert.equal(reminder.groupEventReminder, true);
+});
+
+test('group reminder choices must all precede the event start', async t => {
+    const directory = mkdtempSync(join(tmpdir(), 'vk-event-reminder-group-filter-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const event = { sourceType: 'vk', id: 79, eventDate: '2026-10-24', eventTime: '10:00', title: 'Утренний концерт' };
+    const manager = createReminderManager({ ownerVkUserId: '18',
+        api: { sendMessage: async () => ({ message_id: 1 }) },
+        storagePath: join(directory, 'state.json'), now: () => Date.parse('2026-10-01T08:00:00.000Z'),
+        resolveEvent: async () => event,
+    });
+    const replies = [];
+    const context = { platform: 'vk', isDM: false, externalPeerId: '2000000018', externalSenderId: '18', send: async value => replies.push(value) };
+    await manager.handleGroupEventReminder(context, event, { platform: 'vk', chatId: '2000000018', peerId: 702, endpointKey: 'vk:primary' });
+    assert.deepEqual(JSON.parse(replies[0].keyboard).buttons.map(row => row[0].action.label), ['В 09:00']);
+    const session = manager.getState().eventSessions.find(item => item.kind === 'group-event-reminder');
+    await manager.handleCallback({ ...context, callbackQuery: { data: 'evgrouprem:choose:' + session.id + ':0' } });
+    assert.ok(manager.getState().reminders.find(item => item.groupEventReminder)?.times.every(at => at < Date.parse('2026-10-24T07:00:00.000Z')));
+});
+
+test('VK group reminder keyboard routes the selected schedule back to the group reminder handler', async t => {
+    const directory = mkdtempSync(join(tmpdir(), 'vk-event-reminder-vk-group-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    let current = Date.parse('2026-10-01T08:00:00.000Z');
+    const event = { sourceType: 'vk', id: 80, eventDate: '2026-10-24', eventTime: '19:00', title: 'VK-шоу', venue: 'Клуб «12»' };
+    const manager = createReminderManager({ ownerVkUserId: '99', api: { sendMessage: async () => ({ message_id: 1 }) },
+        storagePath: join(directory, 'state.json'), now: () => current, resolveEvent: async () => event });
+    const replies = [];
+    const context = { platform: 'vk', isDM: false, externalPeerId: '2000000027', externalSenderId: '99', peerId: 2_000_000_027,
+        send: async value => replies.push(value), answerCallbackQuery: async () => {} };
+    await manager.handleGroupEventReminder(context, event, { platform: 'vk', chatId: '2000000027', peerId: 2_000_000_027, endpointKey: 'vk:primary' });
+    const keyboard = JSON.parse(replies[0].keyboard);
+    assert.equal(keyboard.buttons.length, 5);
+    const callbackData = JSON.parse(keyboard.buttons[0][0].action.payload).data;
+    assert.match(callbackData, /^evgrouprem:choose:/u);
+    await manager.handleCallback({ ...context, callbackQuery: { data: callbackData } });
+    const reminder = manager.getState().reminders.find(item => item.groupEventReminder);
+    assert.ok(reminder);
+    assert.equal(reminder.platform, 'vk');
+    assert.equal(reminder.chatId, '2000000027');
+    assert.equal(reminder.deliveryTarget, 'chat');
+    assert.match(replies.at(-1), /Напоминания придут в этот чат/iu);
+});
+
+test('personal reminders for two group members are coalesced at the same event time', async t => {
+    const directory = mkdtempSync(join(tmpdir(), 'vk-event-reminder-subscribers-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    let current = Date.parse('2026-10-01T08:00:00.000Z');
+    const delivered = [];
+    const event = { sourceType: 'vk', id: 78, eventDate: '2026-10-24', eventTime: '19:00', title: 'Шоу' };
+    const manager = createReminderManager({
+        api: { sendMessage: async () => ({ message_id: 1 }) },
+        storagePath: join(directory, 'state.json'), now: () => current, resolveEvent: async () => event,
+        sendEventReminder: async payload => { delivered.push(payload); return { message_id: delivered.length }; },
+    });
+    const groupId = '2000000019';
+    const makeContext = (id, displayName) => ({
+        platform: 'vk', isDM: false, externalPeerId: groupId, externalSenderId: id, externalSenderName: displayName,
+        externalSenderUsername: 'user' + id, peerId: 709, send: async () => {},
+    });
+    const firstContext = makeContext('21', 'Аня');
+    const secondContext = makeContext('22', 'Борис');
+    await manager.beginEventReminder(firstContext, event, { platform: 'vk', chatId: groupId, peerId: 709, endpointKey: 'vk:primary', deliveryTarget: 'chat', displayName: 'Аня' });
+    await manager.beginEventReminder(secondContext, event, { platform: 'vk', chatId: groupId, peerId: 709, endpointKey: 'vk:primary', deliveryTarget: 'chat', displayName: 'Борис' });
+    for (const context of [firstContext, secondContext]) {
+        const session = manager.getState().eventSessions.find(item => item.userId === context.externalSenderId);
+        await manager.handleCallback({ ...context, callbackQuery: { data: 'evrem:choose:' + session.id + ':0' } });
+        const selected = manager.getState().eventSessions.find(item => item.userId === context.externalSenderId);
+        await manager.handleCallback({ ...context, callbackQuery: { data: 'evrem:confirm:' + selected.id + ':' + selected.revision } });
+    }
+    const at = manager.getState().reminders.find(item => item.eventReminder).nextAt;
+    current = at;
+    await manager.tick();
+    assert.equal(delivered.length, 1);
+    assert.equal(delivered[0].chatId, groupId);
+    assert.equal(delivered[0].text, '🔔 Ты просил напомнить о событии «Шоу».');
+    assert.deepEqual(delivered[0].subscribers.map(item => item.id).sort(), ['21', '22']);
+});
+
 test('event command templates use the current card date and keep a two-time reminder together', async t => {
     const directory = mkdtempSync(join(tmpdir(), 'vk-event-reminder-template-'));
     t.after(() => rmSync(directory, { recursive: true, force: true }));
@@ -211,7 +331,9 @@ test('sends a reminder guide to owner and Milana, repeats it in 1-3 hours, and s
     manager.start();
     await new Promise(resolve => setTimeout(resolve, 0));
     assert.equal(sent.filter(item => /как задавать напоминания/iu.test(item.text)).length, 2);
-    assert.ok(sent.every(item => item.replyMarkup?.inline_keyboard?.[0]?.[0]?.text === 'Понял(а)'));
+    assert.ok(sent.every(item => item.text.length <= 3500));
+    assert.equal(sent.filter(item => item.replyMarkup?.inline_keyboard?.[0]?.[0]?.text === 'Понял(а)').length, 2);
+    assert.equal(sent.length, 4);
     const ownerNudge = manager.getState().helpNudges.find(item => item.id === 'owner');
     assert.equal(ownerNudge.nextAt - current, 2 * 60 * 60_000);
 
@@ -297,12 +419,13 @@ test('acknowledged help does not return after restart, other recipient keeps ran
     const options = { api, storagePath: join(directory, 'state.json'), ownerExternalUserId: '1', now: () => current, random: () => 0.75 };
     let manager = createReminderManager(options);
     manager.ensureHelpNudges(); await manager.tick();
-    assert.equal(sent.length, 2);
+    assert.equal(sent.length, 4);
+    assert.ok(sent.every(item => item.text.length <= 3500));
     await manager.handleCallback({ platform: 'telegram', isDM: true, externalPeerId: '1', externalSenderId: '1', callbackQuery: { data: 'remhelp:owner' }, answerCallbackQuery: async () => {}, send: async () => {} });
     manager = createReminderManager(options); manager.ensureHelpNudges();
     current += 3 * 3_600_000; await manager.tick();
-    assert.equal(sent.length, 3);
-    assert.equal(sent[2].chatId, '8019356616');
+    assert.equal(sent.length, 6);
+    assert.equal(sent[4].chatId, '8019356616');
     const remaining = manager.getState().helpNudges.find(item => item.id === 'milana');
     assert.ok(remaining.nextAt - current >= 3_600_000 && remaining.nextAt - current <= 10_800_000);
 });
@@ -417,7 +540,7 @@ test('forwards attachments, schedules attachment delivery, lists reminders and n
     assert.equal(reminder.chatId, 'milana-chat');
     assert.equal(await manager.handleIncoming({ ...base, originalText: 'показать напоминания', text: 'показать напоминания', externalPeerId: 'owner', externalSenderId: 'owner' }), true);
     assert.equal(await manager.handleIncoming({ ...base, originalText: 'мои напоминания', text: 'мои напоминания', externalPeerId: 'owner', externalSenderId: 'owner' }), true);
-    assert.ok(replies.some(value => value?.replyMarkup?.inline_keyboard?.[0]?.[0]?.text === 'Удалить'));
+    assert.ok(replies.some(value => value?.replyMarkup?.inline_keyboard?.[0]?.[0]?.text === 'Отменить навсегда'));
     const milana = { ...base, externalPeerId: 'milana-chat', externalSenderId: 'milana', originalText: '', text: '', send: async value => replies.push(value) };
     await manager.handleCallback({ ...milana, callbackQuery: { data: 'remlist:delete:' + reminder.id, message: { message_id: 1 } } });
     assert.ok(sent.some(value => value.chatId === 'owner' && /Напоминание удалено другим пользователем/iu.test(value.text)));
